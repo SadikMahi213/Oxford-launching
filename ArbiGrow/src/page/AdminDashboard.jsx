@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import AdminLayout from "../component/admin/AdminLayout.jsx";
 import UserManagement from "../component/admin/UserManagement.jsx";
 import DashboardOverview from "../component/admin/DashboardOverview.jsx";

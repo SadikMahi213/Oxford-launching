@@ -6,7 +6,7 @@ import { InvestmentPagination } from "./InvestmentPagination";
 import { AddProfitModal } from "./AddProfitModal";
 import { InvestmentDetailsModal } from "./InvestmentDetailsModal";
 import useUserStore from "../../store/userStore.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {
   addAdminInvestmentProfit,
   getAdminInvestmentDetails,

@@ -33,7 +33,7 @@ import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
 import Logo from "../assets/Arbigrow-Logo.png";
 import { mockMarketPrices, mockUserData } from "../constants/mockdata.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import ReferralPage from "../component/user/ReferralPage.jsx";
 import ProfilePage from "../component/user/ProfilePage.jsx";
 import OverviewPage from "../component/user/OverviewPage.jsx";

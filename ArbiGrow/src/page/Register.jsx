@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Navbar from "../component/Navbar";
 import Button from "../component/Button";
 import { registerUser } from "../api/auth.api.js";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { CheckCircle2, Circle, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterForm() {

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Shield, Zap } from "lucide-react";
 import Button from "./Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import icon from "../assets/arbitrum-icon.png";
 import useUserStore from "../store/userStore";
 

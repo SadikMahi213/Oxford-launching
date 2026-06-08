@@ -19,10 +19,10 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Button from "./Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
 import logo from "../assets/Arbigrow-Logo.png";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 
 export default function Navbar() {
   const location = useLocation();

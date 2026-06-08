@@ -3,7 +3,7 @@ import Button from "../component/Button";
 import Navbar from "../component/Navbar";
 import { loginUser } from "../api/auth.api";
 import useUserStore from "../store/userStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {

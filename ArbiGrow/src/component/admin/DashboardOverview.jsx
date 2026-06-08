@@ -8,7 +8,7 @@ import {
   Wallet,
   CheckCircle,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { getAdminDashboardOverview } from "../../api/admin.api.js";
 import useUserStore from "../../store/userStore.js";
 

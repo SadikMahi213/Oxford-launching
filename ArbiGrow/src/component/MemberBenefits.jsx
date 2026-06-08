@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { Gift, Users, Star, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
 import Button from "./Button";
 

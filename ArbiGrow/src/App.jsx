@@ -1,7 +1,7 @@
 import React from "react";
 import RegisterForm from "./page/Register";
 import LoginForm from "./page/Login";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router";
 import Home from "./page/Home";
 import ForgotPassword from "./page/ForgotPassword";
 import VerificationPage from "./page/VerificationPage";

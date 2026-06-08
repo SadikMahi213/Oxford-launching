@@ -8,7 +8,7 @@ import {
   AlertCircle,
   Check,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import { resetPassword } from "../api/auth.api.js";
 import useUserStore from "../store/userStore.js";
 

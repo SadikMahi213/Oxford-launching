@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { UserCircle, Check, Lock, Award } from "lucide-react";
 import useUserStore from "../../store/userStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const ProfilePage = () => {
   const navigate = useNavigate();

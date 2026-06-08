@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router";
 import {
   Shield,
   CheckCircle2,

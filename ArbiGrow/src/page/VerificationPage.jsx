@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { submitKYC } from "../api/kyc.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { countries } from "../constants/countries";
 
 export default function VerificationPage() {
