@@ -2,7 +2,7 @@ import hashlib
 import secrets
 import string
 from datetime import datetime, timedelta, date, timezone
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select, func, and_
@@ -156,10 +156,10 @@ async def submit_captcha(
 
     if is_correct:
         earned = (investment.earn_per_captcha or Decimal("0")).quantize(
-            WALLET_PRECISION, rounding=Decimal.ROUND_HALF_UP
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
         user.main_wallet = (user.main_wallet + earned).quantize(
-            WALLET_PRECISION, rounding=Decimal.ROUND_HALF_UP
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
         investment.captchas_typed_today += 1
         earning.amount_earned = earned
