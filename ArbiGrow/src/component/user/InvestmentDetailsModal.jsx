@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, BarChart3, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { X, Calendar, BarChart3, TrendingUp as TrendingUpIcon, Clock, CheckCircle } from 'lucide-react';
 import { useEffect, useState } from "react";
 import { getMyInvestmentDetails } from "../../api/user.api.js";
 
@@ -112,32 +112,49 @@ export function InvestmentDetailsModal({ investment, onClose }) {
               <div className="rounded-xl bg-gradient-to-br from-blue-600/10 to-white/5 border border-blue-500/20 p-4">
                 <div className="text-sm text-gray-400 mb-1">Invested Amount</div>
                 <div className="text-2xl font-bold text-white">
-                  {investment.investedAmount.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500">USDT</div>
-              </div>
-
-              <div className="rounded-xl bg-gradient-to-br from-cyan-600/10 to-white/5 border border-cyan-500/20 p-4">
-                <div className="text-sm text-gray-400 mb-1">Expected Profit</div>
-                <div className="text-2xl font-bold text-cyan-400">
-                  {investment.expectedProfit.toLocaleString()}
+                  ${investment.investedAmount.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">USDT</div>
               </div>
 
               <div className="rounded-xl bg-gradient-to-br from-green-600/10 to-white/5 border border-green-500/20 p-4">
-                <div className="text-sm text-gray-400 mb-1">Profit Earned</div>
+                <div className="text-sm text-gray-400 mb-1">Daily Payment</div>
                 <div className="text-2xl font-bold text-green-400">
-                  {investment.profitEarned.toLocaleString()}
+                  ${investment.dailyPayment?.toFixed(2) ?? "0.00"}
+                </div>
+                <div className="text-xs text-gray-500">USDT/day</div>
+              </div>
+
+              <div className="rounded-xl bg-gradient-to-br from-cyan-600/10 to-white/5 border border-cyan-500/20 p-4">
+                <div className="text-sm text-gray-400 mb-1">Total Return</div>
+                <div className="text-2xl font-bold text-cyan-400">
+                  ${investment.expectedProfit.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">USDT</div>
               </div>
             </div>
 
-            {/* ROI Progress */}
+            {/* Additional Info */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                <div className="text-sm text-gray-400 mb-1">Daily Captcha Requirement</div>
+                <div className="text-lg font-bold text-yellow-400">
+                  {investment.captchaRequiredPerDay ?? 0} Captchas
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+                <div className="text-sm text-gray-400 mb-1">Profit Earned</div>
+                <div className="text-lg font-bold text-green-400">
+                  ${investment.profitEarned.toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* Progress */}
             <div className="rounded-xl bg-white/5 border border-white/10 p-5">
               <h3 className="text-lg font-bold text-white mb-4">
-                ROI Progress
+                Progress
               </h3>
 
               <div className="space-y-4">
@@ -167,24 +184,24 @@ export function InvestmentDetailsModal({ investment, onClose }) {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-xs text-gray-500">Remaining ROI</div>
+                    <div className="text-xs text-gray-500">Remaining Profit</div>
                     <div className="text-sm text-white font-medium">
-                      {investment.remainingPercentage.toFixed(2)}%
+                      ${investment.remainingProfit?.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-between pt-2 border-t border-white/10 text-sm">
-                  <span className="text-gray-400">ROI Paid</span>
+                  <span className="text-gray-400">Profit Earned</span>
                   <span className="text-white font-semibold">
-                    {investment.profitPercentagePaid.toFixed(2)}%
+                    ${investment.profitEarned.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Total ROI Cap</span>
+                  <span className="text-gray-400">Total Return</span>
                   <span className="text-cyan-400 font-semibold">
-                    {Number(investment.roiPercent ?? 0).toFixed(2)}%
+                    ${investment.expectedProfit.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -230,7 +247,7 @@ export function InvestmentDetailsModal({ investment, onClose }) {
 
                     <div className="text-right">
                       <div className="text-base font-bold text-green-400">
-                        +{profit.amount.toFixed(2)}
+                        +${profit.amount.toFixed(2)}
                       </div>
                       <div className="text-xs text-gray-500">USDT</div>
                     </div>

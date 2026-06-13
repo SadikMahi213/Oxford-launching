@@ -29,11 +29,12 @@ def _parse_bool(value: str | None, default: bool = False) -> bool:
 
 
 def _serialize_announcement(item: Announcement) -> AnnouncementResponse:
+    resolved_image = item.image_url or generate_presigned_url(item.image_key)
     return AnnouncementResponse(
         id=item.id,
         title=item.title,
         message=item.message,
-        image_url=generate_presigned_url(item.image_key),
+        image_url=resolved_image,
         is_active=bool(item.is_active),
         created_by=item.created_by,
         created_at=item.created_at,
@@ -63,6 +64,7 @@ async def create_announcement(
     message: str | None = Form(None),
     is_active: str | None = Form(None),
     image: UploadFile | None = File(None),
+    image_url: str | None = Form(None),
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -85,6 +87,7 @@ async def create_announcement(
         title=title_value,
         message=(message or "").strip() or None,
         image_key=image_key,
+        image_url=(image_url or "").strip() or None,
         is_active=active_value,
         created_by=current_admin.id,
     )
@@ -102,6 +105,7 @@ async def update_announcement(
     message: str | None = Form(None),
     is_active: str | None = Form(None),
     image: UploadFile | None = File(None),
+    image_url: str | None = Form(None),
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -128,6 +132,9 @@ async def update_announcement(
             image,
             f"announcements/{item.created_by or 'admin'}",
         )
+
+    if image_url is not None:
+        item.image_url = (image_url or "").strip() or None
 
     if is_active is not None:
         active_value = _parse_bool(is_active, default=bool(item.is_active))

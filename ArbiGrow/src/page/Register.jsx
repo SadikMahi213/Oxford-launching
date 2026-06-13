@@ -103,7 +103,6 @@ export default function RegisterForm() {
     if (!formData.email.trim()) return "Email is required";
     if (!emailRegex.test(formData.email)) return "Invalid email format";
     if (!formData.full_name.trim()) return "Name is required";
-    if (!formData.referral_code.trim()) return "Referral code is required";
     if (!formData.password.trim()) return "Password is required";
 
     if (formData.password.length < 8)
@@ -146,13 +145,11 @@ export default function RegisterForm() {
       const payload = { ...formData };
       await registerUser(payload);
 
-      setMessage("Registration successful. Check your email for OTP.");
+      setMessage("Registration successful!");
       setIsSuccess(true);
 
       setTimeout(() => {
-        navigate(
-          `/email-verification?email=${encodeURIComponent(formData.email)}`,
-        );
+        navigate("/login");
       }, 600);
     } catch (error) {
       const res = error.response;

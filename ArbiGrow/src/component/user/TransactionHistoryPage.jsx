@@ -155,7 +155,7 @@ const TransactionHistoryPage = ({
                           : "bg-green-500/10 text-green-400 border border-green-500/30"
                       }`}
                     >
-                      {transaction.currency}
+                      {transaction.currency === "ARBX" ? "OFA token" : transaction.currency}
                     </span>
                   </td>
                   <td className="p-4">
@@ -228,7 +228,7 @@ const TransactionHistoryPage = ({
                           : "bg-green-500/10 text-green-400 border border-green-500/30"
                       }`}
                     >
-                      {transaction.currency}
+                      {transaction.currency === "ARBX" ? "OFA token" : transaction.currency}
                     </span>
                   </div>
                 </div>

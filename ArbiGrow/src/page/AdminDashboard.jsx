@@ -7,10 +7,14 @@ import useUserStore from "../store/userStore.js";
 import DepositRequests from "../component/admin/DepositRequests.jsx";
 import WithdrawalRequests from "../component/admin/WithdrawalRequests.jsx";
 import DepositNetworks from "../component/admin/DepositNetworks.jsx";
+import PackageManagement from "../component/admin/PackageManagement.jsx";
 import { InvestmentsManagement } from "../component/admin/InvestmentsManagement.jsx";
 import RoiManagement from "../component/admin/RoiManagement.jsx";
 import { StatisticsManagement } from "../component/admin/statistics/StatisticsManagement.jsx";
 import AnnouncementsManagement from "../component/admin/AnnouncementsManagement.jsx";
+import AdminEcommerce from "../component/admin/AdminEcommerce.jsx";
+import SystemConfigPanel from "../component/admin/SystemConfigPanel.jsx";
+import TaskManagement from "../component/admin/TaskManagement.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -39,24 +43,23 @@ export default function AdminDashboard() {
         return <WithdrawalRequests />;
       case "networks":
         return <DepositNetworks />;
+      case "packages":
+        return <PackageManagement />;
       case "investments":
         return <InvestmentsManagement />;
+      case "tasks":
+        return <TaskManagement />;
       case "statistics":
       return <StatisticsManagement />;
       case "announcements":
         return <AnnouncementsManagement />;
       case "roi":
         return <RoiManagement />;
+      case "ecommerce":
+        return <AdminEcommerce />;
       case "reports":
       case "settings":
-        return (
-          <div className="min-h-screen flex items-center justify-center p-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Coming Soon</h2>
-              <p className="text-gray-400">This page is under development</p>
-            </div>
-          </div>
-        );
+        return <SystemConfigPanel />;
       default:
         return null;
     }

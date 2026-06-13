@@ -28,6 +28,10 @@ import {
   Star,
   Award,
   MessageCircle,
+  ShoppingCart,
+  Store,
+  ArrowLeftRight,
+  Repeat,
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
@@ -55,6 +59,11 @@ import PackageModal from "../component/package/PackageModal.jsx";
 import { MyInvestments } from "../component/user/MyInvestments.jsx";
 import { Market } from "../component/user/Market.jsx";
 import { AnnouncementModal } from "../component/user/AnnouncementModal.jsx";
+import MarketplacePage from "../component/user/MarketplacePage.jsx";
+import SellerDashboard from "../component/user/SellerDashboard.jsx";
+import DailyTasks from "../component/user/DailyTasks.jsx";
+import WalletTransfer from "../component/user/WalletTransfer.jsx";
+import ConvertOFA from "../component/user/ConvertOFA.jsx";
 // Mock data for market prices
 
 const EMPTY_REFERRAL_LEVELS = [
@@ -389,6 +398,12 @@ export function UserDashboard() {
       description: "Active investments",
     },
     {
+      id: "tasks",
+      label: "Daily Tasks",
+      icon: Pickaxe,
+      description: "Complete & earn",
+    },
+    {
       id: "withdraw",
       label: "Withdraw",
       icon: Upload,
@@ -407,10 +422,34 @@ export function UserDashboard() {
       description: "Invite & earn",
     },
     {
+      id: "transfer",
+      label: "Wallet Transfer",
+      icon: ArrowLeftRight,
+      description: "Transfer between wallets",
+    },
+    {
+      id: "convert",
+      label: "Convert OFA",
+      icon: Repeat,
+      description: "OFA to USDT swap",
+    },
+    {
       id: "market",
       label: "Market",
       icon: TrendingUp,
       description: "Crypto market overview",
+    },
+    {
+      id: "marketplace",
+      label: "Marketplace",
+      icon: ShoppingCart,
+      description: "Buy products",
+    },
+    {
+      id: "seller",
+      label: "Seller Dashboard",
+      icon: Store,
+      description: "Manage your store",
     },
     {
       id: "profile",
@@ -574,6 +613,10 @@ export function UserDashboard() {
         />
       );
     }
+    //tasks
+    if (activePage === "tasks") {
+      return <DailyTasks />;
+    }
     //packege moddal
     if (activePage === "packages") {
       return (
@@ -594,6 +637,22 @@ export function UserDashboard() {
     // market page
     if (activePage === "market") {
       return <Market />;
+    }
+
+    if (activePage === "marketplace") {
+      return <MarketplacePage />;
+    }
+
+    if (activePage === "seller") {
+      return <SellerDashboard />;
+    }
+
+    if (activePage === "transfer") {
+      return <WalletTransfer />;
+    }
+
+    if (activePage === "convert") {
+      return <ConvertOFA />;
     }
 
     if (activePage !== "overview") {

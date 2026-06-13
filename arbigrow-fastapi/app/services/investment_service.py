@@ -13,7 +13,9 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.roi_setting import ROISetting
+from app.models.system_config import SystemConfig
 from app.models.user import User
+from app.services.task_generator import check_daily_task_completion
 
 logger = logging.getLogger(__name__)
 
@@ -221,8 +223,8 @@ async def _process_investment(investment_id: int, now_utc: datetime) -> bool:
             return False
 
 
-async def _process_investment_scheduled(investment_id: int, percentage: Decimal, now_utc: datetime) -> bool:
-    """Apply an explicit daily ROI percentage to one investment (scheduled mode)."""
+async def _process_investment_scheduled(investment_id: int, daily_payment: Decimal, now_utc: datetime) -> bool:
+    """Apply a fixed daily payment amount to one investment (scheduled mode)."""
     async with AsyncSessionLocal() as db:
         try:
             result = await db.execute(
@@ -252,10 +254,11 @@ async def _process_investment_scheduled(investment_id: int, percentage: Decimal,
                 await db.rollback()
                 return False
 
-            remaining = _to_percent_precision(
-                investment.roi_percent - investment.profit_percentage_paid
+            # Check if investment is already completed
+            remaining_profit = _to_wallet_precision(
+                investment.expected_profit - investment.profit_earned
             )
-            if remaining <= 0:
+            if remaining_profit <= 0:
                 if investment.status != "completed":
                     investment.status = "completed"
                     await db.commit()
@@ -263,17 +266,29 @@ async def _process_investment_scheduled(investment_id: int, percentage: Decimal,
                     await db.rollback()
                 return False
 
-            applied_percentage = _to_percent_precision(min(percentage, remaining))
-            if applied_percentage <= 0:
-                await db.rollback()
-                return False
-
-            profit_amount = _to_wallet_precision(
-                (investment.invested_amount * applied_percentage) / Decimal("100")
-            )
+            # Use the fixed daily payment, capped by remaining profit
+            profit_amount = _to_wallet_precision(min(daily_payment, remaining_profit))
             if profit_amount <= 0:
                 await db.rollback()
                 return False
+
+            # Check if task completion is required for daily earning
+            tc_result = await db.execute(
+                select(SystemConfig.value).where(SystemConfig.key == "task_completion_required")
+            )
+            tc_setting = tc_result.scalar_one_or_none()
+            if tc_setting and tc_setting.lower() == "true":
+                today_date = now_utc.date()
+                tasks_complete = await check_daily_task_completion(db, investment.user_id, today_date)
+                if not tasks_complete:
+                    logger.info(f"Investment {investment_id}: daily tasks not completed, skipping earning")
+                    await db.rollback()
+                    return False
+
+            # Calculate the percentage equivalent for history tracking
+            applied_percentage = _to_percent_precision(
+                (profit_amount / investment.invested_amount) * Decimal("100")
+            )
 
             user_result = await db.execute(
                 select(User).where(User.id == investment.user_id).with_for_update()
@@ -306,7 +321,8 @@ async def _process_investment_scheduled(investment_id: int, percentage: Decimal,
                 now_utc=now_utc,
             )
 
-            if investment.profit_percentage_paid >= investment.roi_percent:
+            # Complete if total profit earned meets or exceeds expected profit
+            if investment.profit_earned >= investment.expected_profit:
                 investment.status = "completed"
 
             await db.commit()
@@ -318,28 +334,20 @@ async def _process_investment_scheduled(investment_id: int, percentage: Decimal,
 
 
 async def run_auto_roi_cycle() -> dict:
-    """Load per-package scheduled ROI rates and credit each active investment once per day."""
+    """Credit each active investment with its fixed daily payment once per day."""
     now_utc = datetime.now(timezone.utc)
 
-    # Load admin-saved per-package daily ROI percentages from the DB
-    scheduled_percents: dict[str, Decimal] = {}
+    # Check UK weekend / admin override for daily_earning
     async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            select(ROISetting).where(ROISetting.key.like("scheduled_pkg:%"))
-        )
-        for setting in result.scalars().all():
-            pkg_name = setting.key[len("scheduled_pkg:"):]
-            if setting.roi_percent and setting.roi_percent > 0:
-                scheduled_percents[pkg_name] = Decimal(str(setting.roi_percent))
+        from app.utils.is_system_active import is_system_active
+        if not await is_system_active("daily_earning", db):
+            logger.info("Auto ROI: daily earning is paused (weekend/system maintenance), skipping cycle")
+            return {"processed": 0, "credited": 0}
 
-    if not scheduled_percents:
-        logger.info("Auto ROI: no scheduled package rates found, skipping cycle")
-        return {"processed": 0, "credited": 0}
-
-    # Fetch all active investment IDs and their package names
+    # Fetch all active investment IDs and their daily payments
     async with AsyncSessionLocal() as db:
         ids_result = await db.execute(
-            select(Investment.id, Investment.package_name)
+            select(Investment.id, Investment.daily_payment)
             .where(Investment.status == "active")
         )
         investment_rows = list(ids_result.all())
@@ -347,12 +355,11 @@ async def run_auto_roi_cycle() -> dict:
     processed = 0
     credited = 0
 
-    for investment_id, package_name in investment_rows:
-        percentage = scheduled_percents.get(package_name)
-        if percentage is None:
+    for investment_id, daily_payment in investment_rows:
+        if not daily_payment or daily_payment <= 0:
             continue
         processed += 1
-        if await _process_investment_scheduled(investment_id, percentage, now_utc):
+        if await _process_investment_scheduled(investment_id, daily_payment, now_utc):
             credited += 1
 
     return {"processed": processed, "credited": credited}

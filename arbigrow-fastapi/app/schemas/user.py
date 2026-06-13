@@ -27,7 +27,9 @@ class UserResponse(BaseModel):
     generation_wallet: Decimal
     arbx_wallet: Decimal
     arbx_mining_wallet: Decimal
+    ecommerce_wallet: Decimal
     email_verified: bool
+    profile_image_url: Optional[str] = None
 
     phone_number: Optional[str] = None
     country: Optional[str] = None
@@ -35,6 +37,7 @@ class UserResponse(BaseModel):
     mining_started_at: Optional[datetime] = None
     account_status: str = "active"
     account_issue: Optional[str] = None
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -118,3 +121,42 @@ class ReferralNetworkResponse(BaseModel):
     class Config:
         from_attributes = True
         json_encoders = {Decimal: lambda v: format(v, ".14f")}
+
+
+ALLOWED_WALLETS = [
+    "main_wallet", "deposit_wallet", "withdraw_wallet",
+    "referral_wallet", "generation_wallet", "ecommerce_wallet",
+    "arbx_wallet", "arbx_mining_wallet",
+]
+
+
+class WalletTransferRequest(BaseModel):
+    from_wallet: str = Field(..., pattern=f"^({'|'.join(ALLOWED_WALLETS)})$")
+    to_wallet: str = Field(..., pattern=f"^({'|'.join(ALLOWED_WALLETS)})$")
+    amount: Decimal = Field(gt=0)
+
+
+class WalletTransferResponse(BaseModel):
+    message: str
+    from_wallet: str
+    to_wallet: str
+    amount: float
+    from_balance: float
+    to_balance: float
+
+
+class ConvertOFARequest(BaseModel):
+    ofa_amount: Decimal = Field(gt=0)
+
+
+class ConvertOFAResponse(BaseModel):
+    message: str
+    ofa_amount: float
+    usdt_amount: float
+    arbx_wallet_balance: float
+    main_wallet_balance: float
+    rate: str
+
+
+class ProfileImageUpdateRequest(BaseModel):
+    profile_image_url: str

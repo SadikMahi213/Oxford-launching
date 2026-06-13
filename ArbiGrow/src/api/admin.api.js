@@ -183,15 +183,6 @@ export const applyAdminRoiToAll = async (token) => {
   return res.data || {};
 };
 
-export const applyRoiByTier = async (token, tierName, percentage) => {
-  const res = await api.post(
-    "v1/admin/roi/apply-by-tier",
-    { tier_name: tierName, percentage },
-    authHeaders(token),
-  );
-  return res.data || {};
-};
-
 export const applyRoiByPackage = async (token, packageName, percentage) => {
   const res = await api.post(
     "v1/admin/roi/apply-by-package",
@@ -251,6 +242,11 @@ export const addAdminInvestmentProfit = async (
 
 export const getAdminDashboardOverview = async (token) => {
   const res = await api.get("v1/admin/dashboard-overview", authHeaders(token));
+  return res.data || {};
+};
+
+export const getUserStatistics = async (token) => {
+  const res = await api.get("v1/admin/user-statistics", authHeaders(token));
   return res.data || {};
 };
 
@@ -331,5 +327,161 @@ export const deleteAnnouncement = async (token, announcementId) => {
     `v1/announcements/admin/${announcementId}`,
     authHeaders(token),
   );
+  return res.data || {};
+};
+
+export const getSystemConfig = async (token) => {
+  const res = await api.get("v1/admin/system-config", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateSystemConfig = async (token, key, value) => {
+  const res = await api.put(
+    `v1/admin/system-config/${key}`,
+    null,
+    { params: { value }, ...authHeaders(token) },
+  );
+  return res.data || {};
+};
+
+export const getMiningConfig = async (token) => {
+  const res = await api.get("v1/admin/mining/config", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateMiningConfig = async (token, key, value) => {
+  const res = await api.put(
+    `v1/admin/mining/config/${key}`,
+    null,
+    { params: { value }, ...authHeaders(token) },
+  );
+  return res.data || {};
+};
+
+export const getMiningStats = async (token, page = 1) => {
+  const res = await api.get(
+    `v1/admin/mining/stats?page=${page}`,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+// ── Package Management ──────────────────────────────────────────────────
+
+export const getAdminPackages = async (token) => {
+  const res = await api.get("v1/admin/packages", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateAdminPackage = async (token, packageId, data) => {
+  const res = await api.put(
+    `v1/admin/packages/${packageId}`,
+    null,
+    { params: data, ...authHeaders(token) },
+  );
+  return res.data || {};
+};
+
+export const toggleAdminPackage = async (token, packageId) => {
+  const res = await api.patch(
+    `v1/admin/packages/${packageId}/toggle`,
+    {},
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const getPackageSubscribers = async (token, packageId, page = 1) => {
+  const res = await api.get(
+    `v1/admin/packages/${packageId}/subscribers?page=${page}`,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const createAdminPackage = async (token, data) => {
+  const res = await api.post(
+    "v1/admin/packages",
+    null,
+    { params: data, ...authHeaders(token) },
+  );
+  return res.data || {};
+};
+
+export const deleteAdminPackage = async (token, packageId) => {
+  const res = await api.delete(
+    `v1/admin/packages/${packageId}`,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const getPackageStats = async (token) => {
+  const res = await api.get(
+    "v1/admin/packages/stats",
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const bulkTogglePackages = async (token, packageIds, isActive) => {
+  const res = await api.patch(
+    "v1/admin/packages/bulk-toggle",
+    { package_ids: packageIds, is_active: isActive },
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+// ── Task Management ──────────────────────────────────────────────────
+
+export const getAdminTaskTypes = async (token) => {
+  const res = await api.get("v1/admin/tasks/types", authHeaders(token));
+  return res.data || {};
+};
+
+export const createAdminTaskType = async (token, data) => {
+  const res = await api.post("v1/admin/tasks/types", data, authHeaders(token));
+  return res.data || {};
+};
+
+export const updateAdminTaskType = async (token, typeId, data) => {
+  const res = await api.put(
+    `v1/admin/tasks/types/${typeId}`,
+    data,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const toggleAdminTaskType = async (token, typeId) => {
+  const res = await api.patch(
+    `v1/admin/tasks/types/${typeId}/toggle`,
+    {},
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const deleteAdminTaskType = async (token, typeId) => {
+  const res = await api.delete(
+    `v1/admin/tasks/types/${typeId}`,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const getAdminTaskStats = async (token, days = 7) => {
+  const res = await api.get(
+    `v1/admin/tasks/stats?days=${days}`,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const getAdminUserTasks = async (token, userId, taskDate) => {
+  let url = `v1/admin/tasks/users/${userId}/tasks`;
+  if (taskDate) url += `?task_date=${taskDate}`;
+  const res = await api.get(url, authHeaders(token));
   return res.data || {};
 };

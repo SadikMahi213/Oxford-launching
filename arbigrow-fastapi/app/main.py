@@ -1,3 +1,4 @@
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -13,14 +14,28 @@ from app.core.config import settings
 from app.core.rate_limiter import limiter
 from app.api.router import api_router
 from app.core.logger import setup_logging
+from app.core.database import check_db_connection
 from app.services.investment_service import start_auto_roi_scheduler, stop_auto_roi_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup validation: verify database is reachable
+    logger = logging.getLogger(__name__)
+    logger.info("Starting ArbiGrow Backend...")
+    logger.info(f"Environment: {settings.APP_ENV}")
+    try:
+        await check_db_connection()
+        logger.info("Database connection OK")
+    except Exception as e:
+        logger.critical(f"Database connection FAILED: {e}")
+        logger.critical("Application will exit — fix your DATABASE_URL or ensure PostgreSQL is running.")
+        sys.exit(1)
+
     await start_auto_roi_scheduler()
     yield
     await stop_auto_roi_scheduler()
+    logger.info("ArbiGrow Backend shutting down.")
 
 
 app = FastAPI(
@@ -72,6 +87,5 @@ async def log_requests(request: Request, call_next):
     return response
 
 # logger.info(f"ALLOWED_ORIGINS: {settings.ALLOWED_ORIGINS}")
-
 
 app.include_router(api_router)

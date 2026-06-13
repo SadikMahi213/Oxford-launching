@@ -301,10 +301,10 @@ export const generateMockTransactions = () => {
     "Withdraw Wallet",
     "Referral Wallet",
     "Generation Wallet",
-    "ARBX Wallet",
+    "OFA token Wallet",
   ];
   const statuses = ["Completed", "Pending", "Processing"];
-  const currencies = ["USDT", "ARBX"];
+  const currencies = ["USDT", "OFA token"];
 
   return Array.from({ length: 95 }, (_, i) => ({
     id: i + 1,

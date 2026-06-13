@@ -127,7 +127,7 @@ export default function WithdrawPage() {
       },
       {
         key: "arbx_wallet",
-        label: "ARBX Wallet",
+        label: "OFA token Wallet",
         balance: toNumber(user?.arbx_wallet),
         disabled: true,
       },

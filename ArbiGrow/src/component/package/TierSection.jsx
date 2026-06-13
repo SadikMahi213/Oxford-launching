@@ -1,137 +1,175 @@
-import { motion } from "framer-motion";
-import { tierGroups } from "../../constants/strategyData";
+import { useState, useEffect } from "react";
+import { motion } from "motion/react";
+import { getPackages } from "../../api/user.api";
 import Logo from "../../assets/Arbigrow-Logo.png";
 
 export default function TierSection({ onSelect }) {
+  const [packages, setPackages] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPackages = async () => {
+      try {
+        const res = await getPackages();
+        setPackages(res.data?.packages || []);
+      } catch (error) {
+        console.error("Failed to load packages:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPackages();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="px-6 pb-20">
+        <div className="mx-auto max-w-7xl flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
+            <p className="mt-4 text-gray-400">Loading packages...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="px-6 pb-20">
       <div className="mx-auto max-w-7xl space-y-16">
-        {tierGroups.map((tier, tierIndex) => (
-          <div key={tier.name}>
-            {/* Tier Header */}
-            <div className="mb-8">
-              <div className="mb-3 flex items-center gap-3">
-                <h2 className="text-2xl font-semibold text-white sm:text-3xl">
-                  {tier.name}
-                </h2>
-                <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300">
-                  {tier.range}
-                </span>
-                <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm text-green-300">
-                  ROI {tier.roiText}
-                </span>
-              </div>
-              <p className="text-gray-400">{tier.description}</p>
+        <div>
+          <div className="mb-8">
+            <div className="mb-3 flex items-center gap-3">
+              <h2 className="text-2xl font-semibold text-white sm:text-3xl">
+                Oxford Financial Ads Packages
+              </h2>
             </div>
-
-            {/* Package Cards Grid */}
-            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-              {tier.packages.map((pkg, pkgIndex) => (
-                <motion.button
-                  key={pkg.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    delay: tierIndex * 0.1 + pkgIndex * 0.05,
-                  }}
-                  // for future: modal disabled but need to
-                  onClick={() => onSelect(pkg)}
-                  className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-[#0d1428] to-[#0a0e27] p-6 text-left transition-all hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10"
-                >
-                  {/* Circuit Pattern Background */}
-                  <div className="absolute inset-0 opacity-5">
-                    <svg
-                      className="size-full"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <defs>
-                        <pattern
-                          id={`circuit-${pkg.id}`}
-                          x="0"
-                          y="0"
-                          width="40"
-                          height="40"
-                          patternUnits="userSpaceOnUse"
-                        >
-                          <circle cx="5" cy="5" r="1" fill="#00d4ff" />
-                          <circle cx="35" cy="35" r="1" fill="#00d4ff" />
-                          <path
-                            d="M5 5 L35 5 L35 35"
-                            stroke="#00d4ff"
-                            strokeWidth="0.5"
-                            fill="none"
-                          />
-                        </pattern>
-                      </defs>
-                      <rect
-                        width="100%"
-                        height="100%"
-                        fill={`url(#circuit-${pkg.id})`}
-                      />
-                    </svg>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="relative">
-                    {/* Top Row */}
-                    <div className="mb-6 flex items-start justify-between">
-                      {/* Logo */}
-                      <div className="flex size-12  items-center justify-center rounded-full bg-gradient-to-br">
-                        <img
-                          src={Logo}
-                          alt="My Logo"
-                          className="w-12 h-12 object-contain"
-                        />
-                      </div>
-
-                      {/* Chip */}
-                      <div className="size-10 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 p-1">
-                        <div className="size-full rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500 opacity-80" />
-                      </div>
-                    </div>
-
-                    {/* Package Name */}
-                    <div className="mb-4">
-                      <p className="mb-1 text-xs text-gray-400 tracking-widest">
-                        STRATEGY ACCESS LEVEL
-                      </p>
-                      <h3 className="text-xl font-semibold text-white">
-                        {pkg.name}
-                      </h3>
-                    </div>
-
-                    {/* Allocation */}
-                    <div className="mb-6">
-                      <p className="text-4xl font-bold tracking-tight text-white">
-                        ${pkg.amount.toLocaleString()}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-400">
-                        Capital Allocation
-                      </p>
-                    </div>
-
-                    {/* Bottom Row */}
-                    <div className="flex items-center justify-between">
-                      <div className="rounded-md bg-cyan-500/10 px-3 py-1">
-                        <p className="text-xs font-medium text-cyan-300">
-                          {pkg.rank}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1">
-                        <div className="size-2 rounded-full bg-blue-400" />
-                        <span className="text-xs text-blue-300">Arbitrum</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hover Line */}
-                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 transition-opacity group-hover:opacity-100" />
-                </motion.button>
-              ))}
-            </div>
+            <p className="text-gray-400">
+              12-Month Daily Payment Model — Captcha Typing Packages
+            </p>
           </div>
-        ))}
+
+          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            {packages.map((pkg, pkgIndex) => (
+              <motion.button
+                key={pkg.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: pkgIndex * 0.05,
+                }}
+                onClick={() => onSelect(pkg)}
+                className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-[#0d1428] to-[#0a0e27] p-6 text-left transition-all hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10"
+              >
+                {/* Circuit Pattern Background */}
+                <div className="absolute inset-0 opacity-5">
+                  <svg
+                    className="size-full"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <defs>
+                      <pattern
+                        id={`circuit-${pkg.id}`}
+                        x="0"
+                        y="0"
+                        width="40"
+                        height="40"
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <circle cx="5" cy="5" r="1" fill="#00d4ff" />
+                        <circle cx="35" cy="35" r="1" fill="#00d4ff" />
+                        <path
+                          d="M5 5 L35 5 L35 35"
+                          stroke="#00d4ff"
+                          strokeWidth="0.5"
+                          fill="none"
+                        />
+                      </pattern>
+                    </defs>
+                    <rect
+                      width="100%"
+                      height="100%"
+                      fill={`url(#circuit-${pkg.id})`}
+                    />
+                  </svg>
+                </div>
+
+                {/* Card Content */}
+                <div className="relative">
+                  {/* Top Row */}
+                  <div className="mb-6 flex items-start justify-between">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br">
+                      <img
+                        src={Logo}
+                        alt="Logo"
+                        className="w-12 h-12 object-contain"
+                      />
+                    </div>
+                    <div className="size-10 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 p-1">
+                      <div className="size-full rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500 opacity-80" />
+                    </div>
+                  </div>
+
+                  {/* Package Name */}
+                  <div className="mb-4">
+                    <p className="mb-1 text-xs text-gray-400 tracking-widest">
+                      CAPTCHA TYPING PACKAGE
+                    </p>
+                    <h3 className="text-xl font-semibold text-white">
+                      {pkg.name}
+                    </h3>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="mb-6">
+                    <p className="text-4xl font-bold tracking-tight text-white">
+                      ${Number(pkg.investment_amount).toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-400">
+                      Investment Amount
+                    </p>
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Daily Captcha</span>
+                      <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} Tasks</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Duration</span>
+                      <span className="text-cyan-300 font-medium">{pkg.duration_days} Days</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Daily Payment</span>
+                      <span className="text-green-300 font-medium">${Number(pkg.daily_payment).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Total Return</span>
+                      <span className="text-yellow-300 font-medium">${Number(pkg.total_return).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row */}
+                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                    <div className="rounded-md bg-cyan-500/10 px-3 py-1">
+                      <p className="text-xs font-medium text-cyan-300">
+                        {pkg.captcha_task_duration_seconds}s per Captcha
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1">
+                      <div className="size-2 rounded-full bg-blue-400" />
+                      <span className="text-xs text-blue-300">{pkg.duration_days} Days</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hover Line */}
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 transition-opacity group-hover:opacity-100" />
+              </motion.button>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

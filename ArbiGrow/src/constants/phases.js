@@ -4,7 +4,7 @@ export const phases = [
     title: "Foundation & Community (Q1: Jan - Mar)",
     items: [
       "Official Launch of ArbiGrow Platform",
-      "100 ARBX Token Free Airdrop Campaign (Pre-Registration)",
+      "100 OFA Token Free Airdrop Campaign (Pre-Registration)",
       "Third-Party Smart Contract Security Audit",
       "Major Marketing Campaign (Telegram, YouTube & TikTok)",
     ],
@@ -13,7 +13,7 @@ export const phases = [
     phase: "Phase 2",
     title: "Ecosystem Growth (Q2: Apr - Jun)",
     items: [
-      "ARBX Token Staking Launch",
+      "OFA Token Staking Launch",
       "Global Expansion & Multi-Language Support",
       "International Leader Collaborations",
       "Dashboard 2.0 with Advanced Trading Analytics",
@@ -23,9 +23,9 @@ export const phases = [
     phase: "Phase 3",
     title: "Utility & Exchange Listing (Q3: Jul - Sep)",
     items: [
-      "ARBX Listing on 3 Major Decentralized Exchanges (DEX)",
-      "Gradual ARBX Unlock & Withdrawal Opening",
-      "Merchant Payment Integration for ARBX",
+      "OFA Listing on 3 Major Decentralized Exchanges (DEX)",
+      "Gradual OFA Unlock & Withdrawal Opening",
+      "Merchant Payment Integration for OFA",
     ],
   },
   {

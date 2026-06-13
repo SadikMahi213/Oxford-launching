@@ -19,6 +19,7 @@ import { OurInvestors } from "../component/OurInvestors";
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { getPlatformStats } from "../api/admin.api.js";
 
+
 const Home = () => {
   const [stats, setStats] = useState(null);
 

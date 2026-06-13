@@ -40,11 +40,15 @@ async def submit_kyc(
 
     folder = f"kyc/{user_id}"
 
-    front_key = await upload_to_b2(front_image, folder)
-
+    front_key = None
     back_key = None
-    if back_image:
-        back_key = await upload_to_b2(back_image, folder)
+    try:
+        front_key = await upload_to_b2(front_image, folder)
+        if back_image:
+            back_key = await upload_to_b2(back_image, folder)
+    except RuntimeError:
+        front_key = None
+        back_key = None
 
     new_kyc = KYC(
         user_id=user_id,

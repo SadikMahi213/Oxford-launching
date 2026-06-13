@@ -87,3 +87,42 @@ export const getMyProfitHistory = () => {
 export const getActiveAnnouncement = () => {
   return api.get("v1/announcements/active", authHeaders());
 };
+
+export const getUserStatistics = () => {
+  return api.get("v1/user/statistics", authHeaders());
+};
+
+export const getUserList = (page = 1, limit = 50) => {
+  const params = new URLSearchParams();
+  params.append("page", page);
+  params.append("limit", limit);
+  return api.get(`v1/user/list?${params.toString()}`, authHeaders());
+};
+
+export const getPackages = () => {
+  return api.get("v1/investments/packages", authHeaders());
+};
+
+export const getTodayTasks = () => {
+  return api.get("v1/tasks/today", authHeaders());
+};
+
+export const completeTask = (taskId, data) => {
+  return api.post(`v1/tasks/${taskId}/complete`, data, authHeaders());
+};
+
+export const getTaskHistory = (days = 7) => {
+  return api.get(`v1/tasks/history?days=${days}`, authHeaders());
+};
+
+export const walletTransfer = (payload) => {
+  return api.post("v1/user/wallet-transfer", payload, authHeaders());
+};
+
+export const convertOFAtoUSDT = (payload) => {
+  return api.post("v1/user/convert-ofa-to-usdt", payload, authHeaders());
+};
+
+export const updateProfileImage = (payload) => {
+  return api.post("v1/user/profile-image", payload, authHeaders());
+};

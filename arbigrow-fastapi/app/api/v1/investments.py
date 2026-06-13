@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
@@ -8,6 +8,7 @@ from sqlalchemy import select, func
 from app.core.database import get_db
 from app.models.user import User
 from app.models.investments import Investment
+from app.models.package import Package
 from app.schemas.investment import BuyInvestmentRequest, BuyInvestmentResponse
 from app.api.v1.deps import get_current_user
 from app.core.rate_limiter import limiter
@@ -17,7 +18,6 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 router = APIRouter(prefix="/investments", tags=["Investments"])
 WALLET_PRECISION = Decimal("0.00000000000001")
 PERCENT_PRECISION = Decimal("0.0001")
-ROI_CAP_PERCENT = Decimal("150")
 
 
 def _get_remaining_percentage(inv: Investment) -> Decimal:
@@ -49,7 +49,25 @@ async def buy_investment(
         raise HTTPException(status_code=403, detail=detail)
 
     amount = Decimal(str(payload.amount))
-    roi_percent = ROI_CAP_PERCENT
+
+    # Look up the package by name
+    pkg_result = await db.execute(
+        select(Package).where(Package.name == payload.package_name, Package.is_active == True)
+    )
+    package = pkg_result.scalar_one_or_none()
+
+    if not package:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Package not found or inactive",
+        )
+
+    # Validate the amount matches the package
+    if amount != package.investment_amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Amount must be exactly {package.investment_amount} for this package",
+        )
 
     user_result = await db.execute(
         select(User)
@@ -78,7 +96,7 @@ async def buy_investment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
                 "You cannot buy a lower-value package before your current "
-                f"package completes ({ROI_CAP_PERCENT}% ROI cap)."
+                f"package completes."
             ),
         )
 
@@ -89,14 +107,18 @@ async def buy_investment(
             detail="Insufficient main wallet balance",
         )
 
-    # calculate expected profit
-    expected_profit = ((amount * roi_percent) / Decimal("100")).quantize(
+    # Calculate expected profit and ROI from package
+    expected_profit = (package.total_return - package.investment_amount).quantize(
         WALLET_PRECISION,
+        rounding=ROUND_HALF_UP,
+    )
+    roi_percent = ((package.total_return / package.investment_amount) * Decimal("100")).quantize(
+        PERCENT_PRECISION,
         rounding=ROUND_HALF_UP,
     )
 
     start_date = datetime.now(timezone.utc)
-    end_date = start_date
+    end_date = start_date + timedelta(days=package.duration_days)
 
     # deduct wallet
     user.main_wallet = (user.main_wallet - amount).quantize(
@@ -106,10 +128,12 @@ async def buy_investment(
 
     investment = Investment(
         user_id=user.id,
-        package_name=payload.package_name,
+        package_name=package.name,
         invested_amount=amount,
         roi_percent=roi_percent,
         expected_profit=expected_profit,
+        daily_payment=package.daily_payment,
+        captcha_required_per_day=package.captcha_required_per_day,
         start_date=start_date,
         end_date=end_date,
         status="active",
@@ -130,6 +154,35 @@ async def buy_investment(
         status=investment.status,
         main_wallet_balance=user.main_wallet,
     )
+
+
+@router.get("/packages")
+@limiter.limit("100/minute")
+async def list_active_packages(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Package)
+        .where(Package.is_active == True)
+        .order_by(Package.investment_amount.asc())
+    )
+    packages = result.scalars().all()
+    return {
+        "packages": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "investment_amount": float(p.investment_amount),
+                "total_return": float(p.total_return),
+                "daily_payment": float(p.daily_payment),
+                "duration_days": p.duration_days,
+                "captcha_required_per_day": p.captcha_required_per_day,
+                "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
+            }
+            for p in packages
+        ]
+    }
 
 
 @router.get("/my")
@@ -155,11 +208,15 @@ async def get_my_investments(
             "invested_amount": inv.invested_amount,
             "roi_percent": inv.roi_percent,
             "expected_profit": inv.expected_profit,
+            "daily_payment": float(inv.daily_payment or 0),
+            "captcha_required_per_day": inv.captcha_required_per_day or 0,
             "profit_earned": inv.profit_earned,
             "profit_percentage_paid": inv.profit_percentage_paid,
             "remaining_percentage": _get_remaining_percentage(inv),
+            "remaining_profit": float(inv.expected_profit - inv.profit_earned),
             "progress_percentage": _get_progress_percentage(inv),
             "start_date": inv.start_date,
+            "end_date": inv.end_date,
             "status": inv.status,
         }
         for inv in investments
@@ -202,11 +259,15 @@ async def get_investment_details(
             "invested_amount": investment.invested_amount,
             "roi_percent": investment.roi_percent,
             "expected_profit": investment.expected_profit,
+            "daily_payment": float(investment.daily_payment or 0),
+            "captcha_required_per_day": investment.captcha_required_per_day or 0,
             "profit_earned": investment.profit_earned,
             "profit_percentage_paid": investment.profit_percentage_paid,
             "remaining_percentage": _get_remaining_percentage(investment),
+            "remaining_profit": float(investment.expected_profit - investment.profit_earned),
             "progress_percentage": _get_progress_percentage(investment),
             "start_date": investment.start_date,
+            "end_date": investment.end_date,
             "status": investment.status,
         },
         "profit_history": [

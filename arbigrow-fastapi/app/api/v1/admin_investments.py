@@ -14,11 +14,11 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
 
 from app.schemas.investment import AddProfitRequest
-from app.schemas.roi import TIER_PACKAGES
+from app.schemas.roi import ALL_PACKAGE_NAMES
 
-# reverse map: package_name -> tier_name
+# reverse map: package_name -> tier_name (now flat, each package is its own "tier")
 PACKAGE_TIER_MAP: dict[str, str] = {
-    pkg: tier for tier, pkgs in TIER_PACKAGES.items() for pkg in pkgs
+    pkg: pkg for pkg in ALL_PACKAGE_NAMES
 }
 
 from app.api.v1.deps import get_current_user
@@ -185,7 +185,7 @@ async def add_profit(
             previous_reward = reward
 
         # complete investment
-        if investment.profit_percentage_paid >= investment.roi_percent:
+        if investment.profit_earned >= investment.expected_profit:
             investment.status = "completed"
 
         await db.commit()
@@ -194,8 +194,7 @@ async def add_profit(
             "success": True,
             "profit_added": profit_amount,
             "percentage_added": percentage,
-            "remaining_percentage": investment.roi_percent
-            - investment.profit_percentage_paid,
+            "remaining_percentage": investment.expected_profit - investment.profit_earned,
         }
 
     except Exception as e:
@@ -297,8 +296,10 @@ async def get_all_investments(
                 "roi_percent": inv.roi_percent,
                 "expected_profit": inv.expected_profit,
                 "profit_earned": inv.profit_earned,
+                "daily_payment": float(inv.daily_payment or 0),
+                "captcha_required_per_day": inv.captcha_required_per_day or 0,
                 "percentage_paid": inv.profit_percentage_paid,
-                "remaining_percentage": inv.roi_percent - inv.profit_percentage_paid,
+                "remaining_profit": float(inv.expected_profit - inv.profit_earned),
                 "start_date": inv.start_date,
                 "end_date": inv.end_date,
                 "status": inv.status
@@ -354,9 +355,11 @@ async def get_admin_investment_details(
             "start_date": investment.start_date,
             "end_date": investment.end_date,
             "roi_percent": investment.roi_percent,
+            "daily_payment": float(investment.daily_payment or 0),
+            "captcha_required_per_day": investment.captcha_required_per_day or 0,
             "profit_earned": investment.profit_earned,
             "percentage_paid": investment.profit_percentage_paid,
-            "remaining_percentage": investment.roi_percent - investment.profit_percentage_paid,
+            "remaining_profit": float(investment.expected_profit - investment.profit_earned),
             "expected_profit": investment.expected_profit,
             "status": investment.status
         },

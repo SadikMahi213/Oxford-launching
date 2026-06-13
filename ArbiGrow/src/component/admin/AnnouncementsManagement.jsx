@@ -14,6 +14,7 @@ const emptyForm = {
   message: "",
   isActive: true,
   imageFile: null,
+  imageUrl: "",
   imagePreview: "",
 };
 
@@ -112,6 +113,7 @@ export default function AnnouncementsManagement() {
       message: item?.message || "",
       isActive: Boolean(item?.is_active),
       imageFile: null,
+      imageUrl: item?.image_url || "",
       imagePreview: item?.image_url || "",
     });
     setIsModalOpen(true);
@@ -148,6 +150,9 @@ export default function AnnouncementsManagement() {
     if (form.imageFile) {
       payload.append("image", form.imageFile);
     }
+    if (form.imageUrl.trim()) {
+      payload.append("image_url", form.imageUrl.trim());
+    }
     return payload;
   };
 
@@ -161,8 +166,8 @@ export default function AnnouncementsManagement() {
       return;
     }
 
-    if (!editingItem && !form.imageFile) {
-      setErrorMessage("Please upload an announcement image.");
+    if (!editingItem && !form.imageFile && !form.imageUrl.trim()) {
+      setErrorMessage("Please upload an image or provide an image URL.");
       return;
     }
 
@@ -543,6 +548,20 @@ export default function AnnouncementsManagement() {
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Recommended: portrait poster format for mobile popup.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-gray-300">Or Image URL</label>
+                <input
+                  name="imageUrl"
+                  value={form.imageUrl}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors focus:border-cyan-500/60"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Paste a direct link to an image. Used if no file is uploaded.
                 </p>
               </div>
 

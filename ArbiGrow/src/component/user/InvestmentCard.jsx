@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Calendar, Eye } from 'lucide-react';
+import { Calendar, Eye, Clock, CheckCircle } from 'lucide-react';
 
 export function InvestmentCard({ investment, index, onViewDetails }) {
   const progress = investment.progressPercentage;
@@ -51,16 +51,23 @@ export function InvestmentCard({ investment, index, onViewDetails }) {
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-400">Expected Profit</span>
-          <span className="text-base font-bold text-cyan-400">
-            {investment.expectedProfit.toLocaleString()} USDT
+          <span className="text-sm text-gray-400">Daily Payment</span>
+          <span className="text-base font-bold text-green-400">
+            ${investment.dailyPayment.toFixed(2)} USDT
           </span>
         </div>
 
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-400">Profit Earned</span>
-          <span className="text-base font-bold text-green-400">
+          <span className="text-base font-bold text-cyan-400">
             {investment.profitEarned.toLocaleString()} USDT
+          </span>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-gray-400">Total Return</span>
+          <span className="text-base font-bold text-yellow-400">
+            {investment.expectedProfit.toLocaleString()} USDT
           </span>
         </div>
       </div>
@@ -68,7 +75,7 @@ export function InvestmentCard({ investment, index, onViewDetails }) {
       {/* Progress Bar */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-gray-400">ROI Progress</span>
+          <span className="text-xs text-gray-400">Progress</span>
           <span className="text-xs font-semibold text-cyan-400">
             {progress.toFixed(1)}%
           </span>
@@ -84,8 +91,8 @@ export function InvestmentCard({ investment, index, onViewDetails }) {
         </div>
 
         <div className="flex justify-between items-center mt-1 text-xs text-gray-500">
-          <span>Paid: {investment.profitPercentagePaid.toFixed(2)}%</span>
-          <span>Cap: {investment.roiPercent.toFixed(2)}%</span>
+          <span>Earned: ${investment.profitEarned.toFixed(2)}</span>
+          <span>Target: ${investment.expectedProfit.toLocaleString()}</span>
         </div>
       </div>
 
@@ -102,9 +109,9 @@ export function InvestmentCard({ investment, index, onViewDetails }) {
         </div>
 
         <div className="text-right">
-          <div className="text-xs text-gray-500">Remaining ROI</div>
+          <div className="text-xs text-gray-500">Remaining</div>
           <div className="text-sm text-white font-medium">
-            {investment.remainingPercentage.toFixed(2)}%
+            ${investment.remainingProfit.toFixed(2)}
           </div>
         </div>
       </div>

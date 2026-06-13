@@ -14,7 +14,10 @@ import {
   Network,
   Package,
   Activity,
+  CheckSquare,
   Megaphone,
+  Store,
+  Settings,
 } from "lucide-react";
 import logo from "../../assets/Arbigrow-Logo.png";
 import useUserStore from "../../store/userStore";
@@ -60,10 +63,22 @@ export default function AdminLayout({
       description: "Manage networks",
     },
     {
+      id: "packages",
+      label: "Packages",
+      icon: Package,
+      description: "Manage packages",
+    },
+    {
       id: "investments",
       label: "Investments",
       icon: Package,
       description: "Manage investments",
+    },
+    {
+      id: "tasks",
+      label: "Task Engine",
+      icon: CheckSquare,
+      description: "Manage daily tasks",
     },
   {
   id: "statistics",
@@ -82,6 +97,18 @@ export default function AdminLayout({
       label: "ROI Management",
       icon: Percent,
       description: "Set global ROI",
+    },
+    {
+      id: "ecommerce",
+      label: "Ecommerce",
+      icon: Store,
+      description: "Manage marketplace",
+    },
+    {
+      id: "settings",
+      label: "System Settings",
+      icon: Settings,
+      description: "Override weekend rules",
     },
   ];
 

@@ -19,12 +19,12 @@ export default function FAQ() {
         "ArbiGrow is an AI-powered arbitrage trading platform that uses the Arbitrum network to generate profits by taking advantage of price differences across multiple exchanges with minimal risk.",
     },
     {
-      question: "What is the ARBX token and how can I get it?",
+      question: "What is the OFA token and how can I get it?",
       answer:
-        "ARBX is the native token of our ecosystem. By completing pre-registration, you will receive 100 free tokens, and you can earn additional bonus tokens for each successful referral.",
+        "OFA is the native token of our ecosystem. By completing pre-registration, you will receive 100 free tokens, and you can earn additional bonus tokens for each successful referral.",
     },
     {
-      question: "Why are my ARBX tokens locked?",
+      question: "Why are my OFA tokens locked?",
       answer:
         "Tokens are currently locked to maintain price stability and market value. According to our roadmap, they will be gradually unlocked and available for withdrawal after exchange listings.",
     },
@@ -41,7 +41,7 @@ export default function FAQ() {
     {
       question: "How does the referral commission system work?",
       answer:
-        "We offer a powerful 5-level referral system. When someone joins through your referral, you will earn daily commissions along with bonus ARBX tokens.",
+        "We offer a powerful 5-level referral system. When someone joins through your referral, you will earn daily commissions along with bonus OFA tokens.",
     },
   ];
 

@@ -2,7 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, or_, and_, case, delete, update
+from sqlalchemy import select, func, or_, and_, case, delete, update, desc, desc
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -17,10 +17,14 @@ from app.schemas.admin import (
     UpdateKYCStatusRequest,
     CreditProfitRequest,
     UpdateWalletBalancesRequest,
+    BulkTogglePackagesRequest,
 )
+from app.models.system_config import SystemConfig
+from app.models.mining_log import MiningLog
 from app.services.b2_service import generate_presigned_url
 from app.utils.format_decimal import format_decimal
 from app.utils.email import send_kyc_approved_email
+from app.utils.is_system_active import FEATURE_CONFIG_KEYS
 from app.utils.referral import apply_cascading_referral_commissions
 
 router = APIRouter(
@@ -104,6 +108,148 @@ async def get_dashboard_overview(
             "total_invested": format_decimal(total_invested),
             "profit_distributed": format_decimal(total_profit_distributed),
         },
+    }
+
+
+@router.get("/user-statistics")
+async def get_user_statistics(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    # Total users
+    total_users_result = await db.execute(select(func.count(User.id)))
+    total_users = total_users_result.scalar() or 0
+
+    # Active users (email verified and account active)
+    active_users_result = await db.execute(
+        select(func.count(User.id)).where(
+            and_(
+                User.email_verified.is_(True),
+                User.account_status == "active",
+            )
+        )
+    )
+    active_users = active_users_result.scalar() or 0
+
+    # Inactive users (email not verified or account on hold)
+    inactive_users_result = await db.execute(
+        select(func.count(User.id)).where(
+            or_(
+                User.email_verified.is_(False),
+                User.account_status == "on_hold",
+            )
+        )
+    )
+    inactive_users = inactive_users_result.scalar() or 0
+
+    # Email verified users
+    email_verified_result = await db.execute(
+        select(func.count(User.id)).where(User.email_verified.is_(True))
+    )
+    email_verified = email_verified_result.scalar() or 0
+
+    # Email not verified users
+    email_not_verified_result = await db.execute(
+        select(func.count(User.id)).where(User.email_verified.is_(False))
+    )
+    email_not_verified = email_not_verified_result.scalar() or 0
+
+    # KYC Statistics
+    kyc_pending_result = await db.execute(
+        select(func.count(KYC.id)).where(KYC.status == KYCStatus.pending)
+    )
+    kyc_pending = kyc_pending_result.scalar() or 0
+
+    kyc_approved_result = await db.execute(
+        select(func.count(KYC.id)).where(KYC.status == KYCStatus.approved)
+    )
+    kyc_approved = kyc_approved_result.scalar() or 0
+
+    kyc_rejected_result = await db.execute(
+        select(func.count(KYC.id)).where(KYC.status == KYCStatus.rejected)
+    )
+    kyc_rejected = kyc_rejected_result.scalar() or 0
+
+    # Users without KYC
+    users_without_kyc_result = await db.execute(
+        select(func.count(User.id)).where(
+            and_(
+                User.admin_kyc_status == "pending",
+                User.id.not_in(select(KYC.user_id)),
+            )
+        )
+    )
+    users_without_kyc = users_without_kyc_result.scalar() or 0
+
+    # Admin users
+    admin_users_result = await db.execute(
+        select(func.count(User.id)).where(User.is_admin.is_(True))
+    )
+    admin_users = admin_users_result.scalar() or 0
+
+    # Users on hold (issue status)
+    on_hold_users_result = await db.execute(
+        select(func.count(User.id)).where(User.account_status == "on_hold")
+    )
+    on_hold_users = on_hold_users_result.scalar() or 0
+
+    # Mining users
+    mining_users_result = await db.execute(
+        select(func.count(User.id)).where(User.is_mining.is_(True))
+    )
+    mining_users = mining_users_result.scalar() or 0
+
+    # Users with investments
+    users_with_investments_result = await db.execute(
+        select(func.count(func.distinct(Investment.user_id))).where(
+            Investment.status == "active"
+        )
+    )
+    users_with_investments = users_with_investments_result.scalar() or 0
+
+    # New users this month
+    from datetime import datetime, timezone
+    start_of_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    new_users_this_month_result = await db.execute(
+        select(func.count(User.id)).where(User.created_at >= start_of_month)
+    )
+    new_users_this_month = new_users_this_month_result.scalar() or 0
+
+    # Users with deposits
+    users_with_deposits_result = await db.execute(
+        select(func.count(func.distinct(Deposit.user_id))).where(
+            Deposit.status == "approved"
+        )
+    )
+    users_with_deposits = users_with_deposits_result.scalar() or 0
+
+    # Users with withdrawals
+    users_with_withdrawals_result = await db.execute(
+        select(func.count(func.distinct(Withdrawal.user_id))).where(
+            Withdrawal.status == "approved"
+        )
+    )
+    users_with_withdrawals = users_with_withdrawals_result.scalar() or 0
+
+    return {
+        "total_users": total_users,
+        "active_users": active_users,
+        "inactive_users": inactive_users,
+        "email_verified": email_verified,
+        "email_not_verified": email_not_verified,
+        "kyc": {
+            "pending": kyc_pending,
+            "approved": kyc_approved,
+            "rejected": kyc_rejected,
+            "without_kyc": users_without_kyc,
+        },
+        "admin_users": admin_users,
+        "on_hold_users": on_hold_users,
+        "mining_users": mining_users,
+        "users_with_investments": users_with_investments,
+        "new_users_this_month": new_users_this_month,
+        "users_with_deposits": users_with_deposits,
+        "users_with_withdrawals": users_with_withdrawals,
     }
 
 
@@ -792,3 +938,409 @@ async def credit_user_profit(
             for item in distributions
         ],
     }
+
+
+@router.get("/system-config")
+async def get_system_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    configs = {}
+    for key in FEATURE_CONFIG_KEYS.values():
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == key)
+        )
+        row = result.scalar_one_or_none()
+        configs[key] = row.value if row else None
+    return {"data": configs}
+
+
+@router.put("/system-config/{key}")
+async def update_system_config(
+    key: str,
+    value: str,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    if key not in FEATURE_CONFIG_KEYS.values():
+        raise HTTPException(status_code=400, detail="Invalid config key")
+    if value.lower() not in ("true", "false"):
+        raise HTTPException(status_code=400, detail="Value must be 'true' or 'false'")
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == key)
+    )
+    config = result.scalar_one_or_none()
+    if not config:
+        config = SystemConfig(key=key, value=value.lower())
+        db.add(config)
+    else:
+        config.value = value.lower()
+    await db.commit()
+    await db.refresh(config)
+    logger = __import__("logging").getLogger(__name__)
+    logger.info("Admin set system config %s=%s", key, value.lower())
+    return {"message": f"{key} set to {value.lower()}"}
+
+
+@router.get("/mining/config")
+async def get_mining_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    config = {}
+    for key in ("mining_enabled", "mining_daily_cap"):
+        result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
+        row = result.scalar_one_or_none()
+        config[key] = row.value if row else None
+    return {"data": config}
+
+
+@router.put("/mining/config/{key}")
+async def update_mining_config(
+    key: str,
+    value: str,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    if key not in ("mining_enabled", "mining_daily_cap"):
+        raise HTTPException(status_code=400, detail="Invalid mining config key")
+    if key == "mining_enabled" and value.lower() not in ("true", "false"):
+        raise HTTPException(status_code=400, detail="mining_enabled must be 'true' or 'false'")
+    if key == "mining_daily_cap":
+        try:
+            cap = Decimal(value)
+            if cap <= 0 or cap > 10000:
+                raise HTTPException(status_code=400, detail="Cap must be between 0 and 10000")
+        except Exception:
+            raise HTTPException(status_code=400, detail="mining_daily_cap must be a number")
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
+    config = result.scalar_one_or_none()
+    if not config:
+        config = SystemConfig(key=key, value=value.lower() if key == "mining_enabled" else value)
+        db.add(config)
+    else:
+        config.value = value.lower() if key == "mining_enabled" else value
+    await db.commit()
+    import logging
+    logging.getLogger(__name__).info("Admin set mining config %s=%s", key, config.value)
+    return {"message": f"{key} set to {config.value}"}
+
+
+@router.get("/mining/stats")
+async def get_mining_stats(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    offset = (page - 1) * limit
+
+    total_result = await db.execute(
+        select(func.count(User.id)).where(User.mining_active.is_(True))
+    )
+    total = total_result.scalar() or 0
+
+    result = await db.execute(
+        select(User)
+        .where(User.mining_active.is_(True))
+        .order_by(User.daily_mined.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    users = result.scalars().all()
+
+    return {
+        "total_active_miners": total,
+        "page": page,
+        "limit": limit,
+        "data": [
+            {
+                "user_id": u.id,
+                "full_name": u.full_name,
+                "email": u.email,
+                "mining_active": u.mining_active,
+                "daily_mined": float(u.daily_mined or 0),
+                "arbx_mining_wallet": float(u.arbx_mining_wallet or 0),
+                "mining_started_at": u.mining_started_at.isoformat() if u.mining_started_at else None,
+                "last_mine_time": u.last_mine_time.isoformat() if u.last_mine_time else None,
+            }
+            for u in users
+        ],
+    }
+
+
+# ── Package Management ──────────────────────────────────────────────────
+
+@router.get("/packages")
+async def admin_list_packages(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+    result = await db.execute(select(Package).order_by(Package.investment_amount.asc()))
+    packages = result.scalars().all()
+    return {
+        "packages": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "investment_amount": float(p.investment_amount),
+                "total_return": float(p.total_return),
+                "daily_payment": float(p.daily_payment),
+                "duration_days": p.duration_days,
+                "captcha_required_per_day": p.captcha_required_per_day,
+                "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
+                "is_active": p.is_active,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+            }
+            for p in packages
+        ]
+    }
+
+
+@router.put("/packages/{package_id}")
+async def admin_update_package(
+    package_id: int,
+    name: str | None = None,
+    investment_amount: float | None = None,
+    total_return: float | None = None,
+    daily_payment: float | None = None,
+    duration_days: int | None = None,
+    captcha_required_per_day: int | None = None,
+    captcha_task_duration_seconds: int | None = None,
+    is_active: bool | None = None,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+    result = await db.execute(select(Package).where(Package.id == package_id))
+    package = result.scalar_one_or_none()
+    if not package:
+        raise HTTPException(404, "Package not found")
+
+    if name is not None:
+        package.name = name
+    if investment_amount is not None:
+        package.investment_amount = Decimal(str(investment_amount))
+    if total_return is not None:
+        package.total_return = Decimal(str(total_return))
+    if daily_payment is not None:
+        package.daily_payment = Decimal(str(daily_payment))
+    if duration_days is not None:
+        package.duration_days = duration_days
+    if captcha_required_per_day is not None:
+        package.captcha_required_per_day = captcha_required_per_day
+    if captcha_task_duration_seconds is not None:
+        package.captcha_task_duration_seconds = captcha_task_duration_seconds
+    if is_active is not None:
+        package.is_active = is_active
+
+    await db.commit()
+    return {"status": "updated", "package_id": package.id}
+
+
+@router.patch("/packages/{package_id}/toggle")
+async def admin_toggle_package(
+    package_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+    result = await db.execute(select(Package).where(Package.id == package_id))
+    package = result.scalar_one_or_none()
+    if not package:
+        raise HTTPException(404, "Package not found")
+
+    package.is_active = not package.is_active
+    await db.commit()
+    return {"status": "updated", "is_active": package.is_active}
+
+
+@router.get("/packages/{package_id}/subscribers")
+async def admin_package_subscribers(
+    package_id: int,
+    page: int = Query(1, ge=1),
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+    result = await db.execute(select(Package).where(Package.id == package_id))
+    package = result.scalar_one_or_none()
+    if not package:
+        raise HTTPException(404, "Package not found")
+
+    PAGE_SIZE = 50
+    offset = (page - 1) * PAGE_SIZE
+
+    count_result = await db.execute(
+        select(func.count(Investment.id)).where(Investment.package_name == package.name)
+    )
+    total = count_result.scalar() or 0
+
+    query = (
+        select(Investment, User)
+        .join(User, User.id == Investment.user_id)
+        .where(Investment.package_name == package.name)
+        .order_by(Investment.created_at.desc())
+        .offset(offset)
+        .limit(PAGE_SIZE)
+    )
+    rows = (await db.execute(query)).all()
+
+    return {
+        "package_name": package.name,
+        "total_subscribers": total,
+        "page": page,
+        "page_size": PAGE_SIZE,
+        "total_pages": (total + PAGE_SIZE - 1) // PAGE_SIZE,
+        "subscribers": [
+            {
+                "investment_id": inv.id,
+                "user_id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "invested_amount": float(inv.invested_amount),
+                "daily_payment": float(inv.daily_payment or 0),
+                "profit_earned": float(inv.profit_earned),
+                "expected_profit": float(inv.expected_profit),
+                "start_date": inv.start_date.isoformat() if inv.start_date else None,
+                "status": inv.status,
+            }
+            for inv, user in rows
+        ],
+    }
+
+
+@router.post("/packages")
+async def admin_create_package(
+    name: str,
+    investment_amount: float,
+    total_return: float,
+    daily_payment: float,
+    duration_days: int = 365,
+    captcha_required_per_day: int = 12,
+    captcha_task_duration_seconds: int = 30,
+    is_active: bool = True,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+
+    result = await db.execute(select(Package).where(Package.name == name))
+    if result.scalar_one_or_none():
+        raise HTTPException(400, "Package with this name already exists")
+
+    package = Package(
+        name=name,
+        investment_amount=Decimal(str(investment_amount)),
+        total_return=Decimal(str(total_return)),
+        daily_payment=Decimal(str(daily_payment)),
+        duration_days=duration_days,
+        captcha_required_per_day=captcha_required_per_day,
+        captcha_task_duration_seconds=captcha_task_duration_seconds,
+        is_active=is_active,
+    )
+    db.add(package)
+    await db.commit()
+    await db.refresh(package)
+    return {"status": "created", "package_id": package.id, "name": package.name}
+
+
+@router.delete("/packages/{package_id}")
+async def admin_delete_package(
+    package_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+    result = await db.execute(select(Package).where(Package.id == package_id))
+    package = result.scalar_one_or_none()
+    if not package:
+        raise HTTPException(404, "Package not found")
+
+    count_result = await db.execute(
+        select(func.count(Investment.id)).where(
+            Investment.package_name == package.name,
+            Investment.status.in_(["active", "completed"])
+        )
+    )
+    active_count = count_result.scalar() or 0
+    if active_count > 0:
+        raise HTTPException(
+            400,
+            f"Cannot delete package with {active_count} active/completed investments. "
+            "Deactivate it instead."
+        )
+
+    await db.delete(package)
+    await db.commit()
+    return {"status": "deleted", "package_id": package_id}
+
+
+@router.get("/packages/stats")
+async def admin_package_stats(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+
+    result = await db.execute(select(Package).order_by(Package.investment_amount.asc()))
+    packages = result.scalars().all()
+
+    stats = []
+    for p in packages:
+        inv_result = await db.execute(
+            select(
+                func.count(Investment.id).label("total_investors"),
+                func.coalesce(func.sum(Investment.invested_amount), 0).label("total_invested"),
+                func.coalesce(func.sum(Investment.profit_earned), 0).label("total_profit_paid"),
+                func.coalesce(
+                    func.sum(case((Investment.status == "active", 1), else_=0)), 0
+                ).label("active_count"),
+            ).where(Investment.package_name == p.name)
+        )
+        row = inv_result.one()
+
+        stats.append({
+            "id": p.id,
+            "name": p.name,
+            "investment_amount": float(p.investment_amount),
+            "total_return": float(p.total_return),
+            "daily_payment": float(p.daily_payment),
+            "is_active": p.is_active,
+            "total_investors": row.total_investors,
+            "total_invested": float(row.total_invested),
+            "total_profit_paid": float(row.total_profit_paid),
+            "active_investors": row.active_count,
+        })
+
+    return {"packages": stats}
+
+
+@router.patch("/packages/bulk-toggle")
+async def admin_bulk_toggle_packages(
+    body: BulkTogglePackagesRequest,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    from app.models.package import Package
+
+    result = await db.execute(
+        select(Package).where(Package.id.in_(body.package_ids))
+    )
+    packages = result.scalars().all()
+
+    if len(packages) != len(body.package_ids):
+        raise HTTPException(404, "Some packages not found")
+
+    for p in packages:
+        p.is_active = body.is_active
+
+    await db.commit()
+    return {
+        "status": "updated",
+        "updated_count": len(packages),
+        "is_active": body.is_active,
+    }
+

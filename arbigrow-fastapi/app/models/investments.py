@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, DateTime, String, Numeric
+from sqlalchemy import ForeignKey, DateTime, Integer, String, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from decimal import Decimal
@@ -28,11 +28,23 @@ class Investment(Base):
     roi_percent: Mapped[Decimal] = mapped_column(
         Numeric(10, 4),
         nullable=False
-    )  # example 150%
+    )
 
     expected_profit: Mapped[Decimal] = mapped_column(
         Numeric(24, 14),
         nullable=False
+    )
+
+    daily_payment: Mapped[Decimal] = mapped_column(
+        Numeric(16, 8),
+        default=Decimal("0"),
+        server_default="0"
+    )
+
+    captcha_required_per_day: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        server_default="0"
     )
 
     profit_earned: Mapped[Decimal] = mapped_column(

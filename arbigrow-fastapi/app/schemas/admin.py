@@ -24,3 +24,8 @@ class UpdateWalletBalancesRequest(BaseModel):
     generation_wallet: Optional[Decimal] = Field(default=None, ge=0)
     arbx_wallet: Optional[Decimal] = Field(default=None, ge=0)
     arbx_mining_wallet: Optional[Decimal] = Field(default=None, ge=0)
+
+
+class BulkTogglePackagesRequest(BaseModel):
+    package_ids: list[int] = Field(..., min_length=1)
+    is_active: bool

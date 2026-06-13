@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_BACKEND_URL}`,
+  baseURL: "/api",
   headers: {
     "Content-Type": "application/json",
 
@@ -9,7 +9,5 @@ const api = axios.create({
   },
   withCredentials: true,
 });
-// console.log("From axios file", import.meta.env);
-// console.log("From axios file", import.meta.env.VITE_BACKEND_URL);
 
 export default api;

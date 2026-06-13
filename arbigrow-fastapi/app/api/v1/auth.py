@@ -40,24 +40,11 @@ def _hash_otp_code(otp_code: str) -> str:
 async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     normalized_email = _normalize_email(user_data.email)
 
-    # Check total users count
-    result = await db.execute(select(User.id).limit(1))
-    users = result.scalars().all()
     ref_user = None
 
-    is_first_user = len(users) == 0
-
-    # If not first user → referral required
-    if not is_first_user:
-        if not user_data.referral_code:
-            raise HTTPException(
-                status_code=400,
-                detail="Referral code is required"
-            )
-
-        # Validate referral code
+    if user_data.referral_code and user_data.referral_code.strip():
         result = await db.execute(
-            select(User).where(User.username == user_data.referral_code)
+            select(User).where(User.username == user_data.referral_code.strip())
         )
         ref_user = result.scalar_one_or_none()
 
@@ -80,7 +67,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         email=normalized_email,
         hashed_password=hash_password(user_data.password),
         is_admin=False,
-        email_verified=False,
+        email_verified=True,
         main_wallet=Decimal("0.00000000000000"),
         deposit_wallet=Decimal("0.00000000000000"),
         withdraw_wallet=Decimal("0.00000000000000"),
@@ -91,15 +78,13 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         username='temp'
     )
 
-    # If not first user → build ancestry
-    if not is_first_user:
-        referrer = ref_user
-
-        new_user.parent_lvl_1_id = referrer.id
-        new_user.parent_lvl_2_id = referrer.parent_lvl_1_id
-        new_user.parent_lvl_3_id = referrer.parent_lvl_2_id
-        new_user.parent_lvl_4_id = referrer.parent_lvl_3_id
-        new_user.parent_lvl_5_id = referrer.parent_lvl_4_id
+    # Build ancestry if referral code was provided and valid
+    if ref_user:
+        new_user.parent_lvl_1_id = ref_user.id
+        new_user.parent_lvl_2_id = ref_user.parent_lvl_1_id
+        new_user.parent_lvl_3_id = ref_user.parent_lvl_2_id
+        new_user.parent_lvl_4_id = ref_user.parent_lvl_3_id
+        new_user.parent_lvl_5_id = ref_user.parent_lvl_4_id
 
     db.add(new_user)
     await db.flush()  # getting ID before commit
@@ -119,14 +104,8 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
             ref_user.arbx_wallet + Decimal("10.00000000000000")
         )
 
-    otp_code = _generate_otp_code()
-    new_user.otp_code = _hash_otp_code(otp_code)
-    new_user.otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
-
     await db.commit()
     await db.refresh(new_user)
-
-    await send_email_verification(new_user.email, otp_code, new_user.full_name)
 
     return new_user
 

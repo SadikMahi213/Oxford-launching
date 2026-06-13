@@ -37,7 +37,7 @@ const formatAmount = (value) => {
 
 const WALLET_LABELS = {
   main_wallet: "Main Wallet",
-  arbx_wallet: "ARBX Wallet",
+  arbx_wallet: "OFA token Wallet",
   deposit_wallet: "Deposit Wallet",
   withdraw_wallet: "Withdraw Wallet",
   referral_wallet: "Referral Wallet",

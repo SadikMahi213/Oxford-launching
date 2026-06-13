@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, func
 from decimal import Decimal
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, or_, and_, func
+
 from app.core.database import get_db
 
 from app.models.user import User
@@ -10,10 +11,39 @@ from app.models.kyc import KYC
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.investment_profit_history import InvestmentProfitHistory
-from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse
+from app.models.mining_log import MiningLog
+from app.models.system_config import SystemConfig
+from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest
 from app.core.rate_limiter import limiter
 
 from app.api.v1.deps import get_current_user
+from app.utils.is_system_active import is_system_active
+
+WALLET_PRECISION = Decimal("0.00000000000001")
+MINING_CYCLE_SECONDS = 86400  # 24 hours
+
+
+async def _get_mining_cap(db: AsyncSession) -> Decimal:
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "mining_daily_cap")
+    )
+    config = result.scalar_one_or_none()
+    if config and config.value:
+        try:
+            return Decimal(config.value)
+        except Exception:
+            pass
+    return Decimal("20")
+
+
+async def _is_mining_enabled(db: AsyncSession) -> bool:
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "mining_enabled")
+    )
+    config = result.scalar_one_or_none()
+    if config is not None:
+        return config.value.lower() == "true"
+    return True
 
 
 router = APIRouter(prefix="/user", tags=["User"])
@@ -200,30 +230,43 @@ async def start_mining(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if not await is_system_active("daily_work", db):
+        raise HTTPException(status_code=403, detail="Daily work is currently paused (weekend/system maintenance)")
+    if not await _is_mining_enabled(db):
+        raise HTTPException(status_code=403, detail="Mining is currently disabled by admin")
     if (current_user.account_status or "").lower() == "on_hold":
-        issue_note = (current_user.account_issue or "").strip()
-        detail = "Your account is on hold. Mining is currently disabled."
-        if issue_note:
-            detail = f"{detail} Issue: {issue_note}"
-        raise HTTPException(status_code=403, detail=detail)
+        raise HTTPException(status_code=403, detail="Your account is on hold. Mining is disabled.")
 
-    if current_user.is_mining:
-        raise HTTPException(
-            status_code=400,
-            detail="Mining already active"
-        )
+    now_utc = datetime.now(timezone.utc)
 
-    current_user.is_mining = True
-    current_user.mining_started_at = datetime.now(timezone.utc)
+    # If already mining and 24h passed, auto-reset the cycle first
+    if current_user.mining_active and current_user.mining_started_at:
+        cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
+        if now_utc >= cycle_end:
+            current_user.mining_active = False
+            current_user.daily_mined = Decimal("0")
+            current_user.mining_started_at = None
+            current_user.last_mine_time = None
+        else:
+            raise HTTPException(status_code=400, detail="Mining already active. Use claim to collect rewards.")
+
+    # Start new mining session
+    current_user.mining_active = True
+    current_user.mining_started_at = now_utc
+    current_user.daily_mined = Decimal("0")
+    current_user.last_mine_time = now_utc
 
     await db.commit()
     await db.refresh(current_user)
 
+    cap = await _get_mining_cap(db)
     return {
         "message": "Mining started",
-        "is_mining": current_user.is_mining,
-        "mining_started_at": current_user.mining_started_at,
-        "arbx_mining_wallet": current_user.arbx_mining_wallet,
+        "mining_active": current_user.mining_active,
+        "mining_started_at": current_user.mining_started_at.isoformat() if current_user.mining_started_at else None,
+        "daily_mined": float(current_user.daily_mined or 0),
+        "daily_cap": float(cap),
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
     }
 
 
@@ -234,46 +277,107 @@ async def claim_mining(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if not await is_system_active("daily_work", db):
+        raise HTTPException(status_code=403, detail="Daily work is currently paused (weekend/system maintenance)")
+    if not await _is_mining_enabled(db):
+        raise HTTPException(status_code=403, detail="Mining is currently disabled by admin")
     if (current_user.account_status or "").lower() == "on_hold":
-        issue_note = (current_user.account_issue or "").strip()
-        detail = "Your account is on hold. Mining rewards cannot be claimed."
-        if issue_note:
-            detail = f"{detail} Issue: {issue_note}"
-        raise HTTPException(status_code=403, detail=detail)
+        raise HTTPException(status_code=403, detail="Your account is on hold. Mining is disabled.")
 
-    if not current_user.is_mining or not current_user.mining_started_at:
-        raise HTTPException(
-            status_code=400,
-            detail="Mining not started"
-        )
+    if not current_user.mining_active or not current_user.mining_started_at:
+        raise HTTPException(status_code=400, detail="No active mining session. Start mining first.")
 
-    mining_end = current_user.mining_started_at + timedelta(hours=24)
+    now_utc = datetime.now(timezone.utc)
+    cap = await _get_mining_cap(db)
+    daily_mined = Decimal(str(current_user.daily_mined or 0))
 
-    if datetime.now(timezone.utc) < mining_end:
-        raise HTTPException(
-            status_code=400,
-            detail="Mining cycle not finished yet"
-        )
+    # Auto-reset if 24h cycle completed
+    cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
+    if now_utc >= cycle_end:
+        current_user.mining_active = False
+        current_user.daily_mined = Decimal("0")
+        current_user.mining_started_at = None
+        current_user.last_mine_time = None
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Mining cycle ended. Start a new mining session.")
 
-    # reward calculation
-    reward_rate = Decimal("0.0001")
-    reward = current_user.arbx_wallet * reward_rate
+    # Check if already at cap
+    remaining = cap - daily_mined
+    if remaining <= 0:
+        current_user.mining_active = False
+        await db.commit()
+        raise HTTPException(status_code=400, detail=f"Daily cap of {cap} OFA reached. Wait for next cycle.")
 
-    current_user.arbx_mining_wallet += reward
+    # Calculate reward based on time elapsed since last claim (or start)
+    reference_time = current_user.last_mine_time or current_user.mining_started_at
+    elapsed_seconds = max(0, int((now_utc - reference_time).total_seconds()))
+    if elapsed_seconds < 60:
+        raise HTTPException(status_code=400, detail="Wait at least 1 minute between claims.")
 
-    # reset mining cycle
-    current_user.is_mining = False
-    current_user.mining_started_at = None
+    per_second_rate = cap / Decimal(str(MINING_CYCLE_SECONDS))
+    accrued = per_second_rate * Decimal(str(elapsed_seconds))
+    reward = min(accrued, remaining).quantize(WALLET_PRECISION)
+
+    if reward <= 0:
+        raise HTTPException(status_code=400, detail="No rewards to claim yet.")
+
+    # Credit wallet
+    current_user.arbx_mining_wallet = (current_user.arbx_mining_wallet or Decimal("0")) + reward
+    current_user.daily_mined = daily_mined + reward
+    current_user.last_mine_time = now_utc
+
+    # Log the claim
+    db.add(MiningLog(
+        user_id=current_user.id,
+        amount=reward,
+        mined_from=reference_time,
+        mined_to=now_utc,
+        daily_mined_after=current_user.daily_mined,
+    ))
 
     await db.commit()
     await db.refresh(current_user)
 
     return {
         "message": "Mining reward claimed",
-        "reward": reward,
-        "arbx_mining_wallet": current_user.arbx_mining_wallet,
-        "is_mining": current_user.is_mining,
-        "mining_started_at": current_user.mining_started_at,
+        "reward": float(reward),
+        "daily_mined": float(current_user.daily_mined),
+        "daily_cap": float(cap),
+        "remaining_today": float(cap - current_user.daily_mined),
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet),
+        "mining_active": current_user.mining_active,
+    }
+
+
+@router.get("/mining-status")
+@limiter.limit("120/minute")
+async def get_mining_status(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    cap = await _get_mining_cap(db)
+    now_utc = datetime.now(timezone.utc)
+    cycle_end = None
+    time_remaining = None
+
+    if current_user.mining_active and current_user.mining_started_at:
+        cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
+        if now_utc >= cycle_end:
+            time_remaining = "cycle_ended"
+        else:
+            remaining_delta = cycle_end - now_utc
+            time_remaining = int(remaining_delta.total_seconds())
+
+    return {
+        "mining_active": current_user.mining_active,
+        "mining_started_at": current_user.mining_started_at.isoformat() if current_user.mining_started_at else None,
+        "daily_mined": float(current_user.daily_mined or 0),
+        "daily_cap": float(cap),
+        "remaining_today": float(cap - Decimal(str(current_user.daily_mined or 0))),
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+        "cycle_end": cycle_end.isoformat() if cycle_end else None,
+        "time_remaining_seconds": time_remaining,
     }
 
 
@@ -357,4 +461,158 @@ async def get_profit_history(
             }
             for item in items
         ]
+    }
+
+
+@router.get("/statistics")
+async def get_user_statistics_public(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    total_users_result = await db.execute(select(func.count(User.id)))
+    total_users = total_users_result.scalar() or 0
+
+    active_users_result = await db.execute(
+        select(func.count(User.id)).where(
+            and_(
+                User.email_verified.is_(True),
+                User.account_status == "active",
+            )
+        )
+    )
+    active_users = active_users_result.scalar() or 0
+
+    inactive_users_result = await db.execute(
+        select(func.count(User.id)).where(
+            or_(
+                User.email_verified.is_(False),
+                User.account_status == "on_hold",
+            )
+        )
+    )
+    inactive_users = inactive_users_result.scalar() or 0
+
+    return {
+        "total_users": total_users,
+        "active_users": active_users,
+        "inactive_users": inactive_users,
+    }
+
+
+@router.post("/wallet-transfer", response_model=WalletTransferResponse)
+@limiter.limit("30/minute")
+async def wallet_transfer(
+    request: Request,
+    data: WalletTransferRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if data.from_wallet == data.to_wallet:
+        raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
+
+    from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
+    amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
+
+    if from_balance < amount:
+        raise HTTPException(status_code=400, detail=f"Insufficient balance in {data.from_wallet}")
+
+    setattr(current_user, data.from_wallet, (from_balance - amount).quantize(WALLET_PRECISION))
+    to_balance = getattr(current_user, data.to_wallet) or Decimal("0")
+    setattr(current_user, data.to_wallet, (to_balance + amount).quantize(WALLET_PRECISION))
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    return WalletTransferResponse(
+        message=f"Transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
+        from_wallet=data.from_wallet,
+        to_wallet=data.to_wallet,
+        amount=float(amount),
+        from_balance=float(getattr(current_user, data.from_wallet)),
+        to_balance=float(getattr(current_user, data.to_wallet)),
+    )
+
+
+@router.post("/convert-ofa-to-usdt", response_model=ConvertOFAResponse)
+@limiter.limit("30/minute")
+async def convert_ofa_to_usdt(
+    request: Request,
+    data: ConvertOFARequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    OFA_TO_USDT_RATE = Decimal("0.0001")  # 100 OFA = 0.01 USDT
+    ofa_amount = Decimal(str(data.ofa_amount)).quantize(WALLET_PRECISION)
+    usdt_amount = (ofa_amount * OFA_TO_USDT_RATE).quantize(WALLET_PRECISION)
+
+    arbx_balance = current_user.arbx_wallet or Decimal("0")
+    if arbx_balance < ofa_amount:
+        raise HTTPException(status_code=400, detail=f"Insufficient OFA balance. You have {float(arbx_balance)} OFA")
+
+    current_user.arbx_wallet = (arbx_balance - ofa_amount).quantize(WALLET_PRECISION)
+    main_balance = current_user.main_wallet or Decimal("0")
+    current_user.main_wallet = (main_balance + usdt_amount).quantize(WALLET_PRECISION)
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    return ConvertOFAResponse(
+        message=f"Converted {float(ofa_amount)} OFA to {float(usdt_amount)} USDT",
+        ofa_amount=float(ofa_amount),
+        usdt_amount=float(usdt_amount),
+        arbx_wallet_balance=float(current_user.arbx_wallet),
+        main_wallet_balance=float(current_user.main_wallet),
+        rate="100 OFA = 0.01 USDT",
+    )
+
+
+@router.post("/profile-image")
+@limiter.limit("10/minute")
+async def update_profile_image(
+    request: Request,
+    data: ProfileImageUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    current_user.profile_image_url = data.profile_image_url
+    await db.commit()
+    await db.refresh(current_user)
+
+    return {
+        "message": "Profile image updated",
+        "profile_image_url": current_user.profile_image_url,
+    }
+
+
+@router.get("/list")
+async def get_user_list(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    offset = (page - 1) * limit
+
+    total_result = await db.execute(select(func.count(User.id)))
+    total = total_result.scalar() or 0
+
+    users_result = await db.execute(
+        select(User).order_by(User.created_at.desc()).offset(offset).limit(limit)
+    )
+    users = users_result.scalars().all()
+
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "users": [
+            {
+                "id": u.id,
+                "full_name": u.full_name,
+                "email": u.email,
+                "status": "active" if u.account_status == "active" and u.email_verified else "inactive",
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+            }
+            for u in users
+        ],
     }

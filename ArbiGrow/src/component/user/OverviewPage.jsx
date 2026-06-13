@@ -11,6 +11,8 @@ import {
   User,
   MessageCircle,
   Headset,
+  ShoppingCart,
+  Store,
 } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import { useCallback, useEffect, useState } from "react";
@@ -25,6 +27,8 @@ import {
 import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
 import { StatisticsTicker } from "./overview/StatisticsTicker.jsx";
 import { getPlatformStats } from "../../api/admin.api.js";
+import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
+import ProfileCard from "./ProfileCard.jsx";
 
 const OverviewPage = ({ setActivePage }) => {
   const MINING_CYCLE_MS = 24 * 60 * 60 * 1000;
@@ -168,7 +172,7 @@ const OverviewPage = ({ setActivePage }) => {
 
   const walletLabelMap = {
     main_wallet: "Main Wallet",
-    arbx_wallet: "ARBX Wallet",
+    arbx_wallet: "OFA token Wallet",
     deposit_wallet: "Deposit Wallet",
     withdraw_wallet: "Withdraw Wallet",
     referral_wallet: "Referral Wallet",
@@ -303,6 +307,18 @@ const OverviewPage = ({ setActivePage }) => {
       icon: Headset,
       onClick: () => window.open("https://t.me/ArbigrowOfficial", "_blank"),
     },
+    {
+      id: "marketplace",
+      label: "Marketplace",
+      icon: ShoppingCart,
+      onClick: () => setActivePage("marketplace"),
+    },
+    {
+      id: "seller",
+      label: "Seller",
+      icon: Store,
+      onClick: () => setActivePage("seller"),
+    },
   ];
 
   // Api
@@ -397,18 +413,9 @@ const OverviewPage = ({ setActivePage }) => {
         </div>
       </div> */}
 
-      {/* Welcome Message */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">
-          Welcome back,{" "}
-          <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            {user.full_name}
-          </span>
-        </h1>
-        <p className="text-gray-400">
-          Here's your wallet overview and recent activities
-        </p>
-      </div>
+      {/* Profile Card */}
+      <ProfileCard setActivePage={setActivePage} />
+
       {/* Quick Shortcuts */}
       <QuickShortcuts shortcuts={shortcuts} />
 
@@ -426,11 +433,11 @@ const OverviewPage = ({ setActivePage }) => {
             currency: "USDT",
           },
           {
-            label: "ARBX Wallet",
+            label: "OFA token Wallet",
             balance: Number(user?.arbx_wallet ?? 0),
             description: "Token Information",
             icon: Coins,
-            currency: "ARBX",
+            currency: "OFA token",
             hasInfo: true,
           },
           {
@@ -484,7 +491,7 @@ const OverviewPage = ({ setActivePage }) => {
                 <wallet.icon className="w-5 h-5 text-cyan-400" />
               </div>
               <div className="flex items-center gap-2">
-                {wallet.currency === "ARBX" && isTimerRunning && (
+                {wallet.currency === "OFA token" && isTimerRunning && (
                   <span
                     className="inline-flex items-center gap-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-1 text-[10px] font-semibold text-yellow-300"
                     title="Mining is active"
@@ -578,7 +585,7 @@ const OverviewPage = ({ setActivePage }) => {
                       <div className="text-xs text-gray-400 mb-1">
                         Token Symbol
                       </div>
-                      <div className="text-white font-semibold">ARBX</div>
+                      <div className="text-white font-semibold">OFA</div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-1">Network</div>
@@ -591,7 +598,7 @@ const OverviewPage = ({ setActivePage }) => {
                         Total Supply
                       </div>
                       <div className="text-white font-semibold">
-                        1,000,000,000 ARBX
+                        1,000,000,000 OFA
                       </div>
                     </div>
                   </div>
@@ -802,11 +809,11 @@ const OverviewPage = ({ setActivePage }) => {
       >
         <h3 className="text-xl font-bold text-white mb-3">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            ARBX: The Power of AI on Arbitrum
+            OFA token: The Power of AI on Arbitrum
           </span>
         </h3>
         <p className="text-gray-300 mb-3">
-          These {Number(user.arbx_wallet).toFixed(7)} ARBX tokens you earned are
+          These {Number(user.arbx_wallet).toFixed(7)} OFA tokens you earned are
           not just a number, they are a part of tomorrow&apos;s global arbitrage
           ecosystem.
         </p>
@@ -833,13 +840,13 @@ const OverviewPage = ({ setActivePage }) => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-white mb-1">
-                ARBX Mining Wallet
+OFA token Mining Wallet
               </h3>
               <div className="text-2xl font-bold text-yellow-400">
                 {Number(user.arbx_mining_wallet).toFixed(7)} ARBX
               </div>
               <div className="text-sm text-gray-400">
-                The ARBX mining rate is set at 0.01% per 24-hour cycle
+                The OFA token mining rate is set at 0.01% per 24-hour cycle
               </div>
             </div>
           </div>
@@ -873,6 +880,9 @@ const OverviewPage = ({ setActivePage }) => {
           <p className="mt-3 text-sm text-red-400">{miningActionError}</p>
         )}
       </motion.div>
+
+      {/* Global Live Activity Feed */}
+      <LiveActivityFeed />
     </div>
   );
 };

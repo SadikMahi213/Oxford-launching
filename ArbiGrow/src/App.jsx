@@ -16,6 +16,7 @@ import VerificationPending from "./page/VerificationPending";
 import AdminDashboard from "./page/AdminDashboard";
 import StrategyTiersPage from "./page/StrategyTiersPage.jsx";
 import { UserDashboard } from "./page/UserDashboard.jsx";
+import UserStatisticsPage from "./page/UserStatisticsPage.jsx";
 
 const App = () => {
   return (
@@ -66,6 +67,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <UserDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user-statistics"
+              element={
+                <ProtectedRoute>
+                  <UserStatisticsPage />
                 </ProtectedRoute>
               }
             />

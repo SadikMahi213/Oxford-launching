@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.withdrawal import Withdrawal
 from app.schemas.withdrawal import WithdrawalCreate, WithdrawalStatusUpdate
 from app.utils.email import send_withdraw_success_email
+from app.utils.is_system_active import is_system_active
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
@@ -68,6 +69,8 @@ async def create_withdrawal_request(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if not await is_system_active("withdrawal", db):
+        raise HTTPException(status_code=403, detail="Withdrawals are currently paused (weekend/system maintenance)")
     if (current_user.account_status or "").lower() == "on_hold":
         issue_note = (current_user.account_issue or "").strip()
         detail = "Your account is on hold. Withdrawals are currently disabled."

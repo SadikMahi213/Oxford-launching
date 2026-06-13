@@ -9,3 +9,12 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.platform_stats import PlatformStats
 from app.models.announcement import Announcement
+from app.models.seller import Seller
+from app.models.product import Product
+from app.models.order import Order, OrderItem
+from app.models.ecommerce_config import EcommerceConfig
+from app.models.system_config import SystemConfig
+from app.models.mining_log import MiningLog
+from app.models.package import Package
+from app.models.task_type import TaskType
+from app.models.generated_task import GeneratedTask

@@ -26,8 +26,6 @@ export default function PackageModal({
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
   const [minimumAllowedAmount, setMinimumAllowedAmount] = useState(0);
 
-  const TOTAL_ROI_LIMIT = 150;
-
   useEffect(() => {
     setPurchaseError("");
     setPurchaseSuccess("");
@@ -71,14 +69,13 @@ export default function PackageModal({
 
   if (!selectedPackage) return null;
 
-  const minDailyRoi = Number(selectedPackage?.roi?.min ?? 1);
-  const maxDailyRoi = Number(selectedPackage?.roi?.max ?? 5);
-  const minDailyProfit = (selectedPackage.amount * minDailyRoi) / 100;
-  const maxDailyProfit = (selectedPackage.amount * maxDailyRoi) / 100;
-  const totalProfit = (selectedPackage.amount * TOTAL_ROI_LIMIT) / 100;
-  const totalReturn = totalProfit;
-  const isLowerPackage =
-    isLoggedIn && selectedPackage.amount < minimumAllowedAmount;
+  const amt = selectedPackage.investment_amount || selectedPackage.amount || 0;
+  const dailyPmt = selectedPackage.daily_payment || selectedPackage.dailyPayment || 0;
+  const totalRet = selectedPackage.total_return || selectedPackage.totalReturn || 0;
+  const captchaReq = selectedPackage.captcha_required_per_day || selectedPackage.captchaRequiredPerDay || 0;
+  const durDays = selectedPackage.duration_days || selectedPackage.durationDays || 0;
+
+  const isLowerPackage = isLoggedIn && amt < minimumAllowedAmount;
 
   const handleClose = () => {
     setPurchaseError("");
@@ -95,7 +92,7 @@ export default function PackageModal({
 
     if (isLowerPackage) {
       setPurchaseError(
-        `You can only buy ${minimumAllowedAmount.toLocaleString()} USDT or higher until your current package reaches the ${TOTAL_ROI_LIMIT}% ROI cap.`,
+        `You can only buy ${minimumAllowedAmount.toLocaleString()} USDT or higher until your current package completes.`,
       );
       return;
     }
@@ -107,7 +104,7 @@ export default function PackageModal({
     try {
       const payload = {
         package_name: selectedPackage.name,
-        amount: selectedPackage.amount,
+        amount: selectedPackage.investment_amount || selectedPackage.amount,
       };
 
       const purchaseResponse = await buyInvestment(payload);
@@ -175,10 +172,10 @@ export default function PackageModal({
 
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-white">
-                  {selectedPackage.tier}
+                  {selectedPackage.name}
                 </h2>
                 <p className="mt-2 text-gray-400">
-                  Investment Package Overview
+                  Oxford Financial Ads Captcha Typing Package
                 </p>
               </div>
 
@@ -192,38 +189,37 @@ export default function PackageModal({
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Capital Allocation</p>
+                    <p className="text-gray-400">Investment Amount</p>
                     <p className="font-semibold text-cyan-400">
-                      {selectedPackage.amount.toLocaleString()} USDT
+                      ${amt.toLocaleString()} USDT
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">ROI</p>
+                    <p className="text-gray-400">Daily Captcha Requirement</p>
                     <p className="font-semibold text-green-400">
-                      {minDailyRoi}% - {maxDailyRoi}% Daily
+                      {captchaReq} Captchas Daily
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Total ROI Cap</p>
+                    <p className="text-gray-400">Duration</p>
                     <p className="font-semibold text-cyan-400">
-                      {TOTAL_ROI_LIMIT}%
+                      {durDays} Days
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Total Expected Return</p>
+                    <p className="text-gray-400">Daily Payment</p>
                     <p className="font-semibold text-yellow-400">
-                      {totalReturn.toLocaleString()} USDT
+                      ${dailyPmt.toFixed(2)} USDT
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Estimated Daily Profit</p>
+                    <p className="text-gray-400">Total Return</p>
                     <p className="font-semibold text-purple-400">
-                      {minDailyProfit.toFixed(2)} - {maxDailyProfit.toFixed(2)}{" "}
-                      USDT
+                      ${totalRet.toLocaleString()} USDT
                     </p>
                   </div>
                 </div>
@@ -248,8 +244,8 @@ export default function PackageModal({
                   disabled={isPurchasing}
                 >
                   {isPurchasing
-                    ? "Allocating..."
-                    : "Proceed to Secure Allocation"}
+                    ? "Activating..."
+                    : "Activate Package"}
                 </Button>
               )}
 
@@ -257,7 +253,7 @@ export default function PackageModal({
                 <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 py-3 text-center text-sm text-amber-300">
                   Lower package locked. You can buy{" "}
                   {minimumAllowedAmount.toLocaleString()} USDT or higher until
-                  active package completion.
+                  active package completes.
                 </p>
               )}
 

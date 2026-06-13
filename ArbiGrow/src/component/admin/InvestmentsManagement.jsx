@@ -39,9 +39,11 @@ const mapListItem = (item) => ({
   roi: toNumber(item.roi_percent),
   expectedProfit: toNumber(item.expected_profit),
   profitPaid: toNumber(item.profit_earned),
+  dailyPayment: toNumber(item.daily_payment),
+  captchaRequiredPerDay: item.captcha_required_per_day || 0,
   status: item.status,
   percentagePaid: toNumber(item.percentage_paid),
-  remainingPercentage: toNumber(item.remaining_percentage),
+  remainingProfit: toNumber(item.remaining_profit),
 });
 
 const mapDetails = (response) => ({
@@ -56,8 +58,10 @@ const mapDetails = (response) => ({
   roi: toNumber(response?.investment?.roi_percent),
   expectedProfit: toNumber(response?.investment?.expected_profit),
   profitPaid: toNumber(response?.investment?.profit_earned),
+  dailyPayment: toNumber(response?.investment?.daily_payment),
+  captchaRequiredPerDay: response?.investment?.captcha_required_per_day || 0,
   percentagePaid: toNumber(response?.investment?.percentage_paid),
-  remainingPercentage: toNumber(response?.investment?.remaining_percentage),
+  remainingProfit: toNumber(response?.investment?.remaining_profit),
   status: response?.investment?.status || "active",
   profitHistory: Array.isArray(response?.profit_history)
     ? response.profit_history.map((history, index) => ({

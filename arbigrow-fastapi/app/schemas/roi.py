@@ -3,30 +3,27 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-VALID_TIERS = Literal[
-    "Basic Starter",
-    "Pro Builder",
-    "Elite Investor",
-    "Master Director",
-    "Global Ambassador",
+VALID_PACKAGES = Literal[
+    "Starter Package",
+    "Growth Package",
+    "Advanced Package",
+    "Pro Package",
+    "Elite Package",
+    "VIP Package",
 ]
 
-TIER_PACKAGES: dict[str, list[str]] = {
-    "Basic Starter": ["Entry Access", "Foundation Access", "Core Access", "Growth Access", "Premium Starter"],
-    "Pro Builder": ["Pro Foundation", "Pro Advanced", "Pro Elite", "Pro Strategic", "Pro Maximum"],
-    "Elite Investor": ["Elite Foundation", "Elite Enhanced", "Elite Premium", "Elite Strategic", "Elite Maximum"],
-    "Master Director": ["Master Foundation", "Master Enhanced", "Master Premium", "Master Strategic", "Master Maximum"],
-    "Global Ambassador": ["Ambassador Foundation", "Ambassador Enhanced", "Ambassador Premium", "Ambassador Strategic", "Ambassador Maximum"],
-}
+ALL_PACKAGE_NAMES = [
+    "Starter Package",
+    "Growth Package",
+    "Advanced Package",
+    "Pro Package",
+    "Elite Package",
+    "VIP Package",
+]
 
 
 class ROISettingUpdate(BaseModel):
     percentage: Decimal = Field(..., ge=1, le=5)
-
-
-class ROITierApply(BaseModel):
-    tier_name: VALID_TIERS
-    percentage: Decimal = Field(..., ge=Decimal("0.01"), le=Decimal("25"))
 
 
 class ROIPackageApply(BaseModel):

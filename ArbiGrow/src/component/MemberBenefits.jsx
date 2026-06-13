@@ -13,7 +13,7 @@ export function MemberBenefits() {
       title: "Sign-Up Bonus",
       description:
         "Start your journey with an instant boost to your portfolio upon successful registration.",
-      highlight: "100 ARBX Tokens",
+      highlight: "100 OFA Tokens",
       color: "from-blue-500 to-cyan-500",
     },
     {

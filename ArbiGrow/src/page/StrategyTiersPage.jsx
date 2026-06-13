@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { tierGroups } from "../constants/strategyData.js";
 import Navbar from "../component/Navbar";
 import Footer from "../component/Footer";
 import HeroSection from "../component/package/HeroSection.jsx";
@@ -16,10 +15,7 @@ export default function StrategyTiersPage() {
       <Navbar />
       <main className="pt-20 px-6 max-w-7xl mx-auto">
         <HeroSection />
-
-        {/* Pass the entire tierGroups array once, not mapping */}
-        <TierSection tierGroups={tierGroups} onSelect={setSelectedPackage} />
-
+        <TierSection onSelect={setSelectedPackage} />
         <ComplianceSection />
       </main>
       <Footer />

@@ -328,11 +328,11 @@ export default function UserDetailModal({
                     },
                     {
                       key: "arbx_wallet",
-                      label: "ARBX Wallet",
+                      label: "OFA token Wallet",
                     },
                     {
                       key: "arbx_mining_wallet",
-                      label: "ARBX Mining Wallet",
+                      label: "OFA token Mining Wallet",
                     },
                   ].map((wallet, idx) => (
                     <div
