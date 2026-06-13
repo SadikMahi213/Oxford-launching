@@ -130,5 +130,16 @@ services:
     depends_on:
       - backend
 
+  # ── Monitoring (Uptime Kuma) ─────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: arbigrow-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+
 volumes:
   postgres_data:
+  uptime_kuma_data:
