@@ -31,6 +31,8 @@ export default function DailyTasks() {
       setStats(res.data || res);
     } catch {
       setStats(null);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
