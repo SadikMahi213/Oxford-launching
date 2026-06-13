@@ -5,7 +5,7 @@ from datetime import datetime
 
 class CaptchaNextResponse(BaseModel):
     captcha_id: int
-    captcha_text: str
+    captcha_image: str
     expires_at: datetime
 
 

@@ -175,10 +175,14 @@ export default function DailyTasks() {
             {/* Captcha display */}
             {captcha && !result && (
               <div className="space-y-4">
-                <div className="p-6 rounded-xl bg-black/40 border border-white/10 text-center">
-                  <div className="font-mono text-3xl md:text-4xl text-cyan-400 tracking-[0.3em] select-all font-bold">
-                    {captcha.captcha_text}
-                  </div>
+                <div className="p-4 rounded-xl bg-black/40 border border-white/10 text-center">
+                  <img
+                    src={`data:image/png;base64,${captcha.captcha_image}`}
+                    alt="captcha"
+                    className="mx-auto rounded-lg select-none"
+                    style={{ maxWidth: "100%", height: "auto" }}
+                    draggable={false}
+                  />
                   <div className="text-xs text-gray-500 mt-2">
                     Captcha ID: #{captcha.captcha_id} · Expires in 2 min
                   </div>

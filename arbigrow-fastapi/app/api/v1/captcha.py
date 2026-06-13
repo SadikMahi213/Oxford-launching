@@ -20,6 +20,7 @@ from app.schemas.captcha import (
     CaptchaStatsResponse,
 )
 from app.core.rate_limiter import limiter
+from app.services.captcha_generator import generate_captcha_image
 
 router = APIRouter(prefix="/captcha", tags=["Captcha"])
 
@@ -83,9 +84,11 @@ async def get_next_captcha(
     await db.commit()
     await db.refresh(challenge)
 
+    captcha_image = generate_captcha_image(captcha_text)
+
     return CaptchaNextResponse(
         captcha_id=challenge.id,
-        captcha_text=captcha_text,
+        captcha_image=captcha_image,
         expires_at=expires_at,
     )
 
