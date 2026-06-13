@@ -14,7 +14,6 @@ import { StatisticsManagement } from "../component/admin/statistics/StatisticsMa
 import AnnouncementsManagement from "../component/admin/AnnouncementsManagement.jsx";
 import AdminEcommerce from "../component/admin/AdminEcommerce.jsx";
 import SystemConfigPanel from "../component/admin/SystemConfigPanel.jsx";
-import TaskManagement from "../component/admin/TaskManagement.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -47,8 +46,6 @@ export default function AdminDashboard() {
         return <PackageManagement />;
       case "investments":
         return <InvestmentsManagement />;
-      case "tasks":
-        return <TaskManagement />;
       case "statistics":
       return <StatisticsManagement />;
       case "announcements":

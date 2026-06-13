@@ -55,13 +55,13 @@ logger = logging.getLogger("seed")
 DEFAULT_USERS = 15  # total users including admin
 
 PACKAGES = [
-    # (package_name, investment_amount, total_return, duration_days, captcha_required_per_day, captcha_task_duration_seconds)
-    ("Starter Package", 10, 20, 365, 12, 30),
-    ("Growth Package", 25, 50, 365, 20, 30),
-    ("Advanced Package", 50, 100, 365, 25, 30),
-    ("Pro Package", 100, 200, 365, 30, 30),
-    ("Elite Package", 500, 1000, 365, 40, 30),
-    ("VIP Package", 1000, 2000, 365, 60, 30),
+    # (package_name, investment_amount, total_return, duration_days, captcha_required_per_day, captcha_task_duration_seconds, earn_per_captcha, daily_captcha_limit)
+    ("Starter Package", 10, 20, 365, 12, 30, Decimal("0.01"), 12),
+    ("Growth Package", 25, 50, 365, 20, 30, Decimal("0.02"), 20),
+    ("Advanced Package", 50, 100, 365, 25, 30, Decimal("0.03"), 25),
+    ("Pro Package", 100, 200, 365, 30, 30, Decimal("0.05"), 30),
+    ("Elite Package", 500, 1000, 365, 40, 30, Decimal("0.08"), 40),
+    ("VIP Package", 1000, 2000, 365, 60, 30, Decimal("0.12"), 60),
 ]
 
 NETWORKS = [
@@ -255,7 +255,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
         logger.info("Creating packages...")
         created_packages = []
         for pkg_data in PACKAGES:
-            pkg_name, invest_amt, total_ret, duration, captcha_per_day, captcha_dur = pkg_data
+            pkg_name, invest_amt, total_ret, duration, captcha_per_day, captcha_dur, earn_per, daily_limit = pkg_data
             daily_pmt = Decimal(str(total_ret)) / Decimal(str(duration))
             package = Package(
                 name=pkg_name,
@@ -265,6 +265,8 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
                 duration_days=duration,
                 captcha_required_per_day=captcha_per_day,
                 captcha_task_duration_seconds=captcha_dur,
+                earn_per_captcha=earn_per,
+                daily_captcha_limit=daily_limit,
                 is_active=True,
             )
             db.add(package)
@@ -283,7 +285,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
                 continue
             num_investments = _random(rng, 1, 3)
             for j in range(num_investments):
-                pkg_name, invest_amt, total_ret, duration, captcha_per_day, captcha_dur = PACKAGES[
+                pkg_name, invest_amt, total_ret, duration, captcha_per_day, captcha_dur, earn_per, daily_limit = PACKAGES[
                     _random(rng, 0, len(PACKAGES) - 1)
                 ]
                 amount = Decimal(str(invest_amt))
@@ -312,6 +314,8 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
                     expected_profit=expected_profit,
                     daily_payment=daily_pmt,
                     captcha_required_per_day=captcha_per_day,
+                    earn_per_captcha=earn_per,
+                    captchas_typed_today=0,
                     profit_earned=profit_earned,
                     profit_percentage_paid=profit_pct_paid,
                     start_date=start_date,

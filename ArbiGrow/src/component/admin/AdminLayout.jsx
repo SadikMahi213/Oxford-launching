@@ -14,7 +14,6 @@ import {
   Network,
   Package,
   Activity,
-  CheckSquare,
   Megaphone,
   Store,
   Settings,
@@ -73,12 +72,6 @@ export default function AdminLayout({
       label: "Investments",
       icon: Package,
       description: "Manage investments",
-    },
-    {
-      id: "tasks",
-      label: "Task Engine",
-      icon: CheckSquare,
-      description: "Manage daily tasks",
     },
   {
   id: "statistics",

@@ -103,16 +103,16 @@ export const getPackages = () => {
   return api.get("v1/investments/packages", authHeaders());
 };
 
-export const getTodayTasks = () => {
-  return api.get("v1/tasks/today", authHeaders());
+export const getNextCaptcha = () => {
+  return api.get("v1/captcha/next", authHeaders());
 };
 
-export const completeTask = (taskId, data) => {
-  return api.post(`v1/tasks/${taskId}/complete`, data, authHeaders());
+export const submitCaptcha = (data) => {
+  return api.post("v1/captcha/submit", data, authHeaders());
 };
 
-export const getTaskHistory = (days = 7) => {
-  return api.get(`v1/tasks/history?days=${days}`, authHeaders());
+export const getCaptchaStats = () => {
+  return api.get("v1/captcha/stats", authHeaders());
 };
 
 export const walletTransfer = (payload) => {

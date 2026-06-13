@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────
+# ArbiGrow Backend — .dockerignore
+# ─────────────────────────────────────────────────────
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Other
+*.md
+.readme

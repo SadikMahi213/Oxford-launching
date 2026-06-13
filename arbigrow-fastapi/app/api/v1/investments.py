@@ -134,6 +134,8 @@ async def buy_investment(
         expected_profit=expected_profit,
         daily_payment=package.daily_payment,
         captcha_required_per_day=package.captcha_required_per_day,
+        earn_per_captcha=package.earn_per_captcha,
+        captchas_typed_today=0,
         start_date=start_date,
         end_date=end_date,
         status="active",
@@ -179,6 +181,8 @@ async def list_active_packages(
                 "duration_days": p.duration_days,
                 "captcha_required_per_day": p.captcha_required_per_day,
                 "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
+                "earn_per_captcha": float(p.earn_per_captcha or 0),
+                "daily_captcha_limit": p.daily_captcha_limit or 0,
             }
             for p in packages
         ]
@@ -210,6 +214,8 @@ async def get_my_investments(
             "expected_profit": inv.expected_profit,
             "daily_payment": float(inv.daily_payment or 0),
             "captcha_required_per_day": inv.captcha_required_per_day or 0,
+            "earn_per_captcha": float(inv.earn_per_captcha or 0),
+            "captchas_typed_today": inv.captchas_typed_today or 0,
             "profit_earned": inv.profit_earned,
             "profit_percentage_paid": inv.profit_percentage_paid,
             "remaining_percentage": _get_remaining_percentage(inv),
@@ -261,6 +267,8 @@ async def get_investment_details(
             "expected_profit": investment.expected_profit,
             "daily_payment": float(investment.daily_payment or 0),
             "captcha_required_per_day": investment.captcha_required_per_day or 0,
+            "earn_per_captcha": float(investment.earn_per_captcha or 0),
+            "captchas_typed_today": investment.captchas_typed_today or 0,
             "profit_earned": investment.profit_earned,
             "profit_percentage_paid": investment.profit_percentage_paid,
             "remaining_percentage": _get_remaining_percentage(investment),

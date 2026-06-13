@@ -1090,6 +1090,8 @@ async def admin_list_packages(
                 "duration_days": p.duration_days,
                 "captcha_required_per_day": p.captcha_required_per_day,
                 "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
+                "earn_per_captcha": float(p.earn_per_captcha or 0),
+                "daily_captcha_limit": p.daily_captcha_limit or 0,
                 "is_active": p.is_active,
                 "created_at": p.created_at.isoformat() if p.created_at else None,
                 "updated_at": p.updated_at.isoformat() if p.updated_at else None,
@@ -1109,6 +1111,8 @@ async def admin_update_package(
     duration_days: int | None = None,
     captcha_required_per_day: int | None = None,
     captcha_task_duration_seconds: int | None = None,
+    earn_per_captcha: float | None = None,
+    daily_captcha_limit: int | None = None,
     is_active: bool | None = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
@@ -1133,6 +1137,10 @@ async def admin_update_package(
         package.captcha_required_per_day = captcha_required_per_day
     if captcha_task_duration_seconds is not None:
         package.captcha_task_duration_seconds = captcha_task_duration_seconds
+    if earn_per_captcha is not None:
+        package.earn_per_captcha = Decimal(str(earn_per_captcha))
+    if daily_captcha_limit is not None:
+        package.daily_captcha_limit = daily_captcha_limit
     if is_active is not None:
         package.is_active = is_active
 
@@ -1221,6 +1229,8 @@ async def admin_create_package(
     duration_days: int = 365,
     captcha_required_per_day: int = 12,
     captcha_task_duration_seconds: int = 30,
+    earn_per_captcha: float = 0.01,
+    daily_captcha_limit: int = 12,
     is_active: bool = True,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
@@ -1239,6 +1249,8 @@ async def admin_create_package(
         duration_days=duration_days,
         captcha_required_per_day=captcha_required_per_day,
         captcha_task_duration_seconds=captcha_task_duration_seconds,
+        earn_per_captcha=Decimal(str(earn_per_captcha)),
+        daily_captcha_limit=daily_captcha_limit,
         is_active=is_active,
     )
     db.add(package)

@@ -15,7 +15,6 @@ from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.roi_setting import ROISetting
 from app.models.system_config import SystemConfig
 from app.models.user import User
-from app.services.task_generator import check_daily_task_completion
 
 logger = logging.getLogger(__name__)
 
@@ -271,19 +270,6 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
             if profit_amount <= 0:
                 await db.rollback()
                 return False
-
-            # Check if task completion is required for daily earning
-            tc_result = await db.execute(
-                select(SystemConfig.value).where(SystemConfig.key == "task_completion_required")
-            )
-            tc_setting = tc_result.scalar_one_or_none()
-            if tc_setting and tc_setting.lower() == "true":
-                today_date = now_utc.date()
-                tasks_complete = await check_daily_task_completion(db, investment.user_id, today_date)
-                if not tasks_complete:
-                    logger.info(f"Investment {investment_id}: daily tasks not completed, skipping earning")
-                    await db.rollback()
-                    return False
 
             # Calculate the percentage equivalent for history tracking
             applied_percentage = _to_percent_precision(

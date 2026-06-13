@@ -14,8 +14,7 @@ from app.api.v1 import (
     platform_stats,
     announcements,
     ecommerce,
-    tasks,
-    admin_tasks,
+    captcha,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -34,5 +33,4 @@ api_router.include_router(admin_roi.router)
 api_router.include_router(platform_stats.router)
 api_router.include_router(announcements.router)
 api_router.include_router(ecommerce.router)
-api_router.include_router(tasks.router)
-api_router.include_router(admin_tasks.router)
+api_router.include_router(captcha.router)

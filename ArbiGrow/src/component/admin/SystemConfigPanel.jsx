@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users, CheckSquare } from "lucide-react";
+import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import {
   getSystemConfig, updateSystemConfig,
@@ -11,7 +11,6 @@ const FEATURE_LABELS = {
   system_daily_work_enabled: "Daily Work (Mining)",
   system_daily_earning_enabled: "Daily Earnings (ROI)",
   system_withdrawal_enabled: "Withdrawals",
-  task_completion_required: "Task Completion Required for ROI",
 };
 
 const SystemConfigPanel = () => {
@@ -201,7 +200,6 @@ const SystemConfigPanel = () => {
         <ul className="text-sm text-gray-400 space-y-1">
           <li>• Saturday &amp; Sunday (UK time): Daily Work, Daily Earnings, and Withdrawals are automatically paused.</li>
           <li>• Mining is capped at 20 OFA/day (configurable above). Users can claim every 60 seconds.</li>
-          <li>• Task Completion Required: when enabled, users must complete daily tasks before earning ROI.</li>
           <li>• Toggle any feature above to "Active" to override the weekend rule.</li>
           <li>• Deposits, marketplace, login/register, and wallet features are always active.</li>
         </ul>

@@ -31,6 +31,10 @@ class Package(Base):
 
     captcha_task_duration_seconds: Mapped[int] = mapped_column(Integer, default=30)
 
+    earn_per_captcha: Mapped[Decimal] = mapped_column(Numeric(10, 4), default=Decimal("0.0000"), server_default="0.0000")
+
+    daily_captcha_limit: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_at: Mapped[datetime] = mapped_column(

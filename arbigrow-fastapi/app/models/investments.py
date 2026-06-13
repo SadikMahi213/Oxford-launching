@@ -1,6 +1,6 @@
-from sqlalchemy import ForeignKey, DateTime, Integer, String, Numeric
+from sqlalchemy import ForeignKey, DateTime, Date, Integer, String, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 
 from app.core.base import Base
@@ -45,6 +45,22 @@ class Investment(Base):
         Integer,
         default=0,
         server_default="0"
+    )
+
+    earn_per_captcha: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
+    captchas_typed_today: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        server_default="0"
+    )
+
+    last_captcha_date: Mapped[date | None] = mapped_column(
+        Date, nullable=True
     )
 
     profit_earned: Mapped[Decimal] = mapped_column(

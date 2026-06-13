@@ -19,7 +19,7 @@ import {
   Home,
   X,
   Menu,
-  Pickaxe,
+  Keyboard,
   Lock,
   Copy,
   Check,
@@ -61,8 +61,8 @@ import { Market } from "../component/user/Market.jsx";
 import { AnnouncementModal } from "../component/user/AnnouncementModal.jsx";
 import MarketplacePage from "../component/user/MarketplacePage.jsx";
 import SellerDashboard from "../component/user/SellerDashboard.jsx";
-import DailyTasks from "../component/user/DailyTasks.jsx";
 import WalletTransfer from "../component/user/WalletTransfer.jsx";
+import DailyTasks from "../component/user/DailyTasks.jsx";
 import ConvertOFA from "../component/user/ConvertOFA.jsx";
 // Mock data for market prices
 
@@ -399,9 +399,9 @@ export function UserDashboard() {
     },
     {
       id: "tasks",
-      label: "Daily Tasks",
-      icon: Pickaxe,
-      description: "Complete & earn",
+      label: "Captcha Typing",
+      icon: Keyboard,
+      description: "Type & earn USDT",
     },
     {
       id: "withdraw",

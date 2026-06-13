@@ -25,6 +25,8 @@ const EMPTY_FORM = {
   duration_days: 365,
   captcha_required_per_day: 12,
   captcha_task_duration_seconds: 30,
+  earn_per_captcha: 0.01,
+  daily_captcha_limit: 12,
 };
 
 export default function PackageManagement() {
@@ -106,6 +108,8 @@ export default function PackageManagement() {
         duration_days: Number(form.duration_days) || 365,
         captcha_required_per_day: Number(form.captcha_required_per_day) || 12,
         captcha_task_duration_seconds: Number(form.captcha_task_duration_seconds) || 30,
+        earn_per_captcha: Number(form.earn_per_captcha) || 0.01,
+        daily_captcha_limit: Number(form.daily_captcha_limit) || 12,
       });
       setSuccessMessage(`Package "${form.name}" created successfully`);
       setShowCreate(false);
@@ -132,6 +136,8 @@ export default function PackageManagement() {
         duration_days: Number(form.duration_days),
         captcha_required_per_day: Number(form.captcha_required_per_day),
         captcha_task_duration_seconds: Number(form.captcha_task_duration_seconds),
+        earn_per_captcha: Number(form.earn_per_captcha),
+        daily_captcha_limit: Number(form.daily_captcha_limit),
         is_active: form.is_active,
       });
       setSuccessMessage(`Package "${form.name}" updated successfully`);
@@ -206,6 +212,8 @@ export default function PackageManagement() {
       duration_days: pkg.duration_days,
       captcha_required_per_day: pkg.captcha_required_per_day,
       captcha_task_duration_seconds: pkg.captcha_task_duration_seconds,
+      earn_per_captcha: pkg.earn_per_captcha || 0.01,
+      daily_captcha_limit: pkg.daily_captcha_limit || 12,
       is_active: pkg.is_active,
     });
     setShowEdit(pkg);
@@ -309,6 +317,7 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Payment</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Captcha/Day</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Captcha</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Investors</th>
@@ -335,6 +344,7 @@ export default function PackageManagement() {
                     <td className="px-4 py-3 text-green-300">${pkg.total_return.toLocaleString()}</td>
                     <td className="px-4 py-3 text-yellow-300">${pkg.daily_payment.toFixed(2)}/day</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
+                    <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.duration_days}d</td>
                     <td className="px-4 py-3">
                       <button
@@ -485,6 +495,30 @@ export default function PackageManagement() {
                     min="5"
                     value={form.captcha_task_duration_seconds}
                     onChange={(e) => setForm({ ...form, captcha_task_duration_seconds: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Earn Per Captcha ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.0001"
+                    value={form.earn_per_captcha}
+                    onChange={(e) => setForm({ ...form, earn_per_captcha: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Daily Captcha Limit</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.daily_captcha_limit}
+                    onChange={(e) => setForm({ ...form, daily_captcha_limit: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
                 </div>
