@@ -1,0 +1,201 @@
+import { useState } from "react";
+import { motion } from "motion/react";
+import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe } from "lucide-react";
+import { walletTransfer } from "../../api/user.api.js";
+import useUserStore from "../../store/userStore.js";
+
+const WALLET_OPTIONS = [
+  { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT" },
+  { value: "deposit_wallet", label: "Deposit Wallet", icon: Download, currency: "USDT" },
+  { value: "withdraw_wallet", label: "Withdraw Wallet", icon: Upload, currency: "USDT" },
+  { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
+  { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
+  { value: "ecommerce_wallet", label: "Ecommerce Wallet", icon: ShoppingCart, currency: "USDT" },
+  { value: "arbx_wallet", label: "OFA token Wallet", icon: Coins, currency: "OFA" },
+  { value: "arbx_mining_wallet", label: "Mining Wallet", icon: Pickaxe, currency: "OFA" },
+];
+
+const walletBalances = (user) => ({
+  main_wallet: Number(user?.main_wallet ?? 0),
+  deposit_wallet: Number(user?.deposit_wallet ?? 0),
+  withdraw_wallet: Number(user?.withdraw_wallet ?? 0),
+  referral_wallet: Number(user?.referral_wallet ?? 0),
+  generation_wallet: Number(user?.generation_wallet ?? 0),
+  ecommerce_wallet: Number(user?.ecommerce_wallet ?? 0),
+  arbx_wallet: Number(user?.arbx_wallet ?? 0),
+  arbx_mining_wallet: Number(user?.arbx_mining_wallet ?? 0),
+});
+
+export default function WalletTransfer() {
+  const { user, setUser } = useUserStore();
+  const balances = walletBalances(user);
+  const [fromWallet, setFromWallet] = useState("main_wallet");
+  const [toWallet, setToWallet] = useState("deposit_wallet");
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const swapWallets = () => {
+    setFromWallet(toWallet);
+    setToWallet(fromWallet);
+  };
+
+  const fromWalletData = WALLET_OPTIONS.find((w) => w.value === fromWallet);
+  const toWalletData = WALLET_OPTIONS.find((w) => w.value === toWallet);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setIsSuccess(false);
+
+    if (!amount || parseFloat(amount) <= 0) {
+      setMessage("Enter a valid amount");
+      return;
+    }
+    if (fromWallet === toWallet) {
+      setMessage("Source and destination must be different");
+      return;
+    }
+    if (parseFloat(amount) > balances[fromWallet]) {
+      setMessage("Insufficient balance");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await walletTransfer({
+        from_wallet: fromWallet,
+        to_wallet: toWallet,
+        amount: parseFloat(amount),
+      });
+
+      setUser({
+        ...user,
+        [fromWallet]: res.data.from_balance,
+        [toWallet]: res.data.to_balance,
+      });
+
+      setMessage(res.data.message);
+      setIsSuccess(true);
+      setAmount("");
+    } catch (err) {
+      const msg = err.response?.data?.detail || "Transfer failed";
+      setMessage(msg);
+      setIsSuccess(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="min-h-screen p-4 md:p-6"
+    >
+      <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/30 flex items-center justify-center">
+            <ArrowLeftRight className="w-6 h-6 text-cyan-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Wallet Transfer</h1>
+            <p className="text-sm text-gray-400">Transfer funds between your wallets</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div className="md:col-span-2">
+              <label className="block text-sm text-gray-400 mb-2">From Wallet</label>
+              <select
+                value={fromWallet}
+                onChange={(e) => setFromWallet(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 appearance-none"
+              >
+                {WALLET_OPTIONS.map((w) => (
+                  <option key={w.value} value={w.value} className="bg-gray-900">
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-center md:col-span-1">
+              <button
+                type="button"
+                onClick={swapWallets}
+                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-cyan-500/20 transition-colors"
+              >
+                <ArrowRight className="w-5 h-5 text-cyan-400" />
+              </button>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm text-gray-400 mb-2">To Wallet</label>
+              <select
+                value={toWallet}
+                onChange={(e) => setToWallet(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 appearance-none"
+              >
+                {WALLET_OPTIONS.map((w) => (
+                  <option key={w.value} value={w.value} className="bg-gray-900">
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-400">From Balance</span>
+              <span className="text-sm text-white font-medium">
+                {fromWalletData?.currency === "USDT" ? "$" : ""}{balances[fromWallet].toFixed(fromWalletData?.currency === "OFA" ? 7 : 2)} {fromWalletData?.currency === "OFA" ? "OFA" : ""}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-400">To Balance</span>
+              <span className="text-sm text-white font-medium">
+                {toWalletData?.currency === "USDT" ? "$" : ""}{balances[toWallet].toFixed(toWalletData?.currency === "OFA" ? 7 : 2)} {toWalletData?.currency === "OFA" ? "OFA" : ""}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Amount</label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-cyan-500/50"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                {fromWalletData?.currency === "USDT" ? "USDT" : "OFA"}
+              </span>
+            </div>
+          </div>
+
+          {message && (
+            <p className={`text-center text-sm ${isSuccess ? "text-green-400" : "text-red-400"}`}>
+              {message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {loading ? "Transferring..." : "Transfer"}
+          </button>
+        </form>
+      </div>
+    </motion.div>
+  );
+}
