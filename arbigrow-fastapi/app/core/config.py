@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     B2_KEY_ID: str
     B2_APPLICATION_KEY: str
     B2_BUCKET_NAME: str
+    DB_SSL_REQUIRED: bool = False
 
     AUTO_ROI_ENABLED: bool = True
     AUTO_ROI_POLL_SECONDS: int = 21600

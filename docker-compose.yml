@@ -1,0 +1,138 @@
+# ─────────────────────────────────────────────────────
+# ArbiGrow — Docker Compose
+# ─────────────────────────────────────────────────────
+# Start all services:
+#   docker compose up -d
+#
+# Rebuild after code changes:
+#   docker compose up -d --build
+#
+# Stop everything:
+#   docker compose down
+# ─────────────────────────────────────────────────────
+
+name: arbigrow
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: arbigrow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: arbigrow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend (FastAPI) ───────────────────────────────
+  backend:
+    build:
+      context: ./arbigrow-fastapi
+      target: prod
+    container_name: arbigrow-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 7200
+      ALLOWED_ORIGINS: '["http://13.140.175.187:80","http://localhost:80"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: http://13.140.175.187:80
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "true"
+      AUTO_ROI_POLL_SECONDS: 21600
+      # Email (optional — set these if you need email features)
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: noreply@arbigrow.com
+      MAIL_PORT: 587
+      MAIL_SERVER: smtp.gmail.com
+      MAIL_FROM_NAME: ArbiGrow
+      MAIL_STARTTLS: "true"
+      MAIL_SSL_TLS: "false"
+      # File storage (optional — B2 credentials)
+      B2_ENDPOINT: ""
+      B2_KEY_ID: ""
+      B2_APPLICATION_KEY: ""
+      B2_BUCKET_NAME: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Database Migration + Seed ──────────────────────
+  migrate:
+    build:
+      context: ./arbigrow-fastapi
+      target: base
+    container_name: arbigrow-migrate
+    command: >
+      sh -c "
+        echo 'Running migrations...' &&
+        alembic upgrade head &&
+        echo 'Seeding database...' &&
+        python seed.py &&
+        echo 'Done!'
+      "
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ALGORITHM: HS256
+      ALLOWED_ORIGINS: '["http://13.140.175.187:80","http://localhost:80"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: http://13.140.175.187:80
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "false"
+      # Email (dummy values for migration/seed)
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: noreply@arbigrow.com
+      MAIL_PORT: 587
+      MAIL_SERVER: smtp.gmail.com
+      MAIL_FROM_NAME: ArbiGrow
+      MAIL_STARTTLS: "true"
+      MAIL_SSL_TLS: "false"
+      # B2 (dummy values for migration/seed)
+      B2_ENDPOINT: ""
+      B2_KEY_ID: ""
+      B2_APPLICATION_KEY: ""
+      B2_BUCKET_NAME: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Frontend (React + Vite) ────────────────────────
+  frontend:
+    build:
+      context: ./ArbiGrow
+      target: ${FRONTEND_TARGET:-prod}
+      args:
+        VITE_BACKEND_URL: http://backend:8000
+    container_name: arbigrow-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "5173:5173"
+    environment:
+      VITE_BACKEND_URL: http://backend:8000
+    volumes:
+      - ./ArbiGrow:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

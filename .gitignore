@@ -1,0 +1,35 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Backups and dumps
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+generated_avatars/
+
+# Deployment artifacts
+*.pem
+*.key
+id_*
+known_hosts
+

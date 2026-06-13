@@ -116,16 +116,29 @@ class User(Base):
         server_default="0"
     )
 
+    # ── Mining system (24h capped) ──────────────────────
+    mining_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
     mining_started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True),
-        nullable=True
+        DateTime(timezone=True), nullable=True
+    )
+    daily_mined: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), nullable=True,
+        default=Decimal("0.00000000000000"), server_default="0"
+    )
+    last_mine_time: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
-    is_mining: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
-        server_default="false"
+    ecommerce_wallet: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
     )
+
+
 
     # ancestry cache (up to 5 generations)
     parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

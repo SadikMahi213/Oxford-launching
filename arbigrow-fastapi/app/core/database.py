@@ -5,11 +5,18 @@ from sqlalchemy import text
 from app.core.config import settings
 
 
+_connect_args = {}
+if settings.DB_SSL_REQUIRED:
+    _connect_args["ssl"] = True
+else:
+    _connect_args["ssl"] = False
+
+
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
-    connect_args={"ssl": True},
+    connect_args=_connect_args,
     pool_pre_ping=True,
 )
 
