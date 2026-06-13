@@ -315,6 +315,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
                     daily_payment=daily_pmt,
                     captcha_required_per_day=captcha_per_day,
                     earn_per_captcha=earn_per,
+                    daily_captcha_limit=daily_limit,
                     captchas_typed_today=0,
                     profit_earned=profit_earned,
                     profit_percentage_paid=profit_pct_paid,

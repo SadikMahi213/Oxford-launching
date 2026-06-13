@@ -53,6 +53,12 @@ class Investment(Base):
         server_default="0"
     )
 
+    daily_captcha_limit: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        server_default="0"
+    )
+
     captchas_typed_today: Mapped[int] = mapped_column(
         Integer,
         default=0,
