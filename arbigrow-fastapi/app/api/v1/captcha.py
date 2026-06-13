@@ -29,8 +29,8 @@ CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
-def _generate_captcha_text(length: int = 6) -> str:
-    chars = string.ascii_uppercase + string.digits
+def _generate_captcha_text(length: int = 5) -> str:
+    chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
     return "".join(secrets.choice(chars) for _ in range(length))
 
 
@@ -141,7 +141,7 @@ async def submit_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
-    expected_hash = _hash_captcha(body.user_input.strip(), challenge.salt)
+    expected_hash = _hash_captcha(body.user_input.strip().upper(), challenge.salt)
     is_correct = expected_hash == challenge.captcha_text_hash
 
     challenge.is_used = True
@@ -149,7 +149,7 @@ async def submit_captcha(
     earning = CaptchaEarning(
         user_id=user_id,
         captcha_text_original=challenge.captcha_text_hash,
-        user_input=body.user_input.strip(),
+        user_input=body.user_input.strip().upper(),
         is_correct=is_correct,
         amount_earned=Decimal("0"),
     )
