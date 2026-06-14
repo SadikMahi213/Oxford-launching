@@ -17,6 +17,7 @@ import {
   Megaphone,
   Store,
   Settings,
+  Video,
 } from "lucide-react";
 import logo from "../../assets/Arbigrow-Logo.png";
 import useUserStore from "../../store/userStore";
@@ -72,6 +73,12 @@ export default function AdminLayout({
       label: "Investments",
       icon: Package,
       description: "Manage investments",
+    },
+    {
+      id: "ads",
+      label: "Ads Management",
+      icon: Video,
+      description: "YouTube ads for earn",
     },
   {
   id: "statistics",

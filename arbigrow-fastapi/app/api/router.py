@@ -16,6 +16,7 @@ from app.api.v1 import (
     ecommerce,
     captcha,
     ads,
+    admin_ads,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -36,3 +37,4 @@ api_router.include_router(announcements.router)
 api_router.include_router(ecommerce.router)
 api_router.include_router(captcha.router)
 api_router.include_router(ads.router)
+api_router.include_router(admin_ads.router)

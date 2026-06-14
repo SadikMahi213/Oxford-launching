@@ -14,6 +14,7 @@ import { StatisticsManagement } from "../component/admin/statistics/StatisticsMa
 import AnnouncementsManagement from "../component/admin/AnnouncementsManagement.jsx";
 import AdminEcommerce from "../component/admin/AdminEcommerce.jsx";
 import SystemConfigPanel from "../component/admin/SystemConfigPanel.jsx";
+import AdManagement from "../component/admin/AdManagement.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -54,6 +55,8 @@ export default function AdminDashboard() {
         return <RoiManagement />;
       case "ecommerce":
         return <AdminEcommerce />;
+      case "ads":
+        return <AdManagement />;
       case "reports":
       case "settings":
         return <SystemConfigPanel />;

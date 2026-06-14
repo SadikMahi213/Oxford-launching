@@ -8,6 +8,7 @@ import {
   RefreshCw,
   AlertCircle,
   Eye,
+  Youtube,
 } from "lucide-react";
 import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
@@ -21,8 +22,11 @@ export default function AdsView() {
   const [canComplete, setCanComplete] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [playerReady, setPlayerReady] = useState(false);
   const { setUser } = useUserStore();
   const timerRef = useRef(null);
+  const playerRef = useRef(null);
+  const playerContainerRef = useRef(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -39,9 +43,58 @@ export default function AdsView() {
     fetchStats();
   }, [fetchStats]);
 
+  const loadYouTubeAPI = useCallback(() => {
+    if (window.YT) return;
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const first = document.getElementsByTagName("script")[0];
+    first.parentNode.insertBefore(tag, first);
+  }, []);
+
+  useEffect(() => {
+    loadYouTubeAPI();
+  }, [loadYouTubeAPI]);
+
+  const initPlayer = useCallback((videoId) => {
+    if (!window.YT || !window.YT.Player) {
+      window.onYouTubeIframeAPIReady = () => initPlayer(videoId);
+      return;
+    }
+    if (playerRef.current) {
+      playerRef.current.destroy();
+      playerRef.current = null;
+    }
+    playerRef.current = new window.YT.Player(playerContainerRef.current, {
+      videoId,
+      height: "100%",
+      width: "100%",
+      playerVars: {
+        autoplay: 1,
+        controls: 1,
+        rel: 0,
+        modestbranding: 1,
+        enablejsapi: 1,
+      },
+      events: {
+        onReady: () => setPlayerReady(true),
+        onStateChange: (event) => {
+          if (event.data === window.YT.PlayerState.ENDED) {
+            setCanComplete(true);
+          }
+        },
+        onError: () => {
+          setError("Failed to load video. Please try another ad.");
+          setWatching(false);
+          setAdSession(null);
+        },
+      },
+    });
+  }, []);
+
   const handleStart = async () => {
     setError("");
     setResult(null);
+    setPlayerReady(false);
     try {
       const res = await startAd();
       const data = res.data || res;
@@ -55,19 +108,42 @@ export default function AdsView() {
   };
 
   useEffect(() => {
-    if (!watching || timer <= 0) return;
+    if (!watching || !adSession?.video_id) return;
+    const checkInterval = setInterval(() => {
+      initPlayer(adSession.video_id);
+    }, 200);
+    setTimeout(() => clearInterval(checkInterval), 5000);
+    return () => clearInterval(checkInterval);
+  }, [watching, adSession?.video_id, initPlayer]);
+
+  useEffect(() => {
+    if (!watching || !playerReady || !playerRef.current) return;
+
+    const checkProgress = setInterval(() => {
+      try {
+        const currentTime = playerRef.current.getCurrentTime();
+        if (currentTime >= (adSession?.required_watch_seconds || 30)) {
+          setCanComplete(true);
+        }
+      } catch {}
+    }, 1000);
+
+    return () => clearInterval(checkProgress);
+  }, [watching, playerReady, adSession?.required_watch_seconds]);
+
+  useEffect(() => {
+    if (!watching || canComplete) return;
     timerRef.current = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
           clearInterval(timerRef.current);
-          setCanComplete(true);
           return 0;
         }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [watching, timer]);
+  }, [watching, canComplete]);
 
   const handleComplete = async () => {
     if (!adSession) return;
@@ -77,7 +153,9 @@ export default function AdsView() {
       const data = res.data || res;
       setResult(data);
       setWatching(false);
-      setAdSession(null);
+      if (playerRef.current) {
+        playerRef.current.stopVideo();
+      }
       if (data.success) {
         setUser({ main_wallet: data.new_balance });
         await fetchStats();
@@ -107,7 +185,7 @@ export default function AdsView() {
             Ad View Tasks
           </h2>
           <p className="text-gray-400 text-sm mt-1">
-            Watch ads to earn USDT based on your package
+            Watch YouTube ads to earn USDT based on your package
           </p>
         </div>
       </div>
@@ -150,7 +228,7 @@ export default function AdsView() {
           <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-white mb-2">No Ad View Package</h3>
           <p className="text-gray-400">
-            Purchase an "Ad View" package to start earning by watching ads.
+            Purchase an "Ad View" package to start earning by watching YouTube ads.
           </p>
         </div>
       )}
@@ -170,8 +248,8 @@ export default function AdsView() {
             {!watching && !result && stats.remaining > 0 && (
               <div className="text-center space-y-4">
                 <div className="p-8 rounded-xl bg-black/40 border border-white/10">
-                  <Eye className="w-16 h-16 text-purple-400/50 mx-auto" />
-                  <p className="text-gray-400 mt-4 text-sm">Click below to watch an ad and earn</p>
+                  <Youtube className="w-16 h-16 text-red-400/50 mx-auto" />
+                  <p className="text-gray-400 mt-4 text-sm">Click below to watch a YouTube ad and earn</p>
                 </div>
                 <button
                   onClick={handleStart}
@@ -183,19 +261,28 @@ export default function AdsView() {
               </div>
             )}
 
-            {watching && (
+            {watching && adSession && (
               <div className="text-center space-y-4">
-                <div className="p-8 rounded-xl bg-black/40 border border-white/10">
-                  <div className="text-6xl font-bold text-purple-400 mb-2">
-                    {timer}s
-                  </div>
+                {adSession.title && (
+                  <div className="text-white font-semibold text-sm truncate">{adSession.title}</div>
+                )}
+                <div className="rounded-xl overflow-hidden bg-black/60 border border-white/10" style={{ aspectRatio: "16/9" }}>
+                  <div ref={playerContainerRef} className="w-full h-full" />
+                  {!playerReady && (
+                    <div className="w-full h-full flex items-center justify-center bg-black/80 text-gray-400 text-sm">
+                      <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading player...
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-400 mb-1">{timer}s</div>
                   <p className="text-gray-400 text-sm">
-                    {canComplete ? "Ad finished! Click complete to earn." : "Watching ad... please wait"}
+                    {canComplete ? "Watched! Click complete to earn." : "Watching... please wait"}
                   </p>
-                  <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000"
-                      style={{ width: `${adSession ? ((adSession.duration_seconds - timer) / adSession.duration_seconds) * 100 : 0}%` }}
+                      style={{ width: `${Math.min(100, ((adSession.duration_seconds - timer) / adSession.duration_seconds) * 100)}%` }}
                     />
                   </div>
                 </div>

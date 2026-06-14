@@ -1,4 +1,4 @@
-import time
+import random
 from datetime import datetime, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -11,6 +11,8 @@ from app.core.security import get_current_user_id
 from app.models.user import User
 from app.models.investments import Investment
 from app.models.ad_view import AdView
+from app.models.ad import Ad
+from app.models.user_ad_view import UserAdView
 from app.models.package import TaskType
 from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
@@ -76,14 +78,52 @@ async def start_ad(
     )
     active_session = existing.scalars().first()
     if active_session:
+        ad_info = None
+        if active_session.ad_id:
+            ad_result = await db.execute(select(Ad).where(Ad.id == active_session.ad_id))
+            ad_info = ad_result.scalar_one_or_none()
         return {
             "ad_view_id": active_session.id,
+            "ad_id": active_session.ad_id,
+            "video_id": ad_info.video_id if ad_info else None,
+            "title": ad_info.title if ad_info else None,
+            "thumbnail": ad_info.thumbnail if ad_info else None,
             "duration_seconds": package.ad_duration_seconds,
+            "required_watch_seconds": ad_info.required_watch_seconds if ad_info else package.ad_duration_seconds,
             "started_at": active_session.started_at.isoformat(),
         }
 
+    all_ads_result = await db.execute(
+        select(Ad).where(
+            and_(
+                Ad.is_active == True,
+            )
+        ).order_by(func.random())
+    )
+    all_ads = all_ads_result.scalars().all()
+    if not all_ads:
+        raise HTTPException(400, detail="No ads available. Please check back later.")
+
+    user_ad_views_result = await db.execute(
+        select(UserAdView).where(UserAdView.user_id == user_id)
+    )
+    user_ad_views = {uav.ad_id: uav for uav in user_ad_views_result.scalars().all()}
+
+    eligible = []
+    for ad in all_ads:
+        uav = user_ad_views.get(ad.id)
+        view_count = uav.view_count if uav else 0
+        if view_count < 2:
+            eligible.append(ad)
+
+    if not eligible:
+        raise HTTPException(400, detail="You have viewed all available ads the maximum number of times. New ads will be added soon.")
+
+    selected_ad = eligible[0] if len(eligible) == 1 else random.choice(eligible)
+
     ad_view = AdView(
         user_id=user_id,
+        ad_id=selected_ad.id,
         started_at=datetime.now(timezone.utc),
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent", ""),
@@ -94,7 +134,12 @@ async def start_ad(
 
     return {
         "ad_view_id": ad_view.id,
+        "ad_id": selected_ad.id,
+        "video_id": selected_ad.video_id,
+        "title": selected_ad.title,
+        "thumbnail": selected_ad.thumbnail,
         "duration_seconds": package.ad_duration_seconds,
+        "required_watch_seconds": selected_ad.required_watch_seconds,
         "started_at": ad_view.started_at.isoformat(),
     }
 
@@ -168,6 +213,32 @@ async def complete_ad(
     ad_view.is_completed = True
     ad_view.completed_at = now
     ad_view.amount_earned = earned
+
+    if ad_view.ad_id:
+        uav_result = await db.execute(
+            select(UserAdView).where(
+                and_(
+                    UserAdView.user_id == user_id,
+                    UserAdView.ad_id == ad_view.ad_id,
+                )
+            )
+        )
+        uav = uav_result.scalar_one_or_none()
+        if uav:
+            uav.view_count = (uav.view_count or 0) + 1
+            uav.total_rewarded = (uav.total_rewarded + earned).quantize(
+                WALLET_PRECISION, rounding=ROUND_HALF_UP
+            )
+            uav.last_viewed_at = now
+        else:
+            uav = UserAdView(
+                user_id=user_id,
+                ad_id=ad_view.ad_id,
+                view_count=1,
+                total_rewarded=earned,
+                last_viewed_at=now,
+            )
+            db.add(uav)
 
     remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv in investments)
 

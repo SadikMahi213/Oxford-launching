@@ -433,4 +433,31 @@ export const bulkTogglePackages = async (token, packageIds, isActive) => {
   return res.data || {};
 };
 
+// ── Ad Management (YouTube Ads) ──────────────────────────────────────────────────
+
+export const getAdminAds = async (token, page = 1) => {
+  const res = await api.get(`v1/admin/ads?page=${page}&limit=50`, authHeaders(token));
+  return res.data || { ads: [], total: 0 };
+};
+
+export const createAdminAd = async (token, data) => {
+  const res = await api.post("v1/admin/ads", null, { params: data, ...authHeaders(token) });
+  return res.data || {};
+};
+
+export const updateAdminAd = async (token, adId, data) => {
+  const res = await api.put(`v1/admin/ads/${adId}`, null, { params: data, ...authHeaders(token) });
+  return res.data || {};
+};
+
+export const toggleAdminAd = async (token, adId) => {
+  const res = await api.patch(`v1/admin/ads/${adId}/toggle`, {}, authHeaders(token));
+  return res.data || {};
+};
+
+export const deleteAdminAd = async (token, adId) => {
+  const res = await api.delete(`v1/admin/ads/${adId}`, authHeaders(token));
+  return res.data || {};
+};
+
 // ── Task Management (REMOVED — replaced by Captcha Typing System) ─────────────────
