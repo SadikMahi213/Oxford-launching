@@ -405,10 +405,10 @@ export function UserDashboard() {
       icon: Keyboard,
     },
     {
-      key: "ads",
+      id: "ads",
       label: "Ad View",
       icon: Eye,
-      description: "Type & earn USDT",
+      description: "Watch & earn USDT",
     },
     {
       id: "withdraw",
@@ -624,7 +624,7 @@ export function UserDashboard() {
     if (activePage === "tasks") {
       return <DailyTasks />;
     }
-    if (activeTab === "ads") {
+    if (activePage === "ads") {
       return <AdsView />;
     }
     //packege moddal
