@@ -107,6 +107,18 @@ export const getNextCaptcha = () => {
   return api.get("v1/captcha/next", authHeaders());
 };
 
+export const startAd = () => {
+  return api.get("v1/ads/start", authHeaders());
+};
+
+export const completeAd = (adViewId) => {
+  return api.post(`v1/ads/complete?ad_view_id=${adViewId}`, {}, authHeaders());
+};
+
+export const getAdStats = () => {
+  return api.get("v1/ads/stats", authHeaders());
+};
+
 export const submitCaptcha = (data) => {
   return api.post("v1/captcha/submit", data, authHeaders());
 };

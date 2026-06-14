@@ -1092,6 +1092,8 @@ async def admin_list_packages(
                 "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
                 "earn_per_captcha": float(p.earn_per_captcha or 0),
                 "daily_captcha_limit": p.daily_captcha_limit or 0,
+                "task_type": p.task_type.value if p.task_type else "captcha",
+                "ad_duration_seconds": p.ad_duration_seconds or 30,
                 "is_active": p.is_active,
                 "created_at": p.created_at.isoformat() if p.created_at else None,
                 "updated_at": p.updated_at.isoformat() if p.updated_at else None,
@@ -1113,11 +1115,13 @@ async def admin_update_package(
     captcha_task_duration_seconds: int | None = None,
     earn_per_captcha: float | None = None,
     daily_captcha_limit: int | None = None,
+    task_type: str | None = None,
+    ad_duration_seconds: int | None = None,
     is_active: bool | None = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
-    from app.models.package import Package
+    from app.models.package import Package, TaskType
     result = await db.execute(select(Package).where(Package.id == package_id))
     package = result.scalar_one_or_none()
     if not package:
@@ -1141,6 +1145,10 @@ async def admin_update_package(
         package.earn_per_captcha = Decimal(str(earn_per_captcha))
     if daily_captcha_limit is not None:
         package.daily_captcha_limit = daily_captcha_limit
+    if task_type is not None:
+        package.task_type = TaskType(task_type)
+    if ad_duration_seconds is not None:
+        package.ad_duration_seconds = ad_duration_seconds
     if is_active is not None:
         package.is_active = is_active
 
@@ -1231,11 +1239,13 @@ async def admin_create_package(
     captcha_task_duration_seconds: int = 30,
     earn_per_captcha: float = 0.01,
     daily_captcha_limit: int = 12,
+    task_type: str = "captcha",
+    ad_duration_seconds: int = 30,
     is_active: bool = True,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
-    from app.models.package import Package
+    from app.models.package import Package, TaskType
 
     result = await db.execute(select(Package).where(Package.name == name))
     if result.scalar_one_or_none():
@@ -1251,6 +1261,8 @@ async def admin_create_package(
         captcha_task_duration_seconds=captcha_task_duration_seconds,
         earn_per_captcha=Decimal(str(earn_per_captcha)),
         daily_captcha_limit=daily_captcha_limit,
+        task_type=TaskType(task_type),
+        ad_duration_seconds=ad_duration_seconds,
         is_active=is_active,
     )
     db.add(package)

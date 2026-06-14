@@ -15,5 +15,6 @@ from app.models.order import Order, OrderItem
 from app.models.ecommerce_config import EcommerceConfig
 from app.models.system_config import SystemConfig
 from app.models.mining_log import MiningLog
-from app.models.package import Package
+from app.models.package import Package, TaskType
 from app.models.captcha import CaptchaChallenge, CaptchaEarning
+from app.models.ad_view import AdView

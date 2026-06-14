@@ -20,6 +20,7 @@ import {
   X,
   Menu,
   Keyboard,
+  Eye,
   Lock,
   Copy,
   Check,
@@ -63,6 +64,7 @@ import MarketplacePage from "../component/user/MarketplacePage.jsx";
 import SellerDashboard from "../component/user/SellerDashboard.jsx";
 import WalletTransfer from "../component/user/WalletTransfer.jsx";
 import DailyTasks from "../component/user/DailyTasks.jsx";
+import AdsView from "../component/user/AdsView.jsx";
 import ConvertOFA from "../component/user/ConvertOFA.jsx";
 // Mock data for market prices
 
@@ -401,6 +403,11 @@ export function UserDashboard() {
       id: "tasks",
       label: "Captcha Typing",
       icon: Keyboard,
+    },
+    {
+      key: "ads",
+      label: "Ad View",
+      icon: Eye,
       description: "Type & earn USDT",
     },
     {
@@ -616,6 +623,9 @@ export function UserDashboard() {
     //tasks
     if (activePage === "tasks") {
       return <DailyTasks />;
+    }
+    if (activeTab === "ads") {
+      return <AdsView />;
     }
     //packege moddal
     if (activePage === "packages") {

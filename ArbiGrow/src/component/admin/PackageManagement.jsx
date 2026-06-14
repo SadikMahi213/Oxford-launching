@@ -17,6 +17,11 @@ const getErrorMessage = (error) =>
   error?.message ||
   "Something went wrong";
 
+const TASK_TYPES = [
+  { value: "captcha", label: "Captcha Typing" },
+  { value: "ad_view", label: "Ad View" },
+];
+
 const EMPTY_FORM = {
   name: "",
   investment_amount: "",
@@ -27,6 +32,8 @@ const EMPTY_FORM = {
   captcha_task_duration_seconds: 30,
   earn_per_captcha: 0.01,
   daily_captcha_limit: 12,
+  task_type: "captcha",
+  ad_duration_seconds: 30,
 };
 
 export default function PackageManagement() {
@@ -110,6 +117,8 @@ export default function PackageManagement() {
         captcha_task_duration_seconds: Number(form.captcha_task_duration_seconds) || 30,
         earn_per_captcha: Number(form.earn_per_captcha) || 0.01,
         daily_captcha_limit: Number(form.daily_captcha_limit) || 12,
+        task_type: form.task_type || "captcha",
+        ad_duration_seconds: Number(form.ad_duration_seconds) || 30,
       });
       setSuccessMessage(`Package "${form.name}" created successfully`);
       setShowCreate(false);
@@ -138,6 +147,8 @@ export default function PackageManagement() {
         captcha_task_duration_seconds: Number(form.captcha_task_duration_seconds),
         earn_per_captcha: Number(form.earn_per_captcha),
         daily_captcha_limit: Number(form.daily_captcha_limit),
+        task_type: form.task_type || "captcha",
+        ad_duration_seconds: Number(form.ad_duration_seconds) || 30,
         is_active: form.is_active,
       });
       setSuccessMessage(`Package "${form.name}" updated successfully`);
@@ -214,6 +225,8 @@ export default function PackageManagement() {
       captcha_task_duration_seconds: pkg.captcha_task_duration_seconds,
       earn_per_captcha: pkg.earn_per_captcha || 0.01,
       daily_captcha_limit: pkg.daily_captcha_limit || 12,
+      task_type: pkg.task_type || "captcha",
+      ad_duration_seconds: pkg.ad_duration_seconds || 30,
       is_active: pkg.is_active,
     });
     setShowEdit(pkg);
@@ -316,8 +329,9 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Payment</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Captcha/Day</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Captcha</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tasks/Day</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Investors</th>
@@ -343,6 +357,11 @@ export default function PackageManagement() {
                     <td className="px-4 py-3 text-cyan-300">${pkg.investment_amount.toLocaleString()}</td>
                     <td className="px-4 py-3 text-green-300">${pkg.total_return.toLocaleString()}</td>
                     <td className="px-4 py-3 text-yellow-300">${pkg.daily_payment.toFixed(2)}/day</td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${pkg.task_type === "ad_view" ? "bg-purple-500/20 text-purple-300" : "bg-cyan-500/20 text-cyan-300"}`}>
+                        {pkg.task_type === "ad_view" ? "Ad View" : "Captcha"}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
                     <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.duration_days}d</td>
@@ -477,9 +496,29 @@ export default function PackageManagement() {
                 </div>
               </div>
 
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">Task Type</label>
+                <div className="flex gap-3">
+                  {TASK_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, task_type: t.value })}
+                      className={`flex-1 p-3 rounded-xl text-sm font-medium transition-colors ${
+                        form.task_type === t.value
+                          ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
+                          : "bg-white/5 text-gray-400 border border-white/10"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Captcha Tasks/Day</label>
+                  <label className="text-sm text-gray-400 block mb-1">Tasks/Day</label>
                   <input
                     type="number"
                     min="0"
@@ -489,12 +528,18 @@ export default function PackageManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Captcha Duration (sec)</label>
+                  <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Ad Duration (sec)" : "Task Duration (sec)"}</label>
                   <input
                     type="number"
                     min="5"
-                    value={form.captcha_task_duration_seconds}
-                    onChange={(e) => setForm({ ...form, captcha_task_duration_seconds: e.target.value })}
+                    value={form.task_type === "ad_view" ? form.ad_duration_seconds : form.captcha_task_duration_seconds}
+                    onChange={(e) => {
+                      if (form.task_type === "ad_view") {
+                        setForm({ ...form, ad_duration_seconds: e.target.value });
+                      } else {
+                        setForm({ ...form, captcha_task_duration_seconds: e.target.value });
+                      }
+                    }}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
                 </div>
@@ -502,7 +547,7 @@ export default function PackageManagement() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Earn Per Captcha ($)</label>
+                  <label className="text-sm text-gray-400 block mb-1">Earn Per Task ($)</label>
                   <input
                     type="number"
                     min="0"
@@ -513,7 +558,7 @@ export default function PackageManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Daily Captcha Limit</label>
+                  <label className="text-sm text-gray-400 block mb-1">Daily Task Limit</label>
                   <input
                     type="number"
                     min="0"

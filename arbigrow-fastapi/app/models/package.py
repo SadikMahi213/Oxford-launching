@@ -1,9 +1,15 @@
-from sqlalchemy import Boolean, DateTime, Integer, Numeric, String
+from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from decimal import Decimal
+import enum
 
 from app.core.base import Base
+
+
+class TaskType(str, enum.Enum):
+    captcha = "captcha"
+    ad_view = "ad_view"
 
 
 class Package(Base):
@@ -34,6 +40,14 @@ class Package(Base):
     earn_per_captcha: Mapped[Decimal] = mapped_column(Numeric(10, 4), default=Decimal("0.0000"), server_default="0.0000")
 
     daily_captcha_limit: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+    task_type: Mapped[TaskType] = mapped_column(
+        SAEnum(TaskType, name="task_type_enum", create_constraint=True),
+        default=TaskType.captcha,
+        server_default="captcha",
+    )
+
+    ad_duration_seconds: Mapped[int] = mapped_column(Integer, default=30, server_default="30")
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 

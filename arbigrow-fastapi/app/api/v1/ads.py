@@ -1,0 +1,250 @@
+import time
+from datetime import datetime, date, timezone
+from decimal import Decimal, ROUND_HALF_UP
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import select, func, and_
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+from app.core.security import get_current_user_id
+from app.models.user import User
+from app.models.investments import Investment
+from app.models.ad_view import AdView
+from app.models.package import TaskType
+from app.schemas.captcha import CaptchaStatsResponse
+from app.core.rate_limiter import limiter
+
+router = APIRouter(prefix="/ads", tags=["Ads"])
+
+WALLET_PRECISION = Decimal("0.00000000000001")
+
+
+def _get_ad_investment(investments: list[Investment]) -> Investment | None:
+    for inv in investments:
+        if inv.package_name and True:
+            return inv
+    return investments[0] if investments else None
+
+
+@router.get("/start")
+@limiter.limit("12/minute")
+async def start_ad(
+    request: Request,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.user_id == user_id,
+                Investment.status == "active",
+            )
+        ).order_by(Investment.id.desc())
+    )
+    investments = result.scalars().all()
+    if not investments:
+        raise HTTPException(400, detail="No active investment package found. Purchase a package first.")
+
+    from app.models.package import Package
+    pkg_result = await db.execute(
+        select(Package).where(Package.name == investments[0].package_name)
+    )
+    package = pkg_result.scalar_one_or_none()
+    if not package or package.task_type != TaskType.ad_view:
+        raise HTTPException(400, detail="Your active package does not support ad view tasks.")
+
+    today = date.today()
+    if investments[0].last_captcha_date is None or investments[0].last_captcha_date < today:
+        for inv in investments:
+            inv.captchas_typed_today = 0
+            inv.last_captcha_date = today
+
+    total_typed = sum(inv.captchas_typed_today or 0 for inv in investments)
+    total_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
+
+    if total_typed >= total_limit:
+        raise HTTPException(400, detail="Daily ad view limit reached. Come back tomorrow.")
+
+    existing = await db.execute(
+        select(AdView).where(
+            and_(
+                AdView.user_id == user_id,
+                AdView.is_completed == False,
+            )
+        )
+    )
+    active_session = existing.scalars().first()
+    if active_session:
+        return {
+            "ad_view_id": active_session.id,
+            "duration_seconds": package.ad_duration_seconds,
+            "started_at": active_session.started_at.isoformat(),
+        }
+
+    ad_view = AdView(
+        user_id=user_id,
+        started_at=datetime.now(timezone.utc),
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent", ""),
+    )
+    db.add(ad_view)
+    await db.commit()
+    await db.refresh(ad_view)
+
+    return {
+        "ad_view_id": ad_view.id,
+        "duration_seconds": package.ad_duration_seconds,
+        "started_at": ad_view.started_at.isoformat(),
+    }
+
+
+@router.post("/complete")
+@limiter.limit("12/minute")
+async def complete_ad(
+    request: Request,
+    ad_view_id: int,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(AdView).where(
+            and_(
+                AdView.id == ad_view_id,
+                AdView.user_id == user_id,
+            )
+        )
+    )
+    ad_view = result.scalars().first()
+    if not ad_view:
+        raise HTTPException(404, detail="Ad view session not found")
+    if ad_view.is_completed:
+        raise HTTPException(400, detail="Ad already completed")
+
+    now = datetime.now(timezone.utc)
+    elapsed = (now - ad_view.started_at).total_seconds()
+    if elapsed < 5:
+        raise HTTPException(400, detail="Ad viewing time too short. Please watch the full ad.")
+
+    user_result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = user_result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, detail="User not found")
+
+    inv_result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.user_id == user_id,
+                Investment.status == "active",
+            )
+        ).order_by(Investment.id.desc())
+    )
+    investments = inv_result.scalars().all()
+    if not investments:
+        raise HTTPException(400, detail="No active investment")
+
+    today = date.today()
+    for inv in investments:
+        if inv.last_captcha_date is None or inv.last_captcha_date < today:
+            inv.captchas_typed_today = 0
+            inv.last_captcha_date = today
+
+    total_typed = sum(inv.captchas_typed_today or 0 for inv in investments)
+    total_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
+    if total_typed >= total_limit:
+        raise HTTPException(400, detail="Daily ad view limit reached")
+
+    earned = (investments[0].earn_per_captcha or Decimal("0")).quantize(
+        WALLET_PRECISION, rounding=ROUND_HALF_UP
+    )
+    user.main_wallet = (user.main_wallet + earned).quantize(
+        WALLET_PRECISION, rounding=ROUND_HALF_UP
+    )
+
+    investments[0].captchas_typed_today = (investments[0].captchas_typed_today or 0) + 1
+
+    ad_view.is_completed = True
+    ad_view.completed_at = now
+    ad_view.amount_earned = earned
+
+    remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv in investments)
+
+    await db.commit()
+    await db.refresh(user)
+
+    return {
+        "success": True,
+        "earned": earned,
+        "remaining_today": remaining,
+        "new_balance": user.main_wallet,
+    }
+
+
+@router.get("/stats", response_model=CaptchaStatsResponse)
+@limiter.limit("30/minute")
+async def get_ad_stats(
+    request: Request,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.user_id == user_id,
+                Investment.status == "active",
+            )
+        ).order_by(Investment.id.desc())
+    )
+    investments = result.scalars().all()
+
+    if not investments:
+        return CaptchaStatsResponse(
+            earn_per_captcha=Decimal("0"),
+            daily_limit=0,
+            typed_today=0,
+            remaining=0,
+            total_earned_today=Decimal("0"),
+            total_earned_all=Decimal("0"),
+        )
+
+    today = date.today()
+    for inv in investments:
+        if inv.last_captcha_date is None or inv.last_captcha_date < today:
+            inv.captchas_typed_today = 0
+            inv.last_captcha_date = today
+
+    today_result = await db.execute(
+        select(func.coalesce(func.sum(AdView.amount_earned), 0)).where(
+            and_(
+                AdView.user_id == user_id,
+                AdView.is_completed == True,
+                func.date(AdView.completed_at) == today,
+            )
+        )
+    )
+    total_earned_today = today_result.scalar() or Decimal("0")
+
+    all_result = await db.execute(
+        select(func.coalesce(func.sum(AdView.amount_earned), 0)).where(
+            and_(
+                AdView.user_id == user_id,
+                AdView.is_completed == True,
+            )
+        )
+    )
+    total_earned_all = all_result.scalar() or Decimal("0")
+
+    daily_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
+    typed_today = sum(inv.captchas_typed_today or 0 for inv in investments)
+    remaining = max(0, daily_limit - typed_today)
+
+    return CaptchaStatsResponse(
+        earn_per_captcha=investments[0].earn_per_captcha or Decimal("0"),
+        daily_limit=daily_limit,
+        typed_today=typed_today,
+        remaining=remaining,
+        total_earned_today=total_earned_today,
+        total_earned_all=total_earned_all,
+    )
