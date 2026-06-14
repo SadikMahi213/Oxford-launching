@@ -69,6 +69,22 @@ async def buy_investment(
             detail=f"Amount must be exactly {package.investment_amount} for this package",
         )
 
+    # Check if user has an active investment of equal or higher tier
+    active_result = await db.execute(
+        select(Investment).where(
+            Investment.user_id == current_user.id,
+            Investment.status == "active",
+        ).order_by(Investment.invested_amount.desc())
+    )
+    active_investments = active_result.scalars().all()
+    if active_investments:
+        highest_active = max(inv.invested_amount for inv in active_investments)
+        if amount <= highest_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You already have an active investment of equal or higher tier. You can only upgrade to a higher-tier package.",
+            )
+
     user_result = await db.execute(
         select(User)
         .where(User.id == current_user.id)
