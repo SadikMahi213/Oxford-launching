@@ -209,6 +209,19 @@ async def get_ad_stats(
             total_earned_all=Decimal("0"),
         )
 
+    from app.models.package import Package
+    pkg_result = await db.execute(select(Package).where(Package.name == investments[0].package_name))
+    package = pkg_result.scalar_one_or_none()
+    if not package or package.task_type != TaskType.ad_view:
+        return CaptchaStatsResponse(
+            earn_per_captcha=Decimal("0"),
+            daily_limit=0,
+            typed_today=0,
+            remaining=0,
+            total_earned_today=Decimal("0"),
+            total_earned_all=Decimal("0"),
+        )
+
     today = date.today()
     for inv in investments:
         if inv.last_captcha_date is None or inv.last_captcha_date < today:

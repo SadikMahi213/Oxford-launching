@@ -21,6 +21,7 @@ from app.schemas.captcha import (
 )
 from app.core.rate_limiter import limiter
 from app.services.captcha_generator import generate_captcha_image
+from app.models.package import Package, TaskType
 
 router = APIRouter(prefix="/captcha", tags=["Captcha"])
 
@@ -62,6 +63,11 @@ async def get_next_captcha(
     investment = result.scalars().first()
     if not investment:
         raise HTTPException(400, detail="No active investment package found. Purchase a package first.")
+
+    pkg_result = await db.execute(select(Package).where(Package.name == investment.package_name))
+    package = pkg_result.scalar_one_or_none()
+    if not package or package.task_type != TaskType.captcha:
+        raise HTTPException(400, detail="Your active package does not support captcha tasks.")
 
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
@@ -138,6 +144,11 @@ async def submit_captcha(
     if not investment:
         raise HTTPException(400, detail="No active investment")
 
+    pkg_result = await db.execute(select(Package).where(Package.name == investment.package_name))
+    package = pkg_result.scalar_one_or_none()
+    if not package or package.task_type != TaskType.captcha:
+        raise HTTPException(400, detail="Your active package does not support captcha tasks.")
+
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
@@ -198,6 +209,18 @@ async def get_captcha_stats(
     investment = result.scalars().first()
 
     if not investment:
+        return CaptchaStatsResponse(
+            earn_per_captcha=Decimal("0"),
+            daily_limit=0,
+            typed_today=0,
+            remaining=0,
+            total_earned_today=Decimal("0"),
+            total_earned_all=Decimal("0"),
+        )
+
+    pkg_result = await db.execute(select(Package).where(Package.name == investment.package_name))
+    package = pkg_result.scalar_one_or_none()
+    if not package or package.task_type != TaskType.captcha:
         return CaptchaStatsResponse(
             earn_per_captcha=Decimal("0"),
             daily_limit=0,
