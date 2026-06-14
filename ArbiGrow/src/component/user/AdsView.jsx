@@ -60,10 +60,7 @@ export default function AdsView() {
       window.onYouTubeIframeAPIReady = () => initPlayer(videoId);
       return;
     }
-    if (playerRef.current) {
-      playerRef.current.destroy();
-      playerRef.current = null;
-    }
+    if (playerRef.current) return;
     playerRef.current = new window.YT.Player(playerContainerRef.current, {
       videoId,
       height: "100%",
@@ -109,11 +106,13 @@ export default function AdsView() {
 
   useEffect(() => {
     if (!watching || !adSession?.video_id) return;
-    const checkInterval = setInterval(() => {
-      initPlayer(adSession.video_id);
-    }, 200);
-    setTimeout(() => clearInterval(checkInterval), 5000);
-    return () => clearInterval(checkInterval);
+    const timer = setTimeout(() => initPlayer(adSession.video_id), 100);
+    window.onYouTubeIframeAPIReady = () => initPlayer(adSession.video_id);
+    return () => {
+      clearTimeout(timer);
+      if (window.onYouTubeIframeAPIReady === undefined) return;
+      window.onYouTubeIframeAPIReady = null;
+    };
   }, [watching, adSession?.video_id, initPlayer]);
 
   useEffect(() => {
@@ -132,7 +131,7 @@ export default function AdsView() {
   }, [watching, playerReady, adSession?.required_watch_seconds]);
 
   useEffect(() => {
-    if (!watching || canComplete) return;
+    if (!watching || !playerReady || canComplete) return;
     timerRef.current = setInterval(() => {
       setTimer((t) => {
         if (t <= 1) {
@@ -143,7 +142,7 @@ export default function AdsView() {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [watching, canComplete]);
+  }, [watching, playerReady, canComplete]);
 
   const handleComplete = async () => {
     if (!adSession) return;
