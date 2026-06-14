@@ -182,6 +182,8 @@ async def list_active_packages(
                 "captcha_task_duration_seconds": p.captcha_task_duration_seconds,
                 "earn_per_captcha": float(p.earn_per_captcha or 0),
                 "daily_captcha_limit": p.daily_captcha_limit or 0,
+                "task_type": p.task_type.value if p.task_type else "captcha",
+                "ad_duration_seconds": p.ad_duration_seconds or 30,
             }
             for p in packages
         ]

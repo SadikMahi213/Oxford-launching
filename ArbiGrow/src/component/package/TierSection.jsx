@@ -154,7 +154,9 @@ export default function TierSection({ onSelect }) {
                   <div className="flex items-center justify-between pt-4 border-t border-white/10">
                     <div className="rounded-md bg-cyan-500/10 px-3 py-1">
                       <p className="text-xs font-medium text-cyan-300">
-                        {pkg.captcha_task_duration_seconds}s per Captcha
+                        {pkg.task_type === "ad_view"
+                          ? `${pkg.ad_duration_seconds || 30}s per Ad`
+                          : `${pkg.captcha_task_duration_seconds || 30}s per Captcha`}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1">
