@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import useUserStore from "../../store/userStore.js";
 
-const getErrorMessage = (error) =>
-  error?.response?.data?.detail ||
-  error?.response?.data?.message ||
-  error?.message ||
-  "Something went wrong";
+const extractDetail = (data) => {
+  if (!data) return "Something went wrong";
+  if (Array.isArray(data.detail)) return data.detail.map((d) => d.msg).join("; ");
+  return data.detail || data.message || "Something went wrong";
+};
 
 const EMPTY_FORM = {
   title: "",
@@ -34,11 +34,11 @@ export default function AdManagement() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to load ads");
+      if (!res.ok) throw new Error(extractDetail(data));
       setAds(data.ads || []);
       setTotal(data.total || 0);
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -70,13 +70,13 @@ export default function AdManagement() {
         body: params,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to create ad");
+      if (!res.ok) throw new Error(extractDetail(data));
       setSuccessMessage(`Ad "${form.title}" created successfully`);
       setShowCreate(false);
       setForm(EMPTY_FORM);
       await loadAds();
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(error.message);
     } finally {
       setSubmitting(false);
     }
@@ -101,12 +101,12 @@ export default function AdManagement() {
         body: params,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to update ad");
+      if (!res.ok) throw new Error(extractDetail(data));
       setSuccessMessage(`Ad updated successfully`);
       setShowEdit(null);
       await loadAds();
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(error.message);
     } finally {
       setSubmitting(false);
     }
@@ -119,10 +119,10 @@ export default function AdManagement() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to toggle ad");
+      if (!res.ok) throw new Error(extractDetail(data));
       await loadAds();
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(error.message);
     }
   };
 
@@ -136,11 +136,11 @@ export default function AdManagement() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to delete ad");
+      if (!res.ok) throw new Error(extractDetail(data));
       setSuccessMessage(`Ad "${ad.title}" deleted`);
       await loadAds();
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setErrorMessage(error.message);
     }
   };
 
@@ -323,6 +323,16 @@ export default function AdManagement() {
               </button>
             </div>
 
+            {errorMessage && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {errorMessage}
+              </div>
+            )}
+            {successMessage && (
+              <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+                {successMessage}
+              </div>
+            )}
             <div className="space-y-4">
               <div>
                 <label className="text-sm text-gray-400 block mb-1">Ad Title *</label>
