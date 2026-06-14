@@ -82,24 +82,6 @@ async def buy_investment(
             detail="User not found",
         )
 
-    # prevent buying lower package while any current package is still active
-    active_floor_result = await db.execute(
-        select(func.max(Investment.invested_amount)).where(
-            Investment.user_id == user.id,
-            Investment.status == "active",
-        )
-    )
-    active_floor_amount = active_floor_result.scalar_one_or_none()
-
-    if active_floor_amount is not None and amount < active_floor_amount:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "You cannot buy a lower-value package before your current "
-                f"package completes."
-            ),
-        )
-
     # check balance
     if user.main_wallet < amount:
         raise HTTPException(
