@@ -1,7 +1,7 @@
 import re
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Query
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -70,9 +70,9 @@ async def admin_list_ads(
 
 @router.post("")
 async def admin_create_ad(
-    title: str,
-    youtube_url: str,
-    required_watch_seconds: int = 30,
+    title: str = Form(...),
+    youtube_url: str = Form(...),
+    required_watch_seconds: int = Form(30),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -115,9 +115,9 @@ async def admin_create_ad(
 @router.put("/{ad_id}")
 async def admin_update_ad(
     ad_id: int,
-    title: str | None = None,
-    youtube_url: str | None = None,
-    required_watch_seconds: int | None = None,
+    title: str | None = Form(None),
+    youtube_url: str | None = Form(None),
+    required_watch_seconds: int | None = Form(None),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
