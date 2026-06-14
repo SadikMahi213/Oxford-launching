@@ -36,7 +36,7 @@ async def start_ad(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
+    inv_result = await db.execute(
         select(Investment).where(
             and_(
                 Investment.user_id == user_id,
@@ -44,26 +44,30 @@ async def start_ad(
             )
         ).order_by(Investment.id.desc())
     )
-    investments = result.scalars().all()
-    if not investments:
+    all_investments = inv_result.scalars().all()
+    if not all_investments:
         raise HTTPException(400, detail="No active investment package found. Purchase a package first.")
 
     from app.models.package import Package
-    pkg_result = await db.execute(
-        select(Package).where(Package.name == investments[0].package_name)
-    )
-    package = pkg_result.scalar_one_or_none()
-    if not package or package.task_type != TaskType.ad_view:
+    investment = None
+    for inv in all_investments:
+        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg and pkg.task_type == TaskType.ad_view:
+            investment = inv
+            package = pkg
+            break
+    if not investment or not package:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
 
     today = date.today()
-    if investments[0].last_captcha_date is None or investments[0].last_captcha_date < today:
-        for inv in investments:
+    if investment.last_captcha_date is None or investment.last_captcha_date < today:
+        for inv in all_investments:
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
 
-    total_typed = sum(inv.captchas_typed_today or 0 for inv in investments)
-    total_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
+    total_typed = sum(inv.captchas_typed_today or 0 for inv in all_investments)
+    total_limit = sum(inv.daily_captcha_limit or 0 for inv in all_investments)
 
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached. Come back tomorrow.")
@@ -186,29 +190,40 @@ async def complete_ad(
             )
         ).order_by(Investment.id.desc())
     )
-    investments = inv_result.scalars().all()
-    if not investments:
+    all_investments = inv_result.scalars().all()
+    if not all_investments:
         raise HTTPException(400, detail="No active investment")
 
+    from app.models.package import Package
+    ad_investment = None
+    for inv in all_investments:
+        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg and pkg.task_type == TaskType.ad_view:
+            ad_investment = inv
+            break
+    if not ad_investment:
+        raise HTTPException(400, detail="Your active package does not support ad view tasks.")
+
     today = date.today()
-    for inv in investments:
+    for inv in all_investments:
         if inv.last_captcha_date is None or inv.last_captcha_date < today:
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
 
-    total_typed = sum(inv.captchas_typed_today or 0 for inv in investments)
-    total_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
+    total_typed = sum(inv.captchas_typed_today or 0 for inv in all_investments)
+    total_limit = sum(inv.daily_captcha_limit or 0 for inv in all_investments)
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached")
 
-    earned = (investments[0].earn_per_captcha or Decimal("0")).quantize(
+    earned = (ad_investment.earn_per_captcha or Decimal("0")).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
     user.main_wallet = (user.main_wallet + earned).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
 
-    investments[0].captchas_typed_today = (investments[0].captchas_typed_today or 0) + 1
+    ad_investment.captchas_typed_today = (ad_investment.captchas_typed_today or 0) + 1
 
     ad_view.is_completed = True
     ad_view.completed_at = now
@@ -240,7 +255,7 @@ async def complete_ad(
             )
             db.add(uav)
 
-    remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv in investments)
+    remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv in all_investments)
 
     await db.commit()
     await db.refresh(user)
@@ -260,7 +275,7 @@ async def get_ad_stats(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
+    inv_result = await db.execute(
         select(Investment).where(
             and_(
                 Investment.user_id == user_id,
@@ -268,33 +283,33 @@ async def get_ad_stats(
             )
         ).order_by(Investment.id.desc())
     )
-    investments = result.scalars().all()
+    all_investments = inv_result.scalars().all()
 
-    if not investments:
-        return CaptchaStatsResponse(
-            earn_per_captcha=Decimal("0"),
-            daily_limit=0,
-            typed_today=0,
-            remaining=0,
-            total_earned_today=Decimal("0"),
-            total_earned_all=Decimal("0"),
-        )
+    zero_stats = CaptchaStatsResponse(
+        earn_per_captcha=Decimal("0"),
+        daily_limit=0,
+        typed_today=0,
+        remaining=0,
+        total_earned_today=Decimal("0"),
+        total_earned_all=Decimal("0"),
+    )
+
+    if not all_investments:
+        return zero_stats
 
     from app.models.package import Package
-    pkg_result = await db.execute(select(Package).where(Package.name == investments[0].package_name))
-    package = pkg_result.scalar_one_or_none()
-    if not package or package.task_type != TaskType.ad_view:
-        return CaptchaStatsResponse(
-            earn_per_captcha=Decimal("0"),
-            daily_limit=0,
-            typed_today=0,
-            remaining=0,
-            total_earned_today=Decimal("0"),
-            total_earned_all=Decimal("0"),
-        )
+    investment = None
+    for inv in all_investments:
+        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg and pkg.task_type == TaskType.ad_view:
+            investment = inv
+            break
+    if not investment:
+        return zero_stats
 
     today = date.today()
-    for inv in investments:
+    for inv in all_investments:
         if inv.last_captcha_date is None or inv.last_captcha_date < today:
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
@@ -320,12 +335,12 @@ async def get_ad_stats(
     )
     total_earned_all = all_result.scalar() or Decimal("0")
 
-    daily_limit = sum(inv.daily_captcha_limit or 0 for inv in investments)
-    typed_today = sum(inv.captchas_typed_today or 0 for inv in investments)
+    daily_limit = sum(inv.daily_captcha_limit or 0 for inv in all_investments)
+    typed_today = sum(inv.captchas_typed_today or 0 for inv in all_investments)
     remaining = max(0, daily_limit - typed_today)
 
     return CaptchaStatsResponse(
-        earn_per_captcha=investments[0].earn_per_captcha or Decimal("0"),
+        earn_per_captcha=investment.earn_per_captcha or Decimal("0"),
         daily_limit=daily_limit,
         typed_today=typed_today,
         remaining=remaining,
