@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE TYPE task_type_enum AS ENUM ('captcha', 'ad_view')")
     op.create_table(
         "ad_views",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -30,7 +31,7 @@ def upgrade() -> None:
         sa.Column("amount_earned", sa.Numeric(24, 14), server_default="0"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.add_column("packages", sa.Column("task_type", sa.Enum("captcha", "ad_view", name="task_type_enum", create_constraint=True), server_default="captcha", nullable=True))
+    op.add_column("packages", sa.Column("task_type", sa.Enum("captcha", "ad_view", name="task_type_enum", create_type=False), server_default="captcha", nullable=True))
     op.add_column("packages", sa.Column("ad_duration_seconds", sa.Integer(), server_default="30", nullable=True))
 
 
@@ -38,4 +39,4 @@ def downgrade() -> None:
     op.drop_table("ad_views")
     op.drop_column("packages", "task_type")
     op.drop_column("packages", "ad_duration_seconds")
-    op.execute("DROP TYPE IF EXISTS task_type_enum")
+    op.execute("DROP TYPE IF EXISTS task_type_enum CASCADE")
