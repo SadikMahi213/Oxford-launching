@@ -70,6 +70,8 @@ export default function ProfileCard({ setActivePage }) {
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoMsg, setPhotoMsg] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoMode, setPhotoMode] = useState("url"); // "url" | "file"
   const displayUrl = user?.profile_image_url;
   const initials = getInitials(user?.full_name);
   const joinDate = formatJoinDate(user?.created_at);
@@ -77,18 +79,31 @@ export default function ProfileCard({ setActivePage }) {
   const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
 
   const handleSavePhoto = async () => {
-    if (!photoUrl.trim()) return;
     setPhotoLoading(true);
     setPhotoMsg("");
     try {
       const token = useUserStore.getState().token;
-      const res = await api.post("v1/user/profile-image", { profile_image_url: photoUrl.trim() }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      let res;
+      if (photoMode === "file" && photoFile) {
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        res = await api.post("v1/user/profile-image/upload", formData, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+        });
+        setPhotoMsg("Profile image uploaded");
+      } else if (!photoUrl.trim()) {
+        setPhotoLoading(false);
+        return;
+      } else {
+        res = await api.post("v1/user/profile-image", { profile_image_url: photoUrl.trim() }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPhotoMsg("Photo saved");
+      }
       setUser({ profile_image_url: res.data.profile_image_url });
-      setPhotoMsg("Photo saved");
       setShowPhotoInput(false);
       setPhotoUrl("");
+      setPhotoFile(null);
       setPhotoLoading(false);
       return;
     } catch (err) {
@@ -149,7 +164,7 @@ export default function ProfileCard({ setActivePage }) {
                 </span>
               </div>
               <button
-                onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); }}
+                onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url"); }}
                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyan-500 border-2 border-[#0a0e27] flex items-center justify-center hover:bg-cyan-400 transition-colors"
                 title="Set profile photo"
               >
@@ -177,30 +192,62 @@ export default function ProfileCard({ setActivePage }) {
               animate={{ opacity: 1, y: 0 }}
               className="flex-1 mb-3"
             >
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="Paste image URL..."
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
-                />
+              <div className="flex items-center gap-2 mb-2">
                 <button
-                  onClick={handleSavePhoto}
-                  disabled={photoLoading || !photoUrl.trim()}
-                  className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center hover:bg-cyan-500/30 disabled:opacity-50"
+                  onClick={() => setPhotoMode("url")}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "url" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  {photoLoading ? <span className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4 text-cyan-400" />}
+                  URL
                 </button>
                 <button
-                  onClick={() => { setShowPhotoInput(false); setPhotoMsg(""); }}
-                  className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10"
+                  onClick={() => setPhotoMode("file")}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "file" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  <X className="w-4 h-4 text-gray-400" />
+                  Upload
                 </button>
               </div>
+              {photoMode === "url" ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={photoUrl}
+                    onChange={(e) => setPhotoUrl(e.target.value)}
+                    placeholder="Paste image URL..."
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
+                  />
+                  <button
+                    onClick={handleSavePhoto}
+                    disabled={photoLoading || !photoUrl.trim()}
+                    className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center hover:bg-cyan-500/30 disabled:opacity-50"
+                  >
+                    {photoLoading ? <span className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4 text-cyan-400" />}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={(e) => setPhotoFile(e.target.files[0] || null)}
+                    className="flex-1 text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-cyan-500/20 file:text-cyan-300 hover:file:bg-cyan-500/30"
+                  />
+                  <button
+                    onClick={handleSavePhoto}
+                    disabled={photoLoading || !photoFile}
+                    className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center hover:bg-cyan-500/30 disabled:opacity-50"
+                  >
+                    {photoLoading ? <span className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4 text-cyan-400" />}
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={() => { setShowPhotoInput(false); setPhotoMsg(""); }}
+                className="mt-2 w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
               {photoMsg && (
-                <p className={`mt-1 text-xs ${photoMsg === "Photo saved" ? "text-green-400" : "text-red-400"}`}>
+                <p className={`mt-1 text-xs ${photoMsg === "Photo saved" || photoMsg === "Profile image uploaded" ? "text-green-400" : "text-red-400"}`}>
                   {photoMsg}
                 </p>
               )}

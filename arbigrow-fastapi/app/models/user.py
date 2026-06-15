@@ -138,7 +138,7 @@ class User(Base):
         server_default="0"
     )
 
-
+    profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # ancestry cache (up to 5 generations)
     parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

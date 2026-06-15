@@ -42,7 +42,7 @@ async def upload_to_b2(file: UploadFile, folder: str) -> str:
     return object_key
 
 
-def generate_presigned_url(object_key: str | None):
+def generate_presigned_url(object_key: str | None, expires_in: int = 3600):
     if not object_key:
         return None
     if not s3_client:
@@ -54,5 +54,5 @@ def generate_presigned_url(object_key: str | None):
             "Bucket": settings.B2_BUCKET_NAME,
             "Key": object_key,
         },
-        ExpiresIn=3600,  # 1 hour
+        ExpiresIn=expires_in,
     )

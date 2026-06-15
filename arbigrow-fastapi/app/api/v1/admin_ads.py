@@ -1,7 +1,7 @@
 import re
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, UploadFile, File
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,7 @@ from app.models.user import User
 from app.models.ad import Ad
 from app.models.user_ad_view import UserAdView
 from app.models.ad_view import AdView
+from app.services.b2_service import upload_to_b2, generate_presigned_url
 
 router = APIRouter(prefix="/admin/ads", tags=["Admin Ads"])
 
@@ -73,6 +74,7 @@ async def admin_create_ad(
     title: str = Form(...),
     youtube_url: str = Form(...),
     required_watch_seconds: int = Form(30),
+    thumbnail: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -89,17 +91,25 @@ async def admin_create_ad(
     if existing.scalar_one_or_none():
         raise HTTPException(400, detail="An ad with this YouTube video already exists.")
 
-    thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
-
     ad = Ad(
         title=title.strip(),
         youtube_url=youtube_url.strip(),
         video_id=video_id,
-        thumbnail=thumbnail,
         required_watch_seconds=required_watch_seconds,
         created_by=admin.id,
     )
     db.add(ad)
+    await db.commit()
+    await db.refresh(ad)
+
+    if thumbnail and thumbnail.filename:
+        if thumbnail.content_type not in ("image/jpeg", "image/png", "image/webp", "image/gif"):
+            raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
+        object_key = await upload_to_b2(thumbnail, f"ads/{ad.id}")
+        ad.thumbnail = generate_presigned_url(object_key, expires_in=604800)
+    else:
+        ad.thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+
     await db.commit()
     await db.refresh(ad)
 
@@ -118,6 +128,7 @@ async def admin_update_ad(
     title: str | None = Form(None),
     youtube_url: str | None = Form(None),
     required_watch_seconds: int | None = Form(None),
+    thumbnail: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -138,6 +149,12 @@ async def admin_update_ad(
             raise HTTPException(400, detail="Invalid YouTube URL.")
         ad.youtube_url = youtube_url.strip()
         ad.video_id = video_id
+    if thumbnail and thumbnail.filename:
+        if thumbnail.content_type not in ("image/jpeg", "image/png", "image/webp", "image/gif"):
+            raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
+        object_key = await upload_to_b2(thumbnail, f"ads/{ad_id}")
+        ad.thumbnail = generate_presigned_url(object_key, expires_in=604800)
+    if youtube_url is not None and not (thumbnail and thumbnail.filename):
         ad.thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 
     await db.commit()

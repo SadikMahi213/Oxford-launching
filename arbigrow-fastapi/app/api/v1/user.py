@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, and_, func
 
@@ -18,6 +18,7 @@ from app.core.rate_limiter import limiter
 
 from app.api.v1.deps import get_current_user
 from app.utils.is_system_active import is_system_active
+from app.services.b2_service import upload_to_b2, generate_presigned_url
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 MINING_CYCLE_SECONDS = 86400  # 24 hours
@@ -581,6 +582,29 @@ async def update_profile_image(
     return {
         "message": "Profile image updated",
         "profile_image_url": current_user.profile_image_url,
+    }
+
+
+@router.post("/profile-image/upload")
+@limiter.limit("10/minute")
+async def upload_profile_image(
+    request: Request,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if file.content_type not in ("image/jpeg", "image/png", "image/webp", "image/gif"):
+        raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
+
+    object_key = await upload_to_b2(file, f"profiles/{current_user.id}")
+    presigned_url = generate_presigned_url(object_key, expires_in=604800)  # 7 days
+
+    current_user.profile_image_url = presigned_url
+    await db.commit()
+
+    return {
+        "message": "Profile image uploaded",
+        "profile_image_url": presigned_url,
     }
 
 

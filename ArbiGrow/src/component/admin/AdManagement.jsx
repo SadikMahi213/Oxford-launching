@@ -13,6 +13,8 @@ const EMPTY_FORM = {
   required_watch_seconds: 30,
 };
 
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
 export default function AdManagement() {
   const token = useUserStore((state) => state.token);
 
@@ -23,6 +25,7 @@ export default function AdManagement() {
   const [showCreate, setShowCreate] = useState(false);
   const [showEdit, setShowEdit] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -57,23 +60,22 @@ export default function AdManagement() {
     setErrorMessage("");
     setSuccessMessage("");
     try {
-      const params = new URLSearchParams();
-      params.append("title", form.title.trim());
-      params.append("youtube_url", form.youtube_url.trim());
-      params.append("required_watch_seconds", form.required_watch_seconds);
+      const body = new FormData();
+      body.append("title", form.title.trim());
+      body.append("youtube_url", form.youtube_url.trim());
+      body.append("required_watch_seconds", form.required_watch_seconds);
+      if (thumbnailFile) body.append("thumbnail", thumbnailFile);
       const res = await fetch("/api/v1/admin/ads", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params,
+        headers: { Authorization: `Bearer ${token}` },
+        body,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(extractDetail(data));
       setSuccessMessage(`Ad "${form.title}" created successfully`);
       setShowCreate(false);
       setForm(EMPTY_FORM);
+      setThumbnailFile(null);
       await loadAds();
     } catch (error) {
       setErrorMessage(error.message);
@@ -88,17 +90,15 @@ export default function AdManagement() {
     setErrorMessage("");
     setSuccessMessage("");
     try {
-      const params = new URLSearchParams();
-      if (form.title.trim()) params.append("title", form.title.trim());
-      if (form.youtube_url.trim()) params.append("youtube_url", form.youtube_url.trim());
-      params.append("required_watch_seconds", form.required_watch_seconds);
+      const body = new FormData();
+      if (form.title.trim()) body.append("title", form.title.trim());
+      if (form.youtube_url.trim()) body.append("youtube_url", form.youtube_url.trim());
+      body.append("required_watch_seconds", form.required_watch_seconds);
+      if (thumbnailFile) body.append("thumbnail", thumbnailFile);
       const res = await fetch(`/api/v1/admin/ads/${showEdit.id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params,
+        headers: { Authorization: `Bearer ${token}` },
+        body,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(extractDetail(data));
@@ -150,6 +150,7 @@ export default function AdManagement() {
       youtube_url: ad.youtube_url,
       required_watch_seconds: ad.required_watch_seconds,
     });
+    setThumbnailFile(null);
     setShowEdit(ad);
   };
 
@@ -365,6 +366,16 @@ export default function AdManagement() {
                   className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                 />
                 <p className="text-xs text-gray-500 mt-1">Minimum seconds user must watch before earning. Min: 5</p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">Thumbnail Image (optional)</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(e) => setThumbnailFile(e.target.files[0] || null)}
+                  className="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-purple-600/20 file:text-purple-300 hover:file:bg-purple-600/30"
+                />
+                <p className="text-xs text-gray-500 mt-1">Upload a custom thumbnail. Falls back to YouTube auto-generated thumbnail.</p>
               </div>
             </div>
 
