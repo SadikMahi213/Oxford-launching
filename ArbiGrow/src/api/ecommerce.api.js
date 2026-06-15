@@ -15,17 +15,28 @@ export const registerSeller = (storeName, description) =>
     { params: { store_name: storeName, description }, ...authHeaders() },
   );
 
-export const getSellerProfile = () =>
-  api.get("v1/ecommerce/seller/profile", authHeaders());
+export const getMyStores = () =>
+  api.get("v1/ecommerce/seller/stores", authHeaders());
 
-export const updateSellerProfile = (profileData) =>
-  api.put("v1/ecommerce/seller/profile/update", profileData, authHeaders());
+export const getSellerProfile = (sellerId) => {
+  const params = sellerId ? `?seller_id=${sellerId}` : "";
+  return api.get(`v1/ecommerce/seller/profile${params}`, authHeaders());
+};
 
-export const sellerSubmitForReview = () =>
-  api.post("v1/ecommerce/seller/submit", null, authHeaders());
+export const updateSellerProfile = (profileData, sellerId) => {
+  const data = sellerId ? { ...profileData, seller_id: sellerId } : profileData;
+  return api.put("v1/ecommerce/seller/profile/update", data, authHeaders());
+};
 
-export const getSellerProfileCompletion = () =>
-  api.get("v1/ecommerce/seller/profile/completion", authHeaders());
+export const sellerSubmitForReview = (sellerId) => {
+  const params = sellerId ? `?seller_id=${sellerId}` : "";
+  return api.post(`v1/ecommerce/seller/submit${params}`, null, authHeaders());
+};
+
+export const getSellerProfileCompletion = (sellerId) => {
+  const params = sellerId ? `?seller_id=${sellerId}` : "";
+  return api.get(`v1/ecommerce/seller/profile/completion${params}`, authHeaders());
+};
 
 export const transferToEcommerce = (amount) =>
   api.post("v1/ecommerce/wallet/transfer", null, {
@@ -72,8 +83,10 @@ export const updateProduct = (id, data) =>
 export const deleteProduct = (id) =>
   api.delete(`v1/ecommerce/products/${id}`, authHeaders());
 
-export const getMyProducts = () =>
-  api.get("v1/ecommerce/seller/products", authHeaders());
+export const getMyProducts = (sellerId) => {
+  const params = sellerId ? `?seller_id=${sellerId}` : "";
+  return api.get(`v1/ecommerce/seller/products${params}`, authHeaders());
+};
 
 export const placeOrder = (payload) =>
   api.post("v1/ecommerce/orders", payload, authHeaders());
@@ -84,8 +97,10 @@ export const getMyOrders = () =>
 export const getOrderDetail = (id) =>
   api.get(`v1/ecommerce/orders/${id}`, authHeaders());
 
-export const getSellerOrders = () =>
-  api.get("v1/ecommerce/seller/orders", authHeaders());
+export const getSellerOrders = (sellerId) => {
+  const params = sellerId ? `?seller_id=${sellerId}` : "";
+  return api.get(`v1/ecommerce/seller/orders${params}`, authHeaders());
+};
 
 export const getEcommerceConfig = () =>
   api.get("v1/ecommerce/config", authHeaders());

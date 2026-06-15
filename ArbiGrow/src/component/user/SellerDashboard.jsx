@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Camera, Image, FileText, Send, AlertCircle } from "lucide-react";
+import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Image, FileText, Send, AlertCircle, MessageCircle, PlusCircle } from "lucide-react";
 import {
   registerSeller, getSellerProfile, updateSellerProfile,
   getMyProducts, createProduct, deleteProduct, updateProduct,
   getSellerOrders, getEcommerceWallet, transferToEcommerce,
   sellerSubmitForReview, getSellerProfileCompletion,
-  uploadProductImage,
+  uploadProductImage, getMyStores,
 } from "../../api/ecommerce.api.js";
 import useUserStore from "../../store/userStore.js";
 
@@ -22,12 +22,15 @@ const SellerDashboard = () => {
   const { user } = useUserStore();
   const [tab, setTab] = useState("overview");
   const [seller, setSeller] = useState(null);
+  const [allStores, setAllStores] = useState([]);
+  const [activeStoreId, setActiveStoreId] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [wallet, setWallet] = useState({ ecommerce_wallet: 0, main_wallet: 0 });
 
   const [registerName, setRegisterName] = useState("");
   const [registerDesc, setRegisterDesc] = useState("");
+  const [showCreateStore, setShowCreateStore] = useState(false);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0 });
   const [productImageUrlInput, setProductImageUrlInput] = useState("");
   const [productUploading, setProductUploading] = useState(false);
@@ -37,21 +40,30 @@ const SellerDashboard = () => {
 
   const [profileStep, setProfileStep] = useState(0);
   const [profile, setProfile] = useState({
-    store_name: "", description: "", phone: "",
+    store_name: "", description: "", phone: "", whatsapp_number: "",
     nid_number: "", nid_front_image_key: "", nid_back_image_key: "",
     country: "", division_state: "", district_city: "", full_address: "",
     store_logo_key: "", store_banner_key: "",
     facebook_url: "", youtube_url: "", tiktok_url: "", website_url: "",
   });
   const [completion, setCompletion] = useState(0);
+  const [viewingStore, setViewingStore] = useState(null);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (storeId) => {
     try {
-      const profileRes = await getSellerProfile();
+      const storesRes = await getMyStores();
+      const stores = storesRes.data?.stores || [];
+      setAllStores(stores);
+
+      const sid = storeId || activeStoreId || stores[0]?.id;
+      if (!sid && stores.length === 0) return;
+      setActiveStoreId(sid);
+
+      const profileRes = await getSellerProfile(sid);
       const profile = profileRes.data;
       setSeller(profile);
       setRegisterName(profile.store_name);
@@ -61,6 +73,7 @@ const SellerDashboard = () => {
         store_name: profile.store_name || "",
         description: profile.description || "",
         phone: profile.phone || "",
+        whatsapp_number: profile.whatsapp_number || "",
         nid_number: profile.nid_number || "",
         nid_front_image_key: profile.nid_front_image_key || "",
         nid_back_image_key: profile.nid_back_image_key || "",
@@ -82,7 +95,7 @@ const SellerDashboard = () => {
         ]);
         setWallet(walletRes.data);
         const [prodRes, ordRes] = await Promise.all([
-          getMyProducts(), getSellerOrders(),
+          getMyProducts(sid), getSellerOrders(sid),
         ]);
         setProducts(prodRes.data?.products || []);
         setOrders(ordRes.data?.orders || []);
@@ -90,9 +103,14 @@ const SellerDashboard = () => {
     } catch { /* not a seller yet */ }
   };
 
+  const switchStore = (storeId) => {
+    setActiveStoreId(storeId);
+    loadData(storeId);
+  };
+
   const refreshCompletion = async () => {
     try {
-      const res = await getSellerProfileCompletion();
+      const res = await getSellerProfileCompletion(activeStoreId);
       setCompletion(res.data.profile_completion);
     } catch {}
   };
@@ -101,7 +119,10 @@ const SellerDashboard = () => {
     if (!registerName.trim()) return;
     try {
       const res = await registerSeller(registerName, registerDesc);
-      setMsg("Seller registered! Status: " + res.data.status);
+      setMsg("Store created! Status: " + res.data.status);
+      setShowCreateStore(false);
+      setRegisterName("");
+      setRegisterDesc("");
       loadData();
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -110,10 +131,10 @@ const SellerDashboard = () => {
 
   const handleProfileUpdate = async () => {
     try {
-      const res = await updateSellerProfile(profile);
+      const res = await updateSellerProfile(profile, activeStoreId);
       setCompletion(res.data.profile_completion);
       setMsg("Profile saved! (" + res.data.profile_completion + "%)");
-      loadData();
+      loadData(activeStoreId);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -121,7 +142,7 @@ const SellerDashboard = () => {
 
   const handleSubmitForReview = async () => {
     try {
-      const res = await sellerSubmitForReview();
+      const res = await sellerSubmitForReview(activeStoreId);
       setMsg("Submitted for review!");
       setSeller(prev => ({ ...prev, status: "pending_review" }));
     } catch (err) {
@@ -135,6 +156,7 @@ const SellerDashboard = () => {
       await createProduct({
         name: newProduct.name,
         price: parseFloat(newProduct.price),
+        seller_id: activeStoreId,
         description: newProduct.description,
         image_urls: newProduct.image_urls.join(","),
         category: newProduct.category,
@@ -142,7 +164,7 @@ const SellerDashboard = () => {
       });
       setNewProduct({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0 });
       setMsg("Product added!");
-      loadData();
+      loadData(activeStoreId);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -196,8 +218,18 @@ const SellerDashboard = () => {
 
   const handleToggleProduct = async (p) => {
     try {
-      await updateProduct(p.id, { is_active: !p.is_active });
-      loadData();
+      await updateProduct(p.id, { is_active: !p.is_active, seller_id: activeStoreId });
+      loadData(activeStoreId);
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const handleDeleteProduct = async (p) => {
+    if (!confirm("Delete this product?")) return;
+    try {
+      await deleteProduct(p.id, activeStoreId);
+      loadData(activeStoreId);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -221,7 +253,8 @@ const SellerDashboard = () => {
 
   const stepProgress = STEPS.reduce((acc, _, i) => acc + (isStepComplete(i) ? 1 : 0), 0);
 
-  if (!seller) {
+  // ── No stores yet — show create form ──
+  if (!seller && allStores.length === 0 && !showCreateStore) {
     return (
       <div className="p-4 md:p-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -250,7 +283,39 @@ const SellerDashboard = () => {
     );
   }
 
-  if (seller.status === "pending_review") {
+  if (showCreateStore) {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Create New Store
+            </span>
+          </h1>
+          <p className="text-sm text-gray-400">Add another store to your seller account</p>
+        </motion.div>
+        <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 max-w-lg space-y-4">
+          <div>
+            <label className="text-sm text-gray-400">Store Name</label>
+            <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My New Store" />
+          </div>
+          <div>
+            <label className="text-sm text-gray-400">Description (optional)</label>
+            <textarea value={registerDesc} onChange={(e) => setRegisterDesc(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Tell buyers about your store..." />
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => { setShowCreateStore(false); setRegisterName(""); setRegisterDesc(""); }} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">Cancel</button>
+            <button onClick={handleRegister} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
+              <PlusCircle className="w-4 h-4 inline mr-1" /> Create Store
+            </button>
+          </div>
+          {msg && <p className="text-sm text-center text-green-400">{msg}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  if (seller?.status === "pending_review") {
     return (
       <div className="p-4 md:p-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -260,6 +325,7 @@ const SellerDashboard = () => {
             </span>
           </h1>
           <p className="text-sm text-gray-400">Seller Dashboard</p>
+          {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-yellow-500/10 to-yellow-500/[0.02] border border-yellow-500/30 p-8 text-center space-y-3">
           <Send className="w-12 h-12 text-yellow-400 mx-auto" />
@@ -274,7 +340,7 @@ const SellerDashboard = () => {
     );
   }
 
-  if (seller.status === "rejected") {
+  if (seller?.status === "rejected") {
     return (
       <div className="p-4 md:p-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -284,6 +350,7 @@ const SellerDashboard = () => {
             </span>
           </h1>
           <p className="text-sm text-gray-400">Seller Dashboard</p>
+          {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/[0.02] border border-red-500/30 p-8 text-center space-y-4">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
@@ -301,16 +368,21 @@ const SellerDashboard = () => {
     );
   }
 
-  if (seller.status === "draft") {
+  if (seller?.status === "draft") {
     return (
       <div className="p-4 md:p-6 space-y-5">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl md:text-3xl font-bold">
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              {seller.store_name}
-            </span>
-          </h1>
-          <p className="text-sm text-gray-400">Complete your seller profile ({stepProgress}/{STEPS.length} sections)</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  {seller.store_name}
+                </span>
+              </h1>
+              <p className="text-sm text-gray-400">Complete your seller profile ({stepProgress}/{STEPS.length} sections)</p>
+            </div>
+          </div>
+          {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
         </motion.div>
 
         <div className="space-y-2">
@@ -373,6 +445,11 @@ const SellerDashboard = () => {
                   <textarea value={profile.description} onChange={(e) => updateProfileField("description", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Describe your store..." />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-400">WhatsApp Number</label>
+                    <input value={profile.whatsapp_number} onChange={(e) => updateProfileField("whatsapp_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="+1234567890" />
+                    <p className="text-[10px] text-gray-500 mt-0.5">Customers can message you on this number</p>
+                  </div>
                   <div>
                     <label className="text-xs text-gray-400">Logo URL</label>
                     <input value={profile.store_logo_key} onChange={(e) => updateProfileField("store_logo_key", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
@@ -493,6 +570,7 @@ const SellerDashboard = () => {
     );
   }
 
+  // ── Approved state ──
   const tabs = [
     { id: "overview", label: "Overview", icon: Store },
     { id: "products", label: "Products", icon: Package },
@@ -505,11 +583,35 @@ const SellerDashboard = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl md:text-3xl font-bold">
           <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            {seller.store_name}
+            {seller?.store_name}
           </span>
         </h1>
         <p className="text-sm text-gray-400">Seller Dashboard</p>
       </motion.div>
+
+      {/* Store Switcher + Create */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {allStores.map((store) => (
+          <button
+            key={store.id}
+            onClick={() => switchStore(store.id)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              activeStoreId === store.id
+                ? "bg-purple-600 text-white"
+                : "bg-white/10 text-gray-400 hover:text-white hover:bg-white/20"
+            }`}
+          >
+            <Store className="w-3 h-3" />
+            {store.store_name}
+          </button>
+        ))}
+        <button
+          onClick={() => { setShowCreateStore(true); setRegisterName(""); setRegisterDesc(""); }}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-purple-500/50 hover:bg-purple-500/10 transition-all"
+        >
+          <PlusCircle className="w-3 h-3" /> New Store
+        </button>
+      </div>
 
       <div className="flex gap-2 flex-wrap">
         {tabs.map((t) => (
@@ -526,7 +628,7 @@ const SellerDashboard = () => {
       {msg && <p className="text-sm text-green-400 bg-green-500/10 rounded-lg px-4 py-2">{msg}</p>}
 
       {tab === "overview" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <Package className="w-5 h-5 text-purple-400 mb-2" />
             <p className="text-sm text-gray-400">Products</p>
@@ -542,6 +644,11 @@ const SellerDashboard = () => {
             <p className="text-sm text-gray-400">Ecommerce Wallet</p>
             <p className="text-2xl font-bold text-white">${parseFloat(wallet.ecommerce_wallet).toFixed(2)}</p>
           </div>
+          <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
+            <MessageCircle className="w-5 h-5 text-green-400 mb-2" />
+            <p className="text-sm text-gray-400">WhatsApp</p>
+            <p className="text-sm font-bold text-white truncate">{seller?.whatsapp_number || "Not set"}</p>
+          </div>
         </div>
       )}
 
@@ -553,7 +660,7 @@ const SellerDashboard = () => {
               <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="Product name" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder="Category" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder="ARBX to allocate for promotion" type="number" className="md:col-span-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder="ARBX to allocate for promotion" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
             </div>
 
             <div>
@@ -606,7 +713,7 @@ const SellerDashboard = () => {
                     <button onClick={() => handleToggleProduct(p)} className={`px-3 py-1 rounded-lg text-xs font-medium ${p.is_active ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"}`}>
                       {p.is_active ? "Deactivate" : "Activate"}
                     </button>
-                    <button onClick={() => { if (confirm("Delete this product?")) deleteProduct(p.id).then(loadData).catch(() => {}); }} className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => handleDeleteProduct(p)} className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))
@@ -659,5 +766,25 @@ const SellerDashboard = () => {
     </div>
   );
 };
+
+// ── Store Switcher sub-component ──
+const StoreSwitcher = ({ stores, activeId, onSwitch }) => (
+  <div className="flex items-center gap-2 mt-2 flex-wrap">
+    {stores.map((store) => (
+      <button
+        key={store.id}
+        onClick={() => onSwitch(store.id)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+          activeId === store.id
+            ? "bg-purple-600 text-white"
+            : "bg-white/10 text-gray-400 hover:text-white hover:bg-white/20"
+        }`}
+      >
+        <Store className="w-3 h-3" />
+        {store.store_name}
+      </button>
+    ))}
+  </div>
+);
 
 export default SellerDashboard;

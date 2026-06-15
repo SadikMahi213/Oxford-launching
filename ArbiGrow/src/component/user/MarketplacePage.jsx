@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { ShoppingCart, Plus, Minus, Search, User, Mail, Phone, MapPin, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import { ShoppingCart, Plus, Minus, Search, User, Mail, Phone, MapPin, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import { listProducts, placeOrder, getMyOrders } from "../../api/ecommerce.api.js";
 
@@ -168,7 +168,7 @@ const MarketplacePage = () => {
                     <h3 className="text-white font-semibold">{p.name}</h3>
                     <p className="text-xs text-gray-400 line-clamp-2">{p.description}</p>
                     <p className="text-sm text-gray-300">By: {p.store_name}</p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-lg font-bold text-cyan-400">${parseFloat(p.price).toFixed(2)}</span>
                       <div className="flex items-center gap-1">
                         {cart[p.id] ? (
@@ -181,6 +181,18 @@ const MarketplacePage = () => {
                           <button onClick={(e) => { e.stopPropagation(); addToCart(p); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-medium transition-colors">
                             <ShoppingCart className="w-3.5 h-3.5" /> Add
                           </button>
+                        )}
+                        {p.seller_whatsapp && (
+                          <a
+                            href={`https://wa.me/${p.seller_whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hi! I'm interested in " + p.name)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-green-600/80 hover:bg-green-500 text-[10px] font-medium text-white transition-colors"
+                            title="Contact seller on WhatsApp"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                          </a>
                         )}
                       </div>
                     </div>
@@ -348,6 +360,16 @@ const MarketplacePage = () => {
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Store</p>
                   <p className="text-white font-medium">{selectedProduct.store_name}</p>
+                  {selectedProduct.seller_whatsapp && (
+                    <a
+                      href={`https://wa.me/${selectedProduct.seller_whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Hi! I'm interested in " + selectedProduct.name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-xs font-medium text-white transition-colors"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" /> Contact on WhatsApp
+                    </a>
+                  )}
                 </div>
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Price</p>

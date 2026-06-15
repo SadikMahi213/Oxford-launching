@@ -115,6 +115,7 @@ def _seller_to_dict(seller, user):
         "description": seller.description,
         "status": seller.status,
         "phone": seller.phone,
+        "whatsapp_number": seller.whatsapp_number,
         "nid_number": seller.nid_number,
         "nid_front_image_key": seller.nid_front_image_key,
         "nid_back_image_key": seller.nid_back_image_key,
@@ -152,6 +153,7 @@ class SellerProfileUpdate(BaseModel):
     store_name: str | None = None
     description: str | None = None
     phone: str | None = None
+    whatsapp_number: str | None = None
     nid_number: str | None = None
     nid_front_image_key: str | None = None
     nid_back_image_key: str | None = None
@@ -255,6 +257,7 @@ async def get_ecommerce_wallet(
 async def create_product(
     name: str,
     price: float,
+    seller_id: int | None = None,
     description: str | None = None,
     image_url: str | None = None,
     image_urls: str | None = None,
@@ -263,10 +266,7 @@ async def create_product(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
+    seller = await _get_seller(db, current_user, seller_id)
     if not seller:
         raise HTTPException(400, "You must be a seller to add products")
     if seller.status != "approved":
@@ -336,12 +336,14 @@ async def list_products(
 
     seller_ids = list(set(p.seller_id for p in products))
     sellers_map = {}
+    seller_whatsapp_map = {}
     if seller_ids:
         sellers_result = await db.execute(
             select(Seller).where(Seller.id.in_(seller_ids))
         )
         for s in sellers_result.scalars().all():
             sellers_map[s.id] = s.store_name
+            seller_whatsapp_map[s.id] = s.whatsapp_number or ""
 
     return {
         "total": total,
@@ -357,6 +359,7 @@ async def list_products(
                 "image_urls": p.get_image_urls(),
                 "category": p.category,
                 "store_name": sellers_map.get(p.seller_id, ""),
+                "seller_whatsapp": seller_whatsapp_map.get(p.seller_id, ""),
                 "arbx_allocated": float(p.arbx_allocated),
                 "created_at": p.created_at.isoformat() if p.created_at else None,
             }
@@ -388,6 +391,7 @@ async def get_product(
         "category": product.category,
         "store_name": seller.store_name if seller else "",
         "seller_status": seller.status if seller else "",
+        "seller_whatsapp": seller.whatsapp_number if seller else "",
         "arbx_allocated": float(product.arbx_allocated),
         "is_active": product.is_active,
         "created_at": product.created_at.isoformat() if product.created_at else None,
@@ -404,15 +408,11 @@ async def update_product(
     image_urls: str | None = None,
     category: str | None = None,
     is_active: bool | None = None,
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(403, "Not a seller")
+    seller = await _get_seller(db, current_user, seller_id)
 
     product = await db.execute(select(Product).where(Product.id == product_id))
     product = product.scalar_one_or_none()
@@ -443,15 +443,11 @@ async def update_product(
 @router.delete("/products/{product_id}")
 async def delete_product(
     product_id: int,
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(403, "Not a seller")
+    seller = await _get_seller(db, current_user, seller_id)
 
     product = await db.execute(select(Product).where(Product.id == product_id))
     product = product.scalar_one_or_none()
@@ -467,15 +463,11 @@ async def delete_product(
 
 @router.get("/seller/products")
 async def get_my_products(
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
 
     result = await db.execute(
         select(Product).where(Product.seller_id == seller.id).order_by(Product.created_at.desc())
@@ -503,15 +495,11 @@ async def get_my_products(
 @router.post("/products/upload-image")
 async def upload_product_image(
     file: UploadFile = File(...),
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(400, "You must be a seller")
+    seller = await _get_seller(db, current_user, seller_id)
 
     object_key = await upload_to_b2(file, f"products/{seller.id}")
     presigned = generate_presigned_url(object_key)
@@ -673,15 +661,11 @@ async def get_order_detail(
 
 @router.get("/seller/orders")
 async def get_seller_orders(
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
 
     result = await db.execute(
         select(Order)
@@ -754,6 +738,7 @@ async def admin_list_sellers(
                 "description": s.description,
                 "status": s.status,
                 "phone": s.phone,
+                "whatsapp_number": s.whatsapp_number,
                 "nid_number": s.nid_number,
                 "nid_front_image_key": s.nid_front_image_key,
                 "nid_back_image_key": s.nid_back_image_key,

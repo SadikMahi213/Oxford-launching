@@ -13,6 +13,7 @@ class Seller(Base):
     status = Column(String(20), nullable=False, default="draft")
 
     phone = Column(String(30), nullable=True)
+    whatsapp_number = Column(String(30), nullable=True)
     nid_number = Column(String(100), nullable=True)
     nid_front_image_key = Column(String(500), nullable=True)
     nid_back_image_key = Column(String(500), nullable=True)
