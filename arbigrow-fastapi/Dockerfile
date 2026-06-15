@@ -16,6 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Playwright + Chromium for PDF generation
+RUN pip install --no-cache-dir playwright && \
+    python -m playwright install chromium && \
+    python -m playwright install-deps chromium
+
 COPY . .
 
 # ── Stage 2: Development (hot-reload) ──────────────

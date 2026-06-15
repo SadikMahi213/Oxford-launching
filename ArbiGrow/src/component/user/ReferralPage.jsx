@@ -11,8 +11,10 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
+  Share2,
 } from "lucide-react";
 import useUserStore from "../../store/userStore";
+import ShareReferralButton from "./ShareReferralButton.jsx";
 
 const ReferralPage = ({
   totalReferrals,
@@ -118,6 +120,14 @@ const ReferralPage = ({
               </>
             )}
           </button>
+        </div>
+
+        {/* Share Buttons */}
+        <div className="flex items-center gap-3 mt-3">
+          <ShareReferralButton />
+          <p className="text-xs text-gray-500">
+            Share your referral link on social media
+          </p>
         </div>
       </motion.div>
 

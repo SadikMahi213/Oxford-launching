@@ -66,6 +66,9 @@ import WalletTransfer from "../component/user/WalletTransfer.jsx";
 import DailyTasks from "../component/user/DailyTasks.jsx";
 import AdsView from "../component/user/AdsView.jsx";
 import ConvertOFA from "../component/user/ConvertOFA.jsx";
+import InvoicePage from "../component/user/InvoicePage.jsx";
+import WhatsAppFloatingButton from "../component/user/WhatsAppButton.jsx";
+import ShareReferralButton from "../component/user/ShareReferralButton.jsx";
 // Mock data for market prices
 
 const EMPTY_REFERRAL_LEVELS = [
@@ -78,6 +81,7 @@ const EMPTY_REFERRAL_LEVELS = [
 const HOLD_ALLOWED_PAGES = new Set([
   "overview",
   "deposit",
+  "invoices",
   "profile",
   "terms",
   "privacy",
@@ -388,6 +392,12 @@ export function UserDashboard() {
       description: "Add funds",
     },
     {
+      id: "invoices",
+      label: "Invoices",
+      icon: FileText,
+      description: "View & download PDF invoices",
+    },
+    {
       id: "packages",
       label: "Packages",
       icon: Package,
@@ -655,6 +665,10 @@ export function UserDashboard() {
 
     if (activePage === "seller") {
       return <SellerDashboard />;
+    }
+
+    if (activePage === "invoices") {
+      return <InvoicePage />;
     }
 
     if (activePage === "transfer") {
@@ -968,6 +982,8 @@ export function UserDashboard() {
         announcement={activeAnnouncement}
         onClose={handleCloseAnnouncement}
       />
+
+      <WhatsAppFloatingButton />
     </div>
   );
 }

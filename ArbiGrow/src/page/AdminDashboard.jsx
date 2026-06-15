@@ -15,6 +15,8 @@ import AnnouncementsManagement from "../component/admin/AnnouncementsManagement.
 import AdminEcommerce from "../component/admin/AdminEcommerce.jsx";
 import SystemConfigPanel from "../component/admin/SystemConfigPanel.jsx";
 import AdManagement from "../component/admin/AdManagement.jsx";
+import AdminReports from "../component/admin/AdminReports.jsx";
+import AdminWhatsAppConfig from "../component/admin/AdminWhatsAppConfig.jsx";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -58,6 +60,9 @@ export default function AdminDashboard() {
       case "ads":
         return <AdManagement />;
       case "reports":
+        return <AdminReports />;
+      case "whatsapp":
+        return <AdminWhatsAppConfig />;
       case "settings":
         return <SystemConfigPanel />;
       default:

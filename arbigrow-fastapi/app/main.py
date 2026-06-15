@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 import time
@@ -16,6 +18,7 @@ from app.api.router import api_router
 from app.core.logger import setup_logging
 from app.core.database import check_db_connection
 from app.services.investment_service import start_auto_roi_scheduler, stop_auto_roi_scheduler
+from app.services.invoice_scheduler import start_invoice_scheduler, stop_invoice_scheduler
 
 
 @asynccontextmanager
@@ -33,7 +36,9 @@ async def lifespan(app: FastAPI):
         sys.exit(1)
 
     await start_auto_roi_scheduler()
+    await start_invoice_scheduler()
     yield
+    await stop_invoice_scheduler()
     await stop_auto_roi_scheduler()
     logger.info("Oxford Financial Ads Backend shutting down.")
 
@@ -87,5 +92,10 @@ async def log_requests(request: Request, call_next):
     return response
 
 # logger.info(f"ALLOWED_ORIGINS: {settings.ALLOWED_ORIGINS}")
+
+# Serve generated invoice PDFs from local storage
+storage_dir = os.path.join(os.path.dirname(__file__), "..", "storage")
+os.makedirs(storage_dir, exist_ok=True)
+app.mount("/storage", StaticFiles(directory=storage_dir), name="storage")
 
 app.include_router(api_router)

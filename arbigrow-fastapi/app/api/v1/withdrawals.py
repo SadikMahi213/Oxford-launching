@@ -14,6 +14,7 @@ from app.models.withdrawal import Withdrawal
 from app.schemas.withdrawal import WithdrawalCreate, WithdrawalStatusUpdate
 from app.utils.email import send_withdraw_success_email
 from app.utils.is_system_active import is_system_active
+from app.services.invoice_service import generate_user_invoice
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
@@ -293,6 +294,22 @@ async def update_withdrawal_status(
             )
         except Exception as mail_error:
             print(f"[warn] Failed to send withdrawal approval email: {mail_error}")
+
+        # Auto-generate withdrawal invoice
+        try:
+            await generate_user_invoice(
+                db=db,
+                user=user,
+                invoice_type="withdrawal",
+                amount=withdrawal.amount,
+                currency="USDT",
+                description=f"Withdrawal Confirmation — {withdrawal.destination_address[:16]}...",
+                reference_id=withdrawal.id,
+                reference_type="withdrawal",
+                items=[{"description": f"Withdrawal from {withdrawal.source_wallet}", "amount": f"${float(withdrawal.amount):.2f}", "status": "approved"}],
+            )
+        except Exception as inv_error:
+            print(f"[warn] Failed to generate withdrawal invoice: {inv_error}")
 
     return {
         "message": f"Withdrawal {withdrawal.status}",

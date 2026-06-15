@@ -44,18 +44,48 @@ async def register_seller(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    existing = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    if existing.scalar_one_or_none():
-        raise HTTPException(400, "You are already registered as a seller")
-
     seller = Seller(user_id=current_user.id, store_name=store_name, description=description)
     db.add(seller)
     await db.commit()
     await db.refresh(seller)
 
     return {"seller_id": seller.id, "status": seller.status}
+
+
+@router.get("/seller/stores")
+async def list_my_stores(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(Seller)
+        .where(Seller.user_id == current_user.id)
+        .order_by(Seller.created_at.desc())
+    )
+    sellers = result.scalars().all()
+    return {
+        "stores": [
+            _seller_to_dict(s, current_user) for s in sellers
+        ]
+    }
+
+
+async def _get_seller(db: AsyncSession, current_user: User, seller_id: int | None = None):
+    if seller_id:
+        result = await db.execute(
+            select(Seller).where(Seller.id == seller_id, Seller.user_id == current_user.id)
+        )
+        seller = result.scalar_one_or_none()
+        if not seller:
+            raise HTTPException(404, "Store not found")
+        return seller
+    result = await db.execute(
+        select(Seller).where(Seller.user_id == current_user.id).order_by(Seller.created_at.desc())
+    )
+    seller = result.scalar_one_or_none()
+    if not seller:
+        raise HTTPException(404, "Seller profile not found")
+    return seller
 
 
 def _compute_profile_completion(seller, user):
@@ -110,15 +140,11 @@ def _seller_to_dict(seller, user):
 
 @router.get("/seller/profile")
 async def get_seller_profile(
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
     return _seller_to_dict(seller, current_user)
 
 
@@ -144,15 +170,11 @@ class SellerProfileUpdate(BaseModel):
 @router.put("/seller/profile/update")
 async def update_seller_profile(
     body: SellerProfileUpdate,
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(seller, field, value)
     completion = _compute_profile_completion(seller, current_user)
@@ -164,15 +186,11 @@ async def update_seller_profile(
 
 @router.post("/seller/submit")
 async def seller_submit_for_review(
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
     if seller.status != "draft":
         raise HTTPException(400, f"Cannot submit seller with status '{seller.status}'")
     completion = _compute_profile_completion(seller, current_user)
@@ -187,15 +205,11 @@ async def seller_submit_for_review(
 
 @router.get("/seller/profile/completion")
 async def get_seller_profile_completion(
+    seller_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    seller = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id)
-    )
-    seller = seller.scalar_one_or_none()
-    if not seller:
-        raise HTTPException(404, "Seller profile not found")
+    seller = await _get_seller(db, current_user, seller_id)
     completion = _compute_profile_completion(seller, current_user)
     seller.profile_completion = completion
     await db.commit()

@@ -10,6 +10,7 @@ from app.models.user import User
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.utils.email import send_deposit_success_email
+from app.services.invoice_service import generate_user_invoice
 
 router = APIRouter(prefix="/deposits", tags=["Deposits"])
 
@@ -185,6 +186,22 @@ async def update_deposit_status(
             )
         except Exception as mail_error:
             print(f"[warn] Failed to send deposit approval email: {mail_error}")
+
+        # Auto-generate deposit invoice
+        try:
+            await generate_user_invoice(
+                db=db,
+                user=user,
+                invoice_type="deposit",
+                amount=deposit.amount,
+                currency="USDT",
+                description=f"Deposit Confirmation — {deposit.txid[:16]}...",
+                reference_id=deposit.id,
+                reference_type="deposit",
+                items=[{"description": f"Deposit via {deposit.network_name}", "amount": f"${float(deposit.amount):.2f}", "status": "approved"}],
+            )
+        except Exception as inv_error:
+            print(f"[warn] Failed to generate deposit invoice: {inv_error}")
 
     return {
         "message": f"Deposit {data.status}",

@@ -7,7 +7,7 @@ class Seller(Base):
     __tablename__ = "sellers"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     store_name = Column(String(200), nullable=False)
     description = Column(String(1000), nullable=True)
     status = Column(String(20), nullable=False, default="draft")
@@ -33,4 +33,4 @@ class Seller(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    user = relationship("User", backref="seller", uselist=False)
+    user = relationship("User", backref="sellers", uselist=True)
