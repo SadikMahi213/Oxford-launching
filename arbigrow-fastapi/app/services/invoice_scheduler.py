@@ -8,8 +8,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
-from app.core.database import async_session_factory
+from app.core.database import get_db, AsyncSessionLocal as async_session_factory
 from app.models.user import User
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
