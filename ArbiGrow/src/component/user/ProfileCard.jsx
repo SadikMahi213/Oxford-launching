@@ -72,8 +72,10 @@ export default function ProfileCard({ setActivePage }) {
   const [photoMsg, setPhotoMsg] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoMode, setPhotoMode] = useState("url"); // "url" | "file"
+  const [photoLoaded, setPhotoLoaded] = useState(false);
   const displayUrl = user?.profile_image_url;
   const initials = getInitials(user?.full_name);
+  const showInitials = !displayUrl || !photoLoaded;
   const joinDate = formatJoinDate(user?.created_at);
   const lastLogin = getTimeAgo(user?.updated_at);
   const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
@@ -104,6 +106,7 @@ export default function ProfileCard({ setActivePage }) {
         });
         setPhotoMsg("Photo saved");
       }
+      setPhotoLoaded(false);
       setUser({ profile_image_url: res.data.profile_image_url });
       setShowPhotoInput(false);
       setPhotoUrl("");
@@ -160,10 +163,11 @@ export default function ProfileCard({ setActivePage }) {
                     src={displayUrl}
                     alt={user.full_name}
                     className="w-full h-full object-cover"
-                    onError={(e) => { e.target.style.display = "none"; const s = e.target.nextSibling; if (s) s.style.display = "flex"; }}
+                    onLoad={() => setPhotoLoaded(true)}
+                    onError={(e) => { e.target.style.display = "none"; setPhotoLoaded(false); }}
                   />
                 ) : null}
-                <span className={`text-2xl md:text-3xl font-bold text-white ${displayUrl ? "hidden" : ""}`}>
+                <span className={`text-2xl md:text-3xl font-bold text-white ${showInitials ? "" : "hidden"}`}>
                   {initials}
                 </span>
               </div>
