@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Image, FileText, Send, AlertCircle, MessageCircle, PlusCircle } from "lucide-react";
+import RichTextEditor from "../common/RichTextEditor.jsx";
 import {
   registerSeller, getSellerProfile, updateSellerProfile,
   getMyProducts, createProduct, deleteProduct, updateProduct,
@@ -288,8 +289,13 @@ const SellerDashboard = () => {
             <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My Store" />
           </div>
           <div>
-            <label className="text-sm text-gray-400">Description (optional)</label>
-            <textarea value={registerDesc} onChange={(e) => setRegisterDesc(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Tell buyers about your store..." />
+            <label className="text-sm text-gray-400">Description (optional) <span className="text-gray-500">(rich text supported)</span></label>
+            <RichTextEditor
+              content={registerDesc}
+              onChange={setRegisterDesc}
+              placeholder="Tell buyers about your store..."
+              minHeight="100px"
+            />
           </div>
           <button onClick={handleRegister} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
             <Store className="w-4 h-4 inline mr-2" /> Register as Seller
@@ -317,8 +323,13 @@ const SellerDashboard = () => {
             <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My New Store" />
           </div>
           <div>
-            <label className="text-sm text-gray-400">Description (optional)</label>
-            <textarea value={registerDesc} onChange={(e) => setRegisterDesc(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Tell buyers about your store..." />
+            <label className="text-sm text-gray-400">Description (optional) <span className="text-gray-500">(rich text supported)</span></label>
+            <RichTextEditor
+              content={registerDesc}
+              onChange={setRegisterDesc}
+              placeholder="Tell buyers about your store..."
+              minHeight="100px"
+            />
           </div>
           <div className="flex gap-3">
             <button onClick={() => { setShowCreateStore(false); setRegisterName(""); setRegisterDesc(""); }} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">Cancel</button>
@@ -458,8 +469,13 @@ const SellerDashboard = () => {
                   <input value={profile.store_name} onChange={(e) => updateProfileField("store_name", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My Awesome Store" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Description *</label>
-                  <textarea value={profile.description} onChange={(e) => updateProfileField("description", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Describe your store..." />
+                  <label className="text-xs text-gray-400">Description * <span className="text-gray-500">(rich text supported)</span></label>
+                  <RichTextEditor
+                    content={profile.description}
+                    onChange={(html) => updateProfileField("description", html)}
+                    placeholder="Describe your store..."
+                    minHeight="100px"
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
@@ -735,7 +751,15 @@ const SellerDashboard = () => {
               </div>
             </div>
 
-            <textarea value={newProduct.description} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} placeholder="Description" rows={2} className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+            <div>
+              <label className="text-xs text-gray-400 mb-1.5 block">Description <span className="text-gray-500">(rich text supported)</span></label>
+              <RichTextEditor
+                content={newProduct.description}
+                onChange={(html) => setNewProduct({ ...newProduct, description: html })}
+                placeholder="Write a detailed product description..."
+                minHeight="120px"
+              />
+            </div>
             <button onClick={handleAddProduct} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"><Plus className="w-4 h-4 inline mr-1" /> Add Product</button>
           </div>
 

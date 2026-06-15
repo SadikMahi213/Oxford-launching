@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { ShoppingCart, Plus, Minus, Search, User, Mail, Phone, MapPin, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle } from "lucide-react";
+import DOMPurify from "dompurify";
 import useUserStore from "../../store/userStore";
 import { listProducts, placeOrder, getMyOrders } from "../../api/ecommerce.api.js";
 
@@ -166,7 +167,7 @@ const MarketplacePage = () => {
                   )}
                   <div className="p-4 space-y-2">
                     <h3 className="text-white font-semibold">{p.name}</h3>
-                    <p className="text-xs text-gray-400 line-clamp-2">{p.description}</p>
+                    <div className="text-xs text-gray-400 line-clamp-2">{p.description ? p.description.replace(/<[^>]*>/g, "") : ""}</div>
                     <p className="text-sm text-gray-300">By: {p.store_name}</p>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-lg font-bold text-cyan-400">${parseFloat(p.price).toFixed(2)}</span>
@@ -383,7 +384,7 @@ const MarketplacePage = () => {
                 )}
                 <div>
                   <p className="text-sm text-gray-400 mb-1">Description</p>
-                  <p className="text-sm text-gray-300 leading-relaxed">{selectedProduct.description || "No description available"}</p>
+                  <div className="text-sm text-gray-300 leading-relaxed prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProduct.description ? DOMPurify.sanitize(selectedProduct.description) : "No description available" }} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   {cart[selectedProduct.id] ? (
