@@ -67,7 +67,7 @@ async def start_ad(
             inv.last_captcha_date = today
 
     total_typed = sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
-    total_limit = sum(inv.daily_captcha_limit or 0 for inv, _ in ad_investments)
+    total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
 
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached. Come back tomorrow.")
@@ -200,29 +200,29 @@ async def complete_ad(
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
         if pkg and pkg.task_type == TaskType.ad_view:
-            ad_investments.append(inv)
+            ad_investments.append((inv, pkg))
     if not ad_investments:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
 
     today = date.today()
-    for inv in ad_investments:
+    for inv, _ in ad_investments:
         if inv.last_captcha_date is None or inv.last_captcha_date < today:
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
 
-    total_typed = sum(inv.captchas_typed_today or 0 for inv in ad_investments)
-    total_limit = sum(inv.daily_captcha_limit or 0 for inv in ad_investments)
+    total_typed = sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
+    total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached")
 
-    earned = (ad_investments[0].earn_per_captcha or Decimal("0")).quantize(
+    earned = (ad_investments[0][1].earn_per_captcha or Decimal("0")).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
     user.main_wallet = (user.main_wallet + earned).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
 
-    ad_investments[0].captchas_typed_today = (ad_investments[0].captchas_typed_today or 0) + 1
+    ad_investments[0][0].captchas_typed_today = (ad_investments[0][0].captchas_typed_today or 0) + 1
 
     ad_view.is_completed = True
     ad_view.completed_at = now
@@ -254,7 +254,7 @@ async def complete_ad(
             )
             db.add(uav)
 
-    remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv in ad_investments)
+    remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
 
     await db.commit()
     await db.refresh(user)
@@ -302,7 +302,7 @@ async def get_ad_stats(
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
         if pkg and pkg.task_type == TaskType.ad_view:
-            ad_investments.append(inv)
+            ad_investments.append((inv, pkg))
     if not ad_investments:
         return zero_stats
 
@@ -333,12 +333,12 @@ async def get_ad_stats(
     )
     total_earned_all = all_result.scalar() or Decimal("0")
 
-    daily_limit = sum(inv.daily_captcha_limit or 0 for inv in ad_investments)
-    typed_today = sum(inv.captchas_typed_today or 0 for inv in ad_investments)
+    daily_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
+    typed_today = sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
     remaining = max(0, daily_limit - typed_today)
 
     return CaptchaStatsResponse(
-        earn_per_captcha=ad_investments[0].earn_per_captcha or Decimal("0"),
+        earn_per_captcha=ad_investments[0][1].earn_per_captcha or Decimal("0"),
         daily_limit=daily_limit,
         typed_today=typed_today,
         remaining=remaining,
