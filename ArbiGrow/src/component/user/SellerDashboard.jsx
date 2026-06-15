@@ -6,6 +6,7 @@ import {
   getMyProducts, createProduct, deleteProduct, updateProduct,
   getSellerOrders, getEcommerceWallet, transferToEcommerce,
   sellerSubmitForReview, getSellerProfileCompletion,
+  uploadProductImage,
 } from "../../api/ecommerce.api.js";
 import useUserStore from "../../store/userStore.js";
 
