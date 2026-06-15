@@ -131,7 +131,7 @@ export default function Navbar() {
                     </span>
                   </div>
                   <div className="text-[9px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-1">
-                    AI Trading Platform
+                    Professional Financial Services
                   </div>
                 </div>
               </a>

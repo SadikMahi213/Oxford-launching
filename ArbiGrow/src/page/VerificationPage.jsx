@@ -213,7 +213,7 @@ export default function VerificationPage() {
             </span>
           </div>
           <div className="text-[8px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-0.5">
-            AI Trading Platform
+            Professional Financial Services
           </div>
         </div>
       </motion.a> */}
