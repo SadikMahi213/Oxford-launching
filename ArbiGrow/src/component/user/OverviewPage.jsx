@@ -25,8 +25,7 @@ import {
   getMyEarningsHistory,
 } from "../../api/user.api.js";
 import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
-import { StatisticsTicker } from "./overview/StatisticsTicker.jsx";
-import { getPlatformStats } from "../../api/admin.api.js";
+import { MarketsCrawl } from "./overview/MarketsCrawl.jsx";
 import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
 import ProfileCard from "./ProfileCard.jsx";
 
@@ -321,21 +320,7 @@ const OverviewPage = ({ setActivePage }) => {
     },
   ];
 
-  // Api
-  const [stats, setStats] = useState(null);
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await getPlatformStats();
-        // console.log("DAta",data)
-        setStats(data);
-      } catch (error) {
-        console.error("Failed to load platform stats", error);
-      }
-    };
 
-    fetchStats();
-  }, []);
   return (
     <div className="p-4 md:p-6 space-y-6">
       {/* Market Prices Bar */}
@@ -419,8 +404,8 @@ const OverviewPage = ({ setActivePage }) => {
       {/* Quick Shortcuts */}
       <QuickShortcuts shortcuts={shortcuts} />
 
-      {/* Statistics Ticker */}
-      {stats && <StatisticsTicker stats={stats} />}
+      {/* Markets Crawl */}
+      <MarketsCrawl />
 
       {/* USDT Wallet Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

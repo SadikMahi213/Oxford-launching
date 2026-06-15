@@ -1,62 +1,37 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import {
-  Users,
-  UserCheck,
   TrendingUp,
+  TrendingDown,
+  Bitcoin,
   DollarSign,
-  Download,
+  BarChart3,
 } from "lucide-react";
 
-export function StatisticsTicker({ stats }) {
+const defaultPrices = [
+  { pair: "BTC/USDT", price: 67482.31, change: 2.34, color: "text-orange-400" },
+  { pair: "ETH/USDT", price: 3451.67, change: -1.23, color: "text-blue-400" },
+  { pair: "SOL/USDT", price: 142.89, change: 5.67, color: "text-purple-400" },
+  { pair: "BNB/USDT", price: 598.12, change: 0.89, color: "text-yellow-400" },
+  { pair: "XRP/USDT", price: 0.6234, change: -0.45, color: "text-cyan-400" },
+  { pair: "ADA/USDT", price: 0.4567, change: 3.21, color: "text-blue-300" },
+  { pair: "DOT/USDT", price: 7.89, change: -2.15, color: "text-pink-400" },
+  { pair: "AVAX/USDT", price: 28.45, change: 4.56, color: "text-red-400" },
+];
+
+export function MarketsCrawl() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkScreen = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkScreen();
     window.addEventListener("resize", checkScreen);
-
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  const statsArray = [
-    {
-      icon: Users,
-      label: "Total Users",
-      value: (stats?.total_users ?? 0).toLocaleString(),
-      color: "text-blue-400",
-    },
-    {
-      icon: UserCheck,
-      label: "Active Investors",
-      value: (stats?.active_investors ?? 0).toLocaleString(),
-      color: "text-green-400",
-    },
-    {
-      icon: TrendingUp,
-      label: "Investments Made",
-      value: Number(stats?.total_invested ?? 0).toFixed(4),
-      color: "text-red-400",
-    },
-    {
-      icon: DollarSign,
-      label: "Profits Generated",
-      value: Number(stats?.total_profit_shared ?? 0).toFixed(4),
-      color: "text-green-400",
-    },
-    {
-      icon: Download,
-      label: "Successful Withdrawals",
-      value: Number(stats?.total_withdrawn ?? 0).toFixed(4),
-      color: "text-orange-400",
-    },
-  ];
-
-  // const duplicatedStats = [...statsArray, ...statsArray];
-  const duplicatedStats = Array(4).fill(statsArray).flat();
+  const duplicated = Array(4).fill(defaultPrices).flat();
 
   return (
     <div className="relative rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden">
@@ -76,23 +51,35 @@ export function StatisticsTicker({ stats }) {
             },
           }}
         >
-          {duplicatedStats.map((stat, idx) => (
+          {duplicated.map((item, idx) => (
             <div
               key={idx}
               className="flex items-center gap-3 whitespace-nowrap"
             >
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600/20 to-cyan-600/20 flex items-center justify-center flex-shrink-0">
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                <BarChart3 className={`w-4 h-4 ${item.color}`} />
               </div>
-
               <div>
-                <div className="text-xs text-gray-400">{stat.label}</div>
-                <div className={`text-sm font-bold ${stat.color}`}>
-                  {stat.value}
+                <div className="text-xs text-gray-400">{item.pair}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-sm font-bold ${item.color}`}>
+                    ${item.price.toLocaleString()}
+                  </span>
+                  <span
+                    className={`flex items-center gap-0.5 text-xs ${
+                      item.change >= 0 ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    {item.change >= 0 ? (
+                      <TrendingUp className="w-3 h-3" />
+                    ) : (
+                      <TrendingDown className="w-3 h-3" />
+                    )}
+                    {Math.abs(item.change)}%
+                  </span>
                 </div>
               </div>
-
-              {idx < duplicatedStats.length - 1 && (
+              {idx < duplicated.length - 1 && (
                 <div className="w-px h-8 bg-white/10 ml-4"></div>
               )}
             </div>
