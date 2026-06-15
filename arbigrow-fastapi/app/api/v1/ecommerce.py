@@ -508,6 +508,36 @@ async def upload_product_image(
     return {"object_key": object_key}
 
 
+# ── Seller Image Upload ────────────────────────────────────────────
+
+
+@router.post("/seller/upload-image")
+async def upload_seller_image(
+    file: UploadFile = File(...),
+    image_type: str = "logo",
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload a seller store image (logo, banner, nid_front, nid_back).
+    Returns the object key which can be saved to the seller profile.
+    """
+    if image_type not in ("logo", "banner", "nid_front", "nid_back"):
+        raise HTTPException(400, f"Invalid image_type: {image_type}. Use: logo, banner, nid_front, nid_back")
+
+    result = await db.execute(
+        select(Seller).where(Seller.user_id == current_user.id).order_by(Seller.created_at.desc())
+    )
+    seller = result.scalars().first()
+    if not seller:
+        raise HTTPException(400, "You must be a seller first")
+
+    object_key = await upload_to_b2(file, f"sellers/{seller.id}/{image_type}")
+    presigned = generate_presigned_url(object_key)
+    if presigned:
+        return {"image_url": presigned, "object_key": object_key}
+    return {"object_key": object_key}
+
+
 # ── Orders (COD) ─────────────────────────────────────────────────────
 
 @router.post("/orders")

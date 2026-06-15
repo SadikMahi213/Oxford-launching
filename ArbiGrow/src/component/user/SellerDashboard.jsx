@@ -6,7 +6,7 @@ import {
   getMyProducts, createProduct, deleteProduct, updateProduct,
   getSellerOrders, getEcommerceWallet, transferToEcommerce,
   sellerSubmitForReview, getSellerProfileCompletion,
-  uploadProductImage, getMyStores,
+  uploadProductImage, uploadSellerImage, getMyStores,
 } from "../../api/ecommerce.api.js";
 import useUserStore from "../../store/userStore.js";
 
@@ -35,6 +35,7 @@ const SellerDashboard = () => {
   const [productImageUrlInput, setProductImageUrlInput] = useState("");
   const [productUploading, setProductUploading] = useState(false);
   const [productImageDragIdx, setProductImageDragIdx] = useState(null);
+  const [uploadingField, setUploadingField] = useState(null);
   const [transferAmount, setTransferAmount] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -187,6 +188,22 @@ const SellerDashboard = () => {
     const [moved] = urls.splice(from, 1);
     urls.splice(to, 0, moved);
     setNewProduct({ ...newProduct, image_urls: urls });
+  };
+
+  const handleUploadSellerImage = async (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingField(field);
+    try {
+      const imageType = field === "store_logo_key" ? "logo" : field === "store_banner_key" ? "banner" : field === "nid_front_image_key" ? "nid_front" : "nid_back";
+      const res = await uploadSellerImage(file, imageType);
+      const url = res.data?.image_url || res.data?.data?.image_url || res.data?.data?.url;
+      if (url) updateProfileField(field, url);
+    } catch (err) {
+      setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setUploadingField(null);
+    }
   };
 
   const handleUploadProductImage = async (e) => {
@@ -445,18 +462,30 @@ const SellerDashboard = () => {
                   <textarea value={profile.description} onChange={(e) => updateProfileField("description", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={3} placeholder="Describe your store..." />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="text-xs text-gray-400">WhatsApp Number</label>
                     <input value={profile.whatsapp_number} onChange={(e) => updateProfileField("whatsapp_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="+1234567890" />
                     <p className="text-[10px] text-gray-500 mt-0.5">Customers can message you on this number</p>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Logo URL</label>
-                    <input value={profile.store_logo_key} onChange={(e) => updateProfileField("store_logo_key", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
+                    <label className="text-xs text-gray-400">Store Logo</label>
+                    <div className="flex gap-2 mt-1">
+                      <input value={profile.store_logo_key} onChange={(e) => updateProfileField("store_logo_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "store_logo_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
+                        {uploadingField === "store_logo_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "store_logo_key")} hidden />
+                      </label>
+                    </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Banner URL</label>
-                    <input value={profile.store_banner_key} onChange={(e) => updateProfileField("store_banner_key", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
+                    <label className="text-xs text-gray-400">Store Banner</label>
+                    <div className="flex gap-2 mt-1">
+                      <input value={profile.store_banner_key} onChange={(e) => updateProfileField("store_banner_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "store_banner_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
+                        {uploadingField === "store_banner_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "store_banner_key")} hidden />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -470,15 +499,26 @@ const SellerDashboard = () => {
                 <div>
                   <label className="text-xs text-gray-400">NID / Passport Number *</label>
                   <input value={profile.nid_number} onChange={(e) => updateProfileField("nid_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="NID number" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                </div>                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-gray-400">NID Front Image URL *</label>
-                    <input value={profile.nid_front_image_key} onChange={(e) => updateProfileField("nid_front_image_key", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
+                    <label className="text-xs text-gray-400">NID Front Image *</label>
+                    <div className="flex gap-2 mt-1">
+                      <input value={profile.nid_front_image_key} onChange={(e) => updateProfileField("nid_front_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "nid_front_image_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
+                        {uploadingField === "nid_front_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "nid_front_image_key")} hidden />
+                      </label>
+                    </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">NID Back Image URL *</label>
-                    <input value={profile.nid_back_image_key} onChange={(e) => updateProfileField("nid_back_image_key", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
+                    <label className="text-xs text-gray-400">NID Back Image *</label>
+                    <div className="flex gap-2 mt-1">
+                      <input value={profile.nid_back_image_key} onChange={(e) => updateProfileField("nid_back_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "nid_back_image_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
+                        {uploadingField === "nid_back_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "nid_back_image_key")} hidden />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
