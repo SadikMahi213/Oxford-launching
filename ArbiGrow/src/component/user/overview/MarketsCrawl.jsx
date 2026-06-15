@@ -4,7 +4,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
-import { PAIRS, COIN_ICONS } from "../../constants/coinData";
+import { PAIRS, COIN_ICONS } from "../../../constants/coinData";
 
 const REST_URL = `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(
   JSON.stringify(PAIRS.map((p) => p.pair)),
