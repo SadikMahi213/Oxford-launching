@@ -3,20 +3,17 @@ import { useEffect, useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  Bitcoin,
-  DollarSign,
-  BarChart3,
 } from "lucide-react";
 
 const defaultPrices = [
-  { pair: "BTC/USDT", price: 67482.31, change: 2.34, color: "text-orange-400" },
-  { pair: "ETH/USDT", price: 3451.67, change: -1.23, color: "text-blue-400" },
-  { pair: "SOL/USDT", price: 142.89, change: 5.67, color: "text-purple-400" },
-  { pair: "BNB/USDT", price: 598.12, change: 0.89, color: "text-yellow-400" },
-  { pair: "XRP/USDT", price: 0.6234, change: -0.45, color: "text-cyan-400" },
-  { pair: "ADA/USDT", price: 0.4567, change: 3.21, color: "text-blue-300" },
-  { pair: "DOT/USDT", price: 7.89, change: -2.15, color: "text-pink-400" },
-  { pair: "AVAX/USDT", price: 28.45, change: 4.56, color: "text-red-400" },
+  { pair: "BTC/USDT", price: 67482.31, change: 2.34, badge: "B", bg: "bg-orange-500" },
+  { pair: "ETH/USDT", price: 3451.67, change: -1.23, badge: "E", bg: "bg-blue-500" },
+  { pair: "SOL/USDT", price: 142.89, change: 5.67, badge: "S", bg: "bg-purple-500" },
+  { pair: "BNB/USDT", price: 598.12, change: 0.89, badge: "B", bg: "bg-yellow-500" },
+  { pair: "XRP/USDT", price: 0.6234, change: -0.45, badge: "X", bg: "bg-cyan-500" },
+  { pair: "ADA/USDT", price: 0.4567, change: 3.21, badge: "A", bg: "bg-blue-400" },
+  { pair: "DOT/USDT", price: 7.89, change: -2.15, badge: "D", bg: "bg-pink-500" },
+  { pair: "AVAX/USDT", price: 28.45, change: 4.56, badge: "A", bg: "bg-red-500" },
 ];
 
 export function MarketsCrawl() {
@@ -56,13 +53,13 @@ export function MarketsCrawl() {
               key={idx}
               className="flex items-center gap-3 whitespace-nowrap"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600/20 to-cyan-600/20 flex items-center justify-center flex-shrink-0">
-                <BarChart3 className={`w-4 h-4 ${item.color}`} />
+              <div className={`w-8 h-8 rounded-lg ${item.bg} flex items-center justify-center flex-shrink-0`}>
+                <span className="text-xs font-bold text-white">{item.badge}</span>
               </div>
               <div>
                 <div className="text-xs text-gray-400">{item.pair}</div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-sm font-bold ${item.color}`}>
+                  <span className="text-sm font-bold text-white">
                     ${item.price.toLocaleString()}
                   </span>
                   <span
