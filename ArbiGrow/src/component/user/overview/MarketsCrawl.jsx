@@ -69,14 +69,14 @@ export function MarketsCrawl() {
         const data = await res.json();
         if (!mounted || !Array.isArray(data)) return;
         const mapped = data.map((t) => {
-          const s = t.s ?? "";
+          const s = t.s ?? t.symbol ?? "";
           const meta = PAIRS.find((p) => p.pair === s) ?? {};
           return {
             symbol: meta.symbol || s.replace("USDT", ""),
             name: meta.name || s,
             image: getCoinIcon(meta.symbol),
-            price: parseFloat(t.c ?? null),
-            change: parseFloat(t.P ?? null),
+            price: parseFloat(t.c ?? t.lastPrice ?? null),
+            change: parseFloat(t.P ?? t.priceChangePercent ?? null),
           };
         });
         if (mapped.length > 0) setTickers(mapped);
