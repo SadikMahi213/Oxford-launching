@@ -22,7 +22,7 @@ from app.services.investment_service import start_auto_roi_scheduler, stop_auto_
 async def lifespan(app: FastAPI):
     # Startup validation: verify database is reachable
     logger = logging.getLogger(__name__)
-    logger.info("Starting ArbiGrow Backend...")
+    logger.info("Starting Oxford Financial Ads Backend...")
     logger.info(f"Environment: {settings.APP_ENV}")
     try:
         await check_db_connection()
@@ -35,11 +35,11 @@ async def lifespan(app: FastAPI):
     await start_auto_roi_scheduler()
     yield
     await stop_auto_roi_scheduler()
-    logger.info("ArbiGrow Backend shutting down.")
+    logger.info("Oxford Financial Ads Backend shutting down.")
 
 
 app = FastAPI(
-    title="ArbiGrow Backend",
+    title="Oxford Financial Ads Backend",
     version="1.0.0",
     lifespan=lifespan,
 )

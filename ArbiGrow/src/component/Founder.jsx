@@ -117,7 +117,7 @@ export default function Founders() {
         >
           <p className="text-gray-400 max-w-3xl mx-auto">
             Our founding team brings decades of combined experience in blockchain technology, artificial intelligence, 
-            and financial markets. Together, they've built ArbiGrow to revolutionize decentralized trading.
+            and financial markets. Together, they've built Oxford Financial Ads to revolutionize decentralized trading.
           </p>
         </motion.div>
       </div>

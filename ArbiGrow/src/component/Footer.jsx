@@ -33,7 +33,7 @@ export default function Footer() {
             {/* Brand Column */}
             <div className="md:col-span-2">
               <div className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                ArbiGrow
+                Oxford Financial Ads
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
                 Decentralized AI trading infrastructure built on Arbitrum.
@@ -83,7 +83,7 @@ export default function Footer() {
 
                 {/* Mail */}
                 <a
-                  href="mailto:arbigrow.official@gmail.com"
+                  href="mailto:support.oxfordfinancialads@gmail.com"
                   target="_blank"
                   className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600 hover:border-blue-600 transition-all duration-300"
                 >
@@ -133,19 +133,19 @@ export default function Footer() {
                 <li className="text-gray-400">
                   <span className="block text-sm mb-1">Official Email</span>
                   <a
-                    href="mailto:arbigrow.official@gmail.com"
+                    href="mailto:support.oxfordfinancialads@gmail.com"
                     className="text-cyan-400 hover:text-cyan-300"
                   >
-                    arbigrow.official@gmail.com
+                    support.oxfordfinancialads@gmail.com
                   </a>
                 </li>
                 <li className="text-gray-400">
                   <span className="block text-sm mb-1">Support</span>
                   <a
-                    href="mailto:arbigrow.info@gmail.com"
+                    href="mailto:support.oxfordfinancialads@gmail.com"
                     className="text-cyan-400 hover:text-cyan-300"
                   >
-                    arbigrow.info@gmail.com
+                    support.oxfordfinancialads@gmail.com
                   </a>
                 </li>
               </ul>
@@ -163,7 +163,7 @@ export default function Footer() {
                 <p className="text-sm text-gray-400 leading-relaxed">
                   Trading cryptocurrencies and digital assets carries
                   significant risk. Past performance is not indicative of future
-                  results. ArbiGrow does not provide financial advice. All users
+                  results. Oxford Financial Ads does not provide financial advice. All users
                   trade at their own risk and should only invest capital they
                   can afford to lose. This platform is not available in
                   restricted jurisdictions. Please consult with a qualified
@@ -176,7 +176,7 @@ export default function Footer() {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-white/10 flex flex-col items-center gap-4 text-center">
             <div className="text-gray-400 text-sm">
-              © 2026 ArbiGrow. All rights reserved. C-Corporation registered in
+              © 2026 Oxford Financial Ads. All rights reserved. C-Corporation registered in
               Delaware, USA.
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-400">

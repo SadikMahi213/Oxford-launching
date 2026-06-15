@@ -1,4 +1,4 @@
-# 🚀 ArbiGrow — AI-Powered Arbitrage Trading Platform
+# 🚀 Oxford Financial Ads — AI-Powered Arbitrage Trading Platform
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react)](https://reactjs.org)
@@ -49,7 +49,7 @@ chmod +x start-dev.sh
 
 | Role  | Email                 | Password   |
 |-------|-----------------------|------------|
-| Admin | admin@arbigrow.com    | Admin@123  |
+| Admin | admin@oxfordfinancialads.com    | Admin@123  |
 | User  | john@example.com      | Test@123   |
 | User  | sarah@example.com     | Test@123   |
 | User  | michael@example.com   | Test@123   |
@@ -333,7 +333,7 @@ Users are linked in a simple referral chain:
 | Variable           | Description           | Default                   |
 |--------------------|-----------------------|---------------------------|
 | `VITE_BACKEND_URL` | Backend API base URL  | `http://localhost:8000`    |
-| `VITE_APP_NAME`    | Application name      | `ArbiGrow`                 |
+| `VITE_APP_NAME`    | Application name      | `Oxford Financial Ads`     |
 
 ---
 
@@ -457,7 +457,7 @@ If you prefer running without Docker, create a systemd service:
 
 ```ini
 [Unit]
-Description=ArbiGrow Backend
+Description=Oxford Financial Ads Backend
 After=network.target postgresql.service
 
 [Service]
@@ -559,4 +559,4 @@ sudo chown -R 999:999 /var/lib/docker/volumes/arbigrow_postgres_data/
 
 ## 📄 License
 
-Copyright © 2024, ArbiGrow. All rights reserved.
+Copyright © 2024, Oxford Financial Ads. All rights reserved.

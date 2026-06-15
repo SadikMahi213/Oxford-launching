@@ -169,14 +169,14 @@ export default function AdminLayout({
               <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-blue-500/50">
                 <img
                   src={logo}
-                  alt="ArbiGrow Logo"
+                  alt="Oxford Financial Ads Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
 
               {!sidebarCollapsed && (
                 <div>
-                  <div className="font-bold text-white">ArbiGrow</div>
+                  <div className="font-bold text-white">Oxford Financial Ads</div>
                   <div className="text-[10px] text-cyan-400/80 uppercase tracking-wider">
                     Admin Panel
                   </div>

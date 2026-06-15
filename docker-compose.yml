@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────
-# ArbiGrow — Docker Compose
+# Oxford Financial Ads — Docker Compose
 # ─────────────────────────────────────────────────────
 # Start all services:
 #   docker compose up -d
@@ -95,10 +95,10 @@ services:
       # Email (dummy values for migration/seed)
       MAIL_USERNAME: ""
       MAIL_PASSWORD: ""
-      MAIL_FROM: noreply@arbigrow.com
+      MAIL_FROM: noreply@oxfordfinancialads.com
       MAIL_PORT: 587
       MAIL_SERVER: smtp.gmail.com
-      MAIL_FROM_NAME: ArbiGrow
+      MAIL_FROM_NAME: Oxford Financial Ads
       MAIL_STARTTLS: "true"
       MAIL_SSL_TLS: "false"
       # B2 (dummy values for migration/seed)

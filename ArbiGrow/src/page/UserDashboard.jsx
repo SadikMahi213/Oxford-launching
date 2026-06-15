@@ -257,7 +257,7 @@ export function UserDashboard() {
       ? new Date(createdAt).getTime().toString(36).toUpperCase().slice(-6)
       : _hash36(createdAt, 6);
     const idPart = _hash36(`${prefix}-${nativeId}`, 5);
-    const randomPart = _hash36(`${nativeId}|${createdAt}|${extra}|ARBIGROW`, 6);
+    const randomPart = _hash36(`${nativeId}|${createdAt}|${extra}|OXFORDADS`, 6);
     return `TXN-${prefix}-${timePart}${idPart}${randomPart}`;
   };
   const _mapStatus = (s) => {
@@ -790,7 +790,7 @@ export function UserDashboard() {
                 <div className="w-10 h-10  rounded-full flex items-center justify-center">
                   <img
                     src={Logo}
-                    alt="Arbigrow Logo"
+                    alt="Oxford Financial Ads Logo"
                     className="w-10 h-10 object-contain"
                   />
                   <motion.div
@@ -806,7 +806,7 @@ export function UserDashboard() {
               </div>
               {!sidebarCollapsed && (
                 <div>
-                  <div className="font-bold text-white">ArbiGrow</div>
+                  <div className="font-bold text-white">Oxford Financial Ads</div>
                   <div className="text-[10px] text-cyan-400/80 uppercase tracking-wider">
                     User Portal
                   </div>

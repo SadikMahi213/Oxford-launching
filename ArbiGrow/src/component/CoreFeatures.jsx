@@ -12,7 +12,7 @@ export default function CoreFeatures() {
     {
       icon: Lock,
       title: 'Non-Custodial Security',
-      description: 'Your assets remain in your wallet at all times. ArbiGrow never has access to your private keys or funds.',
+      description: 'Your assets remain in your wallet at all times. Oxford Financial Ads never has access to your private keys or funds.',
       color: 'blue'
     },
     {

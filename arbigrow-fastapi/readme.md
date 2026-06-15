@@ -3,7 +3,7 @@
 ## 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/MH-PAVEL/arbigrow-fastapi.git
+git clone https://github.com/MH-PAVEL/oxfordfinancialads.git
 cd arbigrow-fastapi
 ```
 

@@ -24,7 +24,7 @@ export default function ComplianceSection() {
               Non-Custodial Architecture
             </h3>
             <p className="text-sm leading-relaxed text-gray-400">
-              You maintain full control of your assets at all times. ArbiGrow operates as a non-custodial platform where your funds remain in your wallet under your private key control. Smart contracts execute trades according to predefined parameters without third-party custody.
+              You maintain full control of your assets at all times. Oxford Financial Ads operates as a non-custodial platform where your funds remain in your wallet under your private key control. Smart contracts execute trades according to predefined parameters without third-party custody.
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export default function ComplianceSection() {
         {/* Legal Disclaimer */}
         <div className="mt-8 rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-6">
           <p className="text-xs leading-relaxed text-gray-400">
-            <strong className="text-yellow-400">Legal Notice:</strong> ArbiGrow provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating.
+            <strong className="text-yellow-400">Legal Notice:</strong> Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating.
           </p>
         </div>
       </div>

@@ -201,15 +201,15 @@ export default function VerificationPage() {
           <div className="relative w-12 h-12 rounded-xl overflow-hidden group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/50">
             <img
               src={logo}
-              alt="ArbiGrow Logo"
-              className="w-full h-full object-contain"
-            />
-          </div>
-        </div>
-        <div>
-          <div className="text-xl font-bold">
-            <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-              ArbiGrow
+               alt="Oxford Financial Ads Logo"
+               className="w-full h-full object-contain"
+             />
+           </div>
+         </div>
+         <div>
+           <div className="text-xl font-bold">
+             <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+               Oxford Financial Ads
             </span>
           </div>
           <div className="text-[8px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-0.5">

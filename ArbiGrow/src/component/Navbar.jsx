@@ -127,7 +127,7 @@ export default function Navbar() {
                     onClick={() => navigate("/")}
                   >
                     <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-                      ArbiGrow
+                      Oxford Financial Ads
                     </span>
                   </div>
                   <div className="text-[9px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-1">
@@ -265,13 +265,13 @@ export default function Navbar() {
                     <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-blue-500/50">
                       <img
                         src={logo}
-                        alt="ArbiGrow Logo"
+                        alt="Oxford Financial Ads Logo"
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div>
                       <div className="text-lg font-bold text-white">
-                        ArbiGrow
+                        Oxford Financial Ads
                       </div>
                       <div className="text-[8px] text-cyan-400/80 uppercase tracking-wider">
                         AI Trading
@@ -455,7 +455,7 @@ export default function Navbar() {
 
   {/* Mail */}
   <a
-    href="mailto:arbigrow.official@gmail.com"
+    href="mailto:support.oxfordfinancialads@gmail.com"
     className="w-10 h-10 rounded-full bg-blue-600 
                flex items-center justify-center 
                text-white
@@ -470,7 +470,7 @@ export default function Navbar() {
 
   {/* Copyright */}
   <div className="text-[11px] text-gray-100 mb-4">
-    © {new Date().getFullYear()} ArbiGrow.com. All rights reserved.
+    © {new Date().getFullYear()} Oxford Financial Ads. All rights reserved.
   </div>
 
   {/* Footer Links */}

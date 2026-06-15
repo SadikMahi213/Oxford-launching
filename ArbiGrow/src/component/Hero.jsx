@@ -106,7 +106,7 @@ export const Hero = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
         >
-          ArbiGrow provides smart, technology driven trading solutions designed
+          Oxford Financial Ads provides smart, technology driven trading solutions designed
           to simplify digital earning.
         </motion.p>
 

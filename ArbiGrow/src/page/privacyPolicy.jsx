@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
       title: "1. Types of Information Collected",
       icon:Database,
       content: [
-        "Since ArbiGrow is a decentralized platform, we do not collect your personal files like traditional banks.",
+        "Since Oxford Financial Ads is a decentralized platform, we do not collect your personal files like traditional banks.",
         "Wallet Address: Your public wallet address used to execute transactions.",
         "Technical Data: IP address, device type, and browser information to ensure security.",
         "Communication Data: Any emails or messages you provide when contacting our support team.",
@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
       icon: Lock,
       content: [
         "End-to-End Encryption: All communication between our app and servers is secured with advanced encryption.",
-        "No Private Key Access: ArbiGrow never asks for or stores your wallet private key or seed phrase. Full control of your funds remains with you.",
+        "No Private Key Access: Oxford Financial Ads never asks for or stores your wallet private key or seed phrase. Full control of your funds remains with you.",
         "Blockchain Transparency: All transaction records are transparently stored on Arbitrum Explorer and cannot be altered.",
       ],
     },
@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
       title: "4. Third-Party Disclosure",
       icon: Network,
       content: [
-        "ArbiGrow does not sell or rent your personal information or trading data to any third party.",
+        "Oxford Financial Ads does not sell or rent your personal information or trading data to any third party.",
         "However, technical data may be processed when required by law or for the operation of the blockchain network (such as Arbitrum).",
       ],
     },
@@ -60,7 +60,7 @@ export default function PrivacyPolicy() {
       content: [
         "Verify information related to your account.",
         "Remove your account from our platform at any time.",
-        "Security Tips: ArbiGrow admin will never ask for your password or recovery phrase. Avoid sharing such information with anyone.",
+        "Security Tips: Oxford Financial Ads admin will never ask for your password or recovery phrase. Avoid sharing such information with anyone.",
       ],
     },
   ];
@@ -96,7 +96,7 @@ export default function PrivacyPolicy() {
             </h1>
             <p className="text-gray-400 text-lg max-w-3xl mx-auto mb-4">
               Please read these privacy and policies carefully before using the
-              ArbiGrow platform
+              Oxford Financial Ads platform
             </p>
             <p className="text-sm text-gray-500">
               Last Updated: February 13, 2026
@@ -120,7 +120,7 @@ export default function PrivacyPolicy() {
                   Important Notice
                 </h3>
                 <p className="text-gray-300 text-sm leading-relaxed">
-                  By accessing or using ArbiGrow, you acknowledge that you have
+                  By accessing or using Oxford Financial Ads, you acknowledge that you have
                   read, understood, and agree to be bound by these Terms and
                   Conditions. Cryptocurrency trading involves substantial risk
                   and may not be suitable for all investors. You should
@@ -128,7 +128,7 @@ export default function PrivacyPolicy() {
                   tolerance before using our platform.
                 </p>
                 <p className="text-gray-300 text-sm leading-relaxed mt-4">
-                  ArbiGrow is a technology provider, not a financial advisory
+                  Oxford Financial Ads is a technology provider, not a financial advisory
                   firm.Our AI logic is for data analysis only. Please conduct
                   your own market research before investing.
                 </p>
@@ -202,7 +202,7 @@ export default function PrivacyPolicy() {
                 <div className="space-y-2 text-sm">
                   <p className="text-gray-300">
                     <span className="text-cyan-400 font-medium">Email:</span>{" "}
-                    arbigrow.info@gmail.com
+                    support.oxfordfinancialads@gmail.com
                   </p>
                   <p className="text-gray-300">
                     <span className="text-cyan-400 font-medium">Address:</span>{" "}

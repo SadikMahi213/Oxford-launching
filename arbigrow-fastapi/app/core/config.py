@@ -17,10 +17,10 @@ class Settings(BaseSettings):
 
     MAIL_USERNAME: str = ""
     MAIL_PASSWORD: str = ""
-    MAIL_FROM: str = "noreply@arbigrow.com"
+    MAIL_FROM: str = "noreply@oxfordfinancialads.com"
     MAIL_PORT: int = 587
     MAIL_SERVER: str = "smtp.gmail.com"
-    MAIL_FROM_NAME: str = "ArbiGrow"
+    MAIL_FROM_NAME: str = "Oxford Financial Ads"
     MAIL_STARTTLS: bool = True
     MAIL_SSL_TLS: bool = False
 

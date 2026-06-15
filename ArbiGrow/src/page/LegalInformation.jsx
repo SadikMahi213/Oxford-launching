@@ -16,10 +16,10 @@ export default function LegalPage() {
       title: "1. Company Identity",
       icon: Database,
       content: [
-        "Company Name: ArbiGrow Training Company",
+        "Company Name: Oxford Financial Ads",
         "Platform Type: Decentralized AI Trading Infrastructure",
         "Operating Network: Arbitrum One (Layer-2)",
-        "ArbiGrow operates with transparency, technological integrity, and regulatory awareness in all business activities.",
+        "Oxford Financial Ads operates with transparency, technological integrity, and regulatory awareness in all business activities.",
       ],
     },
 
@@ -27,7 +27,7 @@ export default function LegalPage() {
       title: "2. Technology Partnership & Infrastructure",
       icon: Network,
       content: [
-        "ArbiGrow’s operational systems and smart contracts are built using Arbitrum Nitro technology developed by Offchain Labs, Inc.",
+        "Oxford Financial Ads’s operational systems and smart contracts are built using Arbitrum Nitro technology developed by Offchain Labs, Inc.",
         "Technology Provider Reference: Offchain Labs, Inc. – Developers of the Arbitrum ecosystem.",
         "All transaction security and data settlement are protected by the Ethereum Mainnet (Layer-1).",
         "Arbitrum’s Layer-2 scaling protocol ensures high-speed, low-cost, and secure blockchain execution.",
@@ -43,7 +43,7 @@ export default function LegalPage() {
         "Registration Number: 7114194 (Delaware Division of Corporations)",
         "Registration Date: August 27, 2018",
         "Headquarters: Princeton, New Jersey, USA",
-        "Official Websites: offchainlabs.com / arbitrum.io / arbigrow.com",
+        "Official Websites: offchainlabs.com / arbitrum.io / oxfordfinancialads.com",
       ],
     },
 
@@ -91,7 +91,7 @@ export default function LegalPage() {
 
             <p className="text-gray-400 text-lg max-w-3xl mx-auto mb-4">
               Legal identity, technological framework, and regulatory compliance
-              structure of the ArbiGrow platform.
+              structure of the Oxford Financial Ads platform.
             </p>
 
             <p className="text-sm text-gray-500">Last Updated: February 2026</p>
@@ -116,7 +116,7 @@ export default function LegalPage() {
                 </h3>
 
                 <p className="text-gray-300 text-sm leading-relaxed">
-                  ArbiGrow Trading Company is a technology driven platform.
+                  Oxford Financial Ads is a technology driven platform.
                   Cryptocurrency trading involves significant market risks.
                   While we strive to reduce risks through advanced AI analytics
                   and Arbitrum’s high-speed blockchain infrastructure, investors
@@ -125,7 +125,7 @@ export default function LegalPage() {
                 </p>
 
                 <p className="text-gray-300 text-sm leading-relaxed mt-4">
-                  ArbiGrow does not provide financial, investment, or legal
+                  Oxford Financial Ads does not provide financial, investment, or legal
                   advisory services. All investment decisions remain solely the
                   responsibility of the user.
                 </p>

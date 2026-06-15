@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ArbiGrow Database Seeder
+Oxford Financial Ads Database Seeder
 ========================
 Generates realistic dummy data for local development.
 
@@ -73,7 +73,7 @@ NETWORKS = [
 
 USERS_SEED = [
     # (full_name, email, password, is_admin, balance)
-    ("ArbiGrow Admin", "admin@arbigrow.com", "Admin@123", True, Decimal("10000")),
+    ("Oxford Financial Ads Admin", "admin@oxfordfinancialads.com", "Admin@123", True, Decimal("10000")),
     ("John Anderson", "john@example.com", "Test@123", False, Decimal("5000")),
     ("Sarah Mitchell", "sarah@example.com", "Test@123", False, Decimal("3500")),
     ("Michael Chen", "michael@example.com", "Test@123", False, Decimal("8000")),
@@ -398,7 +398,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
         logger.info("Creating announcements...")
         announcements_data = [
             {
-                "title": "Welcome to ArbiGrow!",
+                "title": "Welcome to Oxford Financial Ads!",
                 "message": "We are excited to announce the launch of our AI-powered arbitrage trading platform. Start earning today!",
                 "is_active": True,
             },
@@ -436,7 +436,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
     logger.info("=" * 55)
     logger.info("")
     logger.info("  Admin Login:")
-    logger.info("    Email:    admin@arbigrow.com")
+    logger.info("    Email:    admin@oxfordfinancialads.com")
     logger.info("    Password: Admin@123")
     logger.info("")
     logger.info("  Test User Logins (all with same password):")
@@ -457,7 +457,7 @@ def uuid4_hex(rng: Random) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Seed the ArbiGrow database with test data."
+        description="Seed the Oxford Financial Ads database with test data."
     )
     parser.add_argument(
         "--force",

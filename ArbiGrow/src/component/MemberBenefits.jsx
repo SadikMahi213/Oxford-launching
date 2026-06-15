@@ -20,7 +20,7 @@ export function MemberBenefits() {
       icon: Users,
       title: "Referral Commission",
       description:
-        "Earn 10% commission from your every friend's daily profits you refer to ArbiGrow",
+        "Earn 10% commission from your every friend's daily profits you refer to Oxford Financial Ads",
       highlight: "10% Commission",
       color: "from-cyan-500 to-teal-500",
     },
@@ -64,7 +64,7 @@ export function MemberBenefits() {
             </span>
           </h2>
           <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-            Join ArbiGrow and unlock exclusive rewards and benefits designed for
+            Join Oxford Financial Ads and unlock exclusive rewards and benefits designed for
             our valued members
           </p>
         </motion.div>
@@ -141,7 +141,7 @@ export function MemberBenefits() {
                   className=""
                   variant="gradient"
                 >
-                  Join ArbiGrow Today
+                  Join Oxford Financial Ads Today
                 </Button>
               </div>
             </>

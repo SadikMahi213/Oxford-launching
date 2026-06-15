@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────
-# ArbiGrow — Development Startup (Linux / macOS)
+# Oxford Financial Ads — Development Startup (Linux / macOS)
 # ─────────────────────────────────────────────────────
 # Usage:  chmod +x start-dev.sh && ./start-dev.sh
 # ─────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║        ArbiGrow — Development Environment        ║${NC}"
+echo -e "${CYAN}║        Oxford Financial Ads — Development Environment        ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -128,13 +128,13 @@ FRONTEND_PID=$!
 
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║        ArbiGrow is running!                      ║${NC}"
+echo -e "${GREEN}║        Oxford Financial Ads is running!                  ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║  Frontend:  http://localhost:5173                ║${NC}"
 echo -e "${GREEN}║  Backend:   http://localhost:8000                ║${NC}"
 echo -e "${GREEN}║  API Docs:  http://localhost:8000/docs           ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════════╣${NC}"
-echo -e "${GREEN}║  Admin Login: admin@arbigrow.com / Admin@123    ║${NC}"
+echo -e "${GREEN}║  Admin Login: admin@oxfordfinancialads.com / Admin@123 ║${NC}"
 echo -e "${GREEN}║  Test User:  john@example.com / Test@123        ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NC}"
 echo ""

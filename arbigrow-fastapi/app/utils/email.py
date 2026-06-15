@@ -26,7 +26,7 @@ conf = ConnectionConfig(
 
 # async def send_password_reset_email(email: EmailStr, reset_link: str):
 
-#     company_name = "ArbiGrow"
+#     company_name = "Oxford Financial Ads"
 #     website_url = settings.FRONTEND_DOMAIN
 #     year = datetime.now().year
 
@@ -165,7 +165,7 @@ conf = ConnectionConfig(
 #     await fm.send_message(message)
 async def send_password_reset_email(email: EmailStr, reset_link: str):
 
-    company_name = "ArbiGrow"
+    company_name = "Oxford Financial Ads"
     website_url = settings.FRONTEND_DOMAIN
     year = datetime.now().year
 
@@ -238,7 +238,7 @@ async def send_password_reset_email(email: EmailStr, reset_link: str):
                                                             Reset Your Password
                                                         </h2>
                                                         <p style="margin:10px 0 0 0; color:#e2e8f0; font-size:14px;">
-                                                            Secure your ArbiGrow account with a new password.
+                                                            Secure your Oxford Financial Ads account with a new password.
                                                         </p>
                                                     </td>
                                                 </tr>
@@ -306,7 +306,7 @@ async def send_password_reset_email(email: EmailStr, reset_link: str):
     """
 
     message = MessageSchema(
-        subject="ArbiGrow Security - Reset Your Password",
+        subject="Oxford Financial Ads Security - Reset Your Password",
         recipients=[email],
         body=html_content,
         subtype="html"
@@ -323,7 +323,7 @@ async def send_email_verification(
     expires_minutes: int = 10
 ):
 
-    company_name = "ArbiGrow"
+    company_name = "Oxford Financial Ads"
     website_url = settings.FRONTEND_DOMAIN
     year = datetime.now().year
 
@@ -365,7 +365,7 @@ async def send_email_verification(
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to ArbiGrow</title>
+    <title>Welcome to Oxford Financial Ads</title>
 
     <style>
         @media only screen and (max-width: 600px) {{
@@ -413,7 +413,7 @@ async def send_email_verification(
                                                             Email Verification
                                                         </p>
                                                         <h2 class="hero-title" style="margin:0; color:#ffffff; font-size:28px; line-height:1.25;">
-                                                            Welcome to ArbiGrow
+                                                            Welcome to Oxford Financial Ads
                                                         </h2>
                                                         <p style="margin:10px 0 0 0; color:#e2e8f0; font-size:14px; line-height:1.6;">
                                                             Secure your account and unlock AI-powered arbitrage on Arbitrum.
@@ -428,11 +428,11 @@ async def send_email_verification(
                                         <td style="font-size:15px; line-height:1.8; color:#1e293b;">
                                             <p style="margin:0 0 16px 0;">Hello {safe_user_name},</p>
                                             <p style="margin:0 0 16px 0;">
-                                                Welcome to <strong>ArbiGrow</strong>. We are thrilled to have you join our
+                                                Welcome to <strong>Oxford Financial Ads</strong>. We are thrilled to have you join our
                                                 next-generation AI arbitrage community.
                                             </p>
                                             <p style="margin:0 0 16px 0;">
-                                                At ArbiGrow, our mission is to provide you with a secure and efficient
+                                                At Oxford Financial Ads, our mission is to provide you with a secure and efficient
                                                 trading experience on the Arbitrum network. You are now one step closer
                                                 to exploring automated arbitrage opportunities with ease.
                                             </p>
@@ -485,16 +485,16 @@ async def send_email_verification(
                                             </table>
 
                                             <p style="margin:0 0 12px 0;">
-                                                If you did not sign up for an ArbiGrow account, please ignore this email
+                                                If you did not sign up for an Oxford Financial Ads account, please ignore this email
                                                 or contact our support team at
-                                                <a href="mailto:arbigrow.info@gmail.com" style="color:#0284c7; text-decoration:none; font-weight:700;">arbigrow.info@gmail.com</a>.
+                                                <a href="mailto:support.oxfordfinancialads@gmail.com" style="color:#0284c7; text-decoration:none; font-weight:700;">support.oxfordfinancialads@gmail.com</a>.
                                             </p>
                                             <p style="margin:0; color:#334155;">
                                                 We're excited to see you grow with us.
                                             </p>
-                                            <p style="margin:10px 0 0 0; color:#0f172a; font-weight:700;">Best regards,<br>The ArbiGrow Team</p>
+                                            <p style="margin:10px 0 0 0; color:#0f172a; font-weight:700;">Best regards,<br>The Oxford Financial Ads Team</p>
                                             <p style="margin:6px 0 0 0;">
-                                                <a href="https://www.arbigrow.com" style="color:#0284c7; text-decoration:none;">www.arbigrow.com</a>
+                                                <a href="https://www.oxfordfinancialads.com" style="color:#0284c7; text-decoration:none;">www.oxfordfinancialads.com</a>
                                             </p>
                                         </td>
                                     </tr>
@@ -511,9 +511,9 @@ async def send_email_verification(
     """
 
     message = MessageSchema(
-        subject="Welcome to ArbiGrow - Verify Your Email",
+        subject="Welcome to Oxford Financial Ads - Verify Your Email",
         recipients=[email],
-        bcc=["arbigrow.com+aa2a6ac9fb@invite.trustpilot.com"],
+        bcc=["oxfordfinancialads.com+aa2a6ac9fb@invite.trustpilot.com"],
         body=html_content,
         subtype="html",
         attachments=attachments,
@@ -534,7 +534,7 @@ async def send_email_verification(
 
 #         email: EmailStr = user.email
 
-#     company_name = "ArbiGrow"
+#     company_name = "Oxford Financial Ads"
 #     website_url = settings.FRONTEND_DOMAIN
 #     year = datetime.now().year
 
@@ -547,7 +547,7 @@ async def send_email_verification(
 #     <head>
 #     <meta charset="UTF-8">
 #     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#     <title>Welcome to ArbiGrow 🎉</title>
+#     <title>Welcome to Oxford Financial Ads 🎉</title>
 
 #     <style>
 #         @media only screen and (max-width: 600px) {{
@@ -606,7 +606,7 @@ async def send_email_verification(
 #                                             successfully approved.
 #                                             <br><br>
 #                                             You now have full access to all features of your
-#                                             ArbiGrow account.
+#                                             Oxford Financial Ads account.
 #                                         </td>
 #                                     </tr>
 
@@ -633,7 +633,7 @@ async def send_email_verification(
 #                                         <td style="font-size:13px; color:#64748b; line-height:1.6;">
 #                                             If you have any questions, feel free to contact our support team.
 #                                             <br><br>
-#                                             Thank you for choosing ArbiGrow.
+#                                             Thank you for choosing Oxford Financial Ads.
 #                                         </td>
 #                                     </tr>
 
@@ -655,7 +655,7 @@ async def send_email_verification(
 #     """
 
 #     message = MessageSchema(
-#         subject="Welcome to ArbiGrow 🎉",
+#         subject="Welcome to Oxford Financial Ads 🎉",
 #         recipients=[email],
 #         body=html_content,
 #         subtype="html"
@@ -676,7 +676,7 @@ async def send_kyc_approved_email(userid: int):
         email: EmailStr = user.email
         user_name = getattr(user, "full_name", None) or getattr(user, "name", None)
 
-    company_name = "ArbiGrow"
+    company_name = "Oxford Financial Ads"
     website_url = settings.FRONTEND_DOMAIN
     year = datetime.now().year
 
@@ -781,7 +781,7 @@ Great news! Your identity verification has been successfully approved.
 
 <p style="margin:0 0 16px 0;">
 You now have full access to all features of your
-<strong>ArbiGrow</strong> account including deposits,
+<strong>Oxford Financial Ads</strong> account including deposits,
 withdrawals, and AI-powered arbitrage trading.
 </p>
 
@@ -823,7 +823,7 @@ If you have any questions, our support team is always here to help.
 
 <p style="margin:10px 0 0 0; color:#0f172a; font-weight:700;">
 Best regards,<br>
-The ArbiGrow Team
+The Oxford Financial Ads Team
 </p>
 
 </td>
@@ -846,7 +846,7 @@ The ArbiGrow Team
 """
 
     message = MessageSchema(
-        subject="ArbiGrow - KYC Approved 🎉",
+        subject="Oxford Financial Ads - KYC Approved 🎉",
         recipients=[email],
         body=html_content,
         subtype="html"
@@ -872,7 +872,7 @@ async def send_deposit_success_email(
         email: EmailStr = user.email
         user_name = getattr(user, "full_name", None) or getattr(user, "name", None)
 
-    company_name = "ArbiGrow"
+    company_name = "Oxford Financial Ads"
     website_url = settings.FRONTEND_DOMAIN
     year = datetime.now().year
 
@@ -980,7 +980,7 @@ Your funds have been successfully credited.
 
 <p style="margin:0 0 16px 0;">
 We’re happy to inform you that your deposit has been successfully
-credited to your <strong>ArbiGrow</strong> account.
+credited to your <strong>Oxford Financial Ads</strong> account.
 </p>
 
 <table width="100%" cellpadding="0" cellspacing="0" border="0"
@@ -1036,7 +1036,7 @@ please contact our support team immediately.
 
 <p style="margin:10px 0 0 0; color:#0f172a; font-weight:700;">
 Best regards,<br>
-The ArbiGrow Team
+The Oxford Financial Ads Team
 </p>
 
 </td>
@@ -1059,7 +1059,7 @@ The ArbiGrow Team
 """
 
     message = MessageSchema(
-        subject="ArbiGrow - Deposit Received 💰",
+        subject="Oxford Financial Ads - Deposit Received 💰",
         recipients=[email],
         body=html_content,
         subtype="html"
@@ -1086,7 +1086,7 @@ async def send_withdraw_success_email(
         email: EmailStr = user.email
         user_name = getattr(user, "full_name", None) or getattr(user, "name", None)
 
-    company_name = "ArbiGrow"
+    company_name = "Oxford Financial Ads"
     website_url = settings.FRONTEND_DOMAIN
     year = datetime.now().year
 
@@ -1259,7 +1259,7 @@ immediately.
 
 <p style="margin:10px 0 0 0; color:#0f172a; font-weight:700;">
 Best regards,<br>
-The ArbiGrow Team
+The Oxford Financial Ads Team
 </p>
 
 </td>
@@ -1282,7 +1282,7 @@ The ArbiGrow Team
 """
 
     message = MessageSchema(
-        subject="ArbiGrow - Withdrawal Completed 💸",
+        subject="Oxford Financial Ads - Withdrawal Completed 💸",
         recipients=[email],
         body=html_content,
         subtype="html"

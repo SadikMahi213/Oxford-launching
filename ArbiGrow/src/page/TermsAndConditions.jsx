@@ -27,8 +27,8 @@ const sections = [
     title: '3. Decentralized Security and Responsibility',
     icon: Lock,
     content: [
-      'Wallet Security: ArbiGrow is a decentralized platform, and you are fully responsible for your wallet’s private key and password. If lost, the company cannot recover your funds.',
-      'Technical Limitations: Although we use Arbitrum and Offchain Labs’ robust network, ArbiGrow is not liable for blockchain network failures or network congestion.',
+      'Wallet Security: Oxford Financial Ads is a decentralized platform, and you are fully responsible for your wallet’s private key and password. If lost, the company cannot recover your funds.',
+      'Technical Limitations: Although we use Arbitrum and Offchain Labs’ robust network, Oxford Financial Ads is not liable for blockchain network failures or network congestion.',
     ],
   },
 
@@ -45,7 +45,7 @@ const sections = [
     title: '5. Account Termination',
     icon: ShieldOff,
     content: [
-      'If a user engages in scams, hacking attempts, or misuses platform logic, ArbiGrow reserves the right to block the account without prior notice.',
+      'If a user engages in scams, hacking attempts, or misuses platform logic, Oxford Financial Ads reserves the right to block the account without prior notice.',
     ],
   },
 
@@ -53,7 +53,7 @@ const sections = [
     title: '6. Service Amendments',
     icon: FileText,
     content: [
-      'ArbiGrow reserves the right to update its rules, trading fees, or platform logic at any time. Major changes will be communicated to the global community in advance.',
+      'Oxford Financial Ads reserves the right to update its rules, trading fees, or platform logic at any time. Major changes will be communicated to the global community in advance.',
     ],
   },
 ];
@@ -91,7 +91,7 @@ const sections = [
             </span>
           </h1>
           <p className="text-gray-400 text-lg max-w-3xl mx-auto mb-4">
-            Please read these terms and conditions carefully before using the ArbiGrow platform
+            Please read these terms and conditions carefully before using the Oxford Financial Ads platform
           </p>
           <p className="text-sm text-gray-500">
             Last Updated: February 13, 2026
@@ -113,11 +113,11 @@ const sections = [
             <div>
               <h3 className="text-lg font-semibold text-amber-400 mb-2">Important Notice</h3>
               <p className="text-gray-300 text-sm leading-relaxed">
-                By accessing or using ArbiGrow, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. Cryptocurrency trading involves substantial risk and may not be suitable for all investors. You should carefully consider your investment objectives and risk tolerance before using our platform.
+                By accessing or using Oxford Financial Ads, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions. Cryptocurrency trading involves substantial risk and may not be suitable for all investors. You should carefully consider your investment objectives and risk tolerance before using our platform.
               </p> <br />
               <p className="text-gray-300 text-sm leading-relaxed">
 
-                 ArbiGrow is a technology provider, not a financial advisory firm.Our AI logic is for data analysis only. Please conduct your own market research before investing.
+                 Oxford Financial Ads is a technology provider, not a financial advisory firm.Our AI logic is for data analysis only. Please conduct your own market research before investing.
               </p>
             </div>
           </div>
@@ -185,7 +185,7 @@ const sections = [
               </p>
               <div className="space-y-2 text-sm">
                 <p className="text-gray-300">
-                  <span className="text-cyan-400 font-medium">Email:</span> arbigrow.info@gmail.com  
+                  <span className="text-cyan-400 font-medium">Email:</span> support.oxfordfinancialads@gmail.com  
                 </p>
                 <p className="text-gray-300">
                   <span className="text-cyan-400 font-medium">Address:</span> 1234 Crypto Boulevard, Suite 500, Delaware, USA

@@ -150,7 +150,7 @@ const ProfilePage = () => {
                      <p className="text-xs text-gray-400">Join Date</p>
                    </div>
                  </div>
-                 <p className="text-sm text-gray-400">You joined ArbiGrow on <span className="text-white font-semibold">December 1, 2024</span></p>
+                 <p className="text-sm text-gray-400">You joined Oxford Financial Ads on <span className="text-white font-semibold">December 1, 2024</span></p>
                </motion.div> */}
       </div>
     </div>

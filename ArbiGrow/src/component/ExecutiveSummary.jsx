@@ -25,12 +25,12 @@ export default function ExecutiveSummary() {
             </div>
             
             <p className="text-[20px] leading-relaxed text-gray-300">
-              <span className="text-2xl font-semibold text-white">ArbiGrow</span> represents a paradigm shift in decentralized finance infrastructure, 
+              <span className="text-2xl font-semibold text-white">Oxford Financial Ads</span> represents a paradigm shift in decentralized finance infrastructure, 
               combining <span className="text-cyan-400 font-medium">advanced artificial intelligence</span> with the robust security and efficiency of 
               <span className="text-blue-400 font-medium"> Arbitrum Layer-2 technology</span>. Our platform delivers institutional-grade automated trading 
               solutions through a <span className="text-white font-medium">fully non-custodial architecture</span>, ensuring users maintain complete control 
               over their assets while benefiting from sophisticated AI-driven market strategies. Built on a foundation of decentralized principles, 
-              transparent operations, and rigorous security standards, ArbiGrow provides sustainable automation for the next generation of digital asset management.
+              transparent operations, and rigorous security standards, Oxford Financial Ads provides sustainable automation for the next generation of digital asset management.
             </p>
 
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

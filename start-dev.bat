@@ -1,12 +1,12 @@
 @echo off
 :: ─────────────────────────────────────────────────────
-:: ArbiGrow — Development Startup (Windows)
+:: Oxford Financial Ads — Development Startup (Windows)
 :: ─────────────────────────────────────────────────────
 :: Usage:  start-dev.bat
 :: ─────────────────────────────────────────────────────
 
 setlocal enabledelayedexpansion
-title ArbiGrow Dev
+title Oxford Financial Ads Dev
 
 :: ── Color helpers ───────────────────────────────────
 set "GREEN=[92m"
@@ -16,7 +16,7 @@ set "CYAN=[96m"
 set "RESET=[0m"
 
 echo %CYAN%╔══════════════════════════════════════════════════╗%RESET%
-echo %CYAN%║        ArbiGrow — Development Environment        ║%RESET%
+echo %CYAN%║        Oxford Financial Ads — Development Environment        ║%RESET%
 echo %CYAN%╚══════════════════════════════════════════════════╝%RESET%
 echo.
 
@@ -131,24 +131,24 @@ echo %YELLOW%[5/5] Starting services...%RESET%
 
 :: Start backend in a new window
 echo %YELLOW%  Starting backend on http://localhost:8000...%RESET%
-start "ArbiGrow-Backend" cmd /c "cd /d %~dp0arbigrow-fastapi && venv\Scripts\activate.bat && python run.py"
+start "OxfordFinancialAds-Backend" cmd /c "cd /d %~dp0arbigrow-fastapi && venv\Scripts\activate.bat && python run.py"
 
 :: Wait a moment for backend to start
 timeout /t 3 /nobreak >nul
 
 :: Start frontend in a new window
 echo %YELLOW%  Starting frontend on http://localhost:5173...%RESET%
-start "ArbiGrow-Frontend" cmd /c "cd /d %~dp0ArbiGrow && npm run dev"
+start "OxfordFinancialAds-Frontend" cmd /c "cd /d %~dp0ArbiGrow && npm run dev"
 
 echo.
 echo %GREEN%╔══════════════════════════════════════════════════╗%RESET%
-echo %GREEN%║        ArbiGrow is starting up!                  ║%RESET%
+echo %GREEN%║        Oxford Financial Ads is starting up!             ║%RESET%
 echo %GREEN%╠══════════════════════════════════════════════════╣%RESET%
 echo %GREEN%║  Frontend:  http://localhost:5173                ║%RESET%
 echo %GREEN%║  Backend:   http://localhost:8000                ║%RESET%
 echo %GREEN%║  API Docs:  http://localhost:8000/docs           ║%RESET%
 echo %GREEN%╠══════════════════════════════════════════════════╣%RESET%
-echo %GREEN%║  Admin Login: admin@arbigrow.com / Admin@123    ║%RESET%
+echo %GREEN%║  Admin Login: admin@oxfordfinancialads.com / Admin@123 ║%RESET%
 echo %GREEN%║  Test User:  john@example.com / Test@123        ║%RESET%
 echo %GREEN%╚══════════════════════════════════════════════════╝%RESET%
 echo.

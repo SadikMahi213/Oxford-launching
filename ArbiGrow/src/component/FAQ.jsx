@@ -14,9 +14,9 @@ export default function FAQ() {
 
   const faqs = [
     {
-      question: "What is ArbiGrow?",
+      question: "What is Oxford Financial Ads?",
       answer:
-        "ArbiGrow is an AI-powered arbitrage trading platform that uses the Arbitrum network to generate profits by taking advantage of price differences across multiple exchanges with minimal risk.",
+        "Oxford Financial Ads is an AI-powered arbitrage trading platform that uses the Arbitrum network to generate profits by taking advantage of price differences across multiple exchanges with minimal risk.",
     },
     {
       question: "What is the OFA token and how can I get it?",
@@ -125,7 +125,7 @@ export default function FAQ() {
           <h3 className="text-2xl font-bold mb-3">Still have questions?</h3>
           <p className="text-gray-150 mb-6">
             Our support team is available 24/7 to help you with anything related
-            to ArbiGrow.
+            to Oxford Financial Ads.
           </p>
           <Button
             onClick={() =>

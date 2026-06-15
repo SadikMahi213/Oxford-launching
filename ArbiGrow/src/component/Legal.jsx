@@ -22,7 +22,7 @@ export default function Legal() {
     {
       icon: AlertCircle,
       title: 'Non-Financial Advisory Disclaimer',
-      description: 'ArbiGrow does not provide investment advice, financial planning, or portfolio management services. Users trade at their own discretion.'
+      description: 'Oxford Financial Ads does not provide investment advice, financial planning, or portfolio management services. Users trade at their own discretion.'
     },
     {
       icon: Scale,
@@ -87,7 +87,7 @@ export default function Legal() {
               <h3 className="text-xl font-bold mb-3 text-red-400">Investment Risk Warning</h3>
               <p className="text-gray-300 leading-relaxed mb-4">
                 Trading digital assets involves substantial risk and may result in partial or total loss of capital. Past performance 
-                does not guarantee future results. ArbiGrow's AI algorithms are probabilistic models and cannot predict market outcomes 
+                does not guarantee future results. Oxford Financial Ads' AI algorithms are probabilistic models and cannot predict market outcomes 
                 with certainty. Users should only allocate capital they can afford to lose and should conduct independent research before 
                 engaging with the platform.
               </p>

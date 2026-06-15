@@ -3,7 +3,7 @@ export const phases = [
     phase: "Phase 1",
     title: "Foundation & Community (Q1: Jan - Mar)",
     items: [
-      "Official Launch of ArbiGrow Platform",
+      "Official Launch of Oxford Financial Ads Platform",
       "100 OFA Token Free Airdrop Campaign (Pre-Registration)",
       "Third-Party Smart Contract Security Audit",
       "Major Marketing Campaign (Telegram, YouTube & TikTok)",
@@ -32,7 +32,7 @@ export const phases = [
     phase: "Phase 4",
     title: "Full Automation & Beyond (Q4: Oct - Dec)",
     items: [
-      "ArbiGrow Mobile App (Android & iOS)",
+      "Oxford Financial Ads Mobile App (Android & iOS)",
       "Tier-1 Exchange Listing Application (Binance / KuCoin)",
       "AI Arbitrage Expansion into Real Estate & Stocks",
     ],

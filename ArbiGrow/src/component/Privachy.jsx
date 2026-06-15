@@ -12,7 +12,7 @@ export default function Privacy() {
     {
       icon: Key,
       title: 'No Private Key Access',
-      description: 'ArbiGrow never has access to your private keys. Your wallet remains fully under your control at all times.'
+      description: 'Oxford Financial Ads never has access to your private keys. Your wallet remains fully under your control at all times.'
     },
     {
       icon: Lock,
@@ -81,7 +81,7 @@ export default function Privacy() {
         >
           <h3 className="text-2xl font-bold mb-4 text-center">Decentralized Privacy Architecture</h3>
           <p className="text-gray-300 leading-relaxed text-center max-w-3xl mx-auto">
-            Unlike traditional fintech platforms, ArbiGrow operates on a fully decentralized, non-custodial model. 
+            Unlike traditional fintech platforms, Oxford Financial Ads operates on a fully decentralized, non-custodial model. 
             We do not collect, store, or process personal information. All interactions occur directly between your wallet 
             and blockchain smart contracts. Your trading activity is pseudonymous and recorded only on the public blockchain, 
             ensuring maximum privacy while maintaining complete transparency and auditability.
