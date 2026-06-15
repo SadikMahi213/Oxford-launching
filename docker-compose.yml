@@ -53,10 +53,10 @@ services:
       # Email (optional — set these if you need email features)
       MAIL_USERNAME: ""
       MAIL_PASSWORD: ""
-      MAIL_FROM: noreply@arbigrow.com
+      MAIL_FROM: noreply@oxfordfinancialads.com
       MAIL_PORT: 587
       MAIL_SERVER: smtp.gmail.com
-      MAIL_FROM_NAME: ArbiGrow
+      MAIL_FROM_NAME: Oxford Financial Ads
       MAIL_STARTTLS: "true"
       MAIL_SSL_TLS: "false"
       # File storage (optional — B2 credentials)
