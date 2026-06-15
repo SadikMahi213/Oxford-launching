@@ -6,7 +6,6 @@ import Button from "../Button";
 import useUserStore from "../../store/userStore";
 import {
   buyInvestment,
-  getMyInvestments,
   refreshUserStore,
 } from "../../api/user.api";
 
@@ -23,49 +22,11 @@ export default function PackageModal({
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState("");
   const [purchaseSuccess, setPurchaseSuccess] = useState("");
-  const [eligibilityLoading, setEligibilityLoading] = useState(false);
-  const [minimumAllowedAmount, setMinimumAllowedAmount] = useState(0);
-
   useEffect(() => {
     setPurchaseError("");
     setPurchaseSuccess("");
     setIsPurchasing(false);
   }, [selectedPackage]);
-
-  useEffect(() => {
-    const loadEligibility = async () => {
-      if (!selectedPackage || !isLoggedIn) {
-        setEligibilityLoading(false);
-        setMinimumAllowedAmount(0);
-        return;
-      }
-
-      setEligibilityLoading(true);
-
-      try {
-        const response = await getMyInvestments();
-        const items = Array.isArray(response?.data) ? response.data : [];
-
-        const highestActiveAmount = items.reduce((maxAmount, investment) => {
-          const amount = Number(investment?.invested_amount ?? 0);
-          const isActive = investment?.status === "active";
-          if (!isActive) {
-            return maxAmount;
-          }
-
-          return Math.max(maxAmount, amount);
-        }, 0);
-
-        setMinimumAllowedAmount(highestActiveAmount);
-      } catch {
-        setMinimumAllowedAmount(0);
-      } finally {
-        setEligibilityLoading(false);
-      }
-    };
-
-    loadEligibility();
-  }, [selectedPackage, isLoggedIn]);
 
   if (!selectedPackage) return null;
 
@@ -74,8 +35,6 @@ export default function PackageModal({
   const totalRet = selectedPackage.total_return || selectedPackage.totalReturn || 0;
   const captchaReq = selectedPackage.captcha_required_per_day || selectedPackage.captchaRequiredPerDay || 0;
   const durDays = selectedPackage.duration_days || selectedPackage.durationDays || 0;
-
-  const isLowerPackage = isLoggedIn && amt < minimumAllowedAmount;
 
   const handleClose = () => {
     setPurchaseError("");
@@ -87,13 +46,6 @@ export default function PackageModal({
   const handlePurchase = async () => {
     if (!isLoggedIn) {
       navigate("/login");
-      return;
-    }
-
-    if (isLowerPackage) {
-      setPurchaseError(
-        `You can only buy ${minimumAllowedAmount.toLocaleString()} USDT or higher until your current package completes.`,
-      );
       return;
     }
 
@@ -175,7 +127,8 @@ export default function PackageModal({
                   {selectedPackage.name}
                 </h2>
                 <p className="mt-2 text-gray-400">
-                  Oxford Financial Ads Captcha Typing Package
+                  Oxford Financial Ads{" "}
+                  {selectedPackage.task_type === "ad_view" ? "Ad View" : "Captcha Typing"} Package
                 </p>
               </div>
 
@@ -196,9 +149,9 @@ export default function PackageModal({
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Daily Captcha Requirement</p>
+                    <p className="text-gray-400">{selectedPackage.task_type === "ad_view" ? "Daily Ads" : "Daily Captcha Requirement"}</p>
                     <p className="font-semibold text-green-400">
-                      {captchaReq} Captchas Daily
+                      {captchaReq} {selectedPackage.task_type === "ad_view" ? "Ads" : "Captchas"} Daily
                     </p>
                   </div>
 
@@ -231,13 +184,7 @@ export default function PackageModal({
                 </Button>
               )}
 
-              {isLoggedIn && eligibilityLoading && (
-                <div className="rounded-xl border border-white/10 bg-white/5 py-3 text-center text-sm text-gray-300">
-                  Checking package eligibility...
-                </div>
-              )}
-
-              {isLoggedIn && !eligibilityLoading && !isLowerPackage && (
+              {isLoggedIn && (
                 <Button
                   variant="gradient"
                   onClick={handlePurchase}
@@ -247,14 +194,6 @@ export default function PackageModal({
                     ? "Activating..."
                     : "Activate Package"}
                 </Button>
-              )}
-
-              {isLoggedIn && !eligibilityLoading && isLowerPackage && (
-                <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 py-3 text-center text-sm text-amber-300">
-                  Lower package locked. You can buy{" "}
-                  {minimumAllowedAmount.toLocaleString()} USDT or higher until
-                  active package completes.
-                </p>
               )}
 
               {purchaseError && (
