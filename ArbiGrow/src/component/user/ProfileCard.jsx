@@ -88,7 +88,7 @@ export default function ProfileCard({ setActivePage }) {
         const formData = new FormData();
         formData.append("file", photoFile);
         res = await api.post("v1/user/profile-image/upload", formData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setPhotoMsg("Profile image uploaded");
       } else if (!photoUrl.trim()) {

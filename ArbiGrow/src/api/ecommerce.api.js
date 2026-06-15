@@ -56,7 +56,7 @@ export const uploadProductImage = (file) => {
   const formData = new FormData();
   formData.append("file", file);
   return api.post("v1/ecommerce/products/upload-image", formData, {
-    headers: { ...authHeaders().headers, "Content-Type": "multipart/form-data" },
+    headers: { ...authHeaders().headers },
   });
 };
 
