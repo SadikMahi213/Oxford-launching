@@ -82,7 +82,7 @@ async def _get_seller(db: AsyncSession, current_user: User, seller_id: int | Non
     result = await db.execute(
         select(Seller).where(Seller.user_id == current_user.id).order_by(Seller.created_at.desc())
     )
-    seller = result.first()
+    seller = result.scalars().first()
     if not seller:
         raise HTTPException(404, "Seller profile not found")
     return seller
