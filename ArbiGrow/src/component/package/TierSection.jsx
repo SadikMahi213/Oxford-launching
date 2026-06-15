@@ -45,7 +45,7 @@ export default function TierSection({ onSelect }) {
               </h2>
             </div>
             <p className="text-gray-400">
-              12-Month Daily Payment Model — Captcha Typing Packages
+               12-Month Daily Payment Model — Investment Packages
             </p>
           </div>
 
@@ -113,7 +113,7 @@ export default function TierSection({ onSelect }) {
                   {/* Package Name */}
                   <div className="mb-4">
                     <p className="mb-1 text-xs text-gray-400 tracking-widest">
-                      CAPTCHA TYPING PACKAGE
+                      {pkg.task_type === "ad_view" ? "AD VIEW PACKAGE" : "CAPTCHA TYPING PACKAGE"}
                     </p>
                     <h3 className="text-xl font-semibold text-white">
                       {pkg.name}
@@ -133,8 +133,8 @@ export default function TierSection({ onSelect }) {
                   {/* Details */}
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Daily Captcha</span>
-                      <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} Tasks</span>
+                      <span className="text-gray-400">{pkg.task_type === "ad_view" ? "Daily Ads" : "Daily Captcha"}</span>
+                      <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} {pkg.task_type === "ad_view" ? "Views" : "Tasks"}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Duration</span>
