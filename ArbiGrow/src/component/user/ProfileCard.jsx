@@ -87,9 +87,13 @@ export default function ProfileCard({ setActivePage }) {
       if (photoMode === "file" && photoFile) {
         const formData = new FormData();
         formData.append("file", photoFile);
-        res = await api.post("v1/user/profile-image/upload", formData, {
+        const fetchRes = await fetch("/api/v1/user/profile-image/upload", {
+          method: "POST",
           headers: { Authorization: `Bearer ${token}` },
+          body: formData,
         });
+        res = { data: await fetchRes.json() };
+        if (!fetchRes.ok) throw new Error(res.data.detail || "Upload failed");
         setPhotoMsg("Profile image uploaded");
       } else if (!photoUrl.trim()) {
         setPhotoLoading(false);
@@ -107,7 +111,7 @@ export default function ProfileCard({ setActivePage }) {
       setPhotoLoading(false);
       return;
     } catch (err) {
-      setPhotoMsg(err.response?.data?.detail || "Failed to save photo");
+      setPhotoMsg(err.response?.data?.detail || err.message || "Failed to save photo");
     } finally {
       setPhotoLoading(false);
     }

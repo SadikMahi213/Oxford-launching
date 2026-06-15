@@ -55,8 +55,14 @@ export const createProduct = (data) =>
 export const uploadProductImage = (file) => {
   const formData = new FormData();
   formData.append("file", file);
-  return api.post("v1/ecommerce/products/upload-image", formData, {
+  return fetch("/api/v1/ecommerce/products/upload-image", {
+    method: "POST",
     headers: { ...authHeaders().headers },
+    body: formData,
+  }).then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw { response: { data } };
+    return { data };
   });
 };
 
