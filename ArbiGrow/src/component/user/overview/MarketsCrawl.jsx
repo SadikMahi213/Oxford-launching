@@ -12,24 +12,43 @@ const REST_URL = `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURI
 
 const getCoinIcon = (symbol) => COIN_ICONS[symbol] ?? "";
 
-const mapTicker = (t) => {
-  const s = t.s ?? "";
-  const meta = PAIRS.find((p) => p.pair === s) ?? {
-    pair: s,
-    symbol: s.replace("USDT", ""),
-    name: s,
-  };
-  return {
-    symbol: meta.symbol,
-    name: meta.name,
-    image: getCoinIcon(meta.symbol),
-    price: parseFloat(t.c ?? 0),
-    change: parseFloat(t.P ?? 0),
-  };
-};
+const FALLBACK = PAIRS.map((p) => ({
+  symbol: p.symbol,
+  name: p.name,
+  image: getCoinIcon(p.symbol),
+  price: null,
+  change: null,
+}));
+
+function CoinIcon({ symbol, src }) {
+  const [err, setErr] = useState(false);
+  if (err || !src) {
+    return (
+      <div className="w-8 h-8 rounded-full bg-gray-700/50 text-gray-300 flex items-center justify-center text-xs font-bold flex-shrink-0">
+        {symbol.slice(0, 2)}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={symbol}
+      onError={() => setErr(true)}
+      className="w-8 h-8 rounded-full flex-shrink-0 object-contain"
+    />
+  );
+}
+
+function formatPrice(price) {
+  if (price == null) return "—";
+  if (price >= 1000) return price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (price >= 1) return price.toFixed(4);
+  if (price >= 0.0001) return price.toFixed(6);
+  return price.toFixed(8);
+}
 
 export function MarketsCrawl() {
-  const [tickers, setTickers] = useState([]);
+  const [tickers, setTickers] = useState(FALLBACK);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -42,29 +61,38 @@ export function MarketsCrawl() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
     const fetchPrices = async () => {
       try {
         const res = await fetch(REST_URL);
+        if (!res.ok) return;
         const data = await res.json();
-        if (Array.isArray(data)) setTickers(data.map(mapTicker));
+        if (!mounted || !Array.isArray(data)) return;
+        const mapped = data.map((t) => {
+          const s = t.s ?? "";
+          const meta = PAIRS.find((p) => p.pair === s) ?? {};
+          return {
+            symbol: meta.symbol || s.replace("USDT", ""),
+            name: meta.name || s,
+            image: getCoinIcon(meta.symbol),
+            price: parseFloat(t.c ?? null),
+            change: parseFloat(t.P ?? null),
+          };
+        });
+        if (mapped.length > 0) setTickers(mapped);
       } catch (e) {
         console.error("MarketsCrawl fetch error", e);
       }
     };
     fetchPrices();
     const id = setInterval(fetchPrices, 30000);
-    return () => clearInterval(id);
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
   }, []);
 
-  const items = tickers.length > 0 ? tickers : PAIRS.map((p) => ({
-    symbol: p.symbol,
-    name: p.name,
-    image: getCoinIcon(p.symbol),
-    price: 0,
-    change: 0,
-  }));
-
-  const duplicated = Array(4).fill(items).flat();
+  const duplicated = Array(4).fill(tickers).flat();
 
   return (
     <div className="relative rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden">
@@ -89,18 +117,14 @@ export function MarketsCrawl() {
               key={idx}
               className="flex items-center gap-3 whitespace-nowrap"
             >
-              <img
-                src={item.image}
-                alt={item.symbol}
-                className="w-8 h-8 rounded-full flex-shrink-0"
-              />
+              <CoinIcon symbol={item.symbol} src={item.image} />
               <div>
                 <div className="text-xs text-gray-400">{item.symbol}/USDT</div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-bold text-white">
-                    ${item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {item.price != null ? `$${formatPrice(item.price)}` : "—"}
                   </span>
-                  {item.change !== 0 && (
+                  {item.change != null && (
                     <span
                       className={`flex items-center gap-0.5 text-xs ${
                         item.change >= 0 ? "text-green-400" : "text-red-400"
