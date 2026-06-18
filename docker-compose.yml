@@ -45,7 +45,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 7200
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://localhost","http://localhost:80"]'
       APP_ENV: production
       LOG_LEVEL: INFO
       FRONTEND_DOMAIN: https://oxfordfinancialads.com
@@ -74,7 +74,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
       ALGORITHM: HS256
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://localhost","http://localhost:80"]'
       APP_ENV: production
       LOG_LEVEL: INFO
       FRONTEND_DOMAIN: https://oxfordfinancialads.com
