@@ -141,9 +141,12 @@ export const adminGetSellerStats = () =>
 export const adminGetEcommerceConfig = () =>
   api.get("v1/ecommerce/admin/ecommerce-config", authHeaders());
 
-export const adminUpdateEcommerceConfig = (signupBonusArbx) =>
+export const adminUpdateEcommerceConfig = (signupBonusArbx, sellerOrderFeePercent) =>
   api.put("v1/ecommerce/admin/ecommerce-config", null, {
-    params: { signup_bonus_arbx: signupBonusArbx },
+    params: {
+      signup_bonus_arbx: signupBonusArbx,
+      seller_order_fee_percent: sellerOrderFeePercent,
+    },
     ...authHeaders(),
   });
 

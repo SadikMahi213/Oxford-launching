@@ -1,5 +1,5 @@
 # from pydantic import BaseModel, EmailStr
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=60)
     referral_code: str | None = None
+    package_id: int | None = None
 
 
 class UserResponse(BaseModel):
@@ -38,6 +39,13 @@ class UserResponse(BaseModel):
     account_status: str = "active"
     account_issue: Optional[str] = None
     created_at: Optional[datetime] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def map_mining_active(cls, data):
+        if isinstance(data, dict) and "mining_active" in data and "is_mining" not in data:
+            data["is_mining"] = data.pop("mining_active")
+        return data
 
     class Config:
         from_attributes = True
@@ -160,3 +168,26 @@ class ConvertOFAResponse(BaseModel):
 
 class ProfileImageUpdateRequest(BaseModel):
     profile_image_url: str
+
+
+class SendFundsRequest(BaseModel):
+    recipient: str = Field(..., min_length=1, description="Email, username, or user ID of the recipient")
+    amount: Decimal = Field(gt=0)
+    note: str | None = None
+
+
+class TransferLogSchema(BaseModel):
+    id: int
+    sender_id: int
+    sender_name: str = ""
+    receiver_id: int
+    receiver_name: str = ""
+    amount: float
+    note: str | None = None
+    status: str
+    created_at: str
+
+
+class TransferHistoryResponse(BaseModel):
+    sent: list[TransferLogSchema]
+    received: list[TransferLogSchema]

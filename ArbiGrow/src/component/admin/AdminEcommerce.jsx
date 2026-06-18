@@ -10,8 +10,9 @@ import {
 const AdminEcommerce = () => {
   const [tab, setTab] = useState("sellers");
   const [sellers, setSellers] = useState([]);
-  const [config, setConfig] = useState({ signup_bonus_arbx: 50 });
+  const [config, setConfig] = useState({ signup_bonus_arbx: 50, seller_order_fee_percent: 5 });
   const [bonusInput, setBonusInput] = useState("50");
+  const [feeInput, setFeeInput] = useState("5");
   const [selectedSeller, setSelectedSeller] = useState(null);
   const [sellerProducts, setSellerProducts] = useState([]);
   const [msg, setMsg] = useState("");
@@ -36,6 +37,7 @@ const AdminEcommerce = () => {
       const res = await adminGetEcommerceConfig();
       setConfig(res.data);
       setBonusInput(String(res.data.signup_bonus_arbx || 50));
+      setFeeInput(String(res.data.seller_order_fee_percent || 5));
     } catch { /* ignore */ }
   };
 
@@ -66,7 +68,7 @@ const AdminEcommerce = () => {
 
   const handleUpdateConfig = async () => {
     try {
-      await adminUpdateEcommerceConfig(parseFloat(bonusInput) || 50);
+      await adminUpdateEcommerceConfig(parseFloat(bonusInput) || 50, parseFloat(feeInput) || 5);
       loadConfig();
       setMsg("Config updated");
       setTimeout(() => setMsg(""), 2000);
@@ -101,7 +103,7 @@ const AdminEcommerce = () => {
             Ecommerce Management
           </span>
         </h1>
-        <p className="text-sm text-gray-400">Manage sellers, products, and ARBX token config</p>
+        <p className="text-sm text-gray-400">Manage sellers, products, and OFA token config</p>
       </motion.div>
 
       {msg && <p className="text-sm text-green-400 bg-green-500/10 rounded-lg px-4 py-2">{msg}</p>}
@@ -111,7 +113,7 @@ const AdminEcommerce = () => {
           <Store className="w-4 h-4" /> Sellers ({sellers.length})
         </button>
         <button onClick={() => setTab("config")} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors ${tab === "config" ? "bg-purple-600 text-white" : "bg-white/10 text-gray-300 hover:bg-white/20"}`}>
-          <Settings className="w-4 h-4" /> ARBX Config
+          <Settings className="w-4 h-4" /> OFA Config
         </button>
       </div>
 
@@ -240,7 +242,7 @@ const AdminEcommerce = () => {
                   <tr className="border-b border-white/10 text-gray-400 text-left">
                     <th className="px-5 py-3 font-medium">Name</th>
                     <th className="px-5 py-3 font-medium">Price</th>
-                    <th className="px-5 py-3 font-medium">ARBX Allocated</th>
+                    <th className="px-5 py-3 font-medium">OFA Allocated</th>
                     <th className="px-5 py-3 font-medium">Active</th>
                   </tr>
                 </thead>
@@ -268,18 +270,26 @@ const AdminEcommerce = () => {
 
       {tab === "config" && (
         <div className="max-w-md rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 space-y-4">
-          <h3 className="text-white font-semibold flex items-center gap-2"><Coins className="w-5 h-5" /> ARBX Configuration</h3>
+          <h3 className="text-white font-semibold flex items-center gap-2"><Coins className="w-5 h-5" /> OFA Configuration</h3>
 
           <div>
-            <label className="text-sm text-gray-400">Signup Bonus ARBX</label>
+            <label className="text-sm text-gray-400">Signup Bonus OFA</label>
             <input value={bonusInput} onChange={(e) => setBonusInput(e.target.value)} type="number" step="1"
               className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50"
             />
-            <p className="text-xs text-gray-500 mt-1">ARBX tokens credited to new sellers when admin approves their account</p>
+            <p className="text-xs text-gray-500 mt-1">OFA tokens credited to new sellers when admin approves their account</p>
+          </div>
+
+          <div>
+            <label className="text-sm text-gray-400">Seller Order Fee (%)</label>
+            <input value={feeInput} onChange={(e) => setFeeInput(e.target.value)} type="number" step="0.1" min="0" max="100"
+              className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50"
+            />
+            <p className="text-xs text-gray-500 mt-1">Percentage deducted from each order total before seller payout (e.g. 5 = 5%)</p>
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-white/10">
-            <span className="text-sm text-gray-400">Current value: <strong className="text-white">{config.signup_bonus_arbx}</strong> ARBX</span>
+            <span className="text-sm text-gray-400">Current bonus: <strong className="text-white">{config.signup_bonus_arbx}</strong> OFA | Fee: <strong className="text-white">{config.seller_order_fee_percent}%</strong></span>
             <button onClick={handleUpdateConfig} className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
               Update
             </button>

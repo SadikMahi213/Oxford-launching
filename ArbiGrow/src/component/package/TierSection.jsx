@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { getPackages } from "../../api/user.api";
-import Logo from "../../assets/Arbigrow-Logo.png";
+import Logo from "../../assets/oxford.png";
 
 export default function TierSection({ onSelect }) {
   const [packages, setPackages] = useState([]);

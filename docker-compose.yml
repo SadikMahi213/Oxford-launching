@@ -37,16 +37,18 @@ services:
       context: ./arbigrow-fastapi
       target: prod
     container_name: arbigrow-backend
+    ports:
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 7200
-      ALLOWED_ORIGINS: '["http://13.140.175.187","http://13.140.175.187:80","http://localhost","http://localhost:80"]'
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://13.140.175.187","http://localhost","http://localhost:80"]'
       APP_ENV: production
       LOG_LEVEL: INFO
-      FRONTEND_DOMAIN: http://13.140.175.187:80
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
       DB_SSL_REQUIRED: "false"
       AUTO_ROI_ENABLED: "true"
       AUTO_ROI_POLL_SECONDS: 21600
@@ -83,13 +85,13 @@ services:
         echo 'Done!'
       "
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/arbigrow
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/arbigrow
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       ALGORITHM: HS256
-      ALLOWED_ORIGINS: '["http://13.140.175.187","http://13.140.175.187:80","http://localhost","http://localhost:80"]'
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://13.140.175.187","http://localhost","http://localhost:80"]'
       APP_ENV: production
       LOG_LEVEL: INFO
-      FRONTEND_DOMAIN: http://13.140.175.187:80
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
       DB_SSL_REQUIRED: "false"
       AUTO_ROI_ENABLED: "false"
       # Email (dummy values for migration/seed)
@@ -120,23 +122,19 @@ services:
     container_name: arbigrow-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "5173:5173"
+      - "127.0.0.1:80:80"
     environment:
       VITE_BACKEND_URL: http://backend:8000
-    volumes:
-      - ./ArbiGrow:/app
-      - /app/node_modules
     depends_on:
       - backend
 
   # ── Monitoring (Uptime Kuma) ─────────────────────────
   uptime-kuma:
-    image: louislam/uptime-kuma:latest
+    image: louislam/uptime-kuma:1.23.17
     container_name: arbigrow-uptime-kuma
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     volumes:
       - uptime_kuma_data:/app/data
 

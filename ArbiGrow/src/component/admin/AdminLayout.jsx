@@ -18,8 +18,9 @@ import {
   Store,
   Settings,
   Video,
+  User,
 } from "lucide-react";
-import logo from "../../assets/Arbigrow-Logo.png";
+import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
 
 export default function AdminLayout({
@@ -109,6 +110,12 @@ export default function AdminLayout({
       label: "System Settings",
       icon: Settings,
       description: "Override weekend rules",
+    },
+    {
+      id: "profile",
+      label: "My Profile",
+      icon: User,
+      description: "Manage your profile",
     },
   ];
 

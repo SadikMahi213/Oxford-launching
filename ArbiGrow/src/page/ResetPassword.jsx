@@ -19,7 +19,7 @@ export default function ResetPassword() {
   const storeToken = useUserStore.getState().token;
   const varificationtoken =
     urlToken && urlToken.trim() !== "" ? urlToken : storeToken;
-  // console.log("From reset password:",varificationtoken)
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -77,7 +77,6 @@ export default function ResetPassword() {
     } finally {
       setIsSubmitting(false);
     }
-    //  console.log("Verification Token:", varificationtoken); // Debugging token value
   };
 
   return (

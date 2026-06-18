@@ -64,6 +64,10 @@ export const claimMining = () => {
   return api.post("v1/user/claim-mining", {}, authHeaders());
 };
 
+export const getMiningStatus = () => {
+  return api.get("v1/user/mining-status", authHeaders());
+};
+
 export const buyInvestment = (payload) => {
   return api.post("v1/investments/buy", payload, authHeaders());
 };
@@ -137,4 +141,16 @@ export const convertOFAtoUSDT = (payload) => {
 
 export const updateProfileImage = (payload) => {
   return api.post("v1/user/profile-image", payload, authHeaders());
+};
+
+export const sendFunds = (payload) => {
+  return api.post("v1/user/send-funds", payload, authHeaders());
+};
+
+export const getTransferHistory = () => {
+  return api.get("v1/user/transfers", authHeaders());
+};
+
+export const searchUsers = (query) => {
+  return api.get("v1/user/list", { params: { search: query, limit: 50 }, ...authHeaders() });
 };

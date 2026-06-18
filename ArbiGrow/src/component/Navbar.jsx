@@ -21,7 +21,7 @@ import {
 import Button from "./Button";
 import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
-import logo from "../assets/Arbigrow-Logo.png";
+import logo from "../assets/oxford.png";
 import { useLocation } from "react-router";
 
 export default function Navbar() {

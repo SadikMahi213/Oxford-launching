@@ -80,6 +80,7 @@ const TransactionHistoryPage = ({
                 <option value="Deposit">Deposits</option>
                 <option value="Withdrawal">Withdrawals</option>
                 <option value="Profit">Profit</option>
+                <option value="Transfer">Transfer</option>
                 <option value="Referral">Referral</option>
                 <option value="Generation">Generation</option>
               </select>

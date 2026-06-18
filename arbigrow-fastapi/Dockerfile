@@ -8,8 +8,8 @@ FROM python:3.12-slim AS base
 
 WORKDIR /app
 
-# System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# System dependencies + security patches
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     libpq-dev gcc \
     && rm -rf /var/lib/apt/lists/*
 
@@ -31,5 +31,8 @@ CMD ["python", "run.py"]
 # ── Stage 3: Production (gunicorn + uvicorn) ──────
 FROM base AS prod
 ENV RELOAD=false
+RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

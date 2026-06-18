@@ -13,7 +13,8 @@ from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.mining_log import MiningLog
 from app.models.system_config import SystemConfig
-from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest
+from app.models.transfer_log import TransferLog
+from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferHistoryResponse, TransferLogSchema
 from app.core.rate_limiter import limiter
 
 from app.api.v1.deps import get_current_user
@@ -312,8 +313,11 @@ async def claim_mining(
     # Calculate reward based on time elapsed since last claim (or start)
     reference_time = current_user.last_mine_time or current_user.mining_started_at
     elapsed_seconds = max(0, int((now_utc - reference_time).total_seconds()))
-    if elapsed_seconds < 60:
-        raise HTTPException(status_code=400, detail="Wait at least 1 minute between claims.")
+    r = await db.execute(select(SystemConfig).where(SystemConfig.key == "mining_claim_cooldown_minutes"))
+    cc = r.scalar_one_or_none()
+    cooldown_seconds = (int(cc.value) if cc and cc.value else 1) * 60
+    if elapsed_seconds < cooldown_seconds:
+        raise HTTPException(status_code=400, detail=f"Wait at least {cooldown_seconds // 60} minute(s) between claims.")
 
     per_second_rate = cap / Decimal(str(MINING_CYCLE_SECONDS))
     accrued = per_second_rate * Decimal(str(elapsed_seconds))
@@ -511,6 +515,10 @@ async def wallet_transfer(
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
 
+    ofa_wallets = {"arbx_wallet", "arbx_mining_wallet"}
+    if data.from_wallet in ofa_wallets or data.to_wallet in ofa_wallets:
+        raise HTTPException(status_code=400, detail="OFA token transfers are coming soon")
+
     from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
 
@@ -542,7 +550,9 @@ async def convert_ofa_to_usdt(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    OFA_TO_USDT_RATE = Decimal("0.0001")  # 100 OFA = 0.01 USDT
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
+    cfg = result.scalar_one_or_none()
+    OFA_TO_USDT_RATE = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
     ofa_amount = Decimal(str(data.ofa_amount)).quantize(WALLET_PRECISION)
     usdt_amount = (ofa_amount * OFA_TO_USDT_RATE).quantize(WALLET_PRECISION)
 
@@ -557,13 +567,14 @@ async def convert_ofa_to_usdt(
     await db.commit()
     await db.refresh(current_user)
 
+    rate_str = f"1 OFA = {float(OFA_TO_USDT_RATE)} USDT"
     return ConvertOFAResponse(
         message=f"Converted {float(ofa_amount)} OFA to {float(usdt_amount)} USDT",
         ofa_amount=float(ofa_amount),
         usdt_amount=float(usdt_amount),
         arbx_wallet_balance=float(current_user.arbx_wallet),
         main_wallet_balance=float(current_user.main_wallet),
-        rate="100 OFA = 0.01 USDT",
+        rate=rate_str,
     )
 
 
@@ -608,20 +619,142 @@ async def upload_profile_image(
     }
 
 
+@router.post("/send-funds")
+@limiter.limit("30/minute")
+async def send_funds(
+    request: Request,
+    data: SendFundsRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+
+    if current_user.main_wallet is None or current_user.main_wallet < amount:
+        raise HTTPException(status_code=400, detail="Insufficient balance in main wallet")
+
+    # Find recipient by email, username, or ID
+    recipient = None
+    query = data.recipient.strip()
+    if query.isdigit():
+        recipient_result = await db.execute(select(User).where(User.id == int(query)))
+        recipient = recipient_result.scalar_one_or_none()
+    if not recipient:
+        recipient_result = await db.execute(
+            select(User).where(or_(User.email == query, User.username == query))
+        )
+        recipient = recipient_result.scalar_one_or_none()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found")
+
+    if recipient.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot send funds to yourself")
+
+    # Transfer funds
+    current_user.main_wallet = (current_user.main_wallet - amount).quantize(WALLET_PRECISION)
+    recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + amount
+
+    # Log transfer
+    transfer = TransferLog(
+        sender_id=current_user.id,
+        receiver_id=recipient.id,
+        amount=amount,
+        note=data.note,
+        status="completed",
+    )
+    db.add(transfer)
+    await db.commit()
+    await db.refresh(current_user)
+
+    return {
+        "message": f"Sent {float(amount)} USDT to {recipient.full_name}",
+        "amount": float(amount),
+        "recipient": recipient.full_name,
+        "recipient_email": recipient.email,
+        "new_balance": float(current_user.main_wallet),
+        "transfer_id": transfer.id,
+    }
+
+
+@router.get("/transfers", response_model=TransferHistoryResponse)
+@limiter.limit("60/minute")
+async def get_transfer_history(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sent_result = await db.execute(
+        select(TransferLog).where(TransferLog.sender_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+    )
+    sent_logs = sent_result.scalars().all()
+
+    received_result = await db.execute(
+        select(TransferLog).where(TransferLog.receiver_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+    )
+    received_logs = received_result.scalars().all()
+
+    user_ids = {current_user.id}
+    for tx in sent_logs:
+        user_ids.add(tx.receiver_id)
+        user_ids.add(tx.sender_id)
+    for tx in received_logs:
+        user_ids.add(tx.sender_id)
+        user_ids.add(tx.receiver_id)
+    users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
+    user_map = {u.id: u.full_name for u in users_result.scalars().all()}
+
+    def enrich(tx: TransferLog, as_sender: bool) -> TransferLogSchema:
+        other_id = tx.receiver_id if as_sender else tx.sender_id
+        return TransferLogSchema(
+            id=tx.id,
+            sender_id=tx.sender_id,
+            sender_name=user_map.get(tx.sender_id, ""),
+            receiver_id=tx.receiver_id,
+            receiver_name=user_map.get(tx.receiver_id, ""),
+            amount=float(tx.amount),
+            note=tx.note,
+            status=tx.status,
+            created_at=tx.created_at.isoformat() if tx.created_at else "",
+        )
+
+    return TransferHistoryResponse(
+        sent=[enrich(t, True) for t in sent_logs],
+        received=[enrich(t, False) for t in received_logs],
+    )
+
+
 @router.get("/list")
 async def get_user_list(
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=50),
+    search: str | None = Query(None, description="Search by email, username, or full name"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     offset = (page - 1) * limit
 
-    total_result = await db.execute(select(func.count(User.id)))
+    base_query = select(User)
+    count_query = select(func.count(User.id))
+
+    if search:
+        q = search.strip()
+        like = f"%{q}%"
+        filter_cond = or_(
+            User.email.ilike(like),
+            User.username.ilike(like),
+            User.full_name.ilike(like),
+        )
+        if q.isdigit():
+            filter_cond = or_(filter_cond, User.id == int(q))
+        base_query = base_query.where(filter_cond)
+        count_query = count_query.where(filter_cond)
+
+    total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
 
     users_result = await db.execute(
-        select(User).order_by(User.created_at.desc()).offset(offset).limit(limit)
+        base_query.order_by(User.created_at.desc()).offset(offset).limit(limit)
     )
     users = users_result.scalars().all()
 
@@ -634,6 +767,7 @@ async def get_user_list(
                 "id": u.id,
                 "full_name": u.full_name,
                 "email": u.email,
+                "username": u.username,
                 "status": "active" if u.account_status == "active" and u.email_verified else "inactive",
                 "created_at": u.created_at.isoformat() if u.created_at else None,
             }

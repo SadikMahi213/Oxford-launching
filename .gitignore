@@ -3,6 +3,14 @@
 .env.local
 .env.production
 
+# Credentials
+login*.json
+
+# Build
+dist/
+arbigrow-fastapi/storage/
+*.egg-info/
+
 # Backups and dumps
 *.sql
 *.sql.gz

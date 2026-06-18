@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock } from "lucide-react";
 import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 
@@ -11,8 +11,8 @@ const WALLET_OPTIONS = [
   { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
   { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
   { value: "ecommerce_wallet", label: "Ecommerce Wallet", icon: ShoppingCart, currency: "USDT" },
-  { value: "arbx_wallet", label: "OFA token Wallet", icon: Coins, currency: "OFA" },
-  { value: "arbx_mining_wallet", label: "Mining Wallet", icon: Pickaxe, currency: "OFA" },
+  { value: "arbx_wallet", label: "OFA token Wallet", icon: Coins, currency: "OFA", comingSoon: true },
+  { value: "arbx_mining_wallet", label: "Mining Wallet", icon: Pickaxe, currency: "OFA", comingSoon: true },
 ];
 
 const walletBalances = (user) => ({
@@ -43,6 +43,8 @@ export default function WalletTransfer() {
 
   const fromWalletData = WALLET_OPTIONS.find((w) => w.value === fromWallet);
   const toWalletData = WALLET_OPTIONS.find((w) => w.value === toWallet);
+
+  const isOFAWalletSelected = fromWalletData?.comingSoon || toWalletData?.comingSoon;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -116,7 +118,7 @@ export default function WalletTransfer() {
               >
                 {WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)})
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? " [Coming Soon]" : ""}
                   </option>
                 ))}
               </select>
@@ -141,7 +143,7 @@ export default function WalletTransfer() {
               >
                 {WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)})
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? " [Coming Soon]" : ""}
                   </option>
                 ))}
               </select>
@@ -187,12 +189,21 @@ export default function WalletTransfer() {
             </p>
           )}
 
+          {isOFAWalletSelected && (
+            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
+              <Clock className="w-5 h-5 text-yellow-400 shrink-0" />
+              <p className="text-sm text-yellow-300">
+                OFA token transfers are coming soon. Only OFA to USDT conversion is available.
+              </p>
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isOFAWalletSelected}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? "Transferring..." : "Transfer"}
+            {loading ? "Transferring..." : isOFAWalletSelected ? "Coming Soon" : "Transfer"}
           </button>
         </form>
       </div>

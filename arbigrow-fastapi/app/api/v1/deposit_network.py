@@ -1,9 +1,11 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.deposit_network import DepositNetwork
+from app.models.user import User
 from app.schemas.deposit_network import DepositNetworkCreate, DepositNetworkUpdate, DepositNetworkResponse
 from fastapi import APIRouter, Depends, Query, HTTPException
 from app.core.database import get_db
+from app.api.v1.deps import get_current_admin_user
 from sqlalchemy import select
 
 
@@ -16,7 +18,8 @@ router = APIRouter(
 @router.post("/")
 async def create_deposit_network(
     data: DepositNetworkCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
 ):
     network = DepositNetwork(**data.model_dump())
 
@@ -47,7 +50,8 @@ async def get_active_deposit_networks(
 
 @router.get("/")
 async def get_deposit_networks(
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
         select(DepositNetwork)
@@ -63,7 +67,8 @@ async def get_deposit_networks(
 @router.get("/{network_id}")
 async def get_deposit_network(
     network_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
         select(DepositNetwork).where(DepositNetwork.id == network_id)
@@ -83,7 +88,8 @@ async def get_deposit_network(
 async def update_deposit_network(
     network_id: int,
     data: DepositNetworkUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
         select(DepositNetwork).where(DepositNetwork.id == network_id)
@@ -94,9 +100,12 @@ async def update_deposit_network(
     if not network:
         raise HTTPException(status_code=404, detail="Network not found")
 
+    ALLOWED_DEPOSIT_NETWORK_FIELDS = {"network_name", "display_name", "wallet_address", "status"}
     update_data = data.model_dump(exclude_unset=True)
 
     for key, value in update_data.items():
+        if key not in ALLOWED_DEPOSIT_NETWORK_FIELDS:
+            raise HTTPException(status_code=400, detail=f"Field '{key}' cannot be updated")
         setattr(network, key, value)
 
     await db.commit()
@@ -111,7 +120,8 @@ async def update_deposit_network(
 @router.delete("/{network_id}")
 async def delete_deposit_network(
     network_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
         select(DepositNetwork).where(DepositNetwork.id == network_id)

@@ -177,7 +177,11 @@ async def update_seller_profile(
     current_user: User = Depends(get_current_user),
 ):
     seller = await _get_seller(db, current_user, seller_id)
-    for field, value in body.model_dump(exclude_none=True).items():
+    ALLOWED_SELLER_FIELDS = {"store_name", "description", "contact_email", "phone_number", "address", "city", "country"}
+    update_data = body.model_dump(exclude_none=True)
+    for field, value in update_data.items():
+        if field not in ALLOWED_SELLER_FIELDS:
+            raise HTTPException(status_code=400, detail=f"Field '{field}' cannot be updated")
         setattr(seller, field, value)
     completion = _compute_profile_completion(seller, current_user)
     seller.profile_completion = completion
@@ -596,10 +600,19 @@ async def place_order(
             "price": price,
         })
 
+    config = await db.execute(select(EcommerceConfig).limit(1))
+    cfg = config.scalar_one_or_none()
+    fee_percent = cfg.seller_order_fee_percent if cfg else Decimal("5.00")
+    fee_amount = (total * fee_percent / Decimal("100")).quantize(WALLET_PRECISION)
+    seller_payout = (total - fee_amount).quantize(WALLET_PRECISION)
+
     order = Order(
         user_id=current_user.id,
         seller_id=seller_id,
         total=total.quantize(WALLET_PRECISION),
+        fee_percent=fee_percent,
+        fee_amount=fee_amount,
+        seller_payout=seller_payout,
         payment_method="cod",
         customer_name=customer_name,
         customer_email=customer_email,
@@ -615,7 +628,14 @@ async def place_order(
 
     await db.commit()
     await db.refresh(order)
-    return {"order_id": order.id, "total": float(order.total), "status": order.status}
+    return {
+        "order_id": order.id,
+        "total": float(order.total),
+        "fee_percent": float(order.fee_percent),
+        "fee_amount": float(order.fee_amount),
+        "seller_payout": float(order.seller_payout),
+        "status": order.status,
+    }
 
 
 @router.get("/orders")
@@ -634,6 +654,9 @@ async def list_my_orders(
             {
                 "id": o.id,
                 "total": float(o.total),
+                "fee_percent": float(o.fee_percent) if o.fee_percent else None,
+                "fee_amount": float(o.fee_amount) if o.fee_amount else 0,
+                "seller_payout": float(o.seller_payout) if o.seller_payout else 0,
                 "status": o.status,
                 "payment_method": o.payment_method,
                 "customer_name": o.customer_name,
@@ -668,6 +691,9 @@ async def get_order_detail(
     return {
         "id": order.id,
         "total": float(order.total),
+        "fee_percent": float(order.fee_percent) if order.fee_percent else None,
+        "fee_amount": float(order.fee_amount) if order.fee_amount else 0,
+        "seller_payout": float(order.seller_payout) if order.seller_payout else 0,
         "status": order.status,
         "payment_method": order.payment_method,
         "customer_name": order.customer_name,
@@ -708,6 +734,9 @@ async def get_seller_orders(
             {
                 "id": o.id,
                 "total": float(o.total),
+                "fee_percent": float(o.fee_percent) if o.fee_percent else None,
+                "fee_amount": float(o.fee_amount) if o.fee_amount else 0,
+                "seller_payout": float(o.seller_payout) if o.seller_payout else 0,
                 "status": o.status,
                 "payment_method": o.payment_method,
                 "customer_name": o.customer_name,
@@ -840,12 +869,16 @@ async def admin_get_config(
         db.add(cfg)
         await db.commit()
         await db.refresh(cfg)
-    return {"signup_bonus_arbx": float(cfg.signup_bonus_arbx)}
+    return {
+        "signup_bonus_arbx": float(cfg.signup_bonus_arbx),
+        "seller_order_fee_percent": float(cfg.seller_order_fee_percent),
+    }
 
 
 @router.put("/admin/ecommerce-config")
 async def admin_update_config(
-    signup_bonus_arbx: float,
+    signup_bonus_arbx: float | None = None,
+    seller_order_fee_percent: float | None = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -854,9 +887,16 @@ async def admin_update_config(
     if not cfg:
         cfg = EcommerceConfig()
         db.add(cfg)
-    cfg.signup_bonus_arbx = Decimal(str(signup_bonus_arbx)).quantize(WALLET_PRECISION)
+    if signup_bonus_arbx is not None:
+        cfg.signup_bonus_arbx = Decimal(str(signup_bonus_arbx)).quantize(WALLET_PRECISION)
+    if seller_order_fee_percent is not None:
+        cfg.seller_order_fee_percent = Decimal(str(seller_order_fee_percent)).quantize(Decimal("0.01"))
     await db.commit()
-    return {"status": "updated", "signup_bonus_arbx": float(cfg.signup_bonus_arbx)}
+    return {
+        "status": "updated",
+        "signup_bonus_arbx": float(cfg.signup_bonus_arbx),
+        "seller_order_fee_percent": float(cfg.seller_order_fee_percent),
+    }
 
 
 @router.get("/admin/sellers/{seller_id}/products")

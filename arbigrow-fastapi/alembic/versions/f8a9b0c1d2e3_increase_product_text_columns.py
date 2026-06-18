@@ -1,7 +1,7 @@
 """Increase Product name/description columns to Text
 
 Revision ID: f8a9b0c1d2e3
-Revises: f7a8b9c0d1e2
+Revises: 
 Create Date: 2026-06-15 19:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 revision: str = "f8a9b0c1d2e3"
-down_revision: Union[str, Sequence[str], None] = "f7a8b9c0d1e2"
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

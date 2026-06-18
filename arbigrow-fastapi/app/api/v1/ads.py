@@ -108,22 +108,7 @@ async def start_ad(
     if not all_ads:
         raise HTTPException(400, detail="No ads available. Please check back later.")
 
-    user_ad_views_result = await db.execute(
-        select(UserAdView).where(UserAdView.user_id == user_id)
-    )
-    user_ad_views = {uav.ad_id: uav for uav in user_ad_views_result.scalars().all()}
-
-    eligible = []
-    for ad in all_ads:
-        uav = user_ad_views.get(ad.id)
-        view_count = uav.view_count if uav else 0
-        if view_count < 2:
-            eligible.append(ad)
-
-    if not eligible:
-        raise HTTPException(400, detail="You have viewed all available ads the maximum number of times. New ads will be added soon.")
-
-    selected_ad = eligible[0] if len(eligible) == 1 else random.choice(eligible)
+    selected_ad = all_ads[0] if len(all_ads) == 1 else random.choice(all_ads)
 
     ad_view = AdView(
         user_id=user_id,
@@ -172,8 +157,15 @@ async def complete_ad(
 
     now = datetime.now(timezone.utc)
     elapsed = (now - ad_view.started_at).total_seconds()
-    if elapsed < 5:
-        raise HTTPException(400, detail="Ad viewing time too short. Please watch the full ad.")
+    # Determine required watch time from the actual ad or package
+    required_seconds = 30  # fallback default
+    if ad_view.ad_id:
+        ad_result = await db.execute(select(Ad).where(Ad.id == ad_view.ad_id))
+        ad = ad_result.scalar_one_or_none()
+        if ad and ad.required_watch_seconds:
+            required_seconds = ad.required_watch_seconds
+    if elapsed < required_seconds:
+        raise HTTPException(400, detail=f"Please watch at least {required_seconds} seconds of the ad.")
 
     user_result = await db.execute(
         select(User).where(User.id == user_id).with_for_update()

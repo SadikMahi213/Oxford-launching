@@ -12,6 +12,8 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.models.user import User
 from app.models.kyc import KYC
+from app.models.package import Package
+from app.models.investments import Investment
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, VerifyEmailOTPRequest
 from app.core.security import hash_password, verify_password, create_access_token, get_current_user_id
 from app.core.rate_limiter import limiter
@@ -103,6 +105,32 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         ref_user.arbx_wallet = (
             ref_user.arbx_wallet + Decimal("10.00000000000000")
         )
+
+    # Handle package selection
+    if user_data.package_id:
+        pkg_result = await db.execute(
+            select(Package).where(Package.id == user_data.package_id, Package.is_active == True)
+        )
+        selected_pkg = pkg_result.scalar_one_or_none()
+
+        if selected_pkg and selected_pkg.investment_amount == 0:
+            now = datetime.now(timezone.utc)
+            investment = Investment(
+                user_id=new_user.id,
+                package_name=selected_pkg.name,
+                invested_amount=Decimal("0"),
+                roi_percent=Decimal("0"),
+                expected_profit=Decimal("0"),
+                daily_payment=selected_pkg.daily_payment,
+                captcha_required_per_day=selected_pkg.captcha_required_per_day,
+                earn_per_captcha=selected_pkg.earn_per_captcha,
+                daily_captcha_limit=selected_pkg.daily_captcha_limit,
+                captchas_typed_today=0,
+                start_date=now,
+                end_date=now,
+                status="active",
+            )
+            db.add(investment)
 
     await db.commit()
     await db.refresh(new_user)

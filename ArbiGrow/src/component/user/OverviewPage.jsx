@@ -13,21 +13,24 @@ import {
   Headset,
   ShoppingCart,
   Store,
+  Send,
+  Clock,
 } from "lucide-react";
 import useUserStore from "../../store/userStore";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getMyDeposits,
   getMyWithdrawals,
   refreshUserStore,
   startMining,
   claimMining,
+  getMiningStatus,
   getMyEarningsHistory,
 } from "../../api/user.api.js";
 import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
 import { MarketsCrawl } from "./overview/MarketsCrawl.jsx";
 import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
-import ProfileCard from "./ProfileCard.jsx";
+import ProfileIdentityCard from "./ProfileIdentityCard.jsx";
 
 const OverviewPage = ({ setActivePage }) => {
   const MINING_CYCLE_MS = 24 * 60 * 60 * 1000;
@@ -41,6 +44,11 @@ const OverviewPage = ({ setActivePage }) => {
   const [remainingTime, setRemainingTime] = useState(null);
   const [isMiningActionLoading, setIsMiningActionLoading] = useState(false);
   const [miningActionError, setMiningActionError] = useState("");
+  const [simulatedMiningBalance, setSimulatedMiningBalance] = useState(null);
+  const [dailyCap, setDailyCap] = useState(20);
+  const miningBaseRef = useRef(0);
+  const miningStartRef = useRef(0);
+  const capRef = useRef(20);
   const isMiningActive = user?.is_mining && user?.mining_started_at;
 
   const syncUserFromServer = useCallback(async () => {
@@ -125,6 +133,36 @@ const OverviewPage = ({ setActivePage }) => {
     return () => clearInterval(interval);
   }, [MINING_CYCLE_MS, user?.is_mining, user?.mining_started_at]);
 
+  useEffect(() => {
+    if (!isMiningActive || !user?.mining_started_at) {
+      setSimulatedMiningBalance(null);
+      return;
+    }
+    miningBaseRef.current = Number(user.arbx_mining_wallet) || 0;
+    miningStartRef.current = new Date(user.mining_started_at).getTime();
+    capRef.current = dailyCap;
+    const initElapsed = (Date.now() - miningStartRef.current) / 1000;
+    const initEarned = Math.min((capRef.current / 86400) * initElapsed, capRef.current);
+    setSimulatedMiningBalance(Math.max(0, initEarned));
+
+    getMiningStatus().then((res) => {
+      if (res?.data?.daily_cap) {
+        const nc = Number(res.data.daily_cap);
+        setDailyCap(nc);
+        capRef.current = nc;
+      }
+    }).catch(() => {});
+
+    const interval = setInterval(() => {
+      const elapsed = (Date.now() - miningStartRef.current) / 1000;
+      const earned = Math.min((capRef.current / 86400) * elapsed, capRef.current);
+      setSimulatedMiningBalance(earned);
+    }, 50);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMiningActive, user?.mining_started_at]);
+
   const formatTime = (ms) => {
     if (!ms) return "00:00:00";
 
@@ -183,6 +221,24 @@ const OverviewPage = ({ setActivePage }) => {
 
     setMiningActionError("");
     setIsMiningActionLoading(true);
+    try {
+      const statusRes = await getMiningStatus();
+      if (statusRes?.data?.mining_active && statusRes?.data?.mining_started_at) {
+        setUser({
+          is_mining: true,
+          mining_started_at: statusRes.data.mining_started_at,
+          arbx_mining_wallet: statusRes.data.arbx_mining_wallet ?? user.arbx_mining_wallet,
+        });
+        const timeLeft = statusRes.data.time_remaining_seconds;
+        setRemainingTime(timeLeft != null ? timeLeft * 1000 : MINING_CYCLE_MS);
+        setMiningActionError("");
+        setIsMiningActionLoading(false);
+        return;
+      }
+    } catch {
+      // status check failed, proceed with start-mining
+    }
+
     try {
       const response = await startMining();
       const miningStartedAt =
@@ -318,6 +374,18 @@ const OverviewPage = ({ setActivePage }) => {
       icon: Store,
       onClick: () => setActivePage("seller"),
     },
+    {
+      id: "send-funds",
+      label: "Send Funds",
+      icon: Send,
+      onClick: () => setActivePage("send-funds"),
+    },
+    {
+      id: "transfer-history",
+      label: "Transfers",
+      icon: Clock,
+      onClick: () => setActivePage("transfer-history"),
+    },
   ];
 
 
@@ -398,8 +466,8 @@ const OverviewPage = ({ setActivePage }) => {
         </div>
       </div> */}
 
-      {/* Profile Card */}
-      <ProfileCard setActivePage={setActivePage} />
+      {/* Profile Identity Card */}
+      <ProfileIdentityCard />
 
       {/* Quick Shortcuts */}
       <QuickShortcuts shortcuts={shortcuts} />
@@ -803,8 +871,8 @@ const OverviewPage = ({ setActivePage }) => {
           ecosystem.
         </p>
         <p className="text-gray-300">
-          According to our launching roadmap, these tokens will be tradable very
-          soon.{" "}
+          You can already <strong className="text-cyan-400">convert OFA to USDT</strong> on the Convert page.
+          External transfers will be enabled soon according to our roadmap.{" "}
           <span className="text-cyan-400 font-semibold">
             Grow your network, accumulate more tokens!
           </span>
@@ -827,11 +895,21 @@ const OverviewPage = ({ setActivePage }) => {
               <h3 className="text-xl font-bold text-white mb-1">
 OFA token Mining Wallet
               </h3>
-              <div className="text-2xl font-bold text-yellow-400">
-                {Number(user.arbx_mining_wallet).toFixed(7)} ARBX
+              <div className="text-2xl font-bold text-yellow-400 font-mono tracking-wider">
+                {isMiningActive && simulatedMiningBalance !== null
+                  ? (() => {
+                      const s = simulatedMiningBalance.toFixed(7);
+                      return <>{s.slice(0, -3)}<span className="text-yellow-300/70 animate-pulse">{s.slice(-3)}</span></>;
+                    })()
+                  : Number(user.arbx_mining_wallet).toFixed(7)}{" "}
+                <span className="text-sm font-sans">OFA token</span>
               </div>
               <div className="text-sm text-gray-400">
-                The OFA token mining rate is set at 0.01% per 24-hour cycle
+                {isTimerRunning && remainingTime !== null
+                  ? `${formatTime(remainingTime)} remaining in cycle`
+                  : canClaim
+                    ? "Mining complete — ready to claim!"
+                    : 'Mined continuously over a 24-hour cycle'}
               </div>
             </div>
           </div>
@@ -864,6 +942,31 @@ OFA token Mining Wallet
         {miningActionError && (
           <p className="mt-3 text-sm text-red-400">{miningActionError}</p>
         )}
+      </motion.div>
+
+      {/* Mining Explanation */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+        className="bg-gradient-to-r from-yellow-600/10 via-orange-500/10 to-yellow-600/10 border border-yellow-500/20 rounded-xl p-6"
+      >
+        <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+          <Pickaxe className="w-5 h-5 text-yellow-400" />
+          How Mining Works
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+          <div className="space-y-2">
+            <p><span className="text-yellow-400 font-semibold">1.</span> Click <strong>"Start Mining"</strong> to begin a 24-hour mining cycle.</p>
+            <p><span className="text-yellow-400 font-semibold">2.</span> OFA tokens are mined continuously at a rate proportional to the daily cap divided by 86,400 seconds.</p>
+            <p><span className="text-yellow-400 font-semibold">3.</span> After <strong>at least 1 minute</strong>, you can click <strong>"Claim Reward"</strong> to transfer mined tokens to your Mining Wallet.</p>
+          </div>
+          <div className="space-y-2">
+            <p><span className="text-yellow-400 font-semibold">4.</span> You can claim multiple times during a cycle — each claim gives you the tokens mined since your last claim.</p>
+            <p><span className="text-yellow-400 font-semibold">5.</span> When the 24-hour cycle ends, mining resets automatically. Start a new cycle to continue earning.</p>
+            <p><span className="text-yellow-400 font-semibold">6.</span> Mined OFA tokens can be <strong>converted to USDT</strong> via the Convert page. External transfers are coming soon.</p>
+          </div>
+        </div>
       </motion.div>
 
       {/* Global Live Activity Feed */}

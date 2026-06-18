@@ -7,3 +7,4 @@ class EcommerceConfig(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     signup_bonus_arbx = Column(Numeric(24, 14), nullable=False, default=50)
+    seller_order_fee_percent = Column(Numeric(6, 2), nullable=False, default=5.00)

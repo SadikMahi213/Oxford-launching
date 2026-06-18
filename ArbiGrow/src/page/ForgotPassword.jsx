@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router";
 import Button from "../component/Button";
 import { forgotPassword } from "../api/auth.api.js";
-import logo from "../assets/Arbigrow-Logo.png";
+import logo from "../assets/oxford.png";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();

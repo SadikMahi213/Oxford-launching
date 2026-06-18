@@ -21,6 +21,8 @@ const SystemConfigPanel = () => {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [capInput, setCapInput] = useState("");
+  const [rateInput, setRateInput] = useState("");
+  const [cooldownInput, setCooldownInput] = useState("");
   const [miningPage, setMiningPage] = useState(1);
 
   useEffect(() => {
@@ -66,6 +68,30 @@ const SystemConfigPanel = () => {
       setMiningConfig({ ...miningConfig, mining_daily_cap: capInput.trim() });
       setMsg(`Mining cap set to ${capInput.trim()} OFA`);
       setCapInput("");
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const saveRate = async () => {
+    if (!rateInput.trim()) return;
+    try {
+      await updateMiningConfig(token, "ofa_to_usdt_rate", rateInput.trim());
+      setMiningConfig({ ...miningConfig, ofa_to_usdt_rate: rateInput.trim() });
+      setMsg(`Conversion rate set to ${rateInput.trim()} USDT per OFA`);
+      setRateInput("");
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const saveCooldown = async () => {
+    if (!cooldownInput.trim()) return;
+    try {
+      await updateMiningConfig(token, "mining_claim_cooldown_minutes", cooldownInput.trim());
+      setMiningConfig({ ...miningConfig, mining_claim_cooldown_minutes: cooldownInput.trim() });
+      setMsg(`Claim cooldown set to ${cooldownInput.trim()} minutes`);
+      setCooldownInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -163,6 +189,37 @@ const SystemConfigPanel = () => {
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
               >Save</button>
               <span className="text-xs text-gray-500">Current: {miningConfig.mining_daily_cap || "20"} OFA/day</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">OFA → USDT Rate:</label>
+              <input
+                value={rateInput}
+                onChange={(e) => setRateInput(e.target.value)}
+                placeholder={miningConfig.ofa_to_usdt_rate || "0.0001"}
+                className="w-24 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+              />
+              <button onClick={saveRate}
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
+              >Save</button>
+              <span className="text-xs text-gray-500">1 OFA = {miningConfig.ofa_to_usdt_rate || "0.0001"} USDT</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">Claim Cooldown (min):</label>
+              <input
+                value={cooldownInput}
+                onChange={(e) => setCooldownInput(e.target.value)}
+                placeholder={miningConfig.mining_claim_cooldown_minutes || "1"}
+                className="w-24 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                type="number"
+                min="0"
+                max="1440"
+              />
+              <button onClick={saveCooldown}
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
+              >Save</button>
+              <span className="text-xs text-gray-500">Min wait: {miningConfig.mining_claim_cooldown_minutes || "1"} min</span>
             </div>
           </motion.div>
 

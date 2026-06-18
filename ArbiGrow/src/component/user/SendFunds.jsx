@@ -1,0 +1,172 @@
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle } from "lucide-react";
+import { sendFunds, searchUsers } from "../../api/user.api.js";
+import useUserStore from "../../store/userStore.js";
+
+export default function SendFunds({ setActivePage }) {
+  const { user, setUser } = useUserStore();
+  const [recipient, setRecipient] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [searchedUser, setSearchedUser] = useState(null);
+  const [msg, setMsg] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleSearch = async () => {
+    if (!recipient.trim()) return;
+    setSearching(true);
+    setSearchedUser(null);
+    setMsg("");
+    try {
+      const q = recipient.trim();
+      const res = await searchUsers(q);
+      const allUsers = res?.data?.users || [];
+      const others = allUsers.filter((u) => u.id !== user?.id);
+      if (others.length > 0) {
+        setSearchedUser(others[0]);
+        setMsg("");
+      } else if (allUsers.length > 0 && allUsers[0].id === user?.id) {
+        setMsg("Cannot send funds to yourself");
+      } else {
+        setMsg("No user found matching '" + q + "'");
+      }
+    } catch (err) {
+      setMsg("Search failed: " + (err?.response?.data?.detail || err.message));
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!searchedUser) return;
+    setLoading(true);
+    setMsg("");
+    setIsSuccess(false);
+    try {
+      const res = await sendFunds({
+        recipient: searchedUser.email,
+        amount: parseFloat(amount),
+        note: note || undefined,
+      });
+      setUser({ main_wallet: res.data.new_balance });
+      setMsg(`Sent ${amount} USDT to ${searchedUser.full_name}`);
+      setIsSuccess(true);
+      setAmount("");
+      setNote("");
+      setRecipient("");
+      setSearchedUser(null);
+    } catch (err) {
+      setMsg(err.response?.data?.detail || "Transfer failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen p-4 md:p-6">
+      <div className="max-w-xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => setActivePage?.("overview")} className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10">
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
+          </button>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 flex items-center justify-center">
+            <Send className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Send Funds</h1>
+            <p className="text-sm text-gray-400">Transfer USDT to another user</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
+            <label className="block text-sm text-gray-400">Search Recipient</label>
+            <div className="flex gap-2">
+              <input
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                placeholder="Email, username, or user ID..."
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+              <button
+                onClick={handleSearch}
+                disabled={searching || !recipient.trim()}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 flex items-center gap-2"
+              >
+                {searching ? <Loader className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                Search
+              </button>
+            </div>
+
+            {searchedUser && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30"
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-medium">{searchedUser.full_name}</p>
+                  <p className="text-xs text-gray-400">{searchedUser.email}</p>
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {searchedUser && (
+            <form onSubmit={handleSubmit} className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Amount (USDT)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-emerald-500/50"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">USDT</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Available: {Number(user?.main_wallet || 0).toFixed(2)} USDT</p>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Note (optional)</label>
+                <input
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="What's this for?"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
+                />
+              </div>
+
+              {msg && (
+                <p className={`flex items-center gap-2 text-sm ${isSuccess ? "text-emerald-400" : "text-red-400"}`}>
+                  {isSuccess ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                  {msg}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading || !amount || parseFloat(amount) <= 0}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                {loading ? "Sending..." : `Send ${amount || "0"} USDT`}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}

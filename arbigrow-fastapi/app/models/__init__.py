@@ -21,3 +21,4 @@ from app.models.ad_view import AdView
 from app.models.ad import Ad
 from app.models.user_ad_view import UserAdView
 from app.models.invoice import Invoice
+from app.models.transfer_log import TransferLog

@@ -780,7 +780,15 @@ async def update_user_wallets(
     if not update_fields:
         raise HTTPException(status_code=400, detail="No wallet balances provided")
 
+    ALLOWED_WALLET_FIELDS = {
+        "main_wallet", "deposit_wallet", "withdraw_wallet",
+        "referral_wallet", "generation_wallet", "arbx_wallet",
+        "arbx_mining_wallet",
+    }
+
     for field, raw_value in update_fields.items():
+        if field not in ALLOWED_WALLET_FIELDS:
+            raise HTTPException(status_code=400, detail=f"Field '{field}' is not a valid wallet field")
         value = Decimal(str(raw_value)).quantize(
             WALLET_PRECISION,
             rounding=ROUND_HALF_UP,
@@ -988,7 +996,7 @@ async def get_mining_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     config = {}
-    for key in ("mining_enabled", "mining_daily_cap"):
+    for key in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes"):
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
         config[key] = row.value if row else None
@@ -1002,7 +1010,7 @@ async def update_mining_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    if key not in ("mining_enabled", "mining_daily_cap"):
+    if key not in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes"):
         raise HTTPException(status_code=400, detail="Invalid mining config key")
     if key == "mining_enabled" and value.lower() not in ("true", "false"):
         raise HTTPException(status_code=400, detail="mining_enabled must be 'true' or 'false'")
@@ -1013,6 +1021,20 @@ async def update_mining_config(
                 raise HTTPException(status_code=400, detail="Cap must be between 0 and 10000")
         except Exception:
             raise HTTPException(status_code=400, detail="mining_daily_cap must be a number")
+    if key == "ofa_to_usdt_rate":
+        try:
+            rate = Decimal(value)
+            if rate <= 0 or rate > 1:
+                raise HTTPException(status_code=400, detail="Rate must be between 0 and 1")
+        except Exception:
+            raise HTTPException(status_code=400, detail="ofa_to_usdt_rate must be a number")
+    if key == "mining_claim_cooldown_minutes":
+        try:
+            cd = int(value)
+            if cd < 0 or cd > 1440:
+                raise HTTPException(status_code=400, detail="Cooldown must be between 0 and 1440 minutes")
+        except Exception:
+            raise HTTPException(status_code=400, detail="mining_claim_cooldown_minutes must be a number")
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
     config = result.scalar_one_or_none()
     if not config:

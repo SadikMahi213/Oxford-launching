@@ -21,6 +21,12 @@ async def submit_kyc(
     db: AsyncSession = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
+    ALLOWED_KYC_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    if front_image.content_type not in ALLOWED_KYC_TYPES:
+        raise HTTPException(400, "Only JPEG, PNG, and WebP images are allowed for KYC documents")
+    if back_image and back_image.content_type not in ALLOWED_KYC_TYPES:
+        raise HTTPException(400, "Only JPEG, PNG, and WebP images are allowed for KYC documents")
+
     # Check if KYC already exists
     result = await db.execute(
         select(KYC).where(KYC.user_id == user_id)

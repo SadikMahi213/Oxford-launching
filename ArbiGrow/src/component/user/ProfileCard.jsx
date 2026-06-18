@@ -11,11 +11,15 @@ import {
   Clock,
   CalendarDays,
   IdCard,
+  ShieldCheck,
+  MapPin,
+  Quote,
   Check,
   X,
 } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import api from "../../api/axiosInstance.js";
+import profileBg from "../../assets/profile-bg.jpeg";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -79,6 +83,9 @@ export default function ProfileCard({ setActivePage }) {
   const joinDate = formatJoinDate(user?.created_at);
   const lastLogin = getTimeAgo(user?.updated_at);
   const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
+  const memberId = user?.referral_code ? `MEM-${user.referral_code}` : userId;
+  const kycStatus = user?.phone_number && user?.country ? "Verified" : "Pending";
+  const position = "Member";
 
   const handleSavePhoto = async () => {
     setPhotoLoading(true);
@@ -149,9 +156,11 @@ export default function ProfileCard({ setActivePage }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden"
+      className="rounded-xl border border-white/10 overflow-hidden relative"
+      style={{ backgroundImage: `url(${profileBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
     >
-      <div className="p-5 md:p-6">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/60" />
+      <div className="p-5 md:p-6 relative z-10">
         <div className="flex flex-col md:flex-row md:items-start gap-5">
           <div className="flex items-center gap-4 md:flex-col md:items-center">
             <div className="relative flex-shrink-0">
@@ -349,6 +358,39 @@ export default function ProfileCard({ setActivePage }) {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <div className="flex items-start gap-2 mb-3">
+            <Quote className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-cyan-300/80 italic">
+              "Your future, Our mission"
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <IdCard className="w-3 h-3 text-cyan-400" />
+              <span>ID: <span className="text-white/80">{userId || "-"}</span></span>
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>KYC: <span className={hasKYC ? "text-emerald-400" : "text-yellow-400"}>{kycStatus}</span></span>
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <Award className="w-3 h-3 text-purple-400" />
+              <span>Member: <span className="text-white/80">{memberId || "-"}</span></span>
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <MapPin className="w-3 h-3 text-blue-400" />
+              <span>Position: <span className="text-white/80">{position}</span></span>
+            </div>
+          </div>
+          {joinDate && (
+            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+              <CalendarDays className="w-3 h-3" />
+              Since {joinDate}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

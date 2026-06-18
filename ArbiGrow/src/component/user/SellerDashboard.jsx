@@ -716,7 +716,7 @@ const SellerDashboard = () => {
               <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="Product name" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder="Category" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder="ARBX to allocate for promotion" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder="OFA to allocate for promotion" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
             </div>
 
             <div>
@@ -771,7 +771,7 @@ const SellerDashboard = () => {
                 <div key={p.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium">{p.name}</p>
-                    <p className="text-xs text-gray-400">${parseFloat(p.price).toFixed(2)} | ARBX: {parseFloat(p.arbx_allocated).toFixed(2)} | {p.is_active ? "Active" : "Inactive"}</p>
+                    <p className="text-xs text-gray-400">${parseFloat(p.price).toFixed(2)} | OFA: {parseFloat(p.arbx_allocated).toFixed(2)} | {p.is_active ? "Active" : "Inactive"}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleToggleProduct(p)} className={`px-3 py-1 rounded-lg text-xs font-medium ${p.is_active ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"}`}>

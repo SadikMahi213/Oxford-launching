@@ -43,42 +43,19 @@ export default function AdsView() {
     fetchStats();
   }, [fetchStats]);
 
-  const loadYouTubeAPI = useCallback(() => {
-    if (window.YT) return;
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    const first = document.getElementsByTagName("script")[0];
-    first.parentNode.insertBefore(tag, first);
-  }, []);
-
-  useEffect(() => {
-    loadYouTubeAPI();
-  }, [loadYouTubeAPI]);
-
   const initPlayer = useCallback((videoId) => {
     if (!window.YT || !window.YT.Player) {
       window.onYouTubeIframeAPIReady = () => initPlayer(videoId);
       return;
     }
-    if (playerRef.current) return;
     playerRef.current = new window.YT.Player(playerContainerRef.current, {
       videoId,
       height: "100%",
       width: "100%",
-      playerVars: {
-        autoplay: 1,
-        controls: 1,
-        rel: 0,
-        modestbranding: 1,
-        enablejsapi: 1,
-      },
+      playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, enablejsapi: 1 },
       events: {
         onReady: () => setPlayerReady(true),
-        onStateChange: (event) => {
-          if (event.data === window.YT.PlayerState.ENDED) {
-            setCanComplete(true);
-          }
-        },
+        onStateChange: () => {},
         onError: () => {
           setError("Failed to load video. Please try another ad.");
           setWatching(false);
@@ -106,10 +83,9 @@ export default function AdsView() {
 
   useEffect(() => {
     if (!watching || !adSession?.video_id) return;
-    const timer = setTimeout(() => initPlayer(adSession.video_id), 100);
+    initPlayer(adSession.video_id);
     window.onYouTubeIframeAPIReady = () => initPlayer(adSession.video_id);
     return () => {
-      clearTimeout(timer);
       if (window.onYouTubeIframeAPIReady === undefined) return;
       window.onYouTubeIframeAPIReady = null;
     };
@@ -121,8 +97,12 @@ export default function AdsView() {
     const checkProgress = setInterval(() => {
       try {
         const currentTime = playerRef.current.getCurrentTime();
-        if (currentTime >= (adSession?.required_watch_seconds || 30)) {
+        const state = playerRef.current.getPlayerState();
+        const required = adSession?.required_watch_seconds || 30;
+        if (currentTime >= required) {
           setCanComplete(true);
+        } else if (state === window.YT.PlayerState.ENDED && currentTime < required) {
+          setError("This video is shorter than the required watch time. Please try another ad.");
         }
       } catch {}
     }, 1000);
@@ -153,7 +133,8 @@ export default function AdsView() {
       setResult(data);
       setWatching(false);
       if (playerRef.current) {
-        playerRef.current.stopVideo();
+        playerRef.current.destroy();
+        playerRef.current = null;
       }
       if (data.success) {
         setUser({ main_wallet: data.new_balance });
@@ -276,7 +257,7 @@ export default function AdsView() {
                 <div>
                   <div className="text-2xl font-bold text-purple-400 mb-1">{timer}s</div>
                   <p className="text-gray-400 text-sm">
-                    {canComplete ? "Watched! Click complete to earn." : "Watching... please wait"}
+                    {canComplete ? "Watched! Click complete to earn." : error ? "Video too short" : `Watch at least ${adSession?.required_watch_seconds || 30}s to earn`}
                   </p>
                   <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
                     <div
@@ -313,7 +294,7 @@ export default function AdsView() {
                   {result.remaining_today} ads remaining today
                 </div>
                 <button
-                  onClick={() => { setResult(null); }}
+                  onClick={handleStart}
                   className="mt-3 w-full p-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold"
                 >
                   Watch Next Ad

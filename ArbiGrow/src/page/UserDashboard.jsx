@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
-import Logo from "../assets/Arbigrow-Logo.png";
+import Logo from "../assets/oxford.png";
 import { mockMarketPrices, mockUserData } from "../constants/mockdata.js";
 import { useNavigate } from "react-router";
 import ReferralPage from "../component/user/ReferralPage.jsx";
@@ -52,6 +52,7 @@ import {
   getMyEarningsHistory,
   getMyProfitHistory,
   getActiveAnnouncement,
+  getTransferHistory,
 } from "../api/user.api.js";
 import DepositPage from "../component/user/DepositUSDT.jsx";
 import WithdrawPage from "../component/user/WithdrawUSDT.jsx";
@@ -67,6 +68,8 @@ import DailyTasks from "../component/user/DailyTasks.jsx";
 import AdsView from "../component/user/AdsView.jsx";
 import ConvertOFA from "../component/user/ConvertOFA.jsx";
 import InvoicePage from "../component/user/InvoicePage.jsx";
+import SendFunds from "../component/user/SendFunds.jsx";
+import TransferHistory from "../component/user/TransferHistory.jsx";
 import WhatsAppFloatingButton from "../component/user/WhatsAppButton.jsx";
 import ShareReferralButton from "../component/user/ShareReferralButton.jsx";
 // Mock data for market prices
@@ -271,7 +274,7 @@ export function UserDashboard() {
     if (v === "processing") return "Processing";
     return "Pending";
   };
-  const _normalizeTransactions = (deps, wdws, ears, pfts) => {
+  const _normalizeTransactions = (deps, wdws, ears, pfts, transfers) => {
     const rows = [];
     deps.forEach((d) =>
       rows.push({
@@ -349,6 +352,34 @@ export function UserDashboard() {
         _ts: new Date(p.created_at).getTime(),
       }),
     );
+    (transfers?.sent || []).forEach((t) =>
+      rows.push({
+        id: `trf_s_${t.id}`,
+        transactionId: _genTransactionId("TRF", t.id, t.created_at, "sent"),
+        date: _fmtDate(t.created_at),
+        type: `Transfer to @${t.receiver_name || "user"}`,
+        wallet: "Main Wallet",
+        amount: _fmtAmount(t.amount),
+        amountDirection: "debit",
+        currency: "USDT",
+        status: _mapStatus(t.status),
+        _ts: new Date(t.created_at).getTime(),
+      }),
+    );
+    (transfers?.received || []).forEach((t) =>
+      rows.push({
+        id: `trf_r_${t.id}`,
+        transactionId: _genTransactionId("TRF", t.id, t.created_at, "recv"),
+        date: _fmtDate(t.created_at),
+        type: `Transfer from @${t.sender_name || "user"}`,
+        wallet: "Main Wallet",
+        amount: _fmtAmount(t.amount),
+        amountDirection: "credit",
+        currency: "USDT",
+        status: _mapStatus(t.status),
+        _ts: new Date(t.created_at).getTime(),
+      }),
+    );
     return rows.sort((a, b) => b._ts - a._ts);
   };
 
@@ -357,17 +388,19 @@ export function UserDashboard() {
     const load = async () => {
       setTransactionsLoading(true);
       try {
-        const [depRes, wdwRes, earRes, pftRes] = await Promise.all([
+        const [depRes, wdwRes, earRes, pftRes, trfRes] = await Promise.all([
           getMyDeposits(),
           getMyWithdrawals(),
           getMyEarningsHistory(),
           getMyProfitHistory(),
+          getTransferHistory(),
         ]);
         const deps = depRes?.data?.data || [];
         const wdws = wdwRes?.data?.data || [];
         const ears = earRes?.data?.data || [];
         const pfts = pftRes?.data?.data || [];
-        setTransactions(_normalizeTransactions(deps, wdws, ears, pfts));
+        const transfers = trfRes?.data || {};
+        setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers));
         setTransactionsLoaded(true);
       } catch (err) {
         console.error("Failed to load transactions:", err);
@@ -677,6 +710,14 @@ export function UserDashboard() {
 
     if (activePage === "convert") {
       return <ConvertOFA />;
+    }
+
+    if (activePage === "send-funds") {
+      return <SendFunds setActivePage={setActivePage} />;
+    }
+
+    if (activePage === "transfer-history") {
+      return <TransferHistory setActivePage={setActivePage} />;
     }
 
     if (activePage !== "overview") {
