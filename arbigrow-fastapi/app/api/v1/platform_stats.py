@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -10,13 +10,16 @@ from app.schemas.platform_stats import (
     PlatformStatsResponse,
 )
 from app.api.v1.deps import get_current_admin_user
+from app.core.rate_limiter import limiter
 
 
 router = APIRouter(prefix="/platform-stats", tags=["Platform Stats"])
 
 
 @router.get("/", response_model=PlatformStatsResponse)
+@limiter.limit("30/minute")
 async def get_platform_stats(
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
 

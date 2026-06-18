@@ -14,15 +14,14 @@ export const forgotPassword = (data) => {
 };
 
 export const resetPassword = (newPassword, token) => {
-  return api.post(
-    "v1/auth/reset-password",
-    { new_password: newPassword },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  return api.post("v1/auth/reset-password", {
+    new_password: newPassword,
+    token: token,
+  });
+};
+
+export const logoutUser = () => {
+  return api.post("v1/auth/logout");
 };
 
 export const verifyEmail = (data) => {

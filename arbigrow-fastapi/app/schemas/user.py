@@ -83,6 +83,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     new_password: str
+    token: str
 
 
 class ResendVerificationRequest(BaseModel):

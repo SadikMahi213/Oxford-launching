@@ -7,6 +7,7 @@ import {
   CheckCircle,
   AlertCircle,
   Check,
+  KeyRound,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { resetPassword } from "../api/auth.api.js";
@@ -16,19 +17,18 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const urlToken = new URLSearchParams(location.search).get("token");
-  const storeToken = useUserStore.getState().token;
-  const varificationtoken =
-    urlToken && urlToken.trim() !== "" ? urlToken : storeToken;
+  const { logout } = useUserStore();
 
+  const [token, setToken] = useState(urlToken || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showToken, setShowToken] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
-  const { logout } = useUserStore();
-  // Password strength indicators
+
   const passwordRequirements = {
     minLength: password.length >= 8,
     hasUpperCase: /[A-Z]/.test(password),
@@ -42,6 +42,11 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!token) {
+      setError("Reset token is required. Check your email.");
+      return;
+    }
 
     if (!password || !confirmPassword) {
       setError("Please fill in all fields");
@@ -58,22 +63,16 @@ export default function ResetPassword() {
       return;
     }
 
-    if (!varificationtoken) {
-      setError("Token not found. Please try the reset link again.");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const res = await resetPassword(password, varificationtoken);
+      const res = await resetPassword(password, token);
       if (res?.status === 200) {
         setIsSuccess(true);
         logout();
       }
-      //  console.log("Res Data:",res) // API call
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      setError(err.response?.data?.detail || err.response?.data?.message || "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
@@ -81,7 +80,6 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#060913] via-[#080b1f] to-[#060913] text-white flex items-center justify-center px-4 py-12">
-      {/* Main Content */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -93,7 +91,6 @@ export default function ResetPassword() {
           <div className="relative z-10">
             {!isSuccess ? (
               <>
-                {/* Header */}
                 <div className="text-center mb-8">
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -111,14 +108,41 @@ export default function ResetPassword() {
                     </span>
                   </h1>
                   <p className="text-gray-400 text-sm md:text-base">
-                    Your new password must be different from previously used
-                    passwords
+                    Enter the reset token from your email and your new password
                   </p>
                 </div>
 
-                {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* New Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Reset Token
+                    </label>
+                    <div className="relative">
+                      <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type={showToken ? "text" : "password"}
+                        value={token}
+                        onChange={(e) => {
+                          setToken(e.target.value);
+                          setError("");
+                        }}
+                        placeholder="Paste your reset token from email"
+                        className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowToken(!showToken)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        {showToken ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       New Password
@@ -149,7 +173,6 @@ export default function ResetPassword() {
                     </div>
                   </div>
 
-                  {/* Password Requirements */}
                   {password && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -205,7 +228,6 @@ export default function ResetPassword() {
                     </motion.div>
                   )}
 
-                  {/* Confirm Password */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
                       Confirm Password
@@ -238,7 +260,6 @@ export default function ResetPassword() {
                     </div>
                   </div>
 
-                  {/* Error Message */}
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -250,7 +271,6 @@ export default function ResetPassword() {
                     </motion.div>
                   )}
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -266,7 +286,6 @@ export default function ResetPassword() {
               </>
             ) : (
               <>
-                {/* Success */}
                 <div className="text-center">
                   <motion.div
                     initial={{ scale: 0 }}

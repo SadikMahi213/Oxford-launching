@@ -1,5 +1,5 @@
 from sqlalchemy.exc import IntegrityError
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from decimal import Decimal
@@ -15,7 +15,7 @@ from app.models.kyc import KYC
 from app.models.package import Package
 from app.models.investments import Investment
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, VerifyEmailOTPRequest
-from app.core.security import hash_password, verify_password, create_access_token, get_current_user_id
+from app.core.security import hash_password, verify_password, create_access_token, get_current_user_id, verify_password_reset_token
 from app.core.rate_limiter import limiter
 from app.utils.email import send_password_reset_email, send_email_verification
 from app.utils.generate_username import generate_username
@@ -140,7 +140,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("60/minute")
-async def login(request: Request, user_data: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(request: Request, response: Response, user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     normalized_email = _normalize_email(user_data.email)
 
     result = await db.execute(
@@ -175,12 +175,33 @@ async def login(request: Request, user_data: UserLogin, db: AsyncSession = Depen
         data={"sub": str(user.id)}
     )
 
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
     return {
         "access_token": access_token,
         "user": UserResponse(**user.__dict__,  phone_number=kyc.phone_number if kyc else None, country=kyc.country if kyc else None),
         "doc_submitted": doc_submitted,
         "kyc_status": kyc_status
     }
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+    return {"message": "Logged out"}
 
 
 @router.post("/forgot-password")
@@ -209,12 +230,12 @@ async def forgot_password(
         expires_minutes=15
     )
 
-    reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password?token={reset_token}"
+    reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password"
 
-    # # TODO: Replace with real email sender
-    # print("RESET LINK:", reset_link)
+    # NOTE: Token is sent in email body, NOT in URL query string.
+    # This prevents exposure in browser history, server logs, and Referer headers.
 
-    await send_password_reset_email(user.email, reset_link)
+    await send_password_reset_email(user.email, f"Your reset link: {reset_link}\n\nYour reset token: {reset_token}")
 
     return {"message": "If this email exists, a reset link has been sent."}
 
@@ -224,9 +245,10 @@ async def forgot_password(
 async def reset_password(
     request: Request,
     data: ResetPasswordRequest,
-    user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ):
+    user_id = verify_password_reset_token(data.token)
+
     result = await db.execute(
         select(User).where(User.id == user_id)
     )
@@ -235,7 +257,6 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Update password
     user.hashed_password = hash_password(data.new_password)
 
     await db.commit()
