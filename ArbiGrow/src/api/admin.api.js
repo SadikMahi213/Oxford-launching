@@ -460,4 +460,31 @@ export const deleteAdminAd = async (token, adId) => {
   return res.data || {};
 };
 
+// ── GA4 Analytics ────────────────────────────────────────────────
+
+export const getAnalyticsOverview = async (token) => {
+  const res = await api.get("v1/admin/analytics/overview", authHeaders(token));
+  return res.data || {};
+};
+
+export const getAnalyticsRealtime = async (token) => {
+  const res = await api.get("v1/admin/analytics/realtime", authHeaders(token));
+  return res.data || {};
+};
+
+export const getAnalyticsCountries = async (token) => {
+  const res = await api.get("v1/admin/analytics/countries", authHeaders(token));
+  return res.data || {};
+};
+
+export const getAnalyticsDevices = async (token) => {
+  const res = await api.get("v1/admin/analytics/devices", authHeaders(token));
+  return res.data || {};
+};
+
+export const getAnalyticsTrafficSources = async (token) => {
+  const res = await api.get("v1/admin/analytics/traffic-sources", authHeaders(token));
+  return res.data || {};
+};
+
 // ── Task Management (REMOVED — replaced by Captcha Typing System) ─────────────────

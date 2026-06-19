@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     AUTO_ROI_ENABLED: bool = True
     AUTO_ROI_POLL_SECONDS: int = 21600
 
+    GOOGLE_ANALYTICS_CREDENTIALS: str = ""
+    GOOGLE_ANALYTICS_PROPERTY_ID: str = ""
+
     class Config:
         env_file = ".env"
 

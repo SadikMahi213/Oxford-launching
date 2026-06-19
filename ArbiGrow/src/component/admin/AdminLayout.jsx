@@ -19,6 +19,7 @@ import {
   Settings,
   Video,
   User,
+  BarChart3,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -38,6 +39,12 @@ export default function AdminLayout({
       label: "Dashboard",
       icon: LayoutDashboard,
       description: "Overview & Analytics",
+    },
+    {
+      id: "analytics",
+      label: "Google Analytics",
+      icon: BarChart3,
+      description: "Traffic & engagement",
     },
     {
       id: "users",

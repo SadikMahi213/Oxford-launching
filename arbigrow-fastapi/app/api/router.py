@@ -19,6 +19,7 @@ from app.api.v1 import (
     admin_ads,
     invoice,
     whatsapp,
+    admin_analytics,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -42,3 +43,4 @@ api_router.include_router(ads.router)
 api_router.include_router(admin_ads.router)
 api_router.include_router(invoice.router)
 api_router.include_router(whatsapp.router)
+api_router.include_router(admin_analytics.router)

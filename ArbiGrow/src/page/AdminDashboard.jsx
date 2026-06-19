@@ -17,6 +17,7 @@ import SystemConfigPanel from "../component/admin/SystemConfigPanel.jsx";
 import AdManagement from "../component/admin/AdManagement.jsx";
 import AdminReports from "../component/admin/AdminReports.jsx";
 import AdminWhatsAppConfig from "../component/admin/AdminWhatsAppConfig.jsx";
+import AnalyticsDashboard from "../component/admin/analytics/AnalyticsDashboard.jsx";
 import { Camera, Check, X } from "lucide-react";
 import api from "../api/axiosInstance.js";
 
@@ -99,6 +100,8 @@ export default function AdminDashboard() {
     switch (activePage) {
       case "dashboard":
         return <DashboardOverview users={users} />;
+      case "analytics":
+        return <AnalyticsDashboard />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
       case "deposits":
