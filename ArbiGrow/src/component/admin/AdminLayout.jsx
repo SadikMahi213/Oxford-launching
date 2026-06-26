@@ -86,6 +86,12 @@ export default function AdminLayout({
       description: "Pending KYC verifications",
     },
     {
+      id: "kyc-package",
+      label: "KYC Package",
+      icon: ShieldAlert,
+      description: "Configure KYC verification package",
+    },
+    {
       id: "deposits",
       label: "Deposit Requests",
       icon: Wallet,

@@ -1,10 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock, Keyboard, Eye, Award } from "lucide-react";
-import { walletTransfer } from "../../api/user.api.js";
+import { ArrowLeft, ArrowRight, RefreshCw, CheckCircle, AlertCircle, Wallet } from "lucide-react";
+import { transferBetweenWallets } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
-import KycWarningBanner from "./KycWarningBanner.jsx";
 
 const WALLET_OPTIONS = [
   { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT" },
@@ -116,7 +115,6 @@ export default function WalletTransfer() {
           </div>
         </div>
 
-        <KycWarningBanner />
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="md:col-span-2">

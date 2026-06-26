@@ -43,6 +43,15 @@ async def submit_kyc(
     if existing_kyc:
         raise HTTPException(status_code=400, detail="KYC already submitted")
 
+    # Check if KYC package is enabled
+    pkg_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "kyc_package_enabled")
+    )
+    pkg_enabled_config = pkg_result.scalar_one_or_none()
+    pkg_enabled = (pkg_enabled_config.value if pkg_enabled_config else "true").lower() == "true"
+    if not pkg_enabled:
+        raise HTTPException(status_code=400, detail="KYC verification is currently disabled by the administrator")
+
     # Dynamic KYC fee check
     fee_result = await db.execute(
         select(SystemConfig).where(SystemConfig.key == "kyc_fee")

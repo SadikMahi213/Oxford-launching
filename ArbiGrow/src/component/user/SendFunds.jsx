@@ -47,6 +47,11 @@ export default function SendFunds({ setActivePage }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!searchedUser) return;
+    const kycStatus = user?.kyc_status;
+    if (!kycStatus || kycStatus !== "approved") {
+      setMsg("KYC verification required. Please complete KYC verification before sending funds.");
+      return;
+    }
     setLoading(true);
     setMsg("");
     setIsSuccess(false);

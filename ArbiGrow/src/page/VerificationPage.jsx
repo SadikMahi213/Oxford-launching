@@ -315,13 +315,12 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
                 <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  KYC
+                  KYC Verification
                 </span>{" "}
-                Verification
+                Package
               </h1>
               <p className="text-gray-400 text-sm md:text-base">
-                To comply with regulatory requirements, please provide your
-                government-issued ID information
+                Purchase the KYC verification package to unlock fund transfers and withdrawals.
               </p>
             </div>
 
@@ -588,20 +587,32 @@ export default function VerificationPage({ embedded, onSuccess }) {
                 </div>
               </div>
 
-              {/* KYC Fee Notice */}
-              {parseFloat(kycFee) > 0 && !hasExistingKyc && (
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              {/* KYC Package Fee */}
+              {!hasExistingKyc && (
+                <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/[0.02] border border-cyan-500/30">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <ShieldCheck className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-gray-300">
-                      <p className="font-medium text-amber-300">KYC Verification Fee</p>
-                      <p className="mt-1">
-                        A fee of <strong>{kycFee} USDT</strong> will be deducted from your main wallet for KYC processing.
-                      </p>
-                      {parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
-                        <p className="mt-1 text-red-400 text-xs">
-                          Insufficient balance. Your main wallet has {user?.main_wallet || 0} USDT.
-                        </p>
+                      {parseFloat(kycFee) > 0 ? (
+                        <>
+                          <p className="font-medium text-cyan-300">KYC Package — {kycFee} USDT</p>
+                          <p className="mt-1">
+                            Purchase the KYC verification package for <strong>{kycFee} USDT</strong>.
+                            This fee will be deducted from your main wallet once you submit your documents.
+                          </p>
+                          {parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
+                            <p className="mt-1 text-red-400 text-xs">
+                              Insufficient balance. Your main wallet has {user?.main_wallet || 0} USDT.
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium text-cyan-300">KYC Package — Free</p>
+                          <p className="mt-1">
+                            Submit your documents to complete KYC verification. No fee is required.
+                          </p>
+                        </>
                       )}
                     </div>
                   </div>
@@ -829,7 +840,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                 {/* Animated shine effect */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
 
-                <span className="relative flex items-center justify-center gap-2">
+                      <span className="relative flex items-center justify-center gap-2">
                   {isSubmitting ? (
                     <>
                       <motion.div
@@ -841,12 +852,12 @@ export default function VerificationPage({ embedded, onSuccess }) {
                         }}
                         className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                       />
-                      Verifying...
+                      Processing...
                     </>
                   ) : (
                     <>
                       <ShieldCheck className="w-5 h-5" />
-                      Submit for Verification
+                      {parseFloat(kycFee) > 0 ? `Purchase & Submit (${kycFee} USDT)` : "Submit for Verification"}
                     </>
                   )}
                 </span>
@@ -864,11 +875,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
                 <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-gray-400">
                   <p className="mb-1">
-                    Your information is encrypted and securely stored. We use
-                    this data solely for identity verification purposes.
+                    This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.
                   </p>
                   <p className="text-xs text-gray-500">
-                    Verification typically takes 1-2 business days.
+                    Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.
                   </p>
                 </div>
               </div>

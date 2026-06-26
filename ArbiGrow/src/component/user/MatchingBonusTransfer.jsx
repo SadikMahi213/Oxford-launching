@@ -49,6 +49,11 @@ export default function MatchingBonusTransfer({ setActivePage }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!searchedUser) return;
+    const kycStatus = user?.kyc_status;
+    if (!kycStatus || kycStatus !== "approved") {
+      setMsg("KYC verification required. Please complete KYC verification before transferring.");
+      return;
+    }
     setLoading(true);
     setMsg("");
     setIsSuccess(false);

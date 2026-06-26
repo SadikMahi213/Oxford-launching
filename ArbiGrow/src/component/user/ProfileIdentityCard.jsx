@@ -48,8 +48,8 @@ export default function ProfileIdentityCard() {
   const getKycStatus = () => {
     if (kycRaw === "approved") return "Verified"
     if (kycRaw === "rejected") return "Rejected"
-    if (kycRaw === "pending") return "Processing"
-    return "Unverified"
+    if (kycRaw === "pending") return "Pending Verification"
+    return "Not Verified"
   }
   const kycStatus = getKycStatus()
 

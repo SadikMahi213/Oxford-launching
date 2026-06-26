@@ -246,6 +246,11 @@ export default function WithdrawPage() {
   const handleSubmitWithdraw = async (event) => {
     event.preventDefault();
     setFeedback(null);
+    const kycStatus = user?.kyc_status;
+    if (!kycStatus || kycStatus !== "approved") {
+      setFeedback({ type: "error", message: "KYC verification required. Please complete KYC verification before withdrawing." });
+      return;
+    }
     const nextFieldErrors = { ...INITIAL_FIELD_ERRORS };
     const normalizedAmount = amount.trim();
     const parsedAmount = Number(normalizedAmount);

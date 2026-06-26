@@ -1202,10 +1202,13 @@ async def get_fee_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     configs = {}
-    for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee"]:
+    for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled"]:
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
-        configs[key] = row.value if row else ("5" if "charge" in key else "0")
+        if key == "kyc_package_enabled":
+            configs[key] = row.value if row else "true"
+        else:
+            configs[key] = row.value if row else ("5" if "charge" in key else "0")
     return {"data": configs}
 
 
@@ -1216,17 +1219,21 @@ async def update_fee_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee"}
+    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled"}
     if key not in valid_keys:
         raise HTTPException(status_code=400, detail=f"Invalid key. Must be one of: {', '.join(sorted(valid_keys))}")
-    try:
-        val = Decimal(data.value)
-        if val < 0:
-            raise HTTPException(status_code=400, detail="Value must not be negative")
-        if key != "kyc_fee" and val > 100:
-            raise HTTPException(status_code=400, detail="Charge must be between 0 and 100")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
+    if key == "kyc_package_enabled":
+        if data.value.lower() not in ("true", "false"):
+            raise HTTPException(status_code=400, detail="Value must be 'true' or 'false'")
+    else:
+        try:
+            val = Decimal(data.value)
+            if val < 0:
+                raise HTTPException(status_code=400, detail="Value must not be negative")
+            if key != "kyc_fee" and val > 100:
+                raise HTTPException(status_code=400, detail="Charge must be between 0 and 100")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
 
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
     config = result.scalar_one_or_none()
@@ -1236,8 +1243,15 @@ async def update_fee_config(
         config = SystemConfig(key=key, value=data.value)
         db.add(config)
     await db.commit()
-    label = "KYC fee" if key == "kyc_fee" else key.replace("_percent", "% charge").replace("_", " ").title()
-    return {"message": f"{label} updated to {data.value}{'' if key == 'kyc_fee' else '%'}"}
+    labels = {
+        "kyc_fee": "KYC fee",
+        "kyc_package_enabled": "KYC package",
+        "transfer_charge_percent": "Transfer % charge",
+        "withdrawal_charge_percent": "Withdrawal % charge",
+    }
+    label = labels.get(key, key.replace("_", " ").title())
+    suffix = "" if key in ("kyc_fee", "kyc_package_enabled") else "%"
+    return {"message": f"{label} updated to {data.value}{suffix}"}
 
 
 @router.get("/mining/stats")
