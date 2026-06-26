@@ -10,6 +10,7 @@ AllowedAdminUserStatus = Literal["pending", "approved", "rejected", "issue"]
 class UpdateKYCStatusRequest(BaseModel):
     status: AllowedAdminUserStatus
     issue_note: Optional[str] = Field(default=None, max_length=1000)
+    admin_note: Optional[str] = Field(default=None, max_length=2000)
 
 
 class CreditProfitRequest(BaseModel):

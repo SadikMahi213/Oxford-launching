@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.models.kyc import KYC
+from app.models.kyc import KYC, KycPackage, PaymentStatus
 from app.models.deposit_network import DepositNetwork
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal

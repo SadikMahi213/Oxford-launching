@@ -5,7 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
-from app.models.kyc import KYC, DocumentType
+from app.models.kyc import KYC, DocumentType, KycPackage
 from app.models.user import User
 from app.models.system_config import SystemConfig
 from app.services.b2_service import upload_to_b2
@@ -14,6 +14,27 @@ from app.utils.notifications import notify_admin
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
 WALLET_PRECISION = Decimal("0.00000000000001")
+
+
+@router.get("/active-package")
+async def get_active_kyc_package(
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(KycPackage).where(KycPackage.is_active == True).order_by(KycPackage.id.desc()).limit(1)
+    )
+    pkg = result.scalar_one_or_none()
+    if not pkg:
+        return {"active": False, "package": None}
+    return {
+        "active": True,
+        "package": {
+            "id": pkg.id,
+            "name": pkg.name,
+            "price": str(pkg.price),
+            "description": pkg.description,
+        }
+    }
 
 
 @router.post("/submit")
@@ -25,6 +46,8 @@ async def submit_kyc(
     document_number: str = Form(...),
     front_image: UploadFile = File(...),
     back_image: UploadFile = File(None),
+    kyc_package_id: int = Form(None),
+    transaction_id: str = Form(None),
     db: AsyncSession = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
@@ -51,6 +74,15 @@ async def submit_kyc(
     pkg_enabled = (pkg_enabled_config.value if pkg_enabled_config else "true").lower() == "true"
     if not pkg_enabled:
         raise HTTPException(status_code=400, detail="KYC verification is currently disabled by the administrator")
+
+    # Validate kyc_package_id if provided
+    if kyc_package_id:
+        pkg_result = await db.execute(
+            select(KycPackage).where(KycPackage.id == kyc_package_id, KycPackage.is_active == True)
+        )
+        pkg = pkg_result.scalar_one_or_none()
+        if not pkg:
+            raise HTTPException(status_code=400, detail="Invalid or inactive KYC package selected")
 
     # Dynamic KYC fee check
     fee_result = await db.execute(
@@ -102,6 +134,8 @@ async def submit_kyc(
         document_number=document_number,
         front_image_key=front_key,
         back_image_key=back_key,
+        kyc_package_id=kyc_package_id,
+        transaction_id=transaction_id,
     )
 
     db.add(new_kyc)

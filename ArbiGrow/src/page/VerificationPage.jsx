@@ -13,7 +13,7 @@ import {
   Check,
   Car,
 } from "lucide-react";
-import { submitKYC } from "../api/kyc.api.js";
+import { submitKYC, getActiveKycPackage } from "../api/kyc.api.js";
 import { getFeeInfo } from "../api/user.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
 import { useNavigate } from "react-router";
@@ -42,6 +42,8 @@ export default function VerificationPage({ embedded, onSuccess }) {
   const [profileImageMsg, setProfileImageMsg] = useState("");
   const [kycFee, setKycFee] = useState("0");
   const [hasExistingKyc, setHasExistingKyc] = useState(false);
+  const [activePackage, setActivePackage] = useState(null);
+  const [transactionId, setTransactionId] = useState("");
 
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
@@ -78,6 +80,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
       if (data) {
         setKycFee(data.kyc_fee || "0");
         setHasExistingKyc(data.has_kyc || false);
+      }
+    }).catch(() => {});
+    getActiveKycPackage().then((res) => {
+      if (res?.active && res?.package) {
+        setActivePackage(res.package);
       }
     }).catch(() => {});
   }, []);
@@ -200,6 +207,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
+    if (!hasExistingKyc && activePackage && !transactionId.trim()) {
+      setError("Please enter your Transaction ID");
+      return;
+    }
+
     if (!hasExistingKyc && parseFloat(kycFee) > 0 && parseFloat(user?.main_wallet || 0) < parseFloat(kycFee)) {
       setError(`Insufficient balance. KYC fee is ${kycFee} USDT but your main wallet has ${user?.main_wallet || 0} USDT.`);
       return;
@@ -215,6 +227,13 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
     if (idType !== "passport" && backImage) {
       formData.append("back_image", backImage);
+    }
+
+    if (activePackage) {
+      formData.append("kyc_package_id", activePackage.id);
+    }
+    if (transactionId.trim()) {
+      formData.append("transaction_id", transactionId.trim());
     }
 
     setIsSubmitting(true);
@@ -587,6 +606,25 @@ export default function VerificationPage({ embedded, onSuccess }) {
                 </div>
               </div>
 
+              {/* Transaction ID */}
+              {!hasExistingKyc && activePackage && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Transaction ID <span className="text-gray-500">(required)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={transactionId}
+                    onChange={(e) => {
+                      setTransactionId(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="Enter your payment transaction ID"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
+                  />
+                </div>
+              )}
+
               {/* KYC Package Fee */}
               {!hasExistingKyc && (
                 <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/[0.02] border border-cyan-500/30">
@@ -595,9 +633,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
                     <div className="text-sm text-gray-300">
                       {parseFloat(kycFee) > 0 ? (
                         <>
-                          <p className="font-medium text-cyan-300">KYC Package — {kycFee} USDT</p>
+                          <p className="font-medium text-cyan-300">
+                            {activePackage ? `${activePackage.name} — ${activePackage.price} USDT` : `KYC Package — ${kycFee} USDT`}
+                          </p>
                           <p className="mt-1">
-                            Purchase the KYC verification package for <strong>{kycFee} USDT</strong>.
+                            Purchase the KYC verification package for <strong>{activePackage ? activePackage.price : kycFee} USDT</strong>.
                             This fee will be deducted from your main wallet once you submit your documents.
                           </p>
                           {parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
@@ -608,7 +648,9 @@ export default function VerificationPage({ embedded, onSuccess }) {
                         </>
                       ) : (
                         <>
-                          <p className="font-medium text-cyan-300">KYC Package — Free</p>
+                          <p className="font-medium text-cyan-300">
+                            {activePackage ? `${activePackage.name} — Free` : "KYC Package — Free"}
+                          </p>
                           <p className="mt-1">
                             Submit your documents to complete KYC verification. No fee is required.
                           </p>
@@ -857,7 +899,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   ) : (
                     <>
                       <ShieldCheck className="w-5 h-5" />
-                      {parseFloat(kycFee) > 0 ? `Purchase & Submit (${kycFee} USDT)` : "Submit for Verification"}
+                      {parseFloat(kycFee) > 0 ? `Purchase & Submit (${activePackage ? activePackage.price : kycFee} USDT)` : "Submit for Verification"}
                     </>
                   )}
                 </span>

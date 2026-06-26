@@ -8,7 +8,7 @@ from sqlalchemy import select, func, or_, and_, case, delete, update, desc, desc
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
 from app.models.user import User
-from app.models.kyc import KYC, KYCStatus
+from app.models.kyc import KYC, KYCStatus, KycPackage, PaymentStatus
 from app.models.investments import Investment
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -716,6 +716,14 @@ async def get_user_details(
             "document_type": kyc.document_type.value if kyc else None,
             "document_number": kyc.document_number if kyc else None,
             "status": kyc.status.value if kyc else None,
+            "transaction_id": kyc.transaction_id if kyc else None,
+            "admin_note": kyc.admin_note if kyc else None,
+            "payment_status": kyc.payment_status.value if kyc else None,
+            "kyc_package": {
+                "id": kyc.package.id,
+                "name": kyc.package.name,
+                "price": str(kyc.package.price),
+            } if kyc and kyc.package else None,
             "front_image_url": generate_presigned_url(kyc.front_image_key) if kyc else None,
             "back_image_url": generate_presigned_url(kyc.back_image_key) if kyc else None,
         } if kyc else None,
@@ -808,6 +816,8 @@ async def update_kyc_status(
 
     if kyc:
         kyc.status = new_kyc_status
+        if payload.admin_note:
+            kyc.admin_note = payload.admin_note.strip()
 
     # Always persist an admin status so users without KYC can still be managed.
     user.admin_kyc_status = new_kyc_status.value
@@ -830,6 +840,7 @@ async def update_kyc_status(
         "new_status": new_kyc_status.value,
         "issue_note": None,
         "account_status": user.account_status,
+        "admin_note": (kyc.admin_note if kyc else None),
     }
 
 
@@ -1252,6 +1263,148 @@ async def update_fee_config(
     label = labels.get(key, key.replace("_", " ").title())
     suffix = "" if key in ("kyc_fee", "kyc_package_enabled") else "%"
     return {"message": f"{label} updated to {data.value}{suffix}"}
+
+
+# ── KYC Package CRUD ────────────────────────────────────────────────────
+
+
+@router.get("/kyc-packages")
+async def get_kyc_packages(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    del current_admin
+    result = await db.execute(
+        select(KycPackage).order_by(KycPackage.created_at.desc())
+    )
+    packages = result.scalars().all()
+    return {
+        "data": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "price": str(p.price),
+                "description": p.description,
+                "is_active": p.is_active,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+            }
+            for p in packages
+        ]
+    }
+
+
+@router.post("/kyc-packages")
+async def create_kyc_package(
+    name: str,
+    price: str,
+    description: str = "",
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    del current_admin
+    try:
+        price_decimal = Decimal(price)
+        if price_decimal < 0:
+            raise ValueError
+    except Exception:
+        raise HTTPException(status_code=400, detail="Price must be a valid non-negative number")
+
+    pkg = KycPackage(
+        name=name.strip(),
+        price=price_decimal,
+        description=description.strip() if description else None,
+    )
+    db.add(pkg)
+    await db.commit()
+    await db.refresh(pkg)
+    return {
+        "message": "KYC package created",
+        "package": {
+            "id": pkg.id,
+            "name": pkg.name,
+            "price": str(pkg.price),
+            "is_active": pkg.is_active,
+        }
+    }
+
+
+@router.put("/kyc-packages/{package_id}")
+async def update_kyc_package(
+    package_id: int,
+    name: str = "",
+    price: str = "",
+    description: str = "",
+    is_active: bool = None,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    del current_admin
+    result = await db.execute(select(KycPackage).where(KycPackage.id == package_id))
+    pkg = result.scalar_one_or_none()
+    if not pkg:
+        raise HTTPException(status_code=404, detail="KYC package not found")
+
+    if name.strip():
+        pkg.name = name.strip()
+    if price:
+        try:
+            price_decimal = Decimal(price)
+            if price_decimal < 0:
+                raise ValueError
+            pkg.price = price_decimal
+        except Exception:
+            raise HTTPException(status_code=400, detail="Price must be a valid non-negative number")
+    if description is not None:
+        pkg.description = description.strip() if description.strip() else None
+    if is_active is not None:
+        pkg.is_active = is_active
+
+    await db.commit()
+    await db.refresh(pkg)
+    return {
+        "message": "KYC package updated",
+        "package": {
+            "id": pkg.id,
+            "name": pkg.name,
+            "price": str(pkg.price),
+            "is_active": pkg.is_active,
+        }
+    }
+
+
+@router.delete("/kyc-packages/{package_id}")
+async def deactivate_kyc_package(
+    package_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    del current_admin
+    result = await db.execute(select(KycPackage).where(KycPackage.id == package_id))
+    pkg = result.scalar_one_or_none()
+    if not pkg:
+        raise HTTPException(status_code=404, detail="KYC package not found")
+
+    pkg.is_active = False
+    await db.commit()
+    return {"message": "KYC package deactivated"}
+
+
+KYC_NOTICE_TEMPLATES = [
+    {"id": "doc_unclear", "text": "Documents are unclear or illegible. Please upload clearer images."},
+    {"id": "doc_expired", "text": "The document provided appears to be expired. Please provide a valid document."},
+    {"id": "doc_mismatch", "text": "Document details do not match the information provided. Please review and resubmit."},
+    {"id": "missing_info", "text": "Required information is missing. Please complete all fields."},
+    {"id": "approved_std", "text": "Your KYC verification has been approved. You can now access all platform features."},
+]
+
+
+@router.get("/kyc-notice-templates")
+async def get_kyc_notice_templates(
+    current_admin: User = Depends(get_current_admin_user),
+):
+    del current_admin
+    return {"data": KYC_NOTICE_TEMPLATES}
 
 
 @router.get("/mining/stats")

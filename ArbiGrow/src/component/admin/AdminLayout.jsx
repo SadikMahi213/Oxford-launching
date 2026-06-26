@@ -88,7 +88,7 @@ export default function AdminLayout({
     {
       id: "kyc-package",
       label: "KYC Package",
-      icon: ShieldAlert,
+      icon: Package,
       description: "Configure KYC verification package",
     },
     {

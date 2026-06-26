@@ -47,10 +47,14 @@ export const updateKYCStatus = async (
   user_Id,
   statusValue,
   issueNote = "",
+  adminNote = "",
 ) => {
   const payload = { status: statusValue };
   if (String(statusValue || "").toLowerCase() === "issue") {
     payload.issue_note = String(issueNote || "").trim();
+  }
+  if (String(adminNote || "").trim()) {
+    payload.admin_note = String(adminNote || "").trim();
   }
 
   const res = await api.patch(
@@ -378,6 +382,28 @@ export const getFeeConfig = async (token) => {
 
 export const updateFeeConfig = async (token, key, value) => {
   const res = await api.put(`v1/admin/fee-config/${key}`, { value }, authHeaders(token));
+  return res.data || {};
+};
+
+// ── KYC Package CRUD ───────────────────────────────────────────────────
+
+export const getKycPackages = async (token) => {
+  const res = await api.get("v1/admin/kyc-packages", authHeaders(token));
+  return res.data || { data: [] };
+};
+
+export const createKycPackage = async (token, data) => {
+  const res = await api.post("v1/admin/kyc-packages", null, { params: data, ...authHeaders(token) });
+  return res.data || {};
+};
+
+export const updateKycPackage = async (token, packageId, data) => {
+  const res = await api.put(`v1/admin/kyc-packages/${packageId}`, null, { params: data, ...authHeaders(token) });
+  return res.data || {};
+};
+
+export const deleteKycPackage = async (token, packageId) => {
+  const res = await api.delete(`v1/admin/kyc-packages/${packageId}`, authHeaders(token));
   return res.data || {};
 };
 
