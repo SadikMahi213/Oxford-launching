@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "Rendimiento del Equipo",
       "level": "Nivel {{level}}",
-      "loading": "Cargando..."
+      "loading": "Cargando...",
+      "netEarnings": "Ganancias Netas (Todos los Niveles)"
     },
     "mining": {
       "title": "Cartera de Minería OFA",

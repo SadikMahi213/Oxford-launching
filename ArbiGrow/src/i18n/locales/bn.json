@@ -354,9 +354,10 @@
       "inactive": "নিষ্ক্রিয় সদস্য"
     },
     "teamPerformance": {
-      "title": "টিম পারফরম্যান্স",
-      "level": "লেভেল {{level}}",
-      "loading": "লোড হচ্ছে..."
+      "title": "দলের কর্মক্ষমতা",
+      "level": "স্তর {{level}}",
+      "loading": "লোড হচ্ছে...",
+      "netEarnings": "সব স্তরের নেট আয়"
     },
     "mining": {
       "title": "OFA টোকেন মাইনিং ওয়ালেট",

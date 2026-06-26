@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "Team Performance",
       "level": "Level {{level}}",
-      "loading": "Dey load..."
+      "loading": "Dey load...",
+      "netEarnings": "Total Earnings (All Levels)"
     },
     "mining": {
       "title": "OFA Token Mining Wallet",

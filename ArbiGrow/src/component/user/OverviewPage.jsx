@@ -1058,6 +1058,16 @@ const OverviewPage = ({ setActivePage }) => {
           <GitBranch className="w-5 h-5 text-cyan-400" />
           {t('overview.teamPerformance.title')}
         </h2>
+
+        {referralLevels.length > 0 && (
+          <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-cyan-600/15 to-blue-600/10 border border-cyan-500/20 flex items-center justify-between">
+            <span className="text-sm text-gray-300">{t('overview.teamPerformance.netEarnings')}</span>
+            <span className="text-xl font-bold text-white">
+              ${referralLevels.reduce((sum, lvl) => sum + (lvl.totalEarnings || 0), 0).toFixed(2)}
+            </span>
+          </div>
+        )}
+
         {referralLevels.length === 0 ? (
           <div className="text-gray-400 text-sm">{t('overview.teamPerformance.loading')}</div>
         ) : (

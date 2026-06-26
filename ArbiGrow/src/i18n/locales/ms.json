@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "Prestasi Pasukan",
       "level": "Tahap {{level}}",
-      "loading": "Memuatkan..."
+      "loading": "Memuatkan...",
+      "netEarnings": "Pendapatan Bersih (Semua Tahap)"
     },
     "mining": {
       "title": "Dompet Perlombongan Token OFA",

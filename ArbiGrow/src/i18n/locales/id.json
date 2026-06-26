@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "Kinerja Tim",
       "level": "Level {{level}}",
-      "loading": "Memuat..."
+      "loading": "Memuat...",
+      "netEarnings": "Pendapatan Bersih (Semua Tingkat)"
     },
     "mining": {
       "title": "Dompet Penambangan Token OFA",

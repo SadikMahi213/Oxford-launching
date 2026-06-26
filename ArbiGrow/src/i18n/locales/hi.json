@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "टीम प्रदर्शन",
       "level": "स्तर {{level}}",
-      "loading": "लोड हो रहा है..."
+      "loading": "लोड हो रहा है...",
+      "netEarnings": "सभी स्तरों की शुद्ध आय"
     },
     "mining": {
       "title": "OFA टोकन माइनिंग वॉलेट",

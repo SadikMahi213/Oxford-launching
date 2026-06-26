@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "ٹیم کارکردگی",
       "level": "سطح {{level}}",
-      "loading": "لوڈ ہو رہا ہے..."
+      "loading": "لوڈ ہو رہا ہے...",
+      "netEarnings": "تمام درجات کی خالص آمدنی"
     },
     "mining": {
       "title": "OFA ٹوکن مائننگ والیٹ",

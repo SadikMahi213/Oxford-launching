@@ -356,7 +356,8 @@
     "teamPerformance": {
       "title": "Hiệu Suất Nhóm",
       "level": "Cấp {{level}}",
-      "loading": "Đang tải..."
+      "loading": "Đang tải...",
+      "netEarnings": "Thu nhập ròng (Tất cả cấp độ)"
     },
     "mining": {
       "title": "Ví Đào Token OFA",
