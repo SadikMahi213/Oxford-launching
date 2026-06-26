@@ -19,8 +19,13 @@ BONUS_PERCENT_PRECISION = Decimal("0.0001")
 async def get_team_volume(
     user_id: int,
     db: AsyncSession,
-) -> Decimal:
-    """Calculate total team volume: self deposits + all descendants deposits (any depth)."""
+) -> tuple[Decimal, Decimal]:
+    """Calculate personal deposit and total team volume.
+
+    Returns (personal_volume, team_volume) where:
+      - personal_volume = user's own approved deposits
+      - team_volume    = personal_volume + all descendants' approved deposits
+    """
     # Self deposits (approved)
     self_result = await db.execute(
         select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
@@ -53,7 +58,8 @@ async def get_team_volume(
         )
         team_volume += Decimal(str(team_result.scalar()))
 
-    return team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+    team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+    return self_volume, team_volume
 
 
 async def _get_highest_qualified_rank(
@@ -208,8 +214,12 @@ async def evaluate_and_process_rank(
     if not user:
         return result
 
-    # Step 1: Calculate team volume
-    team_volume = await get_team_volume(user_id, db)
+    # Step 1: Calculate personal deposit and total team volume
+    personal_volume, team_volume = await get_team_volume(user_id, db)
+
+    # Users with zero personal deposit are not eligible for any matching bonus
+    if personal_volume <= 0:
+        return result
 
     # Update user's team_volume
     user.team_volume = team_volume
