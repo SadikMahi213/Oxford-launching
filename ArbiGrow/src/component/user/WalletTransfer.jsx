@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowLeft, ArrowRight, RefreshCw, CheckCircle, AlertCircle, Wallet } from "lucide-react";
-import { transferBetweenWallets } from "../../api/user.api.js";
+import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock, Keyboard, Eye, Award } from "lucide-react";
+import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 
 const WALLET_OPTIONS = [
