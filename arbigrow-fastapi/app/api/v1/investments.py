@@ -178,6 +178,8 @@ async def buy_investment(
                     reference_type="investment",
                 )
 
+        await db.commit()
+
     await notify_admin(
         db=db, type="package_purchased",
         message=f"User {current_user.full_name} purchased package {package.name} for {amount} USDT",

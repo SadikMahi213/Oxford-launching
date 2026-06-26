@@ -222,6 +222,12 @@ async def update_deposit_status(
                 type="deposit_referral" if level_idx == 0 else "deposit_generation",
             ))
 
+        # Commit deposit + wallet + referral bonuses first so rank evaluation
+        # can read the committed deposit in get_team_volume().
+        await db.commit()
+        await db.refresh(deposit)
+        await db.refresh(user)
+
         # Trigger rank evaluation for the deposit user
         from app.services.rank_service import evaluate_and_process_rank
         await evaluate_and_process_rank(
@@ -250,8 +256,7 @@ async def update_deposit_status(
                     reference_type="deposit",
                 )
 
-    await db.commit()
-    await db.refresh(deposit)
+        await db.commit()
 
     notif_type = "deposit_approved" if data.status == "approved" else "deposit_rejected"
     await notify_admin(
