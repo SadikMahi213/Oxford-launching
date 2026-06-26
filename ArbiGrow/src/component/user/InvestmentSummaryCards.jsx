@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Wallet, TrendingUp as TrendingUpIcon, BarChart3, Package } from 'lucide-react';
 
 export function InvestmentSummaryCards({
@@ -7,10 +8,10 @@ export function InvestmentSummaryCards({
   totalProfitEarned,
   activeInvestmentsCount
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-      
-      {/* Total Invested */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -24,16 +25,15 @@ export function InvestmentSummaryCards({
         </div>
 
         <div className="text-xs md:text-sm text-gray-400 mb-1">
-          Total Invested
+          {t("investmentSummaryCards.totalInvested")}
         </div>
 
         <div className="text-xl md:text-2xl font-bold text-white">
           {totalInvested.toLocaleString()} 
-          <span className="text-sm text-gray-400"> USDT</span>
+          <span className="text-sm text-gray-400"> {t("investmentSummaryCards.usdt")}</span>
         </div>
       </motion.div>
 
-      {/* Expected Profit */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -47,16 +47,15 @@ export function InvestmentSummaryCards({
         </div>
 
         <div className="text-xs md:text-sm text-gray-400 mb-1">
-          Expected Profit
+          {t("investmentSummaryCards.expectedProfit")}
         </div>
 
         <div className="text-xl md:text-2xl font-bold text-white">
           {totalExpectedProfit.toLocaleString()} 
-          <span className="text-sm text-gray-400"> USDT</span>
+          <span className="text-sm text-gray-400"> {t("investmentSummaryCards.usdt")}</span>
         </div>
       </motion.div>
 
-      {/* Profit Earned */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,16 +69,15 @@ export function InvestmentSummaryCards({
         </div>
 
         <div className="text-xs md:text-sm text-gray-400 mb-1">
-          Profit Earned
+          {t("investmentSummaryCards.profitEarned")}
         </div>
 
         <div className="text-xl md:text-2xl font-bold text-white">
           {totalProfitEarned.toLocaleString()} 
-          <span className="text-sm text-gray-400"> USDT</span>
+          <span className="text-sm text-gray-400"> {t("investmentSummaryCards.usdt")}</span>
         </div>
       </motion.div>
 
-      {/* Active Investments */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -93,14 +91,13 @@ export function InvestmentSummaryCards({
         </div>
 
         <div className="text-xs md:text-sm text-gray-400 mb-1">
-          Active Investments
+          {t("investmentSummaryCards.activeInvestments")}
         </div>
 
         <div className="text-xl md:text-2xl font-bold text-white">
           {activeInvestmentsCount}
         </div>
       </motion.div>
-
     </div>
   );
 }

@@ -712,5 +712,8 @@
     "none": "Wala",
     "required": "Kinakailangan",
     "optional": "Opsyonal"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

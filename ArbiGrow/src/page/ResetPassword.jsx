@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   Lock,
   Eye,
@@ -14,6 +15,7 @@ import { resetPassword } from "../api/auth.api.js";
 import useUserStore from "../store/userStore.js";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const urlToken = new URLSearchParams(location.search).get("token");
@@ -44,22 +46,22 @@ export default function ResetPassword() {
     setError("");
 
     if (!token) {
-      setError("Reset token is required. Check your email.");
+      setError(t("resetPassword.err_token"));
       return;
     }
 
     if (!password || !confirmPassword) {
-      setError("Please fill in all fields");
+      setError(t("resetPassword.err_fillAll"));
       return;
     }
 
     if (!allRequirementsMet) {
-      setError("Password does not meet all requirements");
+      setError(t("resetPassword.err_requirements"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(t("resetPassword.err_mismatch"));
       return;
     }
 
@@ -72,7 +74,7 @@ export default function ResetPassword() {
         logout();
       }
     } catch (err) {
-      setError(err.response?.data?.detail || err.response?.data?.message || "Something went wrong");
+      setError(err.response?.data?.detail || err.response?.data?.message || t("resetPassword.err_general"));
     } finally {
       setIsSubmitting(false);
     }
@@ -102,20 +104,19 @@ export default function ResetPassword() {
                   </motion.div>
 
                   <h1 className="text-3xl md:text-4xl font-bold mb-3">
-                    Create New{" "}
                     <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                      Password
+                      {t("resetPassword.title")}
                     </span>
                   </h1>
                   <p className="text-gray-400 text-sm md:text-base">
-                    Enter the reset token from your email and your new password
+                    {t("resetPassword.description")}
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Reset Token
+                      {t("resetPassword.token")}
                     </label>
                     <div className="relative">
                       <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -126,7 +127,7 @@ export default function ResetPassword() {
                           setToken(e.target.value);
                           setError("");
                         }}
-                        placeholder="Paste your reset token from email"
+                        placeholder={t("resetPassword.token_plh")}
                         className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                       />
                       <button
@@ -145,7 +146,7 @@ export default function ResetPassword() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      New Password
+                      {t("resetPassword.newPassword")}
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -156,7 +157,7 @@ export default function ResetPassword() {
                           setPassword(e.target.value);
                           setError("");
                         }}
-                        placeholder="Enter new password"
+                        placeholder={t("resetPassword.newPassword_plh")}
                         className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                       />
                       <button
@@ -180,30 +181,15 @@ export default function ResetPassword() {
                       className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2"
                     >
                       <p className="text-xs font-semibold text-gray-400 mb-3">
-                        Password must contain:
+                        {t("resetPassword.requirements")}
                       </p>
                       <div className="grid gap-2">
                         {[
-                          {
-                            label: "At least 8 characters",
-                            met: passwordRequirements.minLength,
-                          },
-                          {
-                            label: "One uppercase letter",
-                            met: passwordRequirements.hasUpperCase,
-                          },
-                          {
-                            label: "One lowercase letter",
-                            met: passwordRequirements.hasLowerCase,
-                          },
-                          {
-                            label: "One number",
-                            met: passwordRequirements.hasNumber,
-                          },
-                          {
-                            label: "One special character",
-                            met: passwordRequirements.hasSpecial,
-                          },
+                          { label: t("resetPassword.req_chars"), met: passwordRequirements.minLength },
+                          { label: t("resetPassword.req_upper"), met: passwordRequirements.hasUpperCase },
+                          { label: t("resetPassword.req_lower"), met: passwordRequirements.hasLowerCase },
+                          { label: t("resetPassword.req_number"), met: passwordRequirements.hasNumber },
+                          { label: t("resetPassword.req_special"), met: passwordRequirements.hasSpecial },
                         ].map((req, idx) => (
                           <div key={idx} className="flex items-center gap-2">
                             <div
@@ -230,7 +216,7 @@ export default function ResetPassword() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Confirm Password
+                      {t("resetPassword.confirmPassword")}
                     </label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -241,14 +227,12 @@ export default function ResetPassword() {
                           setConfirmPassword(e.target.value);
                           setError("");
                         }}
-                        placeholder="Confirm new password"
+                        placeholder={t("resetPassword.confirm_plh")}
                         className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                       />
                       <button
                         type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                       >
                         {showConfirmPassword ? (
@@ -278,8 +262,8 @@ export default function ResetPassword() {
                   >
                     <span className="relative flex items-center justify-center gap-2">
                       {isSubmitting
-                        ? "Resetting Password..."
-                        : "Reset Password"}
+                        ? t("resetPassword.resetting")
+                        : t("resetPassword.submit")}
                     </span>
                   </button>
                 </form>
@@ -297,22 +281,19 @@ export default function ResetPassword() {
                   </motion.div>
 
                   <h2 className="text-3xl font-bold mb-3">
-                    Password{" "}
                     <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                      Reset Successfully
+                      {t("resetPassword.successTitle")}
                     </span>
                   </h2>
                   <p className="text-gray-400 mb-8">
-                    Your password has been successfully reset.
-                    <br />
-                    You can now sign in with your new password.
+                    {t("resetPassword.successDesc")}
                   </p>
 
                   <button
                     onClick={() => navigate("/login")}
                     className="px-6 py-3 bg-cyan-500 rounded-xl font-semibold hover:bg-cyan-400 transition-colors"
                   >
-                    Sign In
+                    {t("resetPassword.signIn")}
                   </button>
                 </div>
               </>

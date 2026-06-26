@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Package } from "lucide-react";
 import Logo from "../assets/oxford.png";
 import api from "../api/axiosInstance.js";
 
 export default function PackagesSection() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,14 +46,14 @@ export default function PackagesSection() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 mb-6">
             <Package className="w-4 h-4 text-cyan-400" />
             <span className="text-sm font-semibold text-cyan-400 uppercase tracking-wider">
-              Investment Packages
+              {t("packagesSection.badge")}
             </span>
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">
-            Choose Your Plan
+            {t("packagesSection.title")}
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Select a package that fits your goals and start earning daily returns
+            {t("packagesSection.subtitle")}
           </p>
         </motion.div>
 
@@ -90,7 +92,7 @@ export default function PackagesSection() {
 
                 <div className="mb-4">
                   <p className="mb-1 text-xs text-gray-400 tracking-widest">
-                    {pkg.task_type === "ad_view" ? "AD VIEW PACKAGE" : "CAPTCHA TYPING PACKAGE"}
+                    {pkg.task_type === "ad_view" ? t("packagesSection.adViewPackage") : t("packagesSection.captchaPackage")}
                   </p>
                   <h3 className="text-xl font-semibold text-white">{pkg.name}</h3>
                 </div>
@@ -99,24 +101,24 @@ export default function PackagesSection() {
                   <p className="text-4xl font-bold tracking-tight text-white">
                     ${Number(pkg.investment_amount).toLocaleString()}
                   </p>
-                  <p className="mt-1 text-sm text-gray-400">Investment Amount</p>
+                  <p className="mt-1 text-sm text-gray-400">{t("packagesSection.investmentAmount")}</p>
                 </div>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">{pkg.task_type === "ad_view" ? "Daily Ads" : "Daily Captcha"}</span>
-                    <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} {pkg.task_type === "ad_view" ? "Ads" : "Tasks"}</span>
+                    <span className="text-gray-400">{pkg.task_type === "ad_view" ? t("packagesSection.dailyAds") : t("packagesSection.dailyCaptcha")}</span>
+                    <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} {pkg.task_type === "ad_view" ? t("packagesSection.ads") : t("packagesSection.tasks")}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Duration</span>
-                    <span className="text-cyan-300 font-medium">{pkg.duration_days} Days</span>
+                    <span className="text-gray-400">{t("packagesSection.duration")}</span>
+                    <span className="text-cyan-300 font-medium">{pkg.duration_days} {t("packagesSection.days")}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Daily Payment</span>
+                    <span className="text-gray-400">{t("packagesSection.dailyPayment")}</span>
                     <span className="text-green-300 font-medium">${Number(pkg.daily_payment).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Total Return</span>
+                    <span className="text-gray-400">{t("packagesSection.totalReturn")}</span>
                     <span className="text-yellow-300 font-medium">${Number(pkg.total_return).toLocaleString()}</span>
                   </div>
                 </div>
@@ -125,13 +127,13 @@ export default function PackagesSection() {
                   <div className="rounded-md bg-cyan-500/10 px-3 py-1">
                     <p className="text-xs font-medium text-cyan-300">
                       {pkg.task_type === "ad_view"
-                        ? `${pkg.ad_duration_seconds || 30}s per Ad`
-                        : `${pkg.captcha_task_duration_seconds || 30}s per Captcha`}
+                        ? t("packagesSection.perAd", { seconds: pkg.ad_duration_seconds || 30 })
+                        : t("packagesSection.perCaptcha", { seconds: pkg.captcha_task_duration_seconds || 30 })}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1">
                     <div className="size-2 rounded-full bg-blue-400" />
-                    <span className="text-xs text-blue-300">{pkg.duration_days} Days</span>
+                    <span className="text-xs text-blue-300">{pkg.duration_days} {t("packagesSection.days")}</span>
                   </div>
                 </div>
               </div>
@@ -151,7 +153,7 @@ export default function PackagesSection() {
             onClick={() => navigate("/register")}
             className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300"
           >
-            Get Started
+            {t("packagesSection.getStarted")}
           </button>
         </motion.div>
       </div>

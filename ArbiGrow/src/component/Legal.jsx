@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
 import { useInView } from 'react-intersection-observer';
+import { useTranslation } from 'react-i18next';
 import { Building2, FileText, AlertCircle, Scale } from 'lucide-react';
 
 export default function Legal() {
+  const { t } = useTranslation();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1
@@ -11,30 +13,29 @@ export default function Legal() {
   const legalItems = [
     {
       icon: Building2,
-      title: 'C-Corporation (Delaware)',
-      description: 'Registered corporate entity under Delaware General Corporation Law, providing legal clarity and investor protection.'
+      title: t("legalHome.item1Title"),
+      description: t("legalHome.item1Desc")
     },
     {
       icon: FileText,
-      title: 'AML & KYC Compliance',
-      description: 'Anti-Money Laundering and Know Your Customer procedures implemented in accordance with applicable regulatory frameworks.'
+      title: t("legalHome.item2Title"),
+      description: t("legalHome.item2Desc")
     },
     {
       icon: AlertCircle,
-      title: 'Non-Financial Advisory Disclaimer',
-      description: 'Oxford Financial Ads does not provide investment advice, financial planning, or portfolio management services. Users trade at their own discretion.'
+      title: t("legalHome.item3Title"),
+      description: t("legalHome.item3Desc")
     },
     {
       icon: Scale,
-      title: 'Decentralized Responsibility Clause',
-      description: 'Smart contracts operate autonomously. Users maintain full responsibility for their trading decisions and outcomes.'
+      title: t("legalHome.item4Title"),
+      description: t("legalHome.item4Desc")
     }
   ];
 
   return (
     <section ref={ref} className="py-20 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -42,14 +43,13 @@ export default function Legal() {
           className="text-center mb-16"
         >
           <div className="inline-block px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 mb-6">
-            <span className="text-sm font-semibold text-amber-400 uppercase tracking-wider">Legal & Compliance</span>
+            <span className="text-sm font-semibold text-amber-400 uppercase tracking-wider">{t("legalHome.badge")}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Regulatory Framework</span> & Transparency
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{t("legalHome.title")}</span> {t("legalHome.titleHighlight")}
           </h2>
         </motion.div>
 
-        {/* Legal Grid */}
         <div className="grid md:grid-cols-2 gap-6 mb-12">
           {legalItems.map((item, idx) => (
             <motion.div
@@ -72,7 +72,6 @@ export default function Legal() {
           ))}
         </div>
 
-        {/* Risk Warning Banner */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -84,17 +83,9 @@ export default function Legal() {
               <AlertCircle className="w-6 h-6 text-red-400" />
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-3 text-red-400">Investment Risk Warning</h3>
-              <p className="text-gray-300 leading-relaxed mb-4">
-                Trading digital assets involves substantial risk and may result in partial or total loss of capital. Past performance 
-                does not guarantee future results. Oxford Financial Ads' AI algorithms are probabilistic models and cannot predict market outcomes 
-                with certainty. Users should only allocate capital they can afford to lose and should conduct independent research before 
-                engaging with the platform.
-              </p>
-              <p className="text-sm text-gray-400">
-                This platform is not available to residents of restricted jurisdictions. Users are responsible for compliance with local 
-                laws and regulations.
-              </p>
+              <h3 className="text-xl font-bold mb-3 text-red-400">{t("legalHome.riskTitle")}</h3>
+              <p className="text-gray-300 leading-relaxed mb-4">{t("legalHome.riskText1")}</p>
+              <p className="text-sm text-gray-400">{t("legalHome.riskText2")}</p>
             </div>
           </div>
         </motion.div>

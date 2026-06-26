@@ -1,12 +1,15 @@
 import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, DollarSign, Activity, Zap } from 'lucide-react';
 
 export function TradingAnalytics() {
+  const { t } = useTranslation();
+
   const stats = [
-    { icon: Activity, value: '$2.4M', label: 'Total Volume', change: '+12.5%' },
-    { icon: TrendingUp, value: '1,247', label: 'Active Traders', change: '+8.3%' },
-    { icon: DollarSign, value: '$847K', label: 'Daily Volume', change: '+15.2%' },
-    { icon: Zap, value: '98.7%', label: 'Success Rate', change: '+2.1%' },
+    { icon: Activity, value: '$2.4M', label: t("tradingAnalytics.totalVolume"), change: '+12.5%' },
+    { icon: TrendingUp, value: '1,247', label: t("tradingAnalytics.activeTraders"), change: '+8.3%' },
+    { icon: DollarSign, value: '$847K', label: t("tradingAnalytics.dailyVolume"), change: '+15.2%' },
+    { icon: Zap, value: '98.7%', label: t("tradingAnalytics.successRate"), change: '+2.1%' },
   ];
 
   const chartData = [
@@ -22,13 +25,11 @@ export function TradingAnalytics() {
 
   return (
     <section className="relative py-24 px-4 overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/4 w-[600px] h-[600px] bg-blue-500/3 rounded-full blur-3xl"></div>
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -37,17 +38,16 @@ export function TradingAnalytics() {
           className="text-center mb-16"
         >
           <p className="text-sm uppercase tracking-[0.3em] text-cyan-400 font-semibold mb-4">
-            Performance Metrics
+            {t("tradingAnalytics.badge")}
           </p>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Real-Time{' '}
+            {t("tradingAnalytics.title")}{' '}
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Trading Analytics
+              {t("tradingAnalytics.titleHighlight")}
             </span>
           </h2>
         </motion.div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, index) => (
             <motion.div
@@ -58,24 +58,17 @@ export function TradingAnalytics() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group relative p-6 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500"
             >
-              {/* Glow effect */}
               <div className="absolute -inset-[1px] bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/20 group-hover:to-cyan-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
               <div className="relative">
-                {/* Icon */}
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4">
                   <stat.icon className="w-6 h-6 text-cyan-400" />
                 </div>
-
-                {/* Value */}
                 <div className="mb-2">
                   <div className="text-2xl md:text-3xl font-bold text-white mb-1">
                     {stat.value}
                   </div>
                   <div className="text-sm text-gray-400">{stat.label}</div>
                 </div>
-
-                {/* Change */}
                 <div className="inline-flex items-center gap-1 text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-1 rounded-lg">
                   <TrendingUp className="w-3 h-3" />
                   {stat.change}
@@ -85,7 +78,6 @@ export function TradingAnalytics() {
           ))}
         </div>
 
-        {/* Chart Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -93,24 +85,21 @@ export function TradingAnalytics() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="relative p-8 rounded-2xl bg-gradient-to-br from-blue-900/30 to-blue-950/20 backdrop-blur-xl border border-blue-500/20"
         >
-          {/* Chart Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h3 className="text-xl font-bold text-white mb-1">
-                6 Month Investment History
+                {t("tradingAnalytics.chartTitle")}
               </h3>
-              <p className="text-sm text-gray-400">Total returns over time</p>
+              <p className="text-sm text-gray-400">{t("tradingAnalytics.chartSubtitle")}</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-semibold">
-                +Returns
+                {t("tradingAnalytics.returnsLabel")}
               </div>
             </div>
           </div>
 
-          {/* Chart */}
           <div className="relative h-64">
-            {/* Y-axis labels */}
             <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-xs text-gray-500">
               <span>100</span>
               <span>75</span>
@@ -118,23 +107,17 @@ export function TradingAnalytics() {
               <span>25</span>
               <span>0</span>
             </div>
-
-            {/* Chart area */}
             <div className="ml-12 h-full relative">
-              {/* Grid lines */}
               <div className="absolute inset-0 flex flex-col justify-between">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <div key={i} className="h-px bg-white/5"></div>
                 ))}
               </div>
-
-              {/* Chart bars and line */}
               <div className="relative h-full flex items-end justify-around gap-2">
                 {chartData.map((data, index) => {
                   const height = (data.value / maxValue) * 100;
                   return (
                     <div key={index} className="flex-1 flex flex-col items-center">
-                      {/* Bar */}
                       <motion.div
                         initial={{ height: 0 }}
                         whileInView={{ height: `${height}%` }}
@@ -149,12 +132,7 @@ export function TradingAnalytics() {
                   );
                 })}
               </div>
-
-              {/* Gradient line overlay */}
-              <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                preserveAspectRatio="none"
-              >
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
                 <motion.path
                   initial={{ pathLength: 0 }}
                   whileInView={{ pathLength: 1 }}
@@ -163,9 +141,7 @@ export function TradingAnalytics() {
                   d={`M 0 ${100 - (chartData[0].value / maxValue) * 100} ${chartData
                     .map(
                       (d, i) =>
-                        `L ${((i + 1) / chartData.length) * 100} ${
-                          100 - (d.value / maxValue) * 100
-                        }`
+                        `L ${((i + 1) / chartData.length) * 100} ${100 - (d.value / maxValue) * 100}`
                     )
                     .join(' ')}`}
                   fill="none"
@@ -182,34 +158,29 @@ export function TradingAnalytics() {
                 </defs>
               </svg>
             </div>
-
-            {/* X-axis labels */}
             <div className="ml-12 mt-4 flex justify-around">
               {chartData.map((data, index) => (
-                <span key={index} className="text-xs text-gray-500">
-                  {data.x}
-                </span>
+                <span key={index} className="text-xs text-gray-500">{data.x}</span>
               ))}
             </div>
           </div>
 
-          {/* Bottom Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-white/10">
             <div className="text-center">
               <div className="text-lg font-bold text-white mb-1">$1.2M</div>
-              <div className="text-xs text-gray-400">Total Invested</div>
+              <div className="text-xs text-gray-400">{t("tradingAnalytics.totalInvested")}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-white mb-1">342</div>
-              <div className="text-xs text-gray-400">Active Positions</div>
+              <div className="text-xs text-gray-400">{t("tradingAnalytics.activePositions")}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-white mb-1">$45K</div>
-              <div className="text-xs text-gray-400">Avg. Trade Size</div>
+              <div className="text-xs text-gray-400">{t("tradingAnalytics.avgTradeSize")}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-green-400 mb-1">+24.5%</div>
-              <div className="text-xs text-gray-400">Total Gain</div>
+              <div className="text-xs text-gray-400">{t("tradingAnalytics.totalGain")}</div>
             </div>
           </div>
         </motion.div>

@@ -265,6 +265,7 @@ async def get_admin_users(
     limit: int = Query(50, ge=1),
     search: str | None = None,
     status: str = "all",
+    has_kyc: bool = False,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -281,6 +282,9 @@ async def get_admin_users(
         raise HTTPException(status_code=400, detail="Invalid status filter")
 
     def apply_filters(statement, include_status: bool = True):
+        if has_kyc:
+            statement = statement.where(KYC.id.isnot(None))
+
         if normalized_search:
             statement = statement.where(
                 or_(
@@ -300,6 +304,21 @@ async def get_admin_users(
                         User.email_verified.is_(False),
                     )
                 )
+            elif has_kyc:
+                if normalized_status == "pending":
+                    statement = statement.where(
+                        and_(
+                            User.account_status != "on_hold",
+                            KYC.status == KYCStatus.pending,
+                        )
+                    )
+                else:
+                    statement = statement.where(
+                        and_(
+                            User.account_status != "on_hold",
+                            KYC.status == KYCStatus(normalized_status),
+                        )
+                    )
             elif normalized_status == "pending":
                 # If KYC exists, KYC status is authoritative. Otherwise fallback to admin_kyc_status.
                 statement = statement.where(
@@ -324,7 +343,7 @@ async def get_admin_users(
         return statement
 
     list_query = apply_filters(
-        select(User, KYC.status, User.admin_kyc_status).join(
+        select(User, KYC.status, KYC.transaction_id, KYC.created_at, KYC.kyc_package_id, User.admin_kyc_status).join(
             KYC, KYC.user_id == User.id, isouter=True
         )
     ).order_by(User.updated_at.desc(), User.created_at.desc(), User.id.desc())
@@ -341,7 +360,7 @@ async def get_admin_users(
     rows = result.all()
 
     users = []
-    for user, kyc_status, admin_kyc_status in rows:
+    for user, kyc_status, kyc_txn_id, kyc_created_at, kyc_package_id, admin_kyc_status in rows:
         users.append({
             "id": user.id,
             "full_name": user.full_name,
@@ -349,6 +368,9 @@ async def get_admin_users(
             "email": user.email,
             "email_verified": user.email_verified,
             "has_kyc_submitted": kyc_status is not None,
+            "kyc_transaction_id": kyc_txn_id,
+            "kyc_created_at": kyc_created_at.isoformat() if kyc_created_at else None,
+            "kyc_package_id": kyc_package_id,
             "status": _resolve_effective_status(
                 user.account_status,
                 kyc_status,
@@ -717,6 +739,7 @@ async def get_user_details(
             "document_number": kyc.document_number if kyc else None,
             "status": kyc.status.value if kyc else None,
             "transaction_id": kyc.transaction_id if kyc else None,
+            "created_at": kyc.created_at.isoformat() if kyc and kyc.created_at else None,
             "admin_note": kyc.admin_note if kyc else None,
             "payment_status": kyc.payment_status.value if kyc else None,
             "kyc_package": {

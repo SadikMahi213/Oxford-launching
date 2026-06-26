@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Navbar from "../component/Navbar";
 import { Hero } from "../component/Hero";
 import ExecutiveSummary from "../component/ExecutiveSummary";
@@ -15,6 +16,7 @@ import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { getPlatformStats } from "../api/admin.api.js";
 
 const Home = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
@@ -39,7 +41,7 @@ const Home = () => {
       <div className="flex justify-center my-8 md:my-12">
         <img
           src="/WhatsApp%20Image%202026-06-24%20at%2021.12.20%20(1).jpeg"
-          alt="Financial Services"
+          alt={t("homePage.imageAlt")}
           className="w-full max-w-3xl md:max-w-4xl lg:max-w-5xl h-auto object-contain rounded-2xl"
         />
       </div>

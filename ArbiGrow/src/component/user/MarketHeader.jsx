@@ -1,7 +1,9 @@
-// Market page header component
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, RefreshCw } from 'lucide-react';
 
 export function MarketHeader({ lastUpdated, onRefresh, loading, wsStatus }) {
+  const { t } = useTranslation();
+
   const fmtTime = (d) =>
     d ? d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : null;
 
@@ -12,10 +14,10 @@ export function MarketHeader({ lastUpdated, onRefresh, loading, wsStatus }) {
   }[wsStatus] ?? 'bg-gray-400';
 
   const statusLabel = {
-    open:       'Live',
-    connecting: 'Connecting...',
-    error:      'Reconnecting...',
-  }[wsStatus] ?? 'Offline';
+    open:       t("marketHeader.live"),
+    connecting: t("marketHeader.connecting"),
+    error:      t("marketHeader.reconnecting"),
+  }[wsStatus] ?? t("marketHeader.offline");
 
   return (
     <div className="mb-6">
@@ -27,7 +29,7 @@ export function MarketHeader({ lastUpdated, onRefresh, loading, wsStatus }) {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
               <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Market
+                {t("marketHeader.title")}
               </span>
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
@@ -45,7 +47,7 @@ export function MarketHeader({ lastUpdated, onRefresh, loading, wsStatus }) {
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 disabled:opacity-50 transition-colors text-sm"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t("marketHeader.refresh")}
         </button>
       </div>
     </div>

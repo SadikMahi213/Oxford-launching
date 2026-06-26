@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useTranslation } from "react-i18next";
-import { X, ShieldCheck, CheckCircle, XCircle, Clock, FileText, MessageSquare, DollarSign, Hash } from "lucide-react";
+import { X, ShieldCheck, CheckCircle, XCircle, Clock, FileText, MessageSquare, DollarSign, Hash, Calendar } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
 import { updateKYCStatus } from "../../api/admin.api.js";
 
@@ -98,6 +98,17 @@ export default function AdminKycDetailDrawer({ kyc, user, onClose, onRefresh }) 
                 {kyc?.status || "pending"}
               </span>
             </div>
+
+            {/* Submission Date */}
+            {kyc?.created_at && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm text-gray-400">{t("admin.kycReview.submittedAt")}</span>
+                </div>
+                <p className="text-sm text-white mt-1">{new Date(kyc.created_at).toLocaleString()}</p>
+              </div>
+            )}
 
             {/* Package Info */}
             {kyc?.kyc_package && (

@@ -1,76 +1,45 @@
-import { motion } from "motion/react";
-import {
-  Scale,
-  FileText,
-  Database,
-  Network,
-  ShieldCheck,
-  AlertCircle,
-} from "lucide-react";
-
-import Navbar from "../component/Navbar";
+import { useMemo } from 'react';
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { Scale, FileText, Database, Network, ShieldCheck, AlertCircle } from 'lucide-react';
+import Navbar from '../component/Navbar';
 
 export default function LegalPage() {
-  const sections = [
+  const { t } = useTranslation();
+
+  const sections = useMemo(() => [
     {
-      title: "1. Company Identity",
+      title: t('legalInfo.sections.s1_title'),
       icon: Database,
-      content: [
-        "Company Name: Oxford Financial Ads",
-        "Platform Type: Decentralized AI Trading Infrastructure",
-        "Operating Network: Arbitrum One (Layer-2)",
-        "Oxford Financial Ads operates with transparency, technological integrity, and regulatory awareness in all business activities.",
-      ],
+      content: [t('legalInfo.sections.s1_c1'), t('legalInfo.sections.s1_c2'), t('legalInfo.sections.s1_c3'), t('legalInfo.sections.s1_c4')],
     },
-
     {
-      title: "2. Technology Partnership & Infrastructure",
+      title: t('legalInfo.sections.s2_title'),
       icon: Network,
-      content: [
-        "Oxford Financial Ads’s operational systems and smart contracts are built using Arbitrum Nitro technology developed by Offchain Labs, Inc.",
-        "Technology Provider Reference: Offchain Labs, Inc. – Developers of the Arbitrum ecosystem.",
-        "All transaction security and data settlement are protected by the Ethereum Mainnet (Layer-1).",
-        "Arbitrum’s Layer-2 scaling protocol ensures high-speed, low-cost, and secure blockchain execution.",
-      ],
+      content: [t('legalInfo.sections.s2_c1'), t('legalInfo.sections.s2_c2'), t('legalInfo.sections.s2_c3'), t('legalInfo.sections.s2_c4')],
     },
-
     {
-      title: "3. Registration & License",
+      title: t('legalInfo.sections.s3_title'),
       icon: FileText,
-      content: [
-        "Legal Identity: C-Corporation",
-        "State of Registration: Delaware, USA",
-        "Registration Number: 7114194 (Delaware Division of Corporations)",
-        "Registration Date: August 27, 2018",
-        "Headquarters: Princeton, New Jersey, USA",
-        "Official Websites: offchainlabs.com / arbitrum.io / oxfordfinancialads.com",
-      ],
+      content: [t('legalInfo.sections.s3_c1'), t('legalInfo.sections.s3_c2'), t('legalInfo.sections.s3_c3'), t('legalInfo.sections.s3_c4'), t('legalInfo.sections.s3_c5'), t('legalInfo.sections.s3_c6')],
     },
-
     {
-      title: "4. Compliance & Regulation",
+      title: t('legalInfo.sections.s4_title'),
       icon: ShieldCheck,
-      content: [
-        "We are committed to complying with international Anti-Money Laundering (AML) regulations.",
-        "Know Your Customer (KYC) procedures are maintained to ensure platform integrity and prevent fraudulent activities.",
-        "User data protection, blockchain transparency, and regulatory responsibility are core principles of our infrastructure.",
-      ],
+      content: [t('legalInfo.sections.s4_c1'), t('legalInfo.sections.s4_c2'), t('legalInfo.sections.s4_c3')],
     },
-  ];
+  ], [t]);
 
   return (
     <>
       <Navbar />
-
       <section className="relative py-28 px-4 overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-40 left-0 w-[600px] h-[600px] bg-blue-500/3 rounded-full blur-3xl"></div>
           <div className="absolute bottom-40 right-0 w-[500px] h-[500px] bg-cyan-500/3 rounded-full blur-3xl"></div>
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -83,21 +52,19 @@ export default function LegalPage() {
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Legal Information &{" "}
+              {t('legalInfo.title')}{' '}
               <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Compliance
+                {t('legalInfo.titleHighlight')}
               </span>
             </h1>
 
             <p className="text-gray-400 text-lg max-w-3xl mx-auto mb-4">
-              Legal identity, technological framework, and regulatory compliance
-              structure of the Oxford Financial Ads platform.
+              {t('legalInfo.subtitle')}
             </p>
 
-            <p className="text-sm text-gray-500">Last Updated: February 2026</p>
+            <p className="text-sm text-gray-500">{t('legalInfo.lastUpdated')}</p>
           </motion.div>
 
-          {/* Legal Disclaimer */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -112,28 +79,20 @@ export default function LegalPage() {
 
               <div>
                 <h3 className="text-lg font-semibold text-amber-400 mb-2">
-                  Legal Disclaimer
+                  {t('legalInfo.legalDisclaimer')}
                 </h3>
 
                 <p className="text-gray-300 text-sm leading-relaxed">
-                  Oxford Financial Ads is a technology driven platform.
-                  Cryptocurrency trading involves significant market risks.
-                  While we strive to reduce risks through advanced AI analytics
-                  and Arbitrum’s high-speed blockchain infrastructure, investors
-                  are strongly advised to conduct their own independent research
-                  and risk assessment before making financial decisions.
+                  {t('legalInfo.disclaimerText1')}
                 </p>
 
                 <p className="text-gray-300 text-sm leading-relaxed mt-4">
-                  Oxford Financial Ads does not provide financial, investment, or legal
-                  advisory services. All investment decisions remain solely the
-                  responsibility of the user.
+                  {t('legalInfo.disclaimerText2')}
                 </p>
               </div>
             </div>
           </motion.div>
 
-          {/* Legal Sections */}
           <div className="space-y-8">
             {sections.map((section, index) => (
               <motion.div
@@ -156,10 +115,7 @@ export default function LegalPage() {
 
                 <div className="space-y-4 pl-16">
                   {section.content.map((paragraph, pIndex) => (
-                    <p
-                      key={pIndex}
-                      className="text-gray-400 leading-relaxed text-sm md:text-base"
-                    >
+                    <p key={pIndex} className="text-gray-400 leading-relaxed text-sm md:text-base">
                       {paragraph}
                     </p>
                   ))}

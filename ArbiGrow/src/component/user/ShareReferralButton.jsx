@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Share2, Check, Copy } from "lucide-react";
 import useUserStore from "../../store/userStore";
 
 export default function ShareReferralButton() {
+  const { t } = useTranslation();
   const { user } = useUserStore();
   const [copied, setCopied] = useState(false);
 
@@ -17,7 +19,6 @@ export default function ShareReferralButton() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const textarea = document.createElement("textarea");
       textarea.value = referralLink;
       document.body.appendChild(textarea);
@@ -33,8 +34,8 @@ export default function ShareReferralButton() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join Oxford Financial Ads",
-          text: `Join Oxford Financial Ads using my referral link: ${referralLink}`,
+          title: t("shareReferral.shareTitle"),
+          text: t("shareReferral.shareText", { link: referralLink }),
           url: referralLink,
         });
       } catch {
@@ -53,12 +54,12 @@ export default function ShareReferralButton() {
       {copied ? (
         <>
           <Check className="w-4 h-4" />
-          Copied!
+          {t("shareReferral.copied")}
         </>
       ) : (
         <>
           <Share2 className="w-4 h-4" />
-          Share Referral Link
+          {t("shareReferral.shareLink")}
         </>
       )}
     </button>

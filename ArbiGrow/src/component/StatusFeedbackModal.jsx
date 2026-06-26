@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { createPortal } from "react-dom";
 
-const normalizeMessage = (value) => {
+const normalizeMessage = (value, t) => {
+  const fallback = t("statusFeedbackModal.error");
   if (typeof value === "string" && value.trim()) return value;
 
   if (Array.isArray(value)) {
@@ -31,21 +33,23 @@ const normalizeMessage = (value) => {
     try {
       return JSON.stringify(value);
     } catch {
-      return "Something went wrong";
+      return fallback;
     }
   }
 
-  return "Something went wrong";
+  return fallback;
 };
 
 export default function StatusFeedbackModal({ feedback, onClose }) {
+  const { t } = useTranslation();
   if (!feedback) return null;
   if (typeof document === "undefined") return null;
 
   const isSuccess = feedback.type === "success";
   const Icon = isSuccess ? CheckCircle2 : XCircle;
-  const message = normalizeMessage(feedback.message);
-  const title = isSuccess ? "Success" : "Rejected";
+  const message = normalizeMessage(feedback.message, t);
+  const title = isSuccess ? t("statusFeedbackModal.success") : t("statusFeedbackModal.rejected");
+
   const handleClose = () => {
     if (typeof onClose === "function") onClose();
   };

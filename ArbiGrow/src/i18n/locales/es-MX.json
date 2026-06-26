@@ -712,5 +712,8 @@
     "none": "Ninguno",
     "required": "Obligatorio",
     "optional": "Opcional"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -15,6 +16,7 @@ export default function PackageModal({
   setSelectedPackage,
   onPurchased,
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const token = useUserStore((state) => state.token);
   const setUser = useUserStore((state) => state.setUser);
@@ -130,49 +132,49 @@ export default function PackageModal({
                 </h2>
                 <p className="mt-2 text-gray-400">
                   Oxford Financial Ads{" "}
-                  {selectedPackage.task_type === "ad_view" ? "Ad View" : "Captcha Typing"} Package
+                  {selectedPackage.task_type === "ad_view" ? t("packageModal.adViewPackage") : t("packageModal.captchaPackage")} Package
                 </p>
               </div>
 
               <div className="mb-8 rounded-xl border border-white/10 bg-white/5 p-6">
                 <div className="grid grid-cols-2 gap-6 text-sm">
                   <div>
-                    <p className="text-gray-400">Package Name</p>
+                    <p className="text-gray-400">{t("packageModal.packageLabel")}</p>
                     <p className="font-semibold text-white">
                       {selectedPackage.name}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Investment Amount</p>
+                    <p className="text-gray-400">{t("packageModal.investmentAmount")}</p>
                     <p className="font-semibold text-cyan-400">
                       ${amt.toLocaleString()} USDT
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">{selectedPackage.task_type === "ad_view" ? "Daily Ads" : "Daily Captcha Requirement"}</p>
+                    <p className="text-gray-400">{selectedPackage.task_type === "ad_view" ? t("packageModal.dailyAds") : t("packageModal.dailyCaptcha")}</p>
                     <p className="font-semibold text-green-400">
                       {captchaReq} {selectedPackage.task_type === "ad_view" ? "Ads" : "Captchas"} Daily
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Duration</p>
+                    <p className="text-gray-400">{t("packageModal.duration")}</p>
                     <p className="font-semibold text-cyan-400">
                       {durDays} Days
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Daily Payment</p>
+                    <p className="text-gray-400">{t("packageModal.dailyPayment")}</p>
                     <p className="font-semibold text-yellow-400">
                       ${dailyPmt.toFixed(2)} USDT
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-gray-400">Total Return</p>
+                    <p className="text-gray-400">{t("packageModal.totalReturn")}</p>
                     <p className="font-semibold text-purple-400">
                       ${totalRet.toLocaleString()} USDT
                     </p>
@@ -182,7 +184,7 @@ export default function PackageModal({
 
               {!isLoggedIn && (
                 <Button variant="gradient" onClick={handlePurchase}>
-                  Login to Continue
+                  {t("packageModal.loginToContinue")}
                 </Button>
               )}
 
@@ -195,8 +197,8 @@ export default function PackageModal({
                     disabled={isPurchasing}
                   >
                     {isPurchasing
-                      ? "Activating..."
-                      : "Activate Package"}
+                      ? t("packageModal.activating")
+                      : t("packageModal.activatePackage")}
                   </Button>
                 </>
               )}
@@ -214,7 +216,7 @@ export default function PackageModal({
               )}
 
               <p className="mt-4 text-center text-xs text-gray-500">
-                Requires wallet connection and compliance verification
+                {t("packageModal.footerNote")}
               </p>
             </div>
           </motion.div>

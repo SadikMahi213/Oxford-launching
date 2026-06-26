@@ -1,14 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock, Keyboard, Eye, Award } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Wallet, Coins, Users, TrendingUp, ShoppingCart, Pickaxe, Clock, Keyboard, Eye, Award } from "lucide-react";
 import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 
 const WALLET_OPTIONS = [
   { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT" },
-  { value: "deposit_wallet", label: "Deposit Wallet", icon: Download, currency: "USDT" },
-  { value: "withdraw_wallet", label: "Withdraw Wallet", icon: Upload, currency: "USDT" },
   { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
   { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
   { value: "matching_bonus_wallet", label: "Matching Bonus Wallet", icon: Award, currency: "USDT" },
@@ -21,8 +19,6 @@ const WALLET_OPTIONS = [
 
 const walletBalances = (user) => ({
   main_wallet: Number(user?.main_wallet ?? 0),
-  deposit_wallet: Number(user?.deposit_wallet ?? 0),
-  withdraw_wallet: Number(user?.withdraw_wallet ?? 0),
   referral_wallet: Number(user?.referral_wallet ?? 0),
   generation_wallet: Number(user?.generation_wallet ?? 0),
   matching_bonus_wallet: Number(user?.matching_bonus_wallet ?? 0),
@@ -38,7 +34,7 @@ export default function WalletTransfer() {
   const { user, setUser } = useUserStore();
   const balances = walletBalances(user);
   const [fromWallet, setFromWallet] = useState("main_wallet");
-  const [toWallet, setToWallet] = useState("deposit_wallet");
+  const [toWallet, setToWallet] = useState("referral_wallet");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");

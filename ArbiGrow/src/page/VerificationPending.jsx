@@ -1,8 +1,10 @@
 import React from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { Clock, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 
 export function VerificationPending({ embedded }) {
+  const { t } = useTranslation();
   return (
     <div className={`${embedded ? "" : "min-h-screen "}bg-gradient-to-b from-[#0a0e27] via-[#0d1137] to-[#0a0e27] text-white overflow-hidden ${embedded ? "p-4 rounded-2xl" : "flex items-center justify-center px-4 py-12"}`}>
       {!embedded && (
@@ -21,7 +23,7 @@ export function VerificationPending({ embedded }) {
             className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-300 mb-8 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
-            <span>Back to Home</span>
+            <span>{t("verificationPending.backToHome")}</span>
           </motion.a>
         </>
       )}
@@ -54,7 +56,7 @@ export function VerificationPending({ embedded }) {
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
                 <div className="px-6 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-semibold text-sm">
-                  VERIFICATION PROCESSING
+                  {t("verificationPending.badge")}
                 </div>
               </motion.div>
             </motion.div>
@@ -64,9 +66,9 @@ export function VerificationPending({ embedded }) {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="text-3xl md:text-4xl font-bold mb-4"
             >
-              Your Verification is{" "}
+              {t("verificationPending.title")}{" "}
               <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                In Progress
+                {t("verificationPending.titleHighlight")}
               </span>
             </motion.h1>
             <motion.p
@@ -75,8 +77,7 @@ export function VerificationPending({ embedded }) {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="text-gray-400 text-lg mb-8 max-w-xl mx-auto leading-relaxed"
             >
-              Thank you for submitting your verification documents. Our team is
-              currently reviewing your information.
+              {t("verificationPending.body")}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -87,14 +88,14 @@ export function VerificationPending({ embedded }) {
               <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
                 <AlertCircle className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  Estimated Processing Time
+                  {t("verificationPending.estimatedTime")}
                 </h3>
               </div>
               <p className="text-2xl sm:text-3xl font-bold text-cyan-400 mb-1">
-                2-3 Business Days
+                {t("verificationPending.timeValue")}
               </p>
               <p className="text-sm sm:text-sm text-gray-400 text-center">
-                We'll notify you via email once your verification is complete
+                {t("verificationPending.timeDesc")}
               </p>
             </motion.div>
           </div>

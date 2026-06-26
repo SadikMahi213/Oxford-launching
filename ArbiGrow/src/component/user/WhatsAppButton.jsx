@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { MessageCircle, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import useUserStore from "../../store/userStore";
@@ -12,6 +13,7 @@ const authHeaders = () => {
 };
 
 export default function WhatsAppFloatingButton() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -73,12 +75,12 @@ export default function WhatsAppFloatingButton() {
             className="mb-4 p-4 rounded-2xl bg-gradient-to-br from-white/10 to-white/[0.02] backdrop-blur-2xl border border-white/10 w-72 shadow-2xl"
           >
             <div className="text-white font-semibold text-sm mb-3">
-              Chat with us on WhatsApp
+              {t("whatsappButton.chatTitle")}
             </div>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={t("whatsappButton.placeholder")}
               rows={3}
               className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm placeholder-gray-500 resize-none focus:outline-none focus:border-green-500/50"
             />
@@ -90,7 +92,7 @@ export default function WhatsAppFloatingButton() {
                   rel="noopener noreferrer"
                   className="flex-1 px-3 py-2 rounded-xl bg-green-600/20 border border-green-500/30 text-green-400 text-xs font-semibold text-center hover:bg-green-600/30 transition-all"
                 >
-                  Open WhatsApp
+                  {t("whatsappButton.openWhatsApp")}
                 </a>
               )}
               <button
@@ -101,9 +103,9 @@ export default function WhatsAppFloatingButton() {
                 {sending ? (
                   <Loader2 className="w-3 h-3 animate-spin mx-auto" />
                 ) : sent ? (
-                  "Sent!"
+                  t("whatsappButton.sent")
                 ) : (
-                  "Send"
+                  t("whatsappButton.send")
                 )}
               </button>
             </div>

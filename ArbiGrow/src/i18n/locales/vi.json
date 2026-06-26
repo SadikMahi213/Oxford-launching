@@ -712,5 +712,8 @@
     "none": "Không",
     "required": "Bắt Buộc",
     "optional": "Không Bắt Buộc"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

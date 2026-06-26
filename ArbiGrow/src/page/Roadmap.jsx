@@ -1,9 +1,11 @@
 import { motion } from "motion/react";
 import { useInView } from "react-intersection-observer";
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, Circle } from "lucide-react";
 import { phases } from "../constants/phases.js";
 
 export default function Roadmap() {
+  const { t } = useTranslation();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -12,7 +14,6 @@ export default function Roadmap() {
   return (
     <section ref={ref} className="py-20 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -21,23 +22,20 @@ export default function Roadmap() {
         >
           <div className="inline-block px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 mb-6">
             <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider">
-              Roadmap
+              {t("roadmap.badge")}
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Strategic Development{" "}
+            {t("roadmap.title")}{" "}
             <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Timeline
+              {t("roadmap.titleHighlight")}
             </span>
           </h2>
         </motion.div>
 
-        {/* Timeline */}
         <div className="relative">
-          {/* Connection line */}
           <div className="hidden lg:block absolute top-24 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-500"></div>
 
-          {/* Phases */}
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-4">
             {phases.map((phase, idx) => (
               <motion.div
@@ -47,7 +45,6 @@ export default function Roadmap() {
                 transition={{ duration: 0.6, delay: idx * 0.2 }}
                 className="relative"
               >
-                {/* Phase indicator */}
                 <div className="flex flex-col items-center mb-8">
                   <div
                     className={`w-16 h-16 rounded-full bg-gradient-to-br ${
@@ -67,7 +64,6 @@ export default function Roadmap() {
                   </div>
                 </div>
 
-                {/* Phase card */}
                 <div
                   className={`p-8 rounded-2xl bg-gradient-to-br ${
                     idx === 0
@@ -111,7 +107,7 @@ export default function Roadmap() {
                     <div className="mt-6 pt-6 border-t border-white/10">
                       <div className="flex items-center justify-center gap-2 text-sm text-green-400">
                         <CheckCircle2 className="w-4 h-4" />
-                        <span className="font-semibold">In Progress</span>
+                        <span className="font-semibold">{t("roadmap.inProgress")}</span>
                       </div>
                     </div>
                   )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { countries } from "./countries";
 import { countryNames } from "./countryNames";
 import "./LiveActivityFeed.css";
@@ -43,10 +44,10 @@ const generateRandomAmount = (type) => {
   }
 };
 
-const timeAgo = (minutes) => {
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${Math.floor(minutes)}m ago`;
-  return `${Math.floor(minutes / 60)}h ago`;
+const timeAgo = (minutes, t) => {
+  if (minutes < 1) return t("liveActivityFeed.justNow");
+  if (minutes < 60) return t("liveActivityFeed.minutesAgo", { count: Math.floor(minutes) });
+  return t("liveActivityFeed.hoursAgo", { count: Math.floor(minutes / 60) });
 };
 
 function isWeekendUK() {
@@ -61,7 +62,7 @@ function isWeekendUK() {
   }
 }
 
-function generateItem(id, minutesAgo = 0) {
+function generateItem(id, minutesAgo = 0, t) {
   const country = pickBiased();
   const names = countryNames[country.code] || countryNames["US"];
   const firstName = pick(names.first);
@@ -77,7 +78,7 @@ function generateItem(id, minutesAgo = 0) {
     activity,
     amount,
     timestamp,
-    displayTime: minutesAgo === 0 ? "Just now" : timeAgo(minutesAgo),
+    displayTime: minutesAgo === 0 ? t("liveActivityFeed.justNow") : timeAgo(minutesAgo, t),
   };
 }
 
@@ -86,8 +87,9 @@ const LiveActivityFeed = ({
   newInterval = 3000,
   paused = false,
 }) => {
+  const { t } = useTranslation();
   const [items, setItems] = useState(() =>
-    Array.from({ length: 15 }, (_, i) => generateItem(i, (15 - i) * 2))
+    Array.from({ length: 15 }, (_, i) => generateItem(i, (15 - i) * 2, t))
   );
   const [isPaused, setIsPaused] = useState(paused);
   const idRef = useRef(15);
@@ -97,9 +99,9 @@ const LiveActivityFeed = ({
 
   const addNewItem = useCallback(() => {
     if (isPausedFinal) return;
-    const newItem = generateItem(idRef.current++, 0);
+    const newItem = generateItem(idRef.current++, 0, t);
     setItems((prev) => [newItem, ...prev].slice(0, maxItems));
-  }, [isPausedFinal, maxItems]);
+  }, [isPausedFinal, maxItems, t]);
 
   useEffect(() => {
     if (isPausedFinal) return;
@@ -118,7 +120,7 @@ const LiveActivityFeed = ({
     <div className="live-feed-container">
       <div className="live-feed-header">
         <div className="live-feed-dot" />
-        <span className="live-feed-title">Global Live Activity</span>
+        <span className="live-feed-title">{t("liveActivityFeed.title")}</span>
       </div>
 
       <div className="live-feed-scroll" ref={scrollRef}>
@@ -138,7 +140,7 @@ const LiveActivityFeed = ({
                 />
               </span>
               <div className="feed-info">
-                <div className="feed-name">{item.name} <span className="feed-country">from {item.country.name}</span></div>
+                <div className="feed-name">{item.name} <span className="feed-country">{t("liveActivityFeed.from")} {item.country.name}</span></div>
                 <div className="feed-action">
                   {(() => {
                     const parts = item.activity.action.split("OFA");
@@ -164,8 +166,8 @@ const LiveActivityFeed = ({
           <div className="live-feed-paused-text">
             <span>⏸</span>
             {isWeekendUK()
-              ? "Activity paused on weekends (UK time)"
-              : "Activity paused by admin"}
+              ? t("liveActivityFeed.pausedWeekend")
+              : t("liveActivityFeed.pausedAdmin")}
           </div>
         </div>
       )}

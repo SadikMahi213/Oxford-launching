@@ -169,7 +169,7 @@ class ReferralNetworkResponse(BaseModel):
 
 
 ALLOWED_WALLETS = [
-    "main_wallet", "deposit_wallet", "withdraw_wallet",
+    "main_wallet",
     "referral_wallet", "generation_wallet", "ecommerce_wallet",
     "arbx_wallet", "arbx_mining_wallet",
     "captcha_wallet", "ad_view_wallet", "matching_bonus_wallet",

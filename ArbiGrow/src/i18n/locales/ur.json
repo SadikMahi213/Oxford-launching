@@ -712,5 +712,8 @@
     "none": "کوئی نہیں",
     "required": "ضروری",
     "optional": "اختیاری"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

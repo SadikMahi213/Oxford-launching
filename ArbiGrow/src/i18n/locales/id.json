@@ -712,5 +712,8 @@
     "none": "Tidak Ada",
     "required": "Wajib",
     "optional": "Opsional"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

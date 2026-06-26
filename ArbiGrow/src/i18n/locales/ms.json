@@ -712,5 +712,8 @@
     "none": "Tiada",
     "required": "Diperlukan",
     "optional": "Pilihan"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
   }
 }

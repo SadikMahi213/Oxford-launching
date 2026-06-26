@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { motion } from "motion/react"
+import { useTranslation } from "react-i18next"
 import { BadgeCheck, IdCard, ShieldCheck, CalendarDays, Crown, Camera, Check, X } from "lucide-react"
 import useUserStore from "../../store/userStore"
 import { getUserRankInfo } from "../../api/user.api.js"
@@ -37,6 +38,7 @@ function InfoBox({ label, value, icon: Icon, accent }) {
 }
 
 export default function ProfileIdentityCard() {
+  const { t } = useTranslation()
   const { user, setUser } = useUserStore()
   const [currentRank, setCurrentRank] = useState(null)
   const initials = getInitials(user?.full_name)
@@ -46,10 +48,10 @@ export default function ProfileIdentityCard() {
   const kycRaw = user?.kyc_status
   const hasKYC = kycRaw === "approved"
   const getKycStatus = () => {
-    if (kycRaw === "approved") return "Verified"
-    if (kycRaw === "rejected") return "Rejected"
-    if (kycRaw === "pending") return "Pending Verification"
-    return "Not Verified"
+    if (kycRaw === "approved") return t("profileCard.verified")
+    if (kycRaw === "rejected") return t("profileCard.rejected")
+    if (kycRaw === "pending") return t("profileCard.pendingVerification")
+    return t("profileCard.notVerified")
   }
   const kycStatus = getKycStatus()
 
@@ -95,8 +97,8 @@ export default function ProfileIdentityCard() {
           body: formData,
         })
         res = { data: await fetchRes.json() }
-        if (!fetchRes.ok) throw new Error(res.data.detail || "Upload failed")
-        setPhotoMsg("Profile image uploaded")
+        if (!fetchRes.ok) throw new Error(res.data.detail || t("profileIdentity.uploadFailed"))
+        setPhotoMsg(t("profileIdentity.profileImageUploaded"))
       } else if (!photoUrl.trim()) {
         setPhotoLoading(false)
         return
@@ -104,7 +106,7 @@ export default function ProfileIdentityCard() {
         res = await api.post("v1/user/profile-image", { profile_image_url: photoUrl.trim() }, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        setPhotoMsg("Photo saved")
+        setPhotoMsg(t("profileIdentity.photoSaved"))
       }
       setPhotoLoaded(false)
       setUser({ profile_image_url: res.data.profile_image_url })
@@ -114,7 +116,7 @@ export default function ProfileIdentityCard() {
       setPhotoLoading(false)
       return
     } catch (err) {
-      setPhotoMsg(err.response?.data?.detail || err.message || "Failed to save photo")
+      setPhotoMsg(err.response?.data?.detail || err.message || t("profileIdentity.failedSavePhoto"))
     } finally {
       setPhotoLoading(false)
     }
@@ -158,7 +160,7 @@ export default function ProfileIdentityCard() {
                 <button
                   onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url") }}
                   className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-cyan-500 border-2 border-black/60 flex items-center justify-center hover:bg-cyan-400 transition-colors"
-                  title="Set profile photo"
+                  title={t("profileIdentity.setPhoto")}
                 >
                   <Camera className="w-4 h-4 text-white" />
                 </button>
@@ -171,7 +173,7 @@ export default function ProfileIdentityCard() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="text-xl md:text-2xl font-bold text-white truncate font-['Inter']">
-                      {user?.full_name || "User"}
+                      {user?.full_name || t("profileIdentity.user")}
                     </h2>
                     <p className="text-sm text-gray-400 mt-0.5">
                       @{user?.username || "username"}
@@ -190,13 +192,13 @@ export default function ProfileIdentityCard() {
                         onClick={() => setPhotoMode("url")}
                         className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "url" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                       >
-                        URL
+                        {t("profileIdentity.url")}
                       </button>
                       <button
                         onClick={() => setPhotoMode("file")}
                         className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "file" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                       >
-                        Upload
+                        {t("profileIdentity.upload")}
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
@@ -205,7 +207,7 @@ export default function ProfileIdentityCard() {
                           type="text"
                           value={photoUrl}
                           onChange={(e) => setPhotoUrl(e.target.value)}
-                          placeholder="Paste image URL..."
+                          placeholder={t("profileIdentity.urlPlaceholder")}
                           className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
                         />
                       ) : (
@@ -231,7 +233,7 @@ export default function ProfileIdentityCard() {
                       </button>
                     </div>
                     {photoMsg && (
-                      <p className={`mt-1 text-xs ${photoMsg === "Photo saved" || photoMsg === "Profile image uploaded" ? "text-green-400" : "text-red-400"}`}>
+                      <p className={`mt-1 text-xs ${photoMsg === t("profileIdentity.photoSaved") || photoMsg === t("profileIdentity.profileImageUploaded") ? "text-green-400" : "text-red-400"}`}>
                         {photoMsg}
                       </p>
                     )}
@@ -239,9 +241,9 @@ export default function ProfileIdentityCard() {
                 )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
-                  <InfoBox label="User ID" value={userId} icon={IdCard} accent="bg-cyan-500/15 text-cyan-400" />
+                  <InfoBox label={t("profileIdentity.userID")} value={userId} icon={IdCard} accent="bg-cyan-500/15 text-cyan-400" />
                   <InfoBox
-                    label="KYC Status"
+                    label={t("profileIdentity.kycStatus")}
                     value={kycStatus}
                     icon={ShieldCheck}
                     accent={kycRaw === "approved" ? "bg-emerald-500/15 text-emerald-400" : kycRaw === "pending" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"}
@@ -249,7 +251,7 @@ export default function ProfileIdentityCard() {
                 </div>
 
                 <div className="mt-2.5">
-                  <InfoBox label="Member ID" value={memberId} icon={Crown} accent="bg-purple-500/15 text-purple-400" />
+                  <InfoBox label={t("profileIdentity.memberId")} value={memberId} icon={Crown} accent="bg-purple-500/15 text-purple-400" />
                 </div>
               </div>
             </div>
@@ -258,14 +260,14 @@ export default function ProfileIdentityCard() {
               <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                 <Crown className="w-4 h-4 text-cyan-400" />
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider">Position</p>
-                  <p className="text-sm font-semibold text-white">{currentRank?.name || "Member"}</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider">{t("profileIdentity.position")}</p>
+                  <p className="text-sm font-semibold text-white">{currentRank?.name || t("profileCard.member")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                 <CalendarDays className="w-4 h-4 text-cyan-400" />
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider">Since</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider">{t("profileIdentity.since")}</p>
                   <p className="text-sm font-semibold text-white">{joinDate || "-"}</p>
                 </div>
               </div>

@@ -1,15 +1,14 @@
-// Quick navigation shortcuts component
 import { motion } from 'motion/react';
-// import { LucideIcon } from 'lucide-react';
-
-
+import { useTranslation } from 'react-i18next';
 
 export function QuickShortcuts({ shortcuts }) {
+  const { t } = useTranslation();
+
   return (
     <div className="rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 p-5">
       <h3 className="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
         <span className="w-1 h-4 bg-gradient-to-b from-cyan-400 to-blue-500 rounded-full"></span>
-        Quick Shortcuts
+        {t("quickShortcuts.title")}
       </h3>
       <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
         {shortcuts.map((shortcut, idx) => (
@@ -44,7 +43,7 @@ export function QuickShortcuts({ shortcuts }) {
             </span>
             {shortcut.comingSoon && (
               <span className="absolute -top-1 -right-1 text-[8px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                Soon
+                {t("quickShortcuts.soon")}
               </span>
             )}
           </motion.button>
@@ -53,4 +52,3 @@ export function QuickShortcuts({ shortcuts }) {
     </div>
   );
 }
-

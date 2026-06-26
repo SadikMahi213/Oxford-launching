@@ -11,7 +11,7 @@ const authHeaders = (token) =>
 
 export const getAllUsers = async (
   token,
-  { page = 1, search = "", status = "" } = {},
+  { page = 1, search = "", status = "", has_kyc = false } = {},
 ) => {
   const params = new URLSearchParams();
 
@@ -25,6 +25,10 @@ export const getAllUsers = async (
   // Only include status if not "all"
   if (status && status !== "all") {
     params.append("status", status);
+  }
+
+  if (has_kyc) {
+    params.append("has_kyc", "true");
   }
 
   const res = await api.get(

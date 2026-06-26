@@ -1,8 +1,10 @@
 import { motion } from 'motion/react';
 import { useInView } from 'react-intersection-observer';
+import { useTranslation } from 'react-i18next';
 import { Key, Lock, Eye, Wallet } from 'lucide-react';
 
 export default function Privacy() {
+  const { t } = useTranslation();
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1
@@ -11,30 +13,29 @@ export default function Privacy() {
   const privacyFeatures = [
     {
       icon: Key,
-      title: 'No Private Key Access',
-      description: 'Oxford Financial Ads never has access to your private keys. Your wallet remains fully under your control at all times.'
+      title: t("privacyHome.feature1Title"),
+      description: t("privacyHome.feature1Desc")
     },
     {
       icon: Lock,
-      title: 'End-to-End Encryption',
-      description: 'All communication between your wallet and smart contracts is encrypted using industry-standard protocols.'
+      title: t("privacyHome.feature2Title"),
+      description: t("privacyHome.feature2Desc")
     },
     {
       icon: Eye,
-      title: 'Blockchain Transparency',
-      description: 'All transactions are publicly verifiable on-chain while maintaining user pseudonymity through wallet addresses.'
+      title: t("privacyHome.feature3Title"),
+      description: t("privacyHome.feature3Desc")
     },
     {
       icon: Wallet,
-      title: 'Wallet-based Authentication',
-      description: 'Sign in with your Web3 wallet. No email, password, or personal information required for platform access.'
+      title: t("privacyHome.feature4Title"),
+      description: t("privacyHome.feature4Desc")
     }
   ];
 
   return (
     <section ref={ref} className="py-20 px-4">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -42,14 +43,13 @@ export default function Privacy() {
           className="text-center mb-16"
         >
           <div className="inline-block px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-6">
-            <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">Privacy & Data Protection</span>
+            <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">{t("privacyHome.badge")}</span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Your Data, <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Your Control</span>
+            {t("privacyHome.title")} <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{t("privacyHome.titleHighlight")}</span>
           </h2>
         </motion.div>
 
-        {/* Privacy Features */}
         <div className="grid md:grid-cols-2 gap-6">
           {privacyFeatures.map((feature, idx) => (
             <motion.div
@@ -71,22 +71,6 @@ export default function Privacy() {
             </motion.div>
           ))}
         </div>
-
-        {/* Privacy Statement */}
-        {/* <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-blue-900/20 to-green-900/20 backdrop-blur-xl border border-green-500/30"
-        >
-          <h3 className="text-2xl font-bold mb-4 text-center">Decentralized Privacy Architecture</h3>
-          <p className="text-gray-300 leading-relaxed text-center max-w-3xl mx-auto">
-            Unlike traditional fintech platforms, Oxford Financial Ads operates on a fully decentralized, non-custodial model. 
-            We do not collect, store, or process personal information. All interactions occur directly between your wallet 
-            and blockchain smart contracts. Your trading activity is pseudonymous and recorded only on the public blockchain, 
-            ensuring maximum privacy while maintaining complete transparency and auditability.
-          </p>
-        </motion.div> */}
       </div>
     </section>
   );

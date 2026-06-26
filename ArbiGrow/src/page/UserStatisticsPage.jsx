@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { Users, UserCheck, UserX, ArrowLeft } from "lucide-react";
 import useUserStore from "../store/userStore";
@@ -21,6 +22,7 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
 );
 
 const UserStatisticsPage = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ total_users: 0, active_users: 0, inactive_users: 0 });
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,20 +54,20 @@ const UserStatisticsPage = () => {
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t("userStatistics.back")}
         </button>
         <h1 className="text-2xl md:text-3xl font-bold">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            User Statistics
+            {t("userStatistics.title")}
           </span>
         </h1>
-        <p className="text-sm text-gray-400">Overview of all platform users</p>
+        <p className="text-sm text-gray-400">{t("userStatistics.subtitle")}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="Total Users" value={stats.total_users} color="bg-gradient-to-br from-blue-600 to-blue-400" />
-        <StatCard icon={UserCheck} label="Active Users" value={stats.active_users} color="bg-gradient-to-br from-green-600 to-green-400" />
-        <StatCard icon={UserX} label="Inactive Users" value={stats.inactive_users} color="bg-gradient-to-br from-gray-600 to-gray-400" />
+        <StatCard icon={Users} label={t("userStatistics.totalUsers")} value={stats.total_users} color="bg-gradient-to-br from-blue-600 to-blue-400" />
+        <StatCard icon={UserCheck} label={t("userStatistics.activeUsers")} value={stats.active_users} color="bg-gradient-to-br from-green-600 to-green-400" />
+        <StatCard icon={UserX} label={t("userStatistics.inactiveUsers")} value={stats.inactive_users} color="bg-gradient-to-br from-gray-600 to-gray-400" />
       </div>
 
       <motion.div
@@ -75,21 +77,21 @@ const UserStatisticsPage = () => {
         className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden"
       >
         <div className="px-5 py-4 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">All Users</h3>
+          <h3 className="text-lg font-semibold text-white">{t("userStatistics.allUsers")}</h3>
         </div>
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="p-8 text-center text-gray-400">Loading...</div>
+            <div className="p-8 text-center text-gray-400">{t("userStatistics.loading")}</div>
           ) : users.length === 0 ? (
-            <div className="p-8 text-center text-gray-400">No users found</div>
+            <div className="p-8 text-center text-gray-400">{t("userStatistics.noUsersFound")}</div>
           ) : (
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-gray-400 text-left">
-                  <th className="px-5 py-3 font-medium">Name</th>
-                  <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Registration Date</th>
+                  <th className="px-5 py-3 font-medium">{t("userStatistics.name")}</th>
+                  <th className="px-5 py-3 font-medium">{t("userStatistics.email")}</th>
+                  <th className="px-5 py-3 font-medium">{t("userStatistics.status")}</th>
+                  <th className="px-5 py-3 font-medium">{t("userStatistics.registrationDate")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -105,7 +107,7 @@ const UserStatisticsPage = () => {
                             : "bg-gray-500/20 text-gray-400"
                         }`}
                       >
-                        {u.status || "inactive"}
+                        {u.status === "active" ? t("userStatistics.activeUsers") : t("userStatistics.inactiveUsers")}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-gray-300">

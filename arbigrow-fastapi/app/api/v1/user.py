@@ -705,6 +705,12 @@ async def wallet_transfer(
     if data.from_wallet in ofa_wallets or data.to_wallet in ofa_wallets:
         raise HTTPException(status_code=400, detail="OFA token transfers are coming soon")
 
+    if data.from_wallet == "withdraw_wallet" or data.to_wallet == "withdraw_wallet":
+        raise HTTPException(status_code=400, detail="Withdrawal balance cannot be transferred")
+
+    if data.from_wallet == "deposit_wallet" or data.to_wallet == "deposit_wallet":
+        raise HTTPException(status_code=400, detail="Deposit balance cannot be transferred")
+
     from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
 

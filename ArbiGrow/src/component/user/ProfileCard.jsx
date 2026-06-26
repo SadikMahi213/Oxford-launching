@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   Camera,
   Mail,
@@ -28,21 +29,21 @@ function getInitials(name) {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-function getTimeAgo(dateStr) {
+function getTimeAgo(dateStr, t) {
   if (!dateStr) return null;
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   if (Number.isNaN(then)) return null;
   const diffMs = now - then;
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return "Just now";
+  if (seconds < 60) return t("profileCard.justNow");
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return t("profileCard.minutesAgo", { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("profileCard.hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  if (days < 30) return t("profileCard.daysAgo", { count: days });
+  return t("profileCard.monthsAgo", { count: Math.floor(days / 30) });
 }
 
 function formatJoinDate(dateStr) {
@@ -69,30 +70,31 @@ function getInitialsGradient(name) {
 }
 
 export default function ProfileCard({ setActivePage }) {
+  const { t } = useTranslation();
   const { user, setUser } = useUserStore();
   const [showPhotoInput, setShowPhotoInput] = useState(false);
   const [photoUrl, setPhotoUrl] = useState("");
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoMsg, setPhotoMsg] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
-  const [photoMode, setPhotoMode] = useState("url"); // "url" | "file"
+  const [photoMode, setPhotoMode] = useState("url");
   const displayUrl = user?.profile_image_url;
   const [photoLoaded, setPhotoLoaded] = useState(!!displayUrl);
   const initials = getInitials(user?.full_name);
   const showInitials = !displayUrl || !photoLoaded;
   const joinDate = formatJoinDate(user?.created_at);
-  const lastLogin = getTimeAgo(user?.updated_at);
+  const lastLogin = getTimeAgo(user?.updated_at, t);
   const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
   const memberId = user?.referral_code ? `MEM-${user.referral_code}` : userId;
   const kycRaw = user?.kyc_status;
   const getKycStatus = () => {
-    if (kycRaw === "approved") return "Verified";
-    if (kycRaw === "rejected") return "Rejected";
-    if (kycRaw === "pending") return "Pending Verification";
-    return "Not Verified";
+    if (kycRaw === "approved") return t("profileCard.verified");
+    if (kycRaw === "rejected") return t("profileCard.rejected");
+    if (kycRaw === "pending") return t("profileCard.pendingVerification");
+    return t("profileCard.notVerified");
   };
   const kycStatus = getKycStatus();
-  const position = "Member";
+  const position = t("profileCard.member");
 
   const handleSavePhoto = async () => {
     setPhotoLoading(true);
@@ -109,8 +111,8 @@ export default function ProfileCard({ setActivePage }) {
           body: formData,
         });
         res = { data: await fetchRes.json() };
-        if (!fetchRes.ok) throw new Error(res.data.detail || "Upload failed");
-        setPhotoMsg("Profile image uploaded");
+        if (!fetchRes.ok) throw new Error(res.data.detail || t("profileCard.uploadFailed"));
+        setPhotoMsg(t("profileCard.profileImageUploaded"));
       } else if (!photoUrl.trim()) {
         setPhotoLoading(false);
         return;
@@ -118,7 +120,7 @@ export default function ProfileCard({ setActivePage }) {
         res = await api.post("v1/user/profile-image", { profile_image_url: photoUrl.trim() }, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setPhotoMsg("Photo saved");
+        setPhotoMsg(t("profileCard.photoSaved"));
       }
       setUser({ profile_image_url: res.data.profile_image_url });
       setPhotoLoaded(true);
@@ -128,7 +130,7 @@ export default function ProfileCard({ setActivePage }) {
       setPhotoLoading(false);
       return;
     } catch (err) {
-      setPhotoMsg(err.response?.data?.detail || err.message || "Failed to save photo");
+      setPhotoMsg(err.response?.data?.detail || err.message || t("profileCard.failedSavePhoto"));
     } finally {
       setPhotoLoading(false);
     }
@@ -139,22 +141,22 @@ export default function ProfileCard({ setActivePage }) {
   const kycBadgeBg = kycRaw === "approved" ? "bg-emerald-500/10 border-emerald-500/30" : kycRaw === "pending" ? "bg-yellow-500/10 border-yellow-500/30" : "bg-red-500/10 border-red-500/30";
   const badges = [];
   if (user?.email_verified) {
-    badges.push({ label: "Email Verified", icon: Mail, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" });
+    badges.push({ label: t("profileCard.emailVerified"), icon: Mail, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" });
   }
   if (hasKYC) {
-    badges.push({ label: "KYC Verified", icon: BadgeCheck, color: kycBadgeColor, bg: kycBadgeBg });
+    badges.push({ label: t("profileCard.kycVerified"), icon: BadgeCheck, color: kycBadgeColor, bg: kycBadgeBg });
   }
   if (user?.is_mining) {
-    badges.push({ label: "Mining Active", icon: Pickaxe, color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30" });
+    badges.push({ label: t("profileCard.miningActive"), icon: Pickaxe, color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30" });
   }
 
   const completionItems = [
-    { label: "Email Verified", done: !!user?.email_verified },
-    { label: "KYC Submitted", done: hasKYC },
-    { label: "Phone Added", done: !!user?.phone_number },
-    { label: "Country Added", done: !!user?.country },
-    { label: "Referral Code", done: !!user?.referral_code },
-    { label: "Profile ID", done: !!user?.id },
+    { label: t("profileCard.completionEmail"), done: !!user?.email_verified },
+    { label: t("profileCard.completionKyc"), done: hasKYC },
+    { label: t("profileCard.completionPhone"), done: !!user?.phone_number },
+    { label: t("profileCard.completionCountry"), done: !!user?.country },
+    { label: t("profileCard.completionReferral"), done: !!user?.referral_code },
+    { label: t("profileCard.completionProfileId"), done: !!user?.id },
   ];
   const completedCount = completionItems.filter((i) => i.done).length;
   const completionPercent = Math.round((completedCount / completionItems.length) * 100);
@@ -192,7 +194,7 @@ export default function ProfileCard({ setActivePage }) {
               <button
                 onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url"); }}
                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyan-500 border-2 border-[#0a0e27] flex items-center justify-center hover:bg-cyan-400 transition-colors"
-                title="Set profile photo"
+                title={t("profileCard.setPhoto")}
               >
                 <Camera className="w-3.5 h-3.5 text-white" />
               </button>
@@ -223,13 +225,13 @@ export default function ProfileCard({ setActivePage }) {
                   onClick={() => setPhotoMode("url")}
                   className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "url" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  URL
+                  {t("profileCard.url")}
                 </button>
                 <button
                   onClick={() => setPhotoMode("file")}
                   className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "file" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  Upload
+                  {t("profileCard.upload")}
                 </button>
               </div>
               {photoMode === "url" ? (
@@ -238,7 +240,7 @@ export default function ProfileCard({ setActivePage }) {
                     type="text"
                     value={photoUrl}
                     onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="Paste image URL..."
+                    placeholder={t("profileCard.urlPlaceholder")}
                     className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
                   />
                   <button
@@ -273,7 +275,7 @@ export default function ProfileCard({ setActivePage }) {
                 <X className="w-4 h-4 text-gray-400" />
               </button>
               {photoMsg && (
-                <p className={`mt-1 text-xs ${photoMsg === "Photo saved" || photoMsg === "Profile image uploaded" ? "text-green-400" : "text-red-400"}`}>
+                <p className={`mt-1 text-xs ${photoMsg === t("profileCard.photoSaved") || photoMsg === t("profileCard.profileImageUploaded") ? "text-green-400" : "text-red-400"}`}>
                   {photoMsg}
                 </p>
               )}
@@ -284,7 +286,7 @@ export default function ProfileCard({ setActivePage }) {
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-xl md:text-2xl font-bold text-white truncate">
-                  {user?.full_name || "User"}
+                  {user?.full_name || t("profileCard.user")}
                 </h2>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-400">
                   {user?.username && (
@@ -303,7 +305,7 @@ export default function ProfileCard({ setActivePage }) {
                   {joinDate && (
                     <span className="flex items-center gap-1">
                       <CalendarDays className="w-3 h-3" />
-                      Joined {joinDate}
+                      {t("profileCard.joined")} {joinDate}
                     </span>
                   )}
                   {lastLogin && (
@@ -321,7 +323,7 @@ export default function ProfileCard({ setActivePage }) {
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 hover:text-white hover:border-cyan-500/50 transition-all"
                 >
                   <Settings className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Edit</span>
+                  <span className="hidden sm:inline">{t("profileCard.edit")}</span>
                 </button>
               </div>
             </div>
@@ -337,7 +339,7 @@ export default function ProfileCard({ setActivePage }) {
 
             <div className="mt-4">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-gray-400">Profile Completion</span>
+                <span className="text-xs text-gray-400">{t("profileCard.profileCompletion")}</span>
                 <span className="text-xs font-semibold text-cyan-400">{completionPercent}%</span>
               </div>
               <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -354,8 +356,8 @@ export default function ProfileCard({ setActivePage }) {
 
         <div className="grid grid-cols-2 gap-3 mt-5">
           {[
-            { icon: Users, label: "Referrals", value: user?.referral_code ? "Active" : "0", color: "text-blue-400", bg: "bg-blue-500/10" },
-            { icon: Award, label: "Badges", value: `${badges.length}`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+            { icon: Users, label: t("profileCard.referrals"), value: user?.referral_code ? t("profileCard.active") : "0", color: "text-blue-400", bg: "bg-blue-500/10" },
+            { icon: Award, label: t("profileCard.badges"), value: `${badges.length}`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
           ].map((stat) => (
             <div key={stat.label} className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-white/5">
               <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center`}>
@@ -373,31 +375,31 @@ export default function ProfileCard({ setActivePage }) {
           <div className="flex items-start gap-2 mb-3">
             <Quote className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-cyan-300/80 italic">
-              "Your future, Our mission"
+              &ldquo;{t("profileCard.motto")}&rdquo;
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
             <div className="flex items-center gap-1.5 text-gray-400">
               <IdCard className="w-3 h-3 text-cyan-400" />
-              <span>ID: <span className="text-white/80">{userId || "-"}</span></span>
+              <span>{t("profileCard.id")} <span className="text-white/80">{userId || "-"}</span></span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-400">
               <ShieldCheck className={`w-3 h-3 ${kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400"}`} />
-              <span>KYC: <span className={kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400"}>{kycStatus}</span></span>
+              <span>{t("profileCard.kyc")} <span className={kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400"}>{kycStatus}</span></span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-400">
               <Award className="w-3 h-3 text-purple-400" />
-              <span>Member: <span className="text-white/80">{memberId || "-"}</span></span>
+              <span>{t("profileCard.memberLabel")} <span className="text-white/80">{memberId || "-"}</span></span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-400">
               <MapPin className="w-3 h-3 text-blue-400" />
-              <span>Position: <span className="text-white/80">{position}</span></span>
+              <span>{t("profileCard.position")} <span className="text-white/80">{position}</span></span>
             </div>
           </div>
           {joinDate && (
             <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
               <CalendarDays className="w-3 h-3" />
-              Since {joinDate}
+              {t("profileCard.since")} {joinDate}
             </div>
           )}
         </div>
