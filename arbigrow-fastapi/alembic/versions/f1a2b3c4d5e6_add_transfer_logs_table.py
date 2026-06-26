@@ -1,6 +1,6 @@
-"""add transfer_logs table — merge all heads
+"""add transfer_logs table
 
-Revision ID: a1b2c3d4e5f6
+Revision ID: f1a2b3c4d5e6
 Revises: f8a9b0c1d2e3
 Create Date: 2026-06-16 19:00:00.000000
 """
@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "a1b2c3d4e5f6"
+revision: str = "f1a2b3c4d5e6"
 down_revision: str | None = "f8a9b0c1d2e3"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
