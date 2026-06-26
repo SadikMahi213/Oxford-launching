@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { ShieldCheck, ToggleLeft, ToggleRight, DollarSign, Users, CheckCircle, Clock, XCircle, AlertCircle, Package, Plus, Edit3, Trash2 } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import { getFeeConfig, updateFeeConfig, getKycPackages, createKycPackage, updateKycPackage, deleteKycPackage } from "../../api/admin.api.js";
 import { getUserStatistics } from "../../api/admin.api.js";
 
 export default function KycPackageManagement({ setActivePage }) {
+  const { t } = useTranslation();
   const token = useUserStore((s) => s.token);
   const [feeConfig, setFeeConfig] = useState({});
   const [packages, setPackages] = useState([]);
@@ -43,7 +45,7 @@ export default function KycPackageManagement({ setActivePage }) {
     try {
       await updateFeeConfig(token, "kyc_package_enabled", newValue);
       setFeeConfig({ ...feeConfig, kyc_package_enabled: newValue });
-      setMsg(`KYC package ${newValue === "true" ? "enabled" : "disabled"}`);
+      setMsg(`KYC package ${newValue === "true" ? t("admin.kycPackages.enabled").toLowerCase() : t("admin.kycPackages.disabled").toLowerCase()}`);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -75,16 +77,16 @@ export default function KycPackageManagement({ setActivePage }) {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.price.trim()) {
-      setMsg("Name and price are required");
+      setMsg(t("admin.kycPackages.nameRequired"));
       return;
     }
     try {
       if (editPkg) {
         await updateKycPackage(token, editPkg.id, form);
-        setMsg("Package updated");
+        setMsg(t("admin.kycPackages.packageUpdated"));
       } else {
         await createKycPackage(token, form);
-        setMsg("Package created");
+        setMsg(t("admin.kycPackages.packageCreated"));
       }
       setShowForm(false);
       fetchData();
@@ -96,7 +98,7 @@ export default function KycPackageManagement({ setActivePage }) {
   const handleDeactivate = async (pkgId) => {
     try {
       await deleteKycPackage(token, pkgId);
-      setMsg("Package deactivated");
+      setMsg(`Package ${t("admin.kycPackages.deactivated")}`);
       fetchData();
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -106,7 +108,7 @@ export default function KycPackageManagement({ setActivePage }) {
   const handleToggleActive = async (pkg) => {
     try {
       await updateKycPackage(token, pkg.id, { is_active: !pkg.is_active });
-      setMsg(`Package ${!pkg.is_active ? "activated" : "deactivated"}`);
+      setMsg(`Package ${pkg.is_active ? t("admin.kycPackages.deactivated") : t("admin.kycPackages.activated")}`);
       fetchData();
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -117,24 +119,26 @@ export default function KycPackageManagement({ setActivePage }) {
   const kyc = stats.kyc || {};
   const activePkg = packages.find((p) => p.is_active);
 
+  const policyItems = t("admin.kycPackages.policyItems", { returnObjects: true });
+
   return (
     <div className="p-4 md:p-6 space-y-5">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
           <ShieldCheck className="w-8 h-8 text-cyan-400" />
           <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            KYC Package Management
+            {t("admin.kycPackages.title")}
           </span>
         </h1>
         <p className="text-sm text-gray-400 mt-1">
-          Configure KYC packages — multiple packages, only one active at a time.
+          {t("admin.kycPackages.subtitle")}
         </p>
       </motion.div>
 
       {msg && <p className="text-sm text-green-400 bg-green-500/10 rounded-lg px-4 py-2">{msg}</p>}
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-gray-400">{t("admin.kycPackages.loading")}</p>
       ) : (
         <>
           {/* KPI Cards */}
@@ -146,7 +150,7 @@ export default function KycPackageManagement({ setActivePage }) {
                 <CheckCircle className="w-8 h-8 text-emerald-400" />
                 <span className="text-2xl font-bold text-emerald-400">{kyc.approved || 0}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-2">Verified</p>
+              <p className="text-sm text-gray-400 mt-2">{t("admin.kycPackages.verified")}</p>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-500/[0.02] backdrop-blur-xl border border-amber-500/20 p-5"
@@ -155,7 +159,7 @@ export default function KycPackageManagement({ setActivePage }) {
                 <Clock className="w-8 h-8 text-amber-400" />
                 <span className="text-2xl font-bold text-amber-400">{kyc.pending || 0}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-2">Pending</p>
+              <p className="text-sm text-gray-400 mt-2">{t("admin.kycPackages.pending")}</p>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/[0.02] backdrop-blur-xl border border-red-500/20 p-5"
@@ -164,7 +168,7 @@ export default function KycPackageManagement({ setActivePage }) {
                 <XCircle className="w-8 h-8 text-red-400" />
                 <span className="text-2xl font-bold text-red-400">{kyc.rejected || 0}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-2">Rejected</p>
+              <p className="text-sm text-gray-400 mt-2">{t("admin.kycPackages.rejected")}</p>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-500/[0.02] backdrop-blur-xl border border-blue-500/20 p-5"
@@ -173,7 +177,7 @@ export default function KycPackageManagement({ setActivePage }) {
                 <Package className="w-8 h-8 text-blue-400" />
                 <span className="text-2xl font-bold text-blue-400">{packages.length}</span>
               </div>
-              <p className="text-sm text-gray-400 mt-2">Total Packages</p>
+              <p className="text-sm text-gray-400 mt-2">{t("admin.kycPackages.totalPackages")}</p>
             </motion.div>
           </div>
 
@@ -183,7 +187,7 @@ export default function KycPackageManagement({ setActivePage }) {
               className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-4"
             >
               <h3 className="text-white font-semibold flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-400" /> Default Fee
+                <DollarSign className="w-5 h-5 text-green-400" /> {t("admin.kycPackages.defaultFee")}
               </h3>
               <div className="flex items-center gap-3">
                 <input
@@ -196,16 +200,20 @@ export default function KycPackageManagement({ setActivePage }) {
                 <span className="text-sm text-gray-400">USDT</span>
                 <button onClick={saveFee}
                   className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
-                >Save</button>
+                >{t("admin.kycPackages.save")}</button>
               </div>
-              <p className="text-xs text-gray-500">Current: <strong className="text-white">{feeConfig.kyc_fee || "0"} USDT</strong></p>
+              <p className="text-xs text-gray-500"
+                dangerouslySetInnerHTML={{
+                  __html: t("admin.kycPackages.currentFee", { fee: feeConfig.kyc_fee || "0" })
+                }}
+              />
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-4"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-white font-semibold">Package Feature</h3>
+                <h3 className="text-white font-semibold">{t("admin.kycPackages.packageFeature")}</h3>
                 <button onClick={togglePackage}
                   className={`p-2 rounded-lg transition-colors ${enabled ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
                 >
@@ -213,10 +221,14 @@ export default function KycPackageManagement({ setActivePage }) {
                 </button>
               </div>
               <div className={`text-sm ${enabled ? "text-green-400" : "text-red-400"}`}>
-                {enabled ? "KYC is enabled — users can submit" : "KYC is disabled — submissions blocked"}
+                {enabled ? t("admin.kycPackages.enabled") : t("admin.kycPackages.disabled")}
               </div>
               {activePkg && (
-                <p className="text-xs text-gray-500">Active: <strong className="text-cyan-300">{activePkg.name}</strong> ({activePkg.price} USDT)</p>
+                <p className="text-xs text-gray-500"
+                  dangerouslySetInnerHTML={{
+                    __html: t("admin.kycPackages.activePackage", { name: activePkg.name, price: activePkg.price })
+                  }}
+                />
               )}
             </motion.div>
           </div>
@@ -227,17 +239,17 @@ export default function KycPackageManagement({ setActivePage }) {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-white font-semibold flex items-center gap-2">
-                <Package className="w-5 h-5 text-cyan-400" /> KYC Packages
+                <Package className="w-5 h-5 text-cyan-400" /> {t("admin.kycPackages.kycPackages")}
               </h3>
               <button onClick={openCreate}
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white flex items-center gap-1"
               >
-                <Plus className="w-3.5 h-3.5" /> New Package
+                <Plus className="w-3.5 h-3.5" /> {t("admin.kycPackages.newPackage")}
               </button>
             </div>
 
             {packages.length === 0 ? (
-              <p className="text-sm text-gray-500">No packages created yet.</p>
+              <p className="text-sm text-gray-500">{t("admin.kycPackages.noPackages")}</p>
             ) : (
               <div className="space-y-2">
                 {packages.map((pkg) => (
@@ -254,19 +266,19 @@ export default function KycPackageManagement({ setActivePage }) {
                     <div className="flex items-center gap-2">
                       <button onClick={() => handleToggleActive(pkg)}
                         className={`p-1.5 rounded-lg transition-colors ${pkg.is_active ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}`}
-                        title={pkg.is_active ? "Deactivate" : "Activate"}
+                        title={pkg.is_active ? t("admin.kycPackages.deactivateTitle") : t("admin.kycPackages.activateTitle")}
                       >
                         {pkg.is_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
                       </button>
                       <button onClick={() => openEdit(pkg)}
                         className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
-                        title="Edit"
+                        title={t("admin.kycPackages.editTitle")}
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDeactivate(pkg.id)}
                         className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
-                        title="Deactivate"
+                        title={t("admin.kycPackages.deactivateTitle")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -291,37 +303,37 @@ export default function KycPackageManagement({ setActivePage }) {
                 onClick={(e) => e.stopPropagation()}
                 className="w-full max-w-md rounded-2xl bg-[#0a0e27] border border-white/10 p-6 space-y-4"
               >
-                <h3 className="text-lg font-bold text-white">{editPkg ? "Edit Package" : "New Package"}</h3>
+                <h3 className="text-lg font-bold text-white">{editPkg ? t("admin.kycPackages.editPackage") : t("admin.kycPackages.newPackageTitle")}</h3>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Name</label>
+                  <label className="block text-sm text-gray-400 mb-1">{t("admin.kycPackages.name")}</label>
                   <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#0C1035] border border-white/20 text-white focus:outline-none focus:border-cyan-500/50"
-                    placeholder="e.g. Standard KYC"
+                    placeholder={t("admin.kycPackages.namePlaceholder")}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Price (USDT)</label>
+                  <label className="block text-sm text-gray-400 mb-1">{t("admin.kycPackages.price")}</label>
                   <input value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#0C1035] border border-white/20 text-white focus:outline-none focus:border-cyan-500/50"
                     type="number" min="0" step="0.01"
-                    placeholder="e.g. 10"
+                    placeholder={t("admin.kycPackages.pricePlaceholder")}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Description</label>
+                  <label className="block text-sm text-gray-400 mb-1">{t("admin.kycPackages.description")}</label>
                   <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
                     rows={2}
                     className="w-full px-4 py-2.5 rounded-xl bg-[#0C1035] border border-white/20 text-white focus:outline-none focus:border-cyan-500/50 resize-none"
-                    placeholder="Optional description"
+                    placeholder={t("admin.kycPackages.optionalDescription")}
                   />
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => setShowForm(false)}
                     className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 transition-colors"
-                  >Cancel</button>
+                  >{t("admin.kycPackages.cancel")}</button>
                   <button onClick={handleSave}
                     className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
-                  >{editPkg ? "Update" : "Create"}</button>
+                  >{editPkg ? t("admin.kycPackages.update") : t("admin.kycPackages.create")}</button>
                 </div>
               </motion.div>
             </motion.div>
@@ -331,17 +343,17 @@ export default function KycPackageManagement({ setActivePage }) {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-3"
           >
-            <h3 className="text-white font-semibold">Quick Actions</h3>
+            <h3 className="text-white font-semibold">{t("admin.kycPackages.quickActions")}</h3>
             <div className="flex flex-wrap gap-3">
               <button onClick={() => setActivePage?.("kyc-requests")}
                 className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white flex items-center gap-2"
               >
-                <Users className="w-4 h-4" /> View KYC Requests
+                <Users className="w-4 h-4" /> {t("admin.kycPackages.viewKycRequests")}
               </button>
               <button onClick={() => setActivePage?.("users")}
                 className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-300 flex items-center gap-2"
               >
-                <Users className="w-4 h-4" /> User Management
+                <Users className="w-4 h-4" /> {t("admin.kycPackages.userManagement")}
               </button>
             </div>
           </motion.div>
@@ -351,14 +363,12 @@ export default function KycPackageManagement({ setActivePage }) {
             className="rounded-2xl bg-gradient-to-br from-blue-500/5 to-blue-500/[0.02] backdrop-blur-xl border border-blue-500/20 p-5 space-y-2"
           >
             <h3 className="text-sm font-semibold text-blue-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" /> KYC Policy
+              <AlertCircle className="w-4 h-4" /> {t("admin.kycPackages.kycPolicy")}
             </h3>
             <ul className="text-xs text-gray-400 space-y-1">
-              <li>• KYC is only required for: user-to-user fund transfers and withdrawal requests.</li>
-              <li>• Package purchases, deposits, earnings, referrals, and daily activities do NOT require KYC.</li>
-              <li>• Only one package can be active at a time — the active package is shown to users.</li>
-              <li>• The fee is deducted once per user at the time of KYC submission.</li>
-              <li>• Users with existing KYC records are grandfathered — no additional fee.</li>
+              {Array.isArray(policyItems) && policyItems.map((item, i) => (
+                <li key={i}>• {item}</li>
+              ))}
             </ul>
           </motion.div>
         </>

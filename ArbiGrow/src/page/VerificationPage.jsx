@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   ShieldCheck,
   Upload,
@@ -21,6 +22,7 @@ import { countries } from "../constants/countries";
 import useUserStore from "../store/userStore";
 
 export default function VerificationPage({ embedded, onSuccess }) {
+  const { t } = useTranslation();
   const { user, setUser } = useUserStore();
   const [idNumber, setIdNumber] = useState("");
   const [idType, setIdType] = useState("nid");
@@ -92,11 +94,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
   const validateImageFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "application/pdf"];
     if (!validTypes.includes(file.type)) {
-      return "Please upload a valid image file (JPEG, PNG, WebP) or PDF";
+      return t("kycVerification.errors.invalidFileType");
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      return "File size must be less than 5MB";
+      return t("kycVerification.errors.fileTooLarge");
     }
 
     return null;
@@ -149,13 +151,13 @@ export default function VerificationPage({ embedded, onSuccess }) {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Upload failed");
+      if (!res.ok) throw new Error(data.detail || t("kycVerification.errors.uploadFailed"));
       setUser({ profile_image_url: data.profile_image_url });
-      setProfileImageMsg("Profile image uploaded");
+      setProfileImageMsg(t("kycVerification.profileImageUploaded"));
       setProfileImageFile(null);
       setProfileImagePreview("");
     } catch (err) {
-      setProfileImageMsg(err.message || "Failed to upload");
+      setProfileImageMsg(err.message || t("kycVerification.errors.uploadFailed"));
     } finally {
       setProfileImageUploading(false);
     }
@@ -181,39 +183,38 @@ export default function VerificationPage({ embedded, onSuccess }) {
     setError("");
 
     if (!idNumber.trim()) {
-      setError("Please enter your ID number");
+      setError(t("kycVerification.errors.enterIdNumber"));
       return;
     }
 
     if (!phoneNumber.trim()) {
-      setError("Please enter your phone number");
+      setError(t("kycVerification.errors.enterPhone"));
       return;
     }
 
-    // basic validation (numbers only, 6–15 digits)
     const phoneRegex = /^[0-9]{6,15}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      setError("Please enter a valid phone number");
+      setError(t("kycVerification.errors.validPhone"));
       return;
     }
 
     if (!frontImage) {
-      setError("Please upload the front image");
+      setError(t("kycVerification.errors.uploadFront"));
       return;
     }
 
     if (idType !== "passport" && !backImage) {
-      setError("Please upload the back image");
+      setError(t("kycVerification.errors.uploadBack"));
       return;
     }
 
     if (!hasExistingKyc && activePackage && !transactionId.trim()) {
-      setError("Please enter your Transaction ID");
+      setError(t("kycVerification.errors.enterTransactionId"));
       return;
     }
 
     if (!hasExistingKyc && parseFloat(kycFee) > 0 && parseFloat(user?.main_wallet || 0) < parseFloat(kycFee)) {
-      setError(`Insufficient balance. KYC fee is ${kycFee} USDT but your main wallet has ${user?.main_wallet || 0} USDT.`);
+      setError(t("kycVerification.errors.insufficientBalance", { fee: kycFee, balance: user?.main_wallet || "0" }));
       return;
     }
 
@@ -253,16 +254,16 @@ export default function VerificationPage({ embedded, onSuccess }) {
       console.error(err);
 
       if (err.response?.status === 401) {
-        setError("Unauthorized. Please login again.");
+        setError(t("kycVerification.errors.unauthorized"));
       } else if (err.response?.status === 400) {
-        setError(err.response.data?.detail || "Bad request");
+        setError(err.response.data?.detail || t("kycVerification.errors.badRequest"));
       } else if (err.response?.status === 422) {
         const messages = err.response.data?.detail
           ?.map((d) => d.msg)
           .join(", ");
-        setError(messages || "Validation error");
+        setError(messages || t("kycVerification.errors.validationError"));
       } else {
-        setError("Verification failed. Please try again.");
+        setError(t("kycVerification.errors.submissionFailed"));
       }
     } finally {
       setIsSubmitting(false);
@@ -278,35 +279,6 @@ export default function VerificationPage({ embedded, onSuccess }) {
         <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-cyan-500/4 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-1/3 w-[400px] h-[400px] bg-blue-600/4 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Logo */}
-      {/* <motion.a
-        href="#home"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="fixed top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-3 group z-50"
-      >
-        <div className="relative">
-          <div className="relative w-12 h-12 rounded-xl overflow-hidden group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/50">
-            <img
-              src={logo}
-               alt="Oxford Financial Ads Logo"
-               className="w-full h-full object-contain"
-             />
-           </div>
-         </div>
-         <div>
-           <div className="text-xl font-bold">
-             <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-               Oxford Financial Ads
-            </span>
-          </div>
-          <div className="text-[8px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-0.5">
-            Professional Financial Services
-          </div>
-        </div>
-      </motion.a> */}
 
       {/* Main Content */}
       <motion.div
@@ -334,12 +306,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
                 <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                  KYC Verification
-                </span>{" "}
-                Package
+                  {t("kycVerification.title")}
+                </span>
               </h1>
               <p className="text-gray-400 text-sm md:text-base">
-                Purchase the KYC verification package to unlock fund transfers and withdrawals.
+                {t("kycVerification.subtitle")}
               </p>
             </div>
 
@@ -348,7 +319,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* Profile Image */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Profile Image <span className="text-gray-500">(optional)</span>
+                  {t("kycVerification.profileImage")} <span className="text-gray-500">{t("kycVerification.optional")}</span>
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -373,7 +344,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                       onClick={() => profileInputRef.current?.click()}
                       className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:bg-white/10 transition-colors"
                     >
-                      Choose File
+                      {t("kycVerification.chooseFile")}
                     </button>
                     {profileImageFile && (
                       <button
@@ -387,7 +358,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                         ) : (
                           <Check className="w-4 h-4" />
                         )}
-                        {profileImageUploading ? "Uploading..." : "Upload"}
+                        {profileImageUploading ? t("kycVerification.uploading") : t("kycVerification.upload")}
                       </button>
                     )}
                   </div>
@@ -402,7 +373,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* Country Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Country of Issue
+                  {t("kycVerification.countryOfIssue")}
                 </label>
                 <div className="relative">
                   <button
@@ -434,7 +405,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="Search countries..."
+                          placeholder={t("kycVerification.searchCountries")}
                           className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
                         />
                       </div>
@@ -464,7 +435,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* Phone Number */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Phone Number
+                  {t("kycVerification.phoneNumber")}
                 </label>
 
                 <div className="flex items-center gap-2">
@@ -483,7 +454,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                       setPhoneNumber(value);
                       setError("");
                     }}
-                    placeholder="Enter phone number"
+                    placeholder={t("kycVerification.enterPhone")}
                     className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                   />
                 </div>
@@ -506,7 +477,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   <div
                     className={`text-sm font-semibold ${idType === "nid" ? "text-white" : "text-gray-400"}`}
                   >
-                    National ID
+                    {t("kycVerification.nationalId")}
                   </div>
                   {idType === "nid" && (
                     <motion.div
@@ -531,7 +502,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   <div
                     className={`text-sm font-semibold ${idType === "passport" ? "text-white" : "text-gray-400"}`}
                   >
-                    Passport
+                    {t("kycVerification.passport")}
                   </div>
                   {idType === "passport" && (
                     <motion.div
@@ -556,7 +527,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   <div
                     className={`text-sm font-semibold ${idType === "driving_license" ? "text-white" : "text-gray-400"}`}
                   >
-                    Driving Licence
+                    {t("kycVerification.drivingLicence")}
                   </div>
                   {idType === "driving_license" && (
                     <motion.div
@@ -570,7 +541,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* ID Number Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {idType === "nid" ? "National ID Number" : idType === "driving_license" ? "Driving Licence Number" : "Passport Number"}
+                  {idType === "nid" ? t("kycVerification.nationalIdNumber") : idType === "driving_license" ? t("kycVerification.drivingLicenceNumber") : t("kycVerification.passportNumber")}
                 </label>
 
                 <div className="relative flex items-center">
@@ -583,8 +554,8 @@ export default function VerificationPage({ embedded, onSuccess }) {
                     }}
                     placeholder={
                       idType === "nid"
-                        ? "Enter your NID number"
-                        : "Enter your passport number"
+                        ? t("kycVerification.enterNid")
+                        : t("kycVerification.enterPassport")
                     }
                     className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                   />
@@ -610,7 +581,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {!hasExistingKyc && activePackage && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Transaction ID <span className="text-gray-500">(required)</span>
+                    {t("kycVerification.transactionId")} <span className="text-gray-500">{t("kycVerification.transactionIdRequired")}</span>
                   </label>
                   <input
                     type="text"
@@ -619,7 +590,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                       setTransactionId(e.target.value);
                       setError("");
                     }}
-                    placeholder="Enter your payment transaction ID"
+                    placeholder={t("kycVerification.enterTransactionId")}
                     className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                   />
                 </div>
@@ -634,25 +605,30 @@ export default function VerificationPage({ embedded, onSuccess }) {
                       {parseFloat(kycFee) > 0 ? (
                         <>
                           <p className="font-medium text-cyan-300">
-                            {activePackage ? `${activePackage.name} — ${activePackage.price} USDT` : `KYC Package — ${kycFee} USDT`}
+                            {activePackage
+                              ? t("kycVerification.packageNameFee", { name: activePackage.name, price: activePackage.price })
+                              : t("kycVerification.packageFee", { fee: kycFee })}
                           </p>
-                          <p className="mt-1">
-                            Purchase the KYC verification package for <strong>{activePackage ? activePackage.price : kycFee} USDT</strong>.
-                            This fee will be deducted from your main wallet once you submit your documents.
-                          </p>
+                          <p className="mt-1"
+                            dangerouslySetInnerHTML={{
+                              __html: t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee })
+                            }}
+                          />
                           {parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
                             <p className="mt-1 text-red-400 text-xs">
-                              Insufficient balance. Your main wallet has {user?.main_wallet || 0} USDT.
+                              {t("kycVerification.insufficientBalance", { balance: user?.main_wallet || "0" })}
                             </p>
                           )}
                         </>
                       ) : (
                         <>
                           <p className="font-medium text-cyan-300">
-                            {activePackage ? `${activePackage.name} — Free` : "KYC Package — Free"}
+                            {activePackage
+                              ? t("kycVerification.packageNameFree", { name: activePackage.name })
+                              : t("kycVerification.packageFree")}
                           </p>
                           <p className="mt-1">
-                            Submit your documents to complete KYC verification. No fee is required.
+                            {t("kycVerification.freeDescription")}
                           </p>
                         </>
                       )}
@@ -664,67 +640,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* File Uploads */}
               <div className="space-y-4">
                 <label className="block text-sm font-medium text-gray-300">
-                  Upload ID Documents
+                  {t("kycVerification.uploadDocuments")}
                 </label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Front Image Upload */}
-                  {/* <div>
-                    <input
-                      ref={frontInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFrontImageChange}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => frontInputRef.current?.click()}
-                      className="w-full h-40 rounded-xl border-2 border-dashed border-white/10 hover:border-cyan-500/50 bg-white/5 hover:bg-white/10 transition-all duration-300 flex flex-col items-center justify-center gap-3 group"
-                    >
-                      {frontImage ? (
-                        <div className="relative w-full h-full p-3">
-                          <div className="w-full h-full rounded-lg bg-white/5 flex items-center justify-center relative overflow-hidden">
-                            {frontPreviewUrl ? (
-                              <img
-                                src={frontPreviewUrl}
-                                alt="Front document preview"
-                                className="h-full w-full object-cover rounded-lg"
-                              />
-                            ) : (
-                              <ImageIcon className="w-12 h-12 text-green-400" />
-                            )}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setFrontImage(null);
-                              }}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center hover:bg-red-500/30 transition-colors"
-                            >
-                              <X className="w-4 h-4 text-red-400" />
-                            </button>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-2 text-center truncate">
-                            {frontImage.name}
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 text-gray-400 group-hover:text-cyan-400 transition-colors" />
-                          <div className="text-center">
-                            <p className="text-sm font-medium text-gray-300">
-                              Front Side
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Click to upload
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </button>
-                  </div> */}
-
                   <div>
                     <input
                       ref={frontInputRef}
@@ -749,7 +668,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                             {frontPreviewUrl ? (
                               <img
                                 src={frontPreviewUrl}
-                                alt="Front document preview"
+                                alt={t("kycVerification.frontSide")}
                                 className="h-full w-full object-cover rounded-lg"
                               />
                             ) : (
@@ -778,10 +697,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
                           <Upload className="w-8 h-8 text-gray-400 group-hover:text-cyan-400 transition-colors" />
                           <div className="text-center">
                             <p className="text-sm font-medium text-gray-300">
-                              Front Side
+                              {t("kycVerification.frontSide")}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              Click to upload
+                              {t("kycVerification.clickToUpload")}
                             </p>
                           </div>
                         </>
@@ -817,7 +736,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                                 {backPreviewUrl ? (
                                   <img
                                     src={backPreviewUrl}
-                                    alt="Back document preview"
+                                    alt={t("kycVerification.backSide")}
                                     className="h-full w-full object-cover rounded-lg"
                                   />
                                 ) : (
@@ -846,10 +765,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
                               <Upload className="w-8 h-8 text-gray-400 group-hover:text-cyan-400 transition-colors" />
                               <div className="text-center">
                                 <p className="text-sm font-medium text-gray-300">
-                                  Back Side
+                                  {t("kycVerification.backSide")}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  Click to upload
+                                  {t("kycVerification.clickToUpload")}
                                 </p>
                               </div>
                             </>
@@ -894,12 +813,14 @@ export default function VerificationPage({ embedded, onSuccess }) {
                         }}
                         className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                       />
-                      Processing...
+                      {t("kycVerification.processing")}
                     </>
                   ) : (
                     <>
                       <ShieldCheck className="w-5 h-5" />
-                      {parseFloat(kycFee) > 0 ? `Purchase & Submit (${activePackage ? activePackage.price : kycFee} USDT)` : "Submit for Verification"}
+                      {parseFloat(kycFee) > 0
+                        ? t("kycVerification.purchaseSubmit", { fee: activePackage ? activePackage.price : kycFee })
+                        : t("kycVerification.submitForVerification")}
                     </>
                   )}
                 </span>
@@ -917,24 +838,14 @@ export default function VerificationPage({ embedded, onSuccess }) {
                 <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-gray-400">
                   <p className="mb-1">
-                    This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.
+                    {t("kycVerification.infoBox")}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.
+                    {t("kycVerification.infoBoxSub")}
                   </p>
                 </div>
               </div>
             </motion.div>
-
-            {/* Footer Links */}
-            {/* <div className="mt-8 pt-6 border-t border-white/10 text-center">
-              <p className="text-sm text-gray-400">
-                Need help?{' '}
-                <a href="#support" className="text-cyan-400 hover:text-cyan-300 transition-colors">
-                  Contact Support
-                </a>
-              </p>
-            </div> */}
           </div>
         </div>
       </motion.div>
