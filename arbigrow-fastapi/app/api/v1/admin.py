@@ -49,9 +49,12 @@ def _resolve_effective_status(
     account_status: str | None,
     kyc_status: KYCStatus | None,
     admin_kyc_status: str | None,
+    email_verified: bool = True,
 ) -> str:
     if (account_status or "").lower() == "on_hold":
         return "issue"
+    if (account_status or "").lower() != "active" or not email_verified:
+        return "inactive"
     return kyc_status.value if kyc_status else (admin_kyc_status or "pending")
 
 
@@ -274,7 +277,7 @@ async def get_admin_users(
     normalized_search = (search or "").strip()
     normalized_status = (status or "all").strip().lower()
 
-    if normalized_status not in {"all", "approved", "pending", "rejected", "issue"}:
+    if normalized_status not in {"all", "approved", "pending", "rejected", "issue", "inactive"}:
         raise HTTPException(status_code=400, detail="Invalid status filter")
 
     def apply_filters(statement, include_status: bool = True):
@@ -290,6 +293,13 @@ async def get_admin_users(
         if include_status and normalized_status != "all":
             if normalized_status == "issue":
                 statement = statement.where(User.account_status == "on_hold")
+            elif normalized_status == "inactive":
+                statement = statement.where(
+                    or_(
+                        User.account_status != "active",
+                        User.email_verified.is_(False),
+                    )
+                )
             elif normalized_status == "pending":
                 # If KYC exists, KYC status is authoritative. Otherwise fallback to admin_kyc_status.
                 statement = statement.where(
@@ -337,10 +347,13 @@ async def get_admin_users(
             "full_name": user.full_name,
             "username": user.username,
             "email": user.email,
+            "email_verified": user.email_verified,
+            "has_kyc_submitted": kyc_status is not None,
             "status": _resolve_effective_status(
                 user.account_status,
                 kyc_status,
                 admin_kyc_status,
+                user.email_verified,
             ),
             "account_status": user.account_status,
         })
@@ -417,10 +430,25 @@ async def get_admin_users(
                 ),
                 0,
             ).label("issue"),
+            func.coalesce(
+                func.sum(
+                    case(
+                        (
+                            or_(
+                                User.account_status != "active",
+                                User.email_verified.is_(False),
+                            ),
+                            1,
+                        ),
+                        else_=0,
+                    )
+                ),
+                0,
+            ).label("inactive"),
         ).select_from(User).join(KYC, KYC.user_id == User.id, isouter=True),
         include_status=False,
     )
-    approved_count, pending_count, rejected_count, issue_count = (
+    approved_count, pending_count, rejected_count, issue_count, inactive_count = (
         await db.execute(status_counts_query)
     ).one()
 
@@ -434,6 +462,7 @@ async def get_admin_users(
             "pending": int(pending_count or 0),
             "rejected": int(rejected_count or 0),
             "issue": int(issue_count or 0),
+            "inactive": int(inactive_count or 0),
         }
     }
 
@@ -663,10 +692,12 @@ async def get_user_details(
         "username": user.username,
         "email": user.email,
         "email_verified": user.email_verified,
+        "has_kyc_submitted": kyc is not None,
         "status": _resolve_effective_status(
             user.account_status,
             kyc.status if kyc else None,
             user.admin_kyc_status,
+            user.email_verified,
         ),
         "account_status": user.account_status,
         "issue_note": user.account_issue,

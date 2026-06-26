@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import AdminLayout from "../component/admin/AdminLayout.jsx";
 import UserManagement from "../component/admin/UserManagement.jsx";
+import KYCRequests from "../component/admin/KYCRequests.jsx";
 import DashboardOverview from "../component/admin/DashboardOverview.jsx";
 import useUserStore from "../store/userStore.js";
 import DepositRequests from "../component/admin/DepositRequests.jsx";
@@ -116,6 +117,8 @@ export default function AdminDashboard() {
         return <BlockedAccounts />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
+      case "kyc-requests":
+        return <KYCRequests users={users} setUsers={setUsers} />;
       case "deposits":
         return <DepositRequests />;
       case "withdrawals":

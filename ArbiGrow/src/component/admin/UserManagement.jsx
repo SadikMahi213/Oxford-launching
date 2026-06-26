@@ -26,15 +26,15 @@ const buildWalletForm = (wallets = {}) =>
     return acc;
   }, {});
 
-const VALID_STATUSES = new Set(["approved", "pending", "rejected", "issue"]);
+const VALID_STATUSES = new Set(["approved", "pending", "rejected", "issue", "inactive"]);
 const normalizeStatus = (value) => {
   const normalized = String(value || "pending").toLowerCase();
   return VALID_STATUSES.has(normalized) ? normalized : "pending";
 };
 
-export default function UserManagement({ users, setUsers }) {
+export default function UserManagement({ users, setUsers, initialStatusFilter = "all" }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [userStatus, setUserStatus] = useState("");
@@ -53,6 +53,7 @@ export default function UserManagement({ users, setUsers }) {
     pending: 0,
     rejected: 0,
     issue: 0,
+    inactive: 0,
   });
   const [loading, setLoading] = useState(false);
   const [isBulkApproving, setIsBulkApproving] = useState(false);
@@ -89,6 +90,7 @@ export default function UserManagement({ users, setUsers }) {
       const normalizedUsers = responseUsers.map((user) => ({
         ...user,
         status: normalizeStatus(user?.status),
+        has_kyc_submitted: user?.has_kyc_submitted ?? false,
       }));
       const pageLimit = Number(responseData?.limit || 50);
       const backendCounts = responseData?.status_counts || {};
@@ -104,6 +106,7 @@ export default function UserManagement({ users, setUsers }) {
         pending: Number(backendCounts?.pending || 0) || 0,
         rejected: Number(backendCounts?.rejected || 0) || 0,
         issue: Number(backendCounts?.issue || 0) || 0,
+        inactive: Number(backendCounts?.inactive || 0) || 0,
       });
     } catch (err) {
       if (fetchId !== latestFetchIdRef.current) return;
@@ -464,6 +467,8 @@ export default function UserManagement({ users, setUsers }) {
         return "text-red-400 bg-red-500/10 border-red-500/30";
       case "issue":
         return "text-orange-300 bg-orange-500/10 border-orange-500/30";
+      case "inactive":
+        return "text-gray-400 bg-gray-500/10 border-gray-500/30";
       default:
         return "text-gray-400 bg-gray-500/10 border-gray-500/30";
     }
@@ -482,6 +487,7 @@ export default function UserManagement({ users, setUsers }) {
           pending: statusFilter === "pending" ? totalUsers : 0,
           rejected: statusFilter === "rejected" ? totalUsers : 0,
           issue: statusFilter === "issue" ? totalUsers : 0,
+          inactive: statusFilter === "inactive" ? totalUsers : 0,
         };
 
 
@@ -543,7 +549,7 @@ export default function UserManagement({ users, setUsers }) {
 
         {/* Status Filters */}
         <div className="flex gap-2">
-          {["all", "approved", "pending", "rejected", "issue"].map((status) => (
+          {["all", "approved", "pending", "rejected", "issue", "inactive"].map((status) => (
             <button
               key={status}
               onClick={() => {
@@ -560,6 +566,8 @@ export default function UserManagement({ users, setUsers }) {
                         ? "bg-red-500/20 border border-red-500/50 text-red-400"
                       : status === "issue"
                         ? "bg-orange-500/20 border border-orange-500/50 text-orange-300"
+                      : status === "inactive"
+                        ? "bg-gray-500/20 border border-gray-500/50 text-gray-300"
                         : "bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
                   : "bg-white/5 border border-white/10 text-gray-400 hover:text-white"
               }`}
@@ -571,13 +579,13 @@ export default function UserManagement({ users, setUsers }) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
         <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10">
           <div className="text-2xl font-bold text-white">{totalUsers}</div>
           <div className="text-sm text-gray-400">Total Users</div>
         </div>
 
-        {["approved", "pending", "rejected", "issue"].map((status) => (
+        {["approved", "pending", "rejected", "issue", "inactive"].map((status) => (
           <div
             key={status}
             className={`p-4 rounded-xl bg-gradient-to-br ${
@@ -587,7 +595,9 @@ export default function UserManagement({ users, setUsers }) {
                   ? "from-yellow-500/10 to-yellow-500/5 border-yellow-500/20"
                   : status === "rejected"
                     ? "from-red-500/10 to-red-500/5 border-red-500/20"
-                    : "from-orange-500/10 to-orange-500/5 border-orange-500/20"
+                    : status === "issue"
+                      ? "from-orange-500/10 to-orange-500/5 border-orange-500/20"
+                      : "from-gray-500/10 to-gray-500/5 border-gray-500/20"
             } border`}
           >
             <div
@@ -598,7 +608,9 @@ export default function UserManagement({ users, setUsers }) {
                     ? "text-yellow-400"
                     : status === "rejected"
                       ? "text-red-400"
-                      : "text-orange-300"
+                      : status === "issue"
+                        ? "text-orange-300"
+                        : "text-gray-300"
               }`}
             >
               {displayedStatusCounts[status] ?? 0}
@@ -659,11 +671,22 @@ export default function UserManagement({ users, setUsers }) {
                     <td className="p-4 text-gray-400">{user.username}</td>
                     <td className="p-4 text-gray-400">{user.email}</td>
                     <td className="p-4">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(normalizedStatus)}`}
-                      >
-                        {normalizedStatus === "pending" ? "PROCESSING" : normalizedStatus.toUpperCase()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(normalizedStatus)}`}
+                        >
+                          {normalizedStatus === "inactive"
+                            ? "INACTIVE"
+                            : normalizedStatus === "pending"
+                              ? "PROCESSING"
+                              : normalizedStatus.toUpperCase()}
+                        </span>
+                        {user.has_kyc_submitted && (
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 border border-blue-500/40 text-blue-300">
+                            KYC
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 text-center">
                       <button

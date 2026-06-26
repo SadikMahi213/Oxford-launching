@@ -26,6 +26,7 @@ import {
   Medal,
   Trophy,
   DollarSign,
+  IdCard,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -77,6 +78,12 @@ export default function AdminLayout({
       label: "User Management",
       icon: Users,
       description: "Manage all users",
+    },
+    {
+      id: "kyc-requests",
+      label: "KYC Requests",
+      icon: IdCard,
+      description: "Pending KYC verifications",
     },
     {
       id: "deposits",
