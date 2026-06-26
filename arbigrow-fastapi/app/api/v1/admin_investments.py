@@ -121,16 +121,15 @@ async def add_profit(
             user.parent_lvl_5_id,
         ]
 
-        parent_ids = [p for p in parent_ids if p]
-
         parents_map = {}
         active_parent_ids: set[int] = set()
+        pids_filtered = [p for p in parent_ids if p]
 
-        if parent_ids:
+        if pids_filtered:
 
             parents_result = await db.execute(
                 select(User)
-                .where(User.id.in_(parent_ids))
+                .where(User.id.in_(pids_filtered))
                 .with_for_update()
             )
 
@@ -141,7 +140,7 @@ async def add_profit(
             # Only credit parents who have at least one active package
             active_result = await db.execute(
                 select(Investment.user_id)
-                .where(Investment.user_id.in_(parent_ids), Investment.status == "active")
+                .where(Investment.user_id.in_(pids_filtered), Investment.status == "active")
                 .distinct()
             )
             active_parent_ids = set(active_result.scalars().all())
@@ -150,13 +149,14 @@ async def add_profit(
 
         rates = await get_referral_level_rates(db)
 
-        for level, parent_id in enumerate(parent_ids, start=1):
-
+        for level_idx, parent_id in enumerate(parent_ids):
+            if not parent_id:
+                continue
             parent = parents_map.get(parent_id)
-
             if not parent:
                 continue
 
+            level = level_idx + 1
             rate = rates[level]
 
             reward = (

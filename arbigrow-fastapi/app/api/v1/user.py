@@ -553,10 +553,11 @@ async def get_generation_bonuses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Return paginated generation bonus history for the current user."""
+    """Return paginated generation bonus history for the current user (levels 2-5 from all bonus types)."""
     base_where = and_(
         ReferralProfitHistory.receiver_user_id == current_user.id,
-        ReferralProfitHistory.type == "deposit_generation",
+        ReferralProfitHistory.level >= 2,
+        ReferralProfitHistory.level <= 5,
     )
     if level:
         base_where = and_(base_where, ReferralProfitHistory.level == level)
@@ -600,8 +601,10 @@ async def get_generation_bonuses(
             "amount": float(item.amount),
             "percentage": float(item.percentage),
             "deposit_id": item.deposit_id,
+            "investment_id": item.investment_id,
             "level": item.level,
             "level_label": level_labels.get(item.level, f"{item.level}th Generation"),
+            "type": item.type,
             "created_at": item.created_at.isoformat() if item.created_at else None,
             "status": "completed",
         }

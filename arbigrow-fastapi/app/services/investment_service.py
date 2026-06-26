@@ -88,33 +88,36 @@ async def _apply_referral_cascade(
         source_user.parent_lvl_4_id,
         source_user.parent_lvl_5_id,
     ]
-    parent_ids = [parent_id for parent_id in parent_ids if parent_id]
 
-    if not parent_ids:
-        return
-
-    parent_rows = await db.execute(
+    active_parent_ids = set()
+    parent_rows_result = await db.execute(
         select(User)
-        .where(User.id.in_(parent_ids))
+        .where(User.id.in_([p for p in parent_ids if p]))
         .with_for_update()
     )
-    parents_map = {parent.id: parent for parent in parent_rows.scalars().all()}
+    parents_map = {parent.id: parent for parent in parent_rows_result.scalars().all()}
+
+    if not parents_map:
+        return
 
     # Only credit parents who have at least one active package
     active_result = await db.execute(
         select(Investment.user_id)
-        .where(Investment.user_id.in_(parent_ids), Investment.status == "active")
+        .where(Investment.user_id.in_([p for p in parent_ids if p]), Investment.status == "active")
         .distinct()
     )
     active_parent_ids = set(active_result.scalars().all())
 
     rates = await get_referral_level_rates(db)
 
-    for level, parent_id in enumerate(parent_ids, start=1):
+    for level_idx, parent_id in enumerate(parent_ids):
+        if not parent_id:
+            continue
         parent = parents_map.get(parent_id)
         if not parent:
             continue
 
+        level = level_idx + 1
         rate = rates[level]
         reward = _to_wallet_precision((profit_amount * rate) / Decimal("100"))
 

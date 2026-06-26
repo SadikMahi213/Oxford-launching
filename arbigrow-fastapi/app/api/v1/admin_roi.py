@@ -173,22 +173,23 @@ async def apply_roi_to_all_active_investments(
             user.parent_lvl_4_id,
             user.parent_lvl_5_id,
         ]
-        parent_ids = [parent_id for parent_id in parent_ids if parent_id]
 
-        if parent_ids:
-            parent_result = await db.execute(
-                select(User)
-                .where(User.id.in_(parent_ids))
-                .with_for_update()
-            )
-            parents = {parent.id: parent for parent in parent_result.scalars().all()}
+        parent_result = await db.execute(
+            select(User)
+            .where(User.id.in_([p for p in parent_ids if p]))
+            .with_for_update()
+        )
+        parents = {parent.id: parent for parent in parent_result.scalars().all()}
 
-            previous_reward = profit_amount
-            for level, parent_id in enumerate(parent_ids, start=1):
+        if parents:
+            for level_idx, parent_id in enumerate(parent_ids):
+                if not parent_id:
+                    continue
                 parent = parents.get(parent_id)
                 if not parent:
                     continue
 
+                level = level_idx + 1
                 rate = rates[level]
                 reward = (profit_amount * rate) / Decimal("100")
                 if reward <= 0:
