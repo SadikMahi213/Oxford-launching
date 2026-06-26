@@ -279,30 +279,7 @@ async def update_withdrawal_status(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        source_wallet = withdrawal.source_wallet
-        if source_wallet not in ALLOWED_SOURCE_WALLETS:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid source wallet on withdrawal request",
-            )
-
-        source_balance = Decimal(str(getattr(user, source_wallet) or 0))
         amount = Decimal(str(withdrawal.amount))
-        charge = Decimal(str(withdrawal.charge or 0))
-        total_deduction = amount + charge
-
-        if source_balance < total_deduction:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Insufficient user balance in {source_wallet}. "
-                    f"Available: {source_balance}"
-                ),
-            )
-
-        setattr(user, source_wallet, _to_wallet_precision(
-            source_balance - total_deduction
-        ))
         user.withdraw_wallet = _to_wallet_precision(
             Decimal(str(user.withdraw_wallet or 0)) + amount
         )

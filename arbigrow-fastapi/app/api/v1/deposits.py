@@ -181,7 +181,6 @@ async def update_deposit_status(
 
         amount = Decimal(deposit.amount)
 
-        user.main_wallet += amount
         user.deposit_wallet += amount
 
         # Distribute direct referral and generation bonuses on deposit (flat rates)

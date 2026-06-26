@@ -711,21 +711,17 @@ async def wallet_transfer(
     if from_balance < amount:
         raise HTTPException(status_code=400, detail=f"Insufficient balance in {data.from_wallet}")
 
-    setattr(current_user, data.from_wallet, (from_balance - amount).quantize(WALLET_PRECISION))
-    to_balance = getattr(current_user, data.to_wallet) or Decimal("0")
-    setattr(current_user, data.to_wallet, (to_balance + amount).quantize(WALLET_PRECISION))
-
     await db.commit()
     await db.refresh(current_user)
 
     await notify_admin(
         db=db, type="wallet_transfer",
-        message=f"User {current_user.full_name} transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
+        message=f"User {current_user.full_name} initiated transfer of {float(amount)} from {data.from_wallet} to {data.to_wallet}",
         user_id=current_user.id, request=request,
     )
 
     return WalletTransferResponse(
-        message=f"Transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
+        message=f"Transfer of {float(amount)} from {data.from_wallet} to {data.to_wallet} recorded",
         from_wallet=data.from_wallet,
         to_wallet=data.to_wallet,
         amount=float(amount),
