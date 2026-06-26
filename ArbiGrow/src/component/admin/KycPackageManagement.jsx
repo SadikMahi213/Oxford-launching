@@ -16,12 +16,10 @@ export default function KycPackageManagement({ setActivePage }) {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    Promise.all([
-      getFeeConfig(token).then((r) => setFeeConfig(r.data || {})),
-      getUserStatistics(token).then((r) => setStats(r || {})),
-    ])
-      .catch(() => setMsg("Failed to load config"))
-      .finally(() => setLoading(false));
+    let loaded = 0;
+    const done = () => { loaded++; if (loaded >= 2) setLoading(false); };
+    getFeeConfig(token).then((r) => setFeeConfig(r.data || {})).catch(() => {}).finally(done);
+    getUserStatistics(token).then((r) => setStats(r || {})).catch(() => {}).finally(done);
   }, [token]);
 
   const togglePackage = async () => {

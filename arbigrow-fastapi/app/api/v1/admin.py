@@ -201,7 +201,7 @@ async def get_user_statistics(
 
     # Mining users
     mining_users_result = await db.execute(
-        select(func.count(User.id)).where(User.is_mining.is_(True))
+        select(func.count(User.id)).where(User.mining_active.is_(True))
     )
     mining_users = mining_users_result.scalar() or 0
 
