@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Camera,
   Check,
+  Car,
 } from "lucide-react";
 import { submitKYC } from "../api/kyc.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
@@ -181,8 +182,8 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
-    if (idType === "nid" && !backImage) {
-      setError("Please upload the back image for National ID");
+    if (idType !== "passport" && !backImage) {
+      setError("Please upload the back image");
       return;
     }
 
@@ -194,7 +195,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
     formData.append("document_number", idNumber);
     formData.append("front_image", frontImage);
 
-    if (idType === "nid" && backImage) {
+    if (idType !== "passport" && backImage) {
       formData.append("back_image", backImage);
     }
 
@@ -453,7 +454,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               </div>
 
               {/* ID Type Selection */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setIdType("nid")}
@@ -503,12 +504,37 @@ export default function VerificationPage({ embedded, onSuccess }) {
                     />
                   )}
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIdType("driving_licence")}
+                  className={`relative p-4 rounded-xl border transition-all duration-300 ${
+                    idType === "driving_licence"
+                      ? "bg-amber-500/20 border-amber-500/50 shadow-lg shadow-amber-500/20"
+                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  <Car
+                    className={`w-6 h-6 mx-auto mb-2 ${idType === "driving_licence" ? "text-amber-400" : "text-gray-400"}`}
+                  />
+                  <div
+                    className={`text-sm font-semibold ${idType === "driving_licence" ? "text-white" : "text-gray-400"}`}
+                  >
+                    Driving Licence
+                  </div>
+                  {idType === "driving_licence" && (
+                    <motion.div
+                      layoutId="activeIndicator"
+                      className="absolute inset-0 rounded-xl border-2 border-amber-400"
+                    />
+                  )}
+                </button>
               </div>
 
               {/* ID Number Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {idType === "nid" ? "National ID Number" : "Passport Number"}
+                  {idType === "nid" ? "National ID Number" : idType === "driving_licence" ? "Driving Licence Number" : "Passport Number"}
                 </label>
 
                 <div className="relative flex items-center">
@@ -673,7 +699,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   </div>
 
                   {/* Back Image Upload */}
-                  {idType === "nid" && (
+                  {idType !== "passport" && (
                     <>
                       <div>
                         <input
