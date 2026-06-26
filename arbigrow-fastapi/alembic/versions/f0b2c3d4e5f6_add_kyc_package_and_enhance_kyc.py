@@ -39,9 +39,10 @@ def upgrade() -> None:
     op.add_column("kyc_verifications",
                   sa.Column("transaction_id", sa.String(length=255), nullable=True))
 
+    op.execute("CREATE TYPE paymentstatus AS ENUM ('pending', 'paid')")
     op.add_column("kyc_verifications",
                   sa.Column("payment_status",
-                            sa.Enum("pending", "paid", name="paymentstatus"),
+                            sa.Enum("pending", "paid", name="paymentstatus", create_type=False),
                             nullable=False,
                             server_default="pending"))
 
