@@ -5,11 +5,13 @@ import { loginUser } from "../api/auth.api";
 import useUserStore from "../store/userStore";
 import { useNavigate } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const setUser = useUserStore((state) => state.setUser);
   const setToken = useUserStore((state) => state.setToken);
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -36,11 +38,11 @@ export default function LoginForm() {
     let tempErrors = {};
 
     if (!formData.email.trim()) {
-      tempErrors.email = "Email is required";
+      tempErrors.email = t("auth.login.emailRequired");
     }
 
     if (!formData.password.trim()) {
-      tempErrors.password = "Password is required";
+      tempErrors.password = t("auth.login.passwordRequired");
     }
 
     setErrors(tempErrors);
@@ -61,25 +63,12 @@ export default function LoginForm() {
       // console.log(res, "login api response");
       //  console.log("toiken", res?.data);
 
-      setUser(res?.data?.user);
+      setUser({ ...res?.data?.user, kyc_status: res?.data?.kyc_status });
       setToken(res?.data?.access_token);
       if (res?.data?.user?.is_admin) {
         navigate("/admin-dashboard");
-      } else if (res?.data?.doc_submitted === false) {
-        navigate("/verification-page");
-      } else if (
-        res?.data?.kyc_status === "pending" &&
-        res?.data?.doc_submitted === true &&
-        res?.data?.kyc_status != "rejected"
-      ) {
-        navigate("/verification-pending");
-      } else if (
-        res?.data?.kyc_status === "approved" &&
-        res?.data?.doc_submitted === true
-      ) {
-        navigate("/dashboard");
       } else {
-        navigate("/");
+        navigate("/dashboard");
       }
 
       // success message
@@ -104,6 +93,14 @@ export default function LoginForm() {
         });
         setErrors(fieldErrors);
         setMessage("");
+      }
+
+      // 423 blocked account
+      else if (err.response?.status === 423) {
+        setMessage(
+          err.response.data?.detail ||
+            "Your account has been temporarily blocked due to multiple failed login attempts. Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com",
+        );
       }
 
       // 400 error
@@ -146,7 +143,7 @@ export default function LoginForm() {
               👤
             </div>
             <h2 className="text-xl text-[#FFFFFF] font-semibold mt-3">
-              Customer Login
+              {t("auth.login.title")}
             </h2>
           </div>
 
@@ -155,7 +152,7 @@ export default function LoginForm() {
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
+              placeholder={t("auth.login.email")}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4171AD]"
               value={formData.email}
               onChange={handleChange}
@@ -167,7 +164,7 @@ export default function LoginForm() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Enter your password"
+                placeholder={t("auth.login.password")}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4171AD]"
                 value={formData.password}
                 onChange={handleChange}
@@ -199,7 +196,7 @@ export default function LoginForm() {
               className="text-sm text-right text-[#00C2F9] cursor-pointer hover:underline"
               onClick={() => navigate("/forgot-password")}
             >
-              Forgot password?
+              {t("auth.login.forgotPassword")}
             </p>
 
             <div className="flex justify-center pt-2">
@@ -209,7 +206,7 @@ export default function LoginForm() {
                 fullWidth={true}
                 disabled={isButtonDisabled}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? t("auth.login.loggingIn") : t("auth.login.submit")}
               </Button>
             </div>
           </form>

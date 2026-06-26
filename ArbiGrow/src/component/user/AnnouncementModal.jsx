@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from "motion/react";
 import { Megaphone, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function AnnouncementModal({ open, announcement, onClose }) {
+  const { t } = useTranslation();
   if (!announcement) return null;
 
   return (
@@ -26,7 +28,7 @@ export function AnnouncementModal({ open, announcement, onClose }) {
               type="button"
               onClick={onClose}
               className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-full bg-white text-slate-900 p-1.5 sm:p-2 hover:bg-slate-100 transition-colors"
-              aria-label="Close announcement"
+              aria-label={t("common.closeAnnouncement")}
             >
               <X className="h-4 w-4 sm:h-4 sm:w-4" />
             </button>
@@ -34,7 +36,7 @@ export function AnnouncementModal({ open, announcement, onClose }) {
             <div className="pr-8 sm:pr-10">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/35 bg-white/15 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wide text-white">
                 <Megaphone className="h-3.5 w-3.5" />
-                Announcement
+                {t("common.announcement")}
               </div>
               <h3 className="mt-3 text-lg sm:text-xl font-bold leading-tight text-white">
                 {announcement.title}
@@ -62,7 +64,7 @@ export function AnnouncementModal({ open, announcement, onClose }) {
                 onClick={onClose}
                 className="w-full sm:w-auto rounded-full bg-gradient-to-r from-amber-300 to-yellow-400 px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg shadow-yellow-500/30 hover:opacity-95 transition"
               >
-                Continue
+                {t("common.continue")}
               </button>
             </div>
           </motion.div>

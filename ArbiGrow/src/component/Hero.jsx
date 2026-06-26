@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Zap } from "lucide-react";
 import Button from "./Button";
 import { useNavigate } from "react-router";
-import icon from "../assets/arbitrum-icon.png";
 import useUserStore from "../store/userStore";
 
 export const Hero = () => {
+  const { t } = useTranslation();
   const { user } = useUserStore();
   const navigate = useNavigate();
   // const [timeLeft, setTimeLeft] = useState({
@@ -43,7 +44,7 @@ export const Hero = () => {
   // }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-4 py-20 bg-dark-bg">
+    <section className="relative min-h-screen flex items-center justify-center px-2 sm:px-4 py-20 bg-dark-bg">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -64,24 +65,6 @@ export const Hero = () => {
       </div>
 
       <div className="max-w-6xl mx-auto text-center relative z-10">
-        {/* Badges */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex items-center justify-center gap-4 mt-10 mb-8 flex-wrap"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-blue-500/20">
-            <img src={icon} alt="Arbitrum Icon" className="w-8 h-8" />
-            <span className="text-sm font-medium">Powered by Arbitrum</span>
-          </div>
-
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-sm border border-cyan-500/20">
-            <Shield className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm font-medium">Ethereum-Level Security</span>
-          </div>
-        </motion.div>
-
         {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -89,13 +72,10 @@ export const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 leading-snug sm:leading-tight text-white px-4 text-center"
         >
-          Modern Digital Earning
+          Digital Advertising &amp; Online
           <br className="hidden sm:block" />
           <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            Platform Powered
-          </span>
-          <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
-            by AI
+            {t("hero.subtitle")}
           </span>
         </motion.h1>
 
@@ -104,10 +84,9 @@ export const Hero = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
+          className="text-xl md:text-2xl text-gray-300 mb-12 max-w-full md:max-w-3xl mx-auto px-2"
         >
-          Oxford Financial Ads provides smart, technology driven trading solutions designed
-          to simplify digital earning.
+          {t("hero.description")}
         </motion.p>
 
         {/* Countdown Timer */}
@@ -156,7 +135,7 @@ export const Hero = () => {
               className="px-6 py-3"
               onClick={() => navigate("/register")}
             >
-              Pre-Register Now
+              {t("hero.cta")}
             </Button>
           )}
 
@@ -166,7 +145,7 @@ export const Hero = () => {
             className="px-6 py-3"
             onClick={() => window.open("/technical-whitepaper.pdf", "_blank")}
           >
-            Read Technical Whitepaper
+            {t("hero.whitepaper")}
           </Button>
         </motion.div>
 

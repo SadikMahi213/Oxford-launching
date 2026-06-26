@@ -13,6 +13,8 @@ from app.schemas.investment import BuyInvestmentRequest, BuyInvestmentResponse
 from app.api.v1.deps import get_current_user
 from app.core.rate_limiter import limiter
 from app.models.investment_profit_history import InvestmentProfitHistory
+from app.utils.notifications import notify_admin
+from app.utils.kyc_helper import check_kyc_approved
 
 
 router = APIRouter(prefix="/investments", tags=["Investments"])
@@ -41,6 +43,7 @@ async def buy_investment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await check_kyc_approved(current_user, db)
     if (current_user.account_status or "").lower() == "on_hold":
         issue_note = (current_user.account_issue or "").strip()
         detail = "Your account is on hold. Investment purchases are currently disabled."
@@ -69,6 +72,20 @@ async def buy_investment(
             detail=f"Amount must be exactly {package.investment_amount} for this package",
         )
 
+    # Free ($0) packages can only be purchased once per user
+    if amount == 0:
+        existing = await db.execute(
+            select(Investment).where(
+                Investment.user_id == current_user.id,
+                Investment.package_name == package.name,
+            )
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You already own this free package. It can only be activated once.",
+            )
+
     user_result = await db.execute(
         select(User)
         .where(User.id == current_user.id)
@@ -94,10 +111,13 @@ async def buy_investment(
         WALLET_PRECISION,
         rounding=ROUND_HALF_UP,
     )
-    roi_percent = ((package.total_return / package.investment_amount) * Decimal("100")).quantize(
-        PERCENT_PRECISION,
-        rounding=ROUND_HALF_UP,
-    )
+    if package.investment_amount > 0:
+        roi_percent = ((package.total_return / package.investment_amount) * Decimal("100")).quantize(
+            PERCENT_PRECISION,
+            rounding=ROUND_HALF_UP,
+        )
+    else:
+        roi_percent = Decimal("0")
 
     start_date = datetime.now(timezone.utc)
     end_date = start_date + timedelta(days=package.duration_days)
@@ -129,6 +149,40 @@ async def buy_investment(
     await db.commit()
     await db.refresh(investment)
     await db.refresh(user)
+
+    # Trigger rank evaluation for the purchaser
+    if amount > 0:
+        from app.services.rank_service import evaluate_and_process_rank
+        await evaluate_and_process_rank(
+            user_id=user.id,
+            db=db,
+            source_user_id=user.id,
+            reference_id=investment.id,
+            reference_type="investment",
+        )
+
+        ancestor_ids = [
+            user.parent_lvl_1_id,
+            user.parent_lvl_2_id,
+            user.parent_lvl_3_id,
+            user.parent_lvl_4_id,
+            user.parent_lvl_5_id,
+        ]
+        for aid in ancestor_ids:
+            if aid:
+                await evaluate_and_process_rank(
+                    user_id=aid,
+                    db=db,
+                    source_user_id=user.id,
+                    reference_id=investment.id,
+                    reference_type="investment",
+                )
+
+    await notify_admin(
+        db=db, type="package_purchased",
+        message=f"User {current_user.full_name} purchased package {package.name} for {amount} USDT",
+        user_id=current_user.id, request=request,
+    )
 
     return BuyInvestmentResponse(
         id=investment.id,

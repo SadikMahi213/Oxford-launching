@@ -1,7 +1,6 @@
-# from pydantic import BaseModel, EmailStr
 from pydantic import BaseModel, EmailStr, Field, model_validator
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
 
 
@@ -11,6 +10,21 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=6, max_length=60)
     referral_code: str | None = None
     package_id: int | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    date_of_birth: date | None = None
+    gender: str | None = None
+    nationality: str | None = None
+    country_of_residence: str | None = None
+    mobile_number: str | None = None
+    residential_address: str | None = None
+    city: str | None = None
+    state_province: str | None = None
+    postal_code: str | None = None
+    national_id_number: str | None = None
+    passport_number: str | None = None
+    religion: str | None = None
+    marital_status: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -28,9 +42,28 @@ class UserResponse(BaseModel):
     generation_wallet: Decimal
     arbx_wallet: Decimal
     arbx_mining_wallet: Decimal
+    captcha_wallet: Decimal
+    ad_view_wallet: Decimal
     ecommerce_wallet: Decimal
+    matching_bonus_wallet: Decimal = Decimal("0")
     email_verified: bool
     profile_image_url: Optional[str] = None
+
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[str] = None
+    nationality: Optional[str] = None
+    country_of_residence: Optional[str] = None
+    mobile_number: Optional[str] = None
+    residential_address: Optional[str] = None
+    city: Optional[str] = None
+    state_province: Optional[str] = None
+    postal_code: Optional[str] = None
+    national_id_number: Optional[str] = None
+    passport_number: Optional[str] = None
+    religion: Optional[str] = None
+    marital_status: Optional[str] = None
 
     phone_number: Optional[str] = None
     country: Optional[str] = None
@@ -123,8 +156,11 @@ class ReferralLevelResponse(BaseModel):
 
 
 class ReferralNetworkResponse(BaseModel):
+    total_team_members: int
     total_referrals: int
     total_active_referrals: int
+    bonus_eligible_members: int
+    non_bonus_members: int
     levels: List[ReferralLevelResponse]
 
     class Config:
@@ -136,6 +172,7 @@ ALLOWED_WALLETS = [
     "main_wallet", "deposit_wallet", "withdraw_wallet",
     "referral_wallet", "generation_wallet", "ecommerce_wallet",
     "arbx_wallet", "arbx_mining_wallet",
+    "captcha_wallet", "ad_view_wallet", "matching_bonus_wallet",
 ]
 
 
@@ -172,6 +209,12 @@ class ProfileImageUpdateRequest(BaseModel):
 
 
 class SendFundsRequest(BaseModel):
+    recipient: str = Field(..., min_length=1, description="Email, username, or user ID of the recipient")
+    amount: Decimal = Field(gt=0)
+    note: str | None = None
+
+
+class TransferMatchingBonusRequest(BaseModel):
     recipient: str = Field(..., min_length=1, description="Email, username, or user ID of the recipient")
     amount: Decimal = Field(gt=0)
     note: str | None = None

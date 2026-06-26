@@ -9,7 +9,7 @@ from alembic import context
 
 from app.core.config import settings
 from app.core.base import Base
-from app.models import User, Seller, Product, Order, OrderItem, EcommerceConfig, SystemConfig, MiningLog, CaptchaChallenge, CaptchaEarning, AdView, Ad, UserAdView, Invoice
+from app.models import User, Seller, Product, Order, OrderItem, EcommerceConfig, SystemConfig, MiningLog, CaptchaChallenge, CaptchaEarning, AdView, Ad, UserAdView, Invoice, VisitorLog, AdminNotification, Rank, RankHistory, MatchingBonus
 
 config = context.config
 

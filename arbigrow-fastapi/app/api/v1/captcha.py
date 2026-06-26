@@ -184,7 +184,7 @@ async def submit_captcha(
         earned = (investment.earn_per_captcha or Decimal("0")).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
-        user.main_wallet = (user.main_wallet + earned).quantize(
+        user.captcha_wallet = (user.captcha_wallet + earned).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
         investment.captchas_typed_today += 1
@@ -199,7 +199,7 @@ async def submit_captcha(
         success=is_correct,
         earned=earned,
         remaining_today=remaining_today,
-        new_balance=user.main_wallet,
+        new_balance=user.captcha_wallet,
     )
 
 

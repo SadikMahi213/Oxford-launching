@@ -6,17 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 
 
-# Cascading distribution:
+# Flat distribution (each level is % of the base amount):
 # L1 = profit * 10%
-# L2 = L1 * 8%
-# L3 = L2 * 7%
-# L4 = L3 * 6%
-# L5 = L4 * 5%
+# L2 = profit * 9%
+# L3 = profit * 8%
+# L4 = profit * 7%
+# L5 = profit * 5%
 REFERRAL_CHAIN_RATES: tuple[Decimal, ...] = (
     Decimal("0.10"),
+    Decimal("0.09"),
     Decimal("0.08"),
     Decimal("0.07"),
-    Decimal("0.06"),
     Decimal("0.05"),
 )
 
@@ -33,12 +33,10 @@ def calculate_cascading_referral_amounts(base_profit: Decimal) -> List[Decimal]:
         return [Decimal("0")] * len(REFERRAL_CHAIN_RATES)
 
     payouts: List[Decimal] = []
-    source_amount = base
 
     for rate in REFERRAL_CHAIN_RATES:
-        amount = _to_wallet_precision(source_amount * rate)
+        amount = _to_wallet_precision(base * rate)
         payouts.append(amount)
-        source_amount = amount
 
     return payouts
 

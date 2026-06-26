@@ -1,4 +1,5 @@
 import sys
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -19,6 +20,11 @@ from app.core.logger import setup_logging
 from app.core.database import check_db_connection
 from app.services.investment_service import start_auto_roi_scheduler, stop_auto_roi_scheduler
 from app.services.invoice_scheduler import start_invoice_scheduler, stop_invoice_scheduler
+from app.services.analytics_service import (
+    log_visit_async,
+    parse_user_agent,
+    determine_traffic_source,
+)
 
 
 @asynccontextmanager
@@ -88,6 +94,73 @@ async def log_requests(request: Request, call_next):
         f"status={response.status_code} "
         f"time={duration}ms"
     )
+
+    return response
+
+
+_STATIC_EXTENSIONS = frozenset({
+    ".js", ".css", ".png", ".jpg", ".jpeg",
+    ".gif", ".svg", ".webp", ".ico", ".woff",
+    ".woff2", ".ttf", ".eot", ".map",
+})
+
+
+@app.middleware("http")
+async def track_visitors(request: Request, call_next):
+    path = request.url.path
+
+    if request.method != "GET":
+        return await call_next(request)
+
+    if path.startswith("/storage/") or path.startswith("/api/"):
+        return await call_next(request)
+
+    _, ext = os.path.splitext(path)
+    if ext in _STATIC_EXTENSIONS:
+        return await call_next(request)
+
+    ua = request.headers.get("user-agent", "")
+    referrer = request.headers.get("referer", "")
+    ip = request.client.host if request.client else "0.0.0.0"
+
+    if request.headers.get("x-forwarded-for"):
+        ip = request.headers["x-forwarded-for"].split(",")[0].strip()
+
+    session_id = request.cookies.get("visitor_session")
+    new_session = False
+    if not session_id:
+        session_id = uuid.uuid4().hex[:64]
+        new_session = True
+
+    parsed = parse_user_agent(ua)
+    source = determine_traffic_source(referrer)
+    page_url = str(request.url)
+
+    import asyncio
+    asyncio.create_task(
+        log_visit_async(
+            session_id=session_id,
+            ip_address=ip,
+            user_agent=ua,
+            device_type=parsed["device_type"],
+            os=parsed["os"],
+            browser=parsed["browser"],
+            traffic_source=source,
+            referrer_url=referrer or None,
+            page_url=page_url,
+        )
+    )
+
+    response = await call_next(request)
+
+    if new_session:
+        response.set_cookie(
+            key="visitor_session",
+            value=session_id,
+            max_age=1800,
+            httponly=True,
+            samesite="lax",
+        )
 
     return response
 

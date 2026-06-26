@@ -1,5 +1,5 @@
-from sqlalchemy import String, Boolean, Integer, DateTime, Text, func
-from datetime import datetime
+from sqlalchemy import String, Boolean, Integer, DateTime, Text, Date, func, ForeignKey
+from datetime import datetime, date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from decimal import Decimal
 from sqlalchemy import Numeric
@@ -17,6 +17,22 @@ class User(Base):
         nullable=False,
         index=True
     )
+
+    first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    nationality: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    country_of_residence: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    mobile_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    residential_address: Mapped[str | None] = mapped_column(Text, nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state_province: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    national_id_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    passport_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    religion: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    marital_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     username: Mapped[str] = mapped_column(
         String(100),
@@ -116,6 +132,20 @@ class User(Base):
         server_default="0"
     )
 
+    captcha_wallet: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
+    ad_view_wallet: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
     # ── Mining system (24h capped) ──────────────────────
     mining_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false"
@@ -138,7 +168,47 @@ class User(Base):
         server_default="0"
     )
 
+    matching_bonus_wallet: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
+    # Security fields
+    failed_attempts: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    blocked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+    blocked_reason: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    last_login_ip: Mapped[str | None] = mapped_column(
+        String(45), nullable=True
+    )
+    last_login_device: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Rank system
+    current_rank_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("ranks.id", ondelete="SET NULL"),
+        nullable=True, index=True
+    )
+
+    team_volume: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
 
     # ancestry cache (up to 5 generations)
     parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

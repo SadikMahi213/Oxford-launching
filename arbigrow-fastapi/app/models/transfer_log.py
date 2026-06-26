@@ -20,6 +20,9 @@ class TransferLog(Base):
     amount: Mapped[Decimal] = mapped_column(
         Numeric(24, 14), nullable=False
     )
+    fee: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), nullable=True, default=Decimal("0.00000000000000")
+    )
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="completed"

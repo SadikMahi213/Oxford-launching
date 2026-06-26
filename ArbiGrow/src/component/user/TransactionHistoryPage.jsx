@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,6 +19,7 @@ const TransactionHistoryPage = ({
   getStatusColor,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const getAmountMeta = (transaction) => {
     const explicitDirection = transaction.amountDirection;
     const isDebit =
@@ -61,10 +63,10 @@ const TransactionHistoryPage = ({
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-white mb-1">
-                Transaction History
+                {t('transactions.title')}
               </h2>
               <p className="text-sm text-gray-400">
-                View all your wallet transactions
+                {t('transactions.subtitle')}
               </p>
             </div>
             <div className="w-full sm:w-auto flex items-center gap-2">
@@ -76,13 +78,13 @@ const TransactionHistoryPage = ({
                 }}
                 className="w-full sm:w-auto px-4 py-2 rounded-lg bg-[#0A122C] border border-white/10 text-white text-sm focus:border-cyan-500/50 focus:outline-none"
               >
-                <option value="All">All Transactions</option>
-                <option value="Deposit">Deposits</option>
-                <option value="Withdrawal">Withdrawals</option>
-                <option value="Profit">Profit</option>
-                <option value="Transfer">Transfer</option>
-                <option value="Referral">Referral</option>
-                <option value="Generation">Generation</option>
+                <option value="All">{t('transactions.filter_all')}</option>
+                <option value="Deposit">{t('transactions.filter_deposits')}</option>
+                <option value="Withdrawal">{t('transactions.filter_withdrawals')}</option>
+                <option value="Profit">{t('transactions.filter_profit')}</option>
+                <option value="Transfer">{t('transactions.filter_transfer')}</option>
+                <option value="Referral">{t('transactions.filter_referral')}</option>
+                <option value="Generation">{t('transactions.filter_generation')}</option>
               </select>
             </div>
           </div>
@@ -93,25 +95,25 @@ const TransactionHistoryPage = ({
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Date
+                  {t('transactions.date')}
                 </th>
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Transaction ID
+                  {t('transactions.txid')}
                 </th>
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Type
+                  {t('transactions.type')}
                 </th>
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Wallet
+                  {t('transactions.wallet')}
                 </th>
                 <th className="text-right p-4 text-sm font-semibold text-gray-400">
-                  Amount
+                  {t('transactions.amount')}
                 </th>
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Currency
+                  {t('transactions.currency')}
                 </th>
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  Status
+                  {t('transactions.status')}
                 </th>
               </tr>
             </thead>
@@ -120,13 +122,13 @@ const TransactionHistoryPage = ({
                 <tr>
                   <td colSpan={7} className="py-16 text-center">
                     <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-2" />
-                    <p className="text-gray-400 text-sm">Loading transactions...</p>
+                    <p className="text-gray-400 text-sm">{t('transactions.loading')}</p>
                   </td>
                 </tr>
               ) : currentTransactions.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-16 text-center text-gray-500 text-sm">
-                    No transactions found.
+                    {t('transactions.empty')}
                   </td>
                 </tr>
               ) : (
@@ -177,11 +179,11 @@ const TransactionHistoryPage = ({
           {isLoading ? (
             <div className="py-12 text-center">
               <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-2" />
-              <p className="text-gray-400 text-sm">Loading transactions...</p>
+                    <p className="text-gray-400 text-sm">{t('transactions.loading')}</p>
             </div>
           ) : currentTransactions.length === 0 ? (
             <div className="py-10 text-center text-gray-500 text-sm rounded-lg border border-white/10 bg-white/[0.02]">
-              No transactions found.
+              {t('transactions.empty')}
             </div>
           ) : (
             currentTransactions.map((transaction) => (
@@ -207,21 +209,21 @@ const TransactionHistoryPage = ({
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="col-span-2">
-                    <p className="text-xs text-gray-500 mb-1">Transaction ID</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('transactions.txid')}</p>
                     <p className="text-xs text-gray-300 font-mono break-all">
                       {transaction.transactionId || "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Wallet</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('transactions.wallet')}</p>
                     <p className="text-sm text-gray-300">{transaction.wallet}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-500 mb-1">Amount</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('transactions.amount')}</p>
                     {renderAmount(transaction, true)}
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs text-gray-500 mb-1">Currency</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('transactions.currency')}</p>
                     <span
                       className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
                         transaction.currency === "ARBX"
@@ -242,10 +244,10 @@ const TransactionHistoryPage = ({
         <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="text-xs sm:text-sm text-gray-400">
             {isLoading
-              ? "Loading..."
+              ? t('transactions.loading')
               : filteredTransactions.length === 0
-              ? "No transactions"
-              : `Showing ${startIndex + 1} to ${Math.min(endIndex, filteredTransactions.length)} of ${filteredTransactions.length} transactions`}
+              ? t('transactions.empty')
+              : t('transactions.showing', { start: startIndex + 1, end: Math.min(endIndex, filteredTransactions.length), total: filteredTransactions.length })}
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
@@ -256,7 +258,7 @@ const TransactionHistoryPage = ({
               <ChevronLeft className="w-5 h-5" />
             </button>
             <span className="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-400 whitespace-nowrap">
-              Page {Math.min(currentPage, totalPageCount)} of {totalPageCount}
+              {t('transactions.page', { current: Math.min(currentPage, totalPageCount), total: totalPageCount })}
             </span>
             <button
               onClick={() =>

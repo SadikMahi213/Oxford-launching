@@ -20,9 +20,17 @@ import {
   Video,
   User,
   BarChart3,
+  Eye,
+  Bell,
+  ShieldAlert,
+  Medal,
+  Trophy,
+  DollarSign,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
+import NotificationBell from "./notifications/NotificationBell";
+import PopupNotification from "./notifications/PopupNotification";
 
 export default function AdminLayout({
   children,
@@ -45,6 +53,24 @@ export default function AdminLayout({
       label: "Google Analytics",
       icon: BarChart3,
       description: "Traffic & engagement",
+    },
+    {
+      id: "self-analytics",
+      label: "Visitor Analytics",
+      icon: Eye,
+      description: "Self-hosted tracking",
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      description: "Real-time admin alerts",
+    },
+    {
+      id: "security",
+      label: "Login Security",
+      icon: ShieldAlert,
+      description: "Blocked accounts & logs",
     },
     {
       id: "users",
@@ -94,13 +120,31 @@ export default function AdminLayout({
   icon: Activity,
   description: "Update statistics",
   },
-  {
-    id: "announcements",
-    label: "Announcements",
-    icon: Megaphone,
-    description: "Popup announcements",
-  },
-  {
+    {
+      id: "announcements",
+      label: "Announcements",
+      icon: Megaphone,
+      description: "Popup announcements",
+    },
+    {
+      id: "ranks",
+      label: "Rank Management",
+      icon: Medal,
+      description: "Manage 21-rank matching bonus system",
+    },
+    {
+      id: "rank-history",
+      label: "Rank History",
+      icon: Trophy,
+      description: "User rank achievement history",
+    },
+    {
+      id: "bonus-history",
+      label: "Bonus Ledger",
+      icon: DollarSign,
+      description: "Matching bonus payout ledger",
+    },
+    {
       id: "roi",
       label: "ROI Management",
       icon: Percent,
@@ -151,6 +195,12 @@ export default function AdminLayout({
           <Menu className="w-5 h-5" />
         )}
       </button>
+
+      <div className="fixed top-6 right-6 z-[60]">
+        <NotificationBell />
+      </div>
+
+      <PopupNotification />
 
       <AnimatePresence>
         {mobileSidebarOpen && (

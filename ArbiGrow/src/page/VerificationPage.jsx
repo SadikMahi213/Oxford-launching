@@ -9,13 +9,17 @@ import {
   Image as ImageIcon,
   X,
   ChevronDown,
+  Camera,
+  Check,
 } from "lucide-react";
 import { submitKYC } from "../api/kyc.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
 import { useNavigate } from "react-router";
 import { countries } from "../constants/countries";
+import useUserStore from "../store/userStore";
 
-export default function VerificationPage() {
+export default function VerificationPage({ embedded, onSuccess }) {
+  const { user, setUser } = useUserStore();
   const [idNumber, setIdNumber] = useState("");
   const [idType, setIdType] = useState("nid");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -30,8 +34,14 @@ export default function VerificationPage() {
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState("");
+  const [profileImageUploading, setProfileImageUploading] = useState(false);
+  const [profileImageMsg, setProfileImageMsg] = useState("");
+
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
+  const profileInputRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,9 +69,9 @@ export default function VerificationPage() {
   }, [backImage]);
 
   const validateImageFile = (file) => {
-    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "application/pdf"];
     if (!validTypes.includes(file.type)) {
-      return "Please upload a valid image file (JPEG, PNG, or WebP)";
+      return "Please upload a valid image file (JPEG, PNG, WebP) or PDF";
     }
 
     if (file.size > 5 * 1024 * 1024) {
@@ -89,6 +99,44 @@ export default function VerificationPage() {
 
       setFrontImage(file);
       setError("");
+    }
+  };
+
+  const handleProfileImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const validationError = validateImageFile(file);
+      if (validationError) { setError(validationError); return; }
+      setProfileImageFile(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+      setProfileImageMsg("");
+      setError("");
+    }
+  };
+
+  const handleProfileImageUpload = async () => {
+    if (!profileImageFile) return;
+    setProfileImageUploading(true);
+    setProfileImageMsg("");
+    try {
+      const token = useUserStore.getState().token;
+      const formData = new FormData();
+      formData.append("file", profileImageFile);
+      const res = await fetch("/api/v1/user/profile-image/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Upload failed");
+      setUser({ profile_image_url: data.profile_image_url });
+      setProfileImageMsg("Profile image uploaded");
+      setProfileImageFile(null);
+      setProfileImagePreview("");
+    } catch (err) {
+      setProfileImageMsg(err.message || "Failed to upload");
+    } finally {
+      setProfileImageUploading(false);
     }
   };
 
@@ -157,7 +205,11 @@ export default function VerificationPage() {
 
       // console.log("KYC Response:", response?.data);
       if (response?.data?.message == "KYC submitted successfully") {
-        navigate("/verification-pending");
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          navigate("/verification-pending");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -180,7 +232,7 @@ export default function VerificationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#060913] via-[#080b1f] to-[#060913] text-white flex items-center justify-center px-3 sm:px-4 md:px-6 py-8 md:py-12 relative overflow-hidden">
+    <div className={`${embedded ? "" : "min-h-screen"} bg-gradient-to-b from-[#060913] via-[#080b1f] to-[#060913] text-white ${embedded ? "p-4 md:p-6 rounded-2xl" : "flex items-center justify-center px-3 sm:px-4 md:px-6 py-8 md:py-12"} relative overflow-hidden`}>
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
@@ -256,6 +308,60 @@ export default function VerificationPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Profile Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Profile Image <span className="text-gray-500">(optional)</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {profileImagePreview ? (
+                      <img src={profileImagePreview} alt="" className="w-full h-full object-cover" />
+                    ) : user?.profile_image_url ? (
+                      <img src={user.profile_image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-white/60" />
+                    )}
+                  </div>
+                  <input
+                    ref={profileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleProfileImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => profileInputRef.current?.click()}
+                      className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:bg-white/10 transition-colors"
+                    >
+                      Choose File
+                    </button>
+                    {profileImageFile && (
+                      <button
+                        type="button"
+                        onClick={handleProfileImageUpload}
+                        disabled={profileImageUploading}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-sm text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {profileImageUploading ? (
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4" />
+                        )}
+                        {profileImageUploading ? "Uploading..." : "Upload"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {profileImageMsg && (
+                  <p className={`mt-2 text-xs ${profileImageMsg.includes("uploaded") ? "text-green-400" : "text-red-400"}`}>
+                    {profileImageMsg}
+                  </p>
+                )}
+              </div>
+
               {/* Country Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">

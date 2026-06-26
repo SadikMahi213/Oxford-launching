@@ -154,3 +154,33 @@ export const getTransferHistory = () => {
 export const searchUsers = (query) => {
   return api.get("v1/user/list", { params: { search: query, limit: 50 }, ...authHeaders() });
 };
+
+export const getReferralBonuses = (params = {}) => {
+  return api.get("v1/user/referral-bonuses", { params, ...authHeaders() });
+};
+
+export const getGenerationBonuses = (params = {}) => {
+  return api.get("v1/user/generation-bonuses", { params, ...authHeaders() });
+};
+
+export const getUserRankInfo = () => {
+  return api.get("v1/ranks/my-rank", authHeaders());
+};
+
+export const getAllRanks = () => {
+  return api.get("v1/ranks/", authHeaders());
+};
+
+export const getMyRankHistory = () => {
+  return api.get("v1/ranks/my-history", authHeaders());
+};
+
+export const getMyMatchingBonuses = (params = {}) => {
+  return api.get("v1/ranks/my-bonuses", { params, ...authHeaders() });
+};
+
+export const getNetworkAnalytics = () => api.get("v1/user/network-analytics", authHeaders());
+export const getLevelAnalytics = (level) => api.get(`v1/user/level-analytics/${level}`, authHeaders());
+export const getMatchingWallet = () => api.get("v1/user/matching-wallet", authHeaders());
+export const getFeeInfo = () => api.get("v1/user/fee-info", authHeaders());
+export const transferMatchingBonus = (payload) => api.post("v1/user/transfer-matching-bonus", payload, authHeaders());

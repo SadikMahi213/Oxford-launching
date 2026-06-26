@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -9,18 +9,22 @@ from sqlalchemy.orm import joinedload
 from app.api.v1.deps import get_current_admin_user, get_current_user
 from app.core.database import get_db
 from app.models.deposit_network import DepositNetwork
+from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.withdrawal import Withdrawal
 from app.schemas.withdrawal import WithdrawalCreate, WithdrawalStatusUpdate
 from app.utils.email import send_withdraw_success_email
 from app.utils.is_system_active import is_system_active
 from app.services.invoice_service import generate_user_invoice
+from app.utils.notifications import notify_admin
+from app.utils.kyc_helper import check_kyc_approved
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
 MIN_WITHDRAW_AMOUNT = Decimal("10")
+MAX_WITHDRAW_AMOUNT = Decimal("700")
 WALLET_PRECISION = Decimal("0.00000000000001")
-WITHDRAW_MAIN_WALLET_EXTRA_RATE = Decimal("0.01")
+# Withdrawal charge now read dynamically from SystemConfig (withdrawal_charge_percent)
 ALLOWED_SOURCE_WALLETS = {
     "main_wallet",
     "arbx_wallet",
@@ -28,6 +32,8 @@ ALLOWED_SOURCE_WALLETS = {
     "withdraw_wallet",
     "referral_wallet",
     "generation_wallet",
+    "captcha_wallet",
+    "ad_view_wallet",
 }
 
 
@@ -67,11 +73,13 @@ def _serialize_withdrawal(withdrawal: Withdrawal, include_user: bool = False) ->
 @router.post("/")
 async def create_withdrawal_request(
     data: WithdrawalCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if not await is_system_active("withdrawal", db):
         raise HTTPException(status_code=403, detail="Withdrawals are currently paused (weekend/system maintenance)")
+    await check_kyc_approved(current_user, db)
     if (current_user.account_status or "").lower() == "on_hold":
         issue_note = (current_user.account_issue or "").strip()
         detail = "Your account is on hold. Withdrawals are currently disabled."
@@ -103,6 +111,11 @@ async def create_withdrawal_request(
             status_code=400,
             detail=f"Minimum withdrawal amount is {MIN_WITHDRAW_AMOUNT} USDT",
         )
+    if amount > MAX_WITHDRAW_AMOUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum withdrawal amount is {MAX_WITHDRAW_AMOUNT} USDT",
+        )
 
     source_balance = Decimal(
         str(getattr(current_user, data.source_wallet, Decimal("0")) or 0)
@@ -117,25 +130,36 @@ async def create_withdrawal_request(
             ),
         )
 
-    main_balance = Decimal(
-        str(getattr(current_user, "main_wallet", Decimal("0")) or 0))
-    required_main_balance = _to_wallet_precision(
-        amount + (amount * WITHDRAW_MAIN_WALLET_EXTRA_RATE)
+    # Read withdrawal charge from config
+    charge_config = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "withdrawal_charge_percent")
     )
-    if main_balance < required_main_balance:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Insufficient main_wallet balance for withdrawal eligibility. "
-                f"Required: {required_main_balance}, Available: {main_balance}"
-            ),
+    charge_row = charge_config.scalar_one_or_none()
+    withdrawal_charge_percent = Decimal(charge_row.value) if charge_row and charge_row.value else Decimal("5")
+    charge_amount = (amount * withdrawal_charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+
+    EARNING_WALLETS = {"captcha_wallet", "ad_view_wallet"}
+    if data.source_wallet not in EARNING_WALLETS:
+        main_balance = Decimal(
+            str(getattr(current_user, "main_wallet", Decimal("0")) or 0))
+        required_main_balance = _to_wallet_precision(
+            amount + charge_amount
         )
+        if main_balance < required_main_balance:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Insufficient main_wallet balance for withdrawal eligibility. "
+                    f"Required: {required_main_balance}, Available: {main_balance}"
+                ),
+            )
 
     withdrawal = Withdrawal(
         user_id=current_user.id,
         source_wallet=data.source_wallet,
         network_name=network_name,
         amount=amount,
+        charge=charge_amount,
         destination_address=data.destination_address.strip(),
         note=(data.note or "").strip() or None,
         status="pending",
@@ -144,6 +168,12 @@ async def create_withdrawal_request(
 
     await db.commit()
     await db.refresh(withdrawal)
+
+    await notify_admin(
+        db=db, type="withdrawal_request",
+        message=f"User {current_user.full_name} requested withdrawal of {amount} USDT from {data.source_wallet}",
+        user_id=current_user.id, request=request,
+    )
 
     return {
         "message": "Withdrawal request submitted successfully",
@@ -218,6 +248,7 @@ async def get_admin_withdrawals(
 async def update_withdrawal_status(
     withdrawal_id: int,
     data: WithdrawalStatusUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -257,8 +288,8 @@ async def update_withdrawal_status(
 
         source_balance = Decimal(str(getattr(user, source_wallet) or 0))
         amount = Decimal(str(withdrawal.amount))
-        fee = amount * WITHDRAW_MAIN_WALLET_EXTRA_RATE
-        total_deduction = amount + fee
+        charge = Decimal(str(withdrawal.charge or 0))
+        total_deduction = amount + charge
 
         if source_balance < total_deduction:
             raise HTTPException(
@@ -282,6 +313,13 @@ async def update_withdrawal_status(
 
     await db.commit()
     await db.refresh(withdrawal)
+
+    notif_type = "withdrawal_approved" if data.status == "approved" else "withdrawal_rejected"
+    await notify_admin(
+        db=db, type=notif_type,
+        message=f"Withdrawal #{withdrawal.id} of {withdrawal.amount} USDT by user #{withdrawal.user_id} was {data.status}",
+        user_id=withdrawal.user_id, request=request,
+    )
 
     if data.status == "approved":
         try:

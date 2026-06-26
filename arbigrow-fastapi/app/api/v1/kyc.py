@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -6,12 +6,14 @@ from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.models.kyc import KYC, DocumentType
 from app.services.b2_service import upload_to_b2
+from app.utils.notifications import notify_admin
 
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
 
 @router.post("/submit")
 async def submit_kyc(
+    request: Request,
     country: str = Form(...),
     phone_number: str = Form(...),
     document_type: DocumentType = Form(...),
@@ -21,11 +23,11 @@ async def submit_kyc(
     db: AsyncSession = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
-    ALLOWED_KYC_TYPES = {"image/jpeg", "image/png", "image/webp"}
+    ALLOWED_KYC_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
     if front_image.content_type not in ALLOWED_KYC_TYPES:
-        raise HTTPException(400, "Only JPEG, PNG, and WebP images are allowed for KYC documents")
+        raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
     if back_image and back_image.content_type not in ALLOWED_KYC_TYPES:
-        raise HTTPException(400, "Only JPEG, PNG, and WebP images are allowed for KYC documents")
+        raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
 
     # Check if KYC already exists
     result = await db.execute(
@@ -69,6 +71,12 @@ async def submit_kyc(
     db.add(new_kyc)
     await db.commit()
     await db.refresh(new_kyc)
+
+    await notify_admin(
+        db=db, type="kyc_submitted",
+        message=f"User #{user_id} submitted KYC ({document_type.value}) from {country}",
+        user_id=user_id, request=request,
+    )
 
     return {
         "message": "KYC submitted successfully",

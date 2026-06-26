@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { Camera, Check, Lock, Award, X } from "lucide-react";
 import useUserStore from "../../store/userStore";
@@ -14,6 +15,7 @@ function getInitials(name) {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, setUser } = useUserStore();
 
   const displayUrl = user?.profile_image_url;
@@ -42,8 +44,8 @@ const ProfilePage = () => {
           body: formData,
         });
         res = { data: await fetchRes.json() };
-        if (!fetchRes.ok) throw new Error(res.data.detail || "Upload failed");
-        setPhotoMsg("Profile image uploaded");
+        if (!fetchRes.ok) throw new Error(res.data.detail || t('profile.photo_failed'));
+        setPhotoMsg(t('profile.photo_uploaded'));
       } else if (!photoUrl.trim()) {
         setPhotoLoading(false);
         return;
@@ -51,7 +53,7 @@ const ProfilePage = () => {
         res = await api.post("v1/user/profile-image", { profile_image_url: photoUrl.trim() }, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setPhotoMsg("Photo saved");
+        setPhotoMsg(t('profile.photo_saved'));
       }
       setPhotoLoaded(false);
       setUser({ profile_image_url: res.data.profile_image_url });
@@ -61,7 +63,7 @@ const ProfilePage = () => {
       setPhotoLoading(false);
       return;
     } catch (err) {
-      setPhotoMsg(err.response?.data?.detail || err.message || "Failed to save photo");
+      setPhotoMsg(err.response?.data?.detail || err.message || t('profile.photo_saveFailed'));
     } finally {
       setPhotoLoading(false);
     }
@@ -73,10 +75,10 @@ const ProfilePage = () => {
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-1">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Profile
-          </span>
+            {t('profile.title')}
+            </span>
         </h1>
-        <p className="text-sm text-gray-400">Manage your account information</p>
+        <p className="text-sm text-gray-400">{t('profile.subtitle')}</p>
       </div>
 
       {/* Profile Card */}
@@ -108,7 +110,7 @@ const ProfilePage = () => {
                 <button
                   onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url") }}
                   className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyan-500 border-2 border-[#0a0e27] flex items-center justify-center hover:bg-cyan-400 transition-colors"
-                  title="Set profile photo"
+                  title={t('profile.setPhoto')}
                 >
                   <Camera className="w-3.5 h-3.5 text-white" />
                 </button>
@@ -118,10 +120,20 @@ const ProfilePage = () => {
                   <h2 className="text-lg md:text-xl font-bold text-white">
                     {user.full_name}
                   </h2>
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-xs text-green-400">
-                    <Check className="w-3 h-3" />
-                    Verified
-                  </span>
+                  {user?.kyc_status === "approved" ? (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-xs text-green-400">
+                      <Check className="w-3 h-3" />
+                      {t('profile.verified')}
+                    </span>
+                  ) : user?.kyc_status === "pending" ? (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-xs text-yellow-400">
+                      {t('profile.processing')}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40 text-xs text-red-400">
+                      {t('profile.unverified')}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-gray-400">@{user.username}</p>
               </div>
@@ -139,13 +151,13 @@ const ProfilePage = () => {
                   onClick={() => setPhotoMode("url")}
                   className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "url" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  URL
+                  {t('profile.url')}
                 </button>
                 <button
                   onClick={() => setPhotoMode("file")}
                   className={`px-3 py-1 rounded-lg text-xs font-medium ${photoMode === "file" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"}`}
                 >
-                  Upload
+                  {t('profile.upload')}
                 </button>
               </div>
               <div className="flex items-center gap-2">
@@ -154,7 +166,7 @@ const ProfilePage = () => {
                     type="text"
                     value={photoUrl}
                     onChange={(e) => setPhotoUrl(e.target.value)}
-                    placeholder="Paste image URL..."
+                    placeholder={t('profile.url_plh')}
                     className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-xs focus:outline-none focus:border-cyan-500/50"
                   />
                 ) : (
@@ -180,7 +192,7 @@ const ProfilePage = () => {
                 </button>
               </div>
               {photoMsg && (
-                <p className={`mt-1 text-xs ${photoMsg === "Photo saved" || photoMsg === "Profile image uploaded" ? "text-green-400" : "text-red-400"}`}>
+                <p className={`mt-1 text-xs ${photoMsg === t('profile.photo_saved') || photoMsg === t('profile.photo_uploaded') ? "text-green-400" : "text-red-400"}`}>
                   {photoMsg}
                 </p>
               )}
@@ -191,13 +203,13 @@ const ProfilePage = () => {
         {/* Personal Information */}
         <div className="p-4 md:p-6 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-4">
-            Personal Information
+            {t('profile.personalInfo')}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Full Name */}
             <div className="space-y-2">
-              <label className="text-sm text-gray-400">Full Name</label>
+              <label className="text-sm text-gray-400">{t('profile.fullName')}</label>
               <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-white">{user.full_name}</p>
               </div>
@@ -205,7 +217,7 @@ const ProfilePage = () => {
 
             {/* Username */}
             <div className="space-y-2">
-              <label className="text-sm text-gray-400">Username</label>
+              <label className="text-sm text-gray-400">{t('profile.username')}</label>
               <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-white">@{user.username}</p>
               </div>
@@ -213,7 +225,7 @@ const ProfilePage = () => {
 
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-sm text-gray-400">Email</label>
+              <label className="text-sm text-gray-400">{t('profile.email')}</label>
               <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-white">{user.email}</p>
               </div>
@@ -221,7 +233,7 @@ const ProfilePage = () => {
 
             {/* Phone */}
             <div className="space-y-2">
-              <label className="text-sm text-gray-400">Phone</label>
+              <label className="text-sm text-gray-400">{t('profile.phone')}</label>
               <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-white">{user.phone_number}</p>
               </div>
@@ -229,7 +241,7 @@ const ProfilePage = () => {
 
             {/* Country - Full Width */}
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm text-gray-400">Country</label>
+              <label className="text-sm text-gray-400">{t('profile.country')}</label>
               <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-white">{user.country}</p>
               </div>
@@ -243,7 +255,7 @@ const ProfilePage = () => {
               className="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2"
             >
               <Lock className="w-4 h-4" />
-              Change Password
+              {t('profile.changePassword')}
             </button>
           </div>
         </div>
@@ -256,20 +268,37 @@ const ProfilePage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="rounded-xl bg-gradient-to-br from-green-600/10 to-green-600/5 backdrop-blur-xl border border-green-500/30 p-4 md:p-5"
+          className={`rounded-xl backdrop-blur-xl border p-4 md:p-5 ${
+            user?.kyc_status === "approved"
+              ? "bg-gradient-to-br from-green-600/10 to-green-600/5 border-green-500/30"
+              : user?.kyc_status === "pending"
+                ? "bg-gradient-to-br from-yellow-600/10 to-yellow-600/5 border-yellow-500/30"
+                : "bg-gradient-to-br from-red-600/10 to-red-600/5 border-red-500/30"
+          }`}
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-              <Check className="w-5 h-5 text-green-400" />
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              user?.kyc_status === "approved" ? "bg-green-500/20" : user?.kyc_status === "pending" ? "bg-yellow-500/20" : "bg-red-500/20"
+            }`}>
+              <Check className={`w-5 h-5 ${
+                user?.kyc_status === "approved" ? "text-green-400" : user?.kyc_status === "pending" ? "text-yellow-400" : "text-red-400"
+              }`} />
             </div>
             <div>
-              <h3 className="font-semibold text-white">Account Status</h3>
-              <p className="text-xs text-gray-400">Active & Verified</p>
+              <h3 className="font-semibold text-white">{t('profile.accountStatus')}</h3>
+              <p className={`text-xs ${
+                user?.kyc_status === "approved" ? "text-green-400" : user?.kyc_status === "pending" ? "text-yellow-400" : "text-red-400"
+              }`}>
+                {user?.kyc_status === "approved" ? t('profile.status_active') : user?.kyc_status === "pending" ? t('profile.status_pending') : t('profile.status_unverified')}
+              </p>
             </div>
           </div>
           <p className="text-sm text-gray-400">
-            Your account is fully verified and active. You can access all
-            platform features.
+            {user?.kyc_status === "approved"
+              ? t('profile.desc_active')
+              : user?.kyc_status === "pending"
+                ? t('profile.desc_pending')
+                : t('profile.desc_unverified')}
           </p>
         </motion.div>
 

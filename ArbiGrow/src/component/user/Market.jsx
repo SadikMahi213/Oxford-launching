@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import CurrencyList from "./CurrencyList";
 import { MarketHeader } from "./MarketHeader";
+import { useTranslation } from "react-i18next";
 
 import { PAIRS, COIN_ICONS } from "../../constants/coinData";
 
@@ -36,6 +37,7 @@ const mapTicker = (t) => {
 };
 
 export function Market() {
+  const { t } = useTranslation();
   const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [wsStatus, setWsStatus] = useState("connecting");
@@ -138,7 +140,7 @@ export function Market() {
       {loading && currencies.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-3">
           <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
-          <p className="text-gray-400 text-sm">Connecting to Binance...</p>
+          <p className="text-gray-400 text-sm">{t("market.connecting")}</p>
         </div>
       ) : (
         <CurrencyList currencies={currencies} />

@@ -21,9 +21,14 @@ class ReferralProfitHistory(Base):
         nullable=False
     )
 
-    investment_id: Mapped[int] = mapped_column(
+    investment_id: Mapped[int | None] = mapped_column(
         ForeignKey("investments.id"),
-        nullable=False
+        nullable=True
+    )
+
+    deposit_id: Mapped[int | None] = mapped_column(
+        ForeignKey("deposits.id"),
+        nullable=True
     )
 
     level: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -39,8 +44,9 @@ class ReferralProfitHistory(Base):
     )
 
     type: Mapped[str] = mapped_column(
-        String(20)
-    )  # daily_roi
+        String(30),
+        default="daily_roi"
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

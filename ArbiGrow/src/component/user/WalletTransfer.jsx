@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { motion } from "motion/react";
-import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Wallet, Coins, Download, Upload, Users, TrendingUp, ShoppingCart, Pickaxe, Clock, Keyboard, Eye, Award } from "lucide-react";
 import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
 
 const WALLET_OPTIONS = [
   { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT" },
@@ -10,7 +12,10 @@ const WALLET_OPTIONS = [
   { value: "withdraw_wallet", label: "Withdraw Wallet", icon: Upload, currency: "USDT" },
   { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
   { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
+  { value: "matching_bonus_wallet", label: "Matching Bonus Wallet", icon: Award, currency: "USDT" },
   { value: "ecommerce_wallet", label: "Ecommerce Wallet", icon: ShoppingCart, currency: "USDT" },
+  { value: "captcha_wallet", label: "Captcha Typing Wallet", icon: Keyboard, currency: "USDT" },
+  { value: "ad_view_wallet", label: "Ad View Wallet", icon: Eye, currency: "USDT" },
   { value: "arbx_wallet", label: "OFA token Wallet", icon: Coins, currency: "OFA", comingSoon: true },
   { value: "arbx_mining_wallet", label: "Mining Wallet", icon: Pickaxe, currency: "OFA", comingSoon: true },
 ];
@@ -21,12 +26,16 @@ const walletBalances = (user) => ({
   withdraw_wallet: Number(user?.withdraw_wallet ?? 0),
   referral_wallet: Number(user?.referral_wallet ?? 0),
   generation_wallet: Number(user?.generation_wallet ?? 0),
+  matching_bonus_wallet: Number(user?.matching_bonus_wallet ?? 0),
   ecommerce_wallet: Number(user?.ecommerce_wallet ?? 0),
+  captcha_wallet: Number(user?.captcha_wallet ?? 0),
+  ad_view_wallet: Number(user?.ad_view_wallet ?? 0),
   arbx_wallet: Number(user?.arbx_wallet ?? 0),
   arbx_mining_wallet: Number(user?.arbx_mining_wallet ?? 0),
 });
 
 export default function WalletTransfer() {
+  const { t } = useTranslation();
   const { user, setUser } = useUserStore();
   const balances = walletBalances(user);
   const [fromWallet, setFromWallet] = useState("main_wallet");
@@ -52,15 +61,15 @@ export default function WalletTransfer() {
     setIsSuccess(false);
 
     if (!amount || parseFloat(amount) <= 0) {
-      setMessage("Enter a valid amount");
+      setMessage(t('walletTransfer.err_amount'));
       return;
     }
     if (fromWallet === toWallet) {
-      setMessage("Source and destination must be different");
+      setMessage(t('walletTransfer.err_sameWallet'));
       return;
     }
     if (parseFloat(amount) > balances[fromWallet]) {
-      setMessage("Insufficient balance");
+      setMessage(t('walletTransfer.err_balance'));
       return;
     }
 
@@ -82,7 +91,7 @@ export default function WalletTransfer() {
       setIsSuccess(true);
       setAmount("");
     } catch (err) {
-      const msg = err.response?.data?.detail || "Transfer failed";
+      const msg = err.response?.data?.detail || t('walletTransfer.err_failed');
       setMessage(msg);
       setIsSuccess(false);
     } finally {
@@ -102,15 +111,16 @@ export default function WalletTransfer() {
             <ArrowLeftRight className="w-6 h-6 text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Wallet Transfer</h1>
-            <p className="text-sm text-gray-400">Transfer funds between your wallets</p>
+            <h1 className="text-2xl font-bold text-white">{t('walletTransfer.title')}</h1>
+            <p className="text-sm text-gray-400">{t('walletTransfer.subtitle')}</p>
           </div>
         </div>
 
+        <KycWarningBanner />
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div className="md:col-span-2">
-              <label className="block text-sm text-gray-400 mb-2">From Wallet</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('walletTransfer.from')}</label>
               <select
                 value={fromWallet}
                 onChange={(e) => setFromWallet(e.target.value)}
@@ -118,7 +128,7 @@ export default function WalletTransfer() {
               >
                 {WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? " [Coming Soon]" : ""}
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? ` [${t('walletTransfer.comingSoon')}]` : ""}
                   </option>
                 ))}
               </select>
@@ -135,7 +145,7 @@ export default function WalletTransfer() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm text-gray-400 mb-2">To Wallet</label>
+              <label className="block text-sm text-gray-400 mb-2">{t('walletTransfer.to')}</label>
               <select
                 value={toWallet}
                 onChange={(e) => setToWallet(e.target.value)}
@@ -143,7 +153,7 @@ export default function WalletTransfer() {
               >
                 {WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? " [Coming Soon]" : ""}
+                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? ` [${t('walletTransfer.comingSoon')}]` : ""}
                   </option>
                 ))}
               </select>
@@ -152,13 +162,13 @@ export default function WalletTransfer() {
 
           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-400">From Balance</span>
+              <span className="text-sm text-gray-400">{t('walletTransfer.fromBalance')}</span>
               <span className="text-sm text-white font-medium">
                 {fromWalletData?.currency === "USDT" ? "$" : ""}{balances[fromWallet].toFixed(fromWalletData?.currency === "OFA" ? 7 : 2)} {fromWalletData?.currency === "OFA" ? "OFA" : ""}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">To Balance</span>
+              <span className="text-sm text-gray-400">{t('walletTransfer.toBalance')}</span>
               <span className="text-sm text-white font-medium">
                 {toWalletData?.currency === "USDT" ? "$" : ""}{balances[toWallet].toFixed(toWalletData?.currency === "OFA" ? 7 : 2)} {toWalletData?.currency === "OFA" ? "OFA" : ""}
               </span>
@@ -166,7 +176,7 @@ export default function WalletTransfer() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Amount</label>
+            <label className="block text-sm text-gray-400 mb-2">{t('walletTransfer.amount')}</label>
             <div className="relative">
               <input
                 type="number"
@@ -174,7 +184,7 @@ export default function WalletTransfer() {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                placeholder={t('walletTransfer.amount_plh')}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-cyan-500/50"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
@@ -193,7 +203,7 @@ export default function WalletTransfer() {
             <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
               <Clock className="w-5 h-5 text-yellow-400 shrink-0" />
               <p className="text-sm text-yellow-300">
-                OFA token transfers are coming soon. Only OFA to USDT conversion is available.
+                {t('walletTransfer.ofaComingSoon')}
               </p>
             </div>
           )}
@@ -203,7 +213,7 @@ export default function WalletTransfer() {
             disabled={loading || isOFAWalletSelected}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? "Transferring..." : isOFAWalletSelected ? "Coming Soon" : "Transfer"}
+            {loading ? t('walletTransfer.transferring') : isOFAWalletSelected ? t('walletTransfer.comingSoon') : t('walletTransfer.transfer')}
           </button>
         </form>
       </div>

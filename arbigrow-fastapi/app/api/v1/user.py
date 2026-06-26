@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, and_, func
@@ -14,12 +14,15 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.mining_log import MiningLog
 from app.models.system_config import SystemConfig
 from app.models.transfer_log import TransferLog
-from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferHistoryResponse, TransferLogSchema
+from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
 from app.core.rate_limiter import limiter
 
 from app.api.v1.deps import get_current_user
 from app.utils.is_system_active import is_system_active
 from app.services.b2_service import upload_to_b2, generate_presigned_url
+from app.utils.notifications import notify_admin
+from app.utils.kyc_helper import check_kyc_approved
+from app.core.referral import get_referral_level_rates
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 MINING_CYCLE_SECONDS = 86400  # 24 hours
@@ -50,13 +53,7 @@ async def _is_mining_enabled(db: AsyncSession) -> bool:
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-REFERRAL_LEVEL_RATES = {
-    1: "10%",
-    2: "8%",
-    3: "7%",
-    4: "6%",
-    5: "5%",
-}
+# Display commission rates loaded dynamically from SystemConfig
 
 
 @router.get("/me", response_model=UserRefreshResponse)
@@ -87,42 +84,45 @@ async def get_me(
     }
 
 
-@router.get("/referral-network", response_model=ReferralNetworkResponse)
+@router.get("/referral-network")
 @limiter.limit("120/minute")
 async def get_referral_network(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    downline_result = await db.execute(
-        select(User).where(
-            or_(
-                User.parent_lvl_1_id == current_user.id,
-                User.parent_lvl_2_id == current_user.id,
-                User.parent_lvl_3_id == current_user.id,
-                User.parent_lvl_4_id == current_user.id,
-                User.parent_lvl_5_id == current_user.id,
-            )
+    from sqlalchemy import text
+
+    rates = await get_referral_level_rates(db)
+    display_rates = {lvl: f"{int(r)}%" if r == int(r) else f"{r}%" for lvl, r in rates.items()}
+
+    team_stmt = text("""
+        WITH RECURSIVE team_tree AS (
+            SELECT id, 1 AS depth
+            FROM users
+            WHERE parent_lvl_1_id = :user_id
+            UNION ALL
+            SELECT u.id, tt.depth + 1
+            FROM users u
+            INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
         )
-    )
-    downline_users = downline_result.scalars().all()
+        SELECT id, depth FROM team_tree
+    """)
+    team_rows = await db.execute(team_stmt, {"user_id": current_user.id})
+    team_data = team_rows.fetchall()
 
-    level_map = {
-        1: [],
-        2: [],
-        3: [],
-        4: [],
-        5: [],
-    }
-
-    if not downline_users:
+    total_team_members = len(team_data)
+    if not team_data:
         return {
+            "total_team_members": 0,
             "total_referrals": 0,
             "total_active_referrals": 0,
+            "bonus_eligible_members": 0,
+            "non_bonus_members": 0,
             "levels": [
                 {
                     "level": level,
-                    "commission_rate": REFERRAL_LEVEL_RATES[level],
+                    "commission_rate": display_rates[level],
                     "total_earnings": Decimal("0"),
                     "users": [],
                 }
@@ -130,97 +130,110 @@ async def get_referral_network(
             ],
         }
 
+    bonus_eligible_ids = {row[0] for row in team_data if row[1] <= 5}
+    non_bonus_ids = {row[0] for row in team_data if row[1] > 5}
+
+    team_users_result = await db.execute(
+        select(User).where(User.id.in_([row[0] for row in team_data]))
+    )
+    team_users = team_users_result.scalars().all()
+    team_users_map = {u.id: u for u in team_users}
+
+    level_map = {1: [], 2: [], 3: [], 4: [], 5: []}
+
+    l1_user_ids = {uid for uid, d in team_data if d == 1}
     parent_ids = {
-        user.parent_lvl_1_id for user in downline_users if user.parent_lvl_1_id
+        team_users_map[uid].parent_lvl_1_id
+        for uid in l1_user_ids
+        if uid in team_users_map and team_users_map[uid].parent_lvl_1_id
     }
     parent_usernames = {}
     if parent_ids:
         parent_result = await db.execute(
             select(User.id, User.username).where(User.id.in_(parent_ids))
         )
-        parent_usernames = {pid: username for pid,
-                            username in parent_result.all()}
+        parent_usernames = {pid: username for pid, username in parent_result.all()}
 
-    candidate_ids = [current_user.id] + [u.id for u in downline_users]
+    candidate_ids = [current_user.id] + [row[0] for row in team_data]
     direct_counts_result = await db.execute(
         select(User.parent_lvl_1_id, func.count(User.id))
         .where(User.parent_lvl_1_id.in_(candidate_ids))
         .group_by(User.parent_lvl_1_id)
     )
-    direct_counts = {pid: count for pid,
-                     count in direct_counts_result.all() if pid}
+    direct_counts = {pid: count for pid, count in direct_counts_result.all() if pid}
 
-    downline_ids = [u.id for u in downline_users]
-
+    all_team_ids = [row[0] for row in team_data]
     active_result = await db.execute(
         select(Investment.user_id).where(
             Investment.status == "active",
-            Investment.user_id.in_(downline_ids),
+            Investment.user_id.in_(all_team_ids),
         )
     )
-
     active_user_ids = {row[0] for row in active_result.all()}
 
     total_active_referrals = 0
-    for member in downline_users:
-        level = None
-        if member.parent_lvl_1_id == current_user.id:
-            level = 1
-        elif member.parent_lvl_2_id == current_user.id:
-            level = 2
-        elif member.parent_lvl_3_id == current_user.id:
-            level = 3
-        elif member.parent_lvl_4_id == current_user.id:
-            level = 4
-        elif member.parent_lvl_5_id == current_user.id:
-            level = 5
 
-        if not level:
+    for uid, depth in team_data:
+        member = team_users_map.get(uid)
+        if not member:
             continue
 
-        if member.email_verified:
+        if not member.email_verified:
+            continue
+
+        if depth <= 5:
             total_active_referrals += 1
 
         member_earnings = (member.referral_wallet or Decimal("0")) + (
             member.generation_wallet or Decimal("0")
         )
 
-        # determine investment status
         status = "active" if member.id in active_user_ids else "inactive"
 
-        level_map[level].append(
-            {
-                "id": member.id,
-                "name": member.full_name,
-                "username": member.username,
-                "level": level,
-                "join_date": member.created_at.strftime("%b %d, %Y"),
-                "total_earnings": member_earnings,
-                "referred_by": parent_usernames.get(member.parent_lvl_1_id),
-                "direct_referrals": direct_counts.get(member.id, 0),
-                "status": status,
-            }
+        member_data = {
+            "id": member.id,
+            "name": member.full_name,
+            "username": member.username,
+            "level": depth,
+            "join_date": member.created_at.strftime("%b %d, %Y"),
+            "total_earnings": member_earnings,
+            "referred_by": parent_usernames.get(member.parent_lvl_1_id),
+            "direct_referrals": direct_counts.get(member.id, 0),
+            "status": status,
+        }
+
+        if depth <= 5:
+            level_map[depth].append(member_data)
+
+    # Calculate level-wise commissions the current user earned
+    rph_result = await db.execute(
+        select(ReferralProfitHistory).where(
+            ReferralProfitHistory.receiver_user_id == current_user.id
         )
+    )
+    earned_by_level = {1: Decimal("0"), 2: Decimal("0"), 3: Decimal("0"), 4: Decimal("0"), 5: Decimal("0")}
+    for row in rph_result.scalars().all():
+        if row.level in earned_by_level:
+            earned_by_level[row.level] += row.amount
 
     levels = []
     for level in range(1, 6):
         users = level_map[level]
-        level_total = sum(
-            (user_row["total_earnings"] for user_row in users),
-            Decimal("0"),
-        )
         levels.append(
             {
                 "level": level,
-                "commission_rate": REFERRAL_LEVEL_RATES[level],
-                "total_earnings": level_total,
+                "commission_rate": display_rates[level],
+                "total_earnings": earned_by_level[level],
                 "users": users,
             }
         )
 
     return {
-        "total_referrals": len(downline_users),
+        "total_team_members": total_team_members,
+        "total_referrals": len(bonus_eligible_ids),
         "total_active_referrals": total_active_referrals,
+        "bonus_eligible_members": len(bonus_eligible_ids),
+        "non_bonus_members": len(non_bonus_ids),
         "levels": levels,
     }
 
@@ -292,19 +305,51 @@ async def claim_mining(
     now_utc = datetime.now(timezone.utc)
     cap = await _get_mining_cap(db)
     daily_mined = Decimal(str(current_user.daily_mined or 0))
+    remaining = cap - daily_mined
 
     # Auto-reset if 24h cycle completed
     cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
     if now_utc >= cycle_end:
+        # Credit remaining accrued rewards first
+        reference_time = current_user.last_mine_time or current_user.mining_started_at
+        final_reward = Decimal("0")
+        if reference_time < cycle_end:
+            final_elapsed = max(0, int((cycle_end - reference_time).total_seconds()))
+            per_second_rate = cap / Decimal(str(MINING_CYCLE_SECONDS))
+            final_accrued = per_second_rate * Decimal(str(final_elapsed))
+            final_reward = min(final_accrued, remaining).quantize(WALLET_PRECISION)
+            if final_reward > 0:
+                current_user.arbx_mining_wallet = (current_user.arbx_mining_wallet or Decimal("0")) + final_reward
+                daily_mined = daily_mined + final_reward
+                current_user.daily_mined = daily_mined
+                db.add(MiningLog(
+                    user_id=current_user.id,
+                    amount=final_reward,
+                    mined_from=reference_time,
+                    mined_to=cycle_end,
+                    daily_mined_after=daily_mined,
+                ))
+                await notify_admin(
+                    db=db, type="mining_claimed",
+                    message=f"User {current_user.full_name} claimed {float(final_reward)} OFA mining reward (cycle end)",
+                    user_id=current_user.id, request=request,
+                )
         current_user.mining_active = False
         current_user.daily_mined = Decimal("0")
         current_user.mining_started_at = None
         current_user.last_mine_time = None
         await db.commit()
-        raise HTTPException(status_code=400, detail="Mining cycle ended. Start a new mining session.")
+        return {
+            "message": "Mining cycle ended. Start a new mining session.",
+            "reward": float(final_reward),
+            "daily_mined": float(current_user.daily_mined),
+            "daily_cap": float(cap),
+            "remaining_today": float(cap),
+            "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+            "mining_active": current_user.mining_active,
+        }
 
     # Check if already at cap
-    remaining = cap - daily_mined
     if remaining <= 0:
         current_user.mining_active = False
         await db.commit()
@@ -342,6 +387,12 @@ async def claim_mining(
 
     await db.commit()
     await db.refresh(current_user)
+
+    await notify_admin(
+        db=db, type="mining_claimed",
+        message=f"User {current_user.full_name} claimed {float(reward)} OFA mining reward",
+        user_id=current_user.id, request=request,
+    )
 
     return {
         "message": "Mining reward claimed",
@@ -428,6 +479,138 @@ async def get_earnings_history(
     return {"data": data}
 
 
+@router.get("/referral-bonuses")
+@limiter.limit("120/minute")
+async def get_referral_bonuses(
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: str | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return paginated direct referral bonus history for the current user."""
+    base_where = and_(
+        ReferralProfitHistory.receiver_user_id == current_user.id,
+        ReferralProfitHistory.type == "deposit_referral",
+    )
+    if search and search.strip():
+        sq = search.strip()
+        like = f"%{sq}%"
+        subq = select(User.id).where(
+            or_(User.full_name.ilike(like), User.username.ilike(like))
+        ).subquery()
+        base_where = and_(base_where, ReferralProfitHistory.source_user_id.in_(select(subq.c.id)))
+
+    count_q = await db.execute(
+        select(func.count(ReferralProfitHistory.id)).where(base_where)
+    )
+    total = count_q.scalar() or 0
+
+    rows = await db.execute(
+        select(ReferralProfitHistory)
+        .where(base_where)
+        .order_by(ReferralProfitHistory.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+    items = rows.scalars().all()
+
+    source_ids = {i.source_user_id for i in items}
+    unames = {}
+    if source_ids:
+        r = await db.execute(select(User.id, User.full_name, User.username).where(User.id.in_(source_ids)))
+        for uid, fn, un in r.all():
+            unames[uid] = {"full_name": fn, "username": un}
+
+    data = [
+        {
+            "id": item.id,
+            "source_user_id": item.source_user_id,
+            "source_name": unames.get(item.source_user_id, {}).get("full_name", "-"),
+            "source_username": unames.get(item.source_user_id, {}).get("username", "-"),
+            "amount": float(item.amount),
+            "percentage": float(item.percentage),
+            "deposit_id": item.deposit_id,
+            "level": item.level,
+            "created_at": item.created_at.isoformat() if item.created_at else None,
+            "status": "completed",
+        }
+        for item in items
+    ]
+
+    return {"total": total, "page": page, "limit": limit, "data": data}
+
+
+@router.get("/generation-bonuses")
+@limiter.limit("120/minute")
+async def get_generation_bonuses(
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    search: str | None = Query(None),
+    level: int | None = Query(None, ge=2, le=5, description="Filter by generation level (2-5)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return paginated generation bonus history for the current user."""
+    base_where = and_(
+        ReferralProfitHistory.receiver_user_id == current_user.id,
+        ReferralProfitHistory.type == "deposit_generation",
+    )
+    if level:
+        base_where = and_(base_where, ReferralProfitHistory.level == level)
+    if search and search.strip():
+        sq = search.strip()
+        like = f"%{sq}%"
+        subq = select(User.id).where(
+            or_(User.full_name.ilike(like), User.username.ilike(like))
+        ).subquery()
+        base_where = and_(base_where, ReferralProfitHistory.source_user_id.in_(select(subq.c.id)))
+
+    count_q = await db.execute(
+        select(func.count(ReferralProfitHistory.id)).where(base_where)
+    )
+    total = count_q.scalar() or 0
+
+    rows = await db.execute(
+        select(ReferralProfitHistory)
+        .where(base_where)
+        .order_by(ReferralProfitHistory.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+    )
+    items = rows.scalars().all()
+
+    source_ids = {i.source_user_id for i in items}
+    unames = {}
+    if source_ids:
+        r = await db.execute(select(User.id, User.full_name, User.username).where(User.id.in_(source_ids)))
+        for uid, fn, un in r.all():
+            unames[uid] = {"full_name": fn, "username": un}
+
+    level_labels = {2: "2nd Generation", 3: "3rd Generation", 4: "4th Generation", 5: "5th Generation"}
+
+    data = [
+        {
+            "id": item.id,
+            "source_user_id": item.source_user_id,
+            "source_name": unames.get(item.source_user_id, {}).get("full_name", "-"),
+            "source_username": unames.get(item.source_user_id, {}).get("username", "-"),
+            "amount": float(item.amount),
+            "percentage": float(item.percentage),
+            "deposit_id": item.deposit_id,
+            "level": item.level,
+            "level_label": level_labels.get(item.level, f"{item.level}th Generation"),
+            "created_at": item.created_at.isoformat() if item.created_at else None,
+            "status": "completed",
+        }
+        for item in items
+    ]
+
+    return {"total": total, "page": page, "limit": limit, "data": data}
+
+
 @router.get("/profit-history")
 @limiter.limit("120/minute")
 async def get_profit_history(
@@ -512,6 +695,7 @@ async def wallet_transfer(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await check_kyc_approved(current_user, db)
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
 
@@ -532,6 +716,12 @@ async def wallet_transfer(
     await db.commit()
     await db.refresh(current_user)
 
+    await notify_admin(
+        db=db, type="wallet_transfer",
+        message=f"User {current_user.full_name} transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
+        user_id=current_user.id, request=request,
+    )
+
     return WalletTransferResponse(
         message=f"Transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
         from_wallet=data.from_wallet,
@@ -550,6 +740,7 @@ async def convert_ofa_to_usdt(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await check_kyc_approved(current_user, db)
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
     cfg = result.scalar_one_or_none()
     OFA_TO_USDT_RATE = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
@@ -566,6 +757,12 @@ async def convert_ofa_to_usdt(
 
     await db.commit()
     await db.refresh(current_user)
+
+    await notify_admin(
+        db=db, type="ofa_converted",
+        message=f"User {current_user.full_name} converted {float(ofa_amount)} OFA to {float(usdt_amount)} USDT",
+        user_id=current_user.id, request=request,
+    )
 
     rate_str = f"1 OFA = {float(OFA_TO_USDT_RATE)} USDT"
     return ConvertOFAResponse(
@@ -613,6 +810,12 @@ async def upload_profile_image(
     current_user.profile_image_url = presigned_url
     await db.commit()
 
+    await notify_admin(
+        db=db, type="profile_updated",
+        message=f"User {current_user.full_name} updated their profile image",
+        user_id=current_user.id, request=request,
+    )
+
     return {
         "message": "Profile image uploaded",
         "profile_image_url": presigned_url,
@@ -627,6 +830,7 @@ async def send_funds(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await check_kyc_approved(current_user, db)
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
@@ -651,15 +855,30 @@ async def send_funds(
     if recipient.id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot send funds to yourself")
 
-    # Transfer funds
-    current_user.main_wallet = (current_user.main_wallet - amount).quantize(WALLET_PRECISION)
-    recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + amount
+    # Read transfer charge from config
+    charge_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "transfer_charge_percent")
+    )
+    charge_config = charge_result.scalar_one_or_none()
+    charge_percent = Decimal(charge_config.value) if charge_config and charge_config.value else Decimal("5")
+    charge_amount = (amount * charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+
+    total_deduction = amount  # sender loses the full amount they specified
+    receiver_gets = amount - charge_amount  # receiver gets amount minus charge
+
+    if receiver_gets <= 0:
+        raise HTTPException(status_code=400, detail="Amount too small after charge deduction")
+
+    # Transfer funds with charge
+    current_user.main_wallet = (current_user.main_wallet - total_deduction).quantize(WALLET_PRECISION)
+    recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
 
     # Log transfer
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=recipient.id,
-        amount=amount,
+        amount=receiver_gets,
+        fee=charge_amount,
         note=data.note,
         status="completed",
     )
@@ -667,12 +886,103 @@ async def send_funds(
     await db.commit()
     await db.refresh(current_user)
 
+    await notify_admin(
+        db=db, type="send_funds",
+        message=f"User {current_user.full_name} sent {float(receiver_gets)} USDT to {recipient.full_name} ({recipient.email})",
+        user_id=current_user.id, request=request,
+    )
+
     return {
-        "message": f"Sent {float(amount)} USDT to {recipient.full_name}",
-        "amount": float(amount),
+        "message": f"Sent {float(receiver_gets)} USDT to {recipient.full_name}",
+        "amount": float(receiver_gets),
+        "charge": float(charge_amount),
+        "charge_percent": float(charge_percent),
         "recipient": recipient.full_name,
         "recipient_email": recipient.email,
         "new_balance": float(current_user.main_wallet),
+        "transfer_id": transfer.id,
+    }
+
+
+@router.post("/transfer-matching-bonus")
+@limiter.limit("30/minute")
+async def transfer_matching_bonus(
+    request: Request,
+    data: TransferMatchingBonusRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    await check_kyc_approved(current_user, db)
+    amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+
+    mb_balance = current_user.matching_bonus_wallet or Decimal("0")
+    if mb_balance < amount:
+        raise HTTPException(status_code=400, detail=f"Insufficient matching bonus balance. Available: {float(mb_balance)} USDT")
+
+    # Find recipient by email, username, or ID
+    recipient = None
+    query = data.recipient.strip()
+    if query.isdigit():
+        recipient_result = await db.execute(select(User).where(User.id == int(query)))
+        recipient = recipient_result.scalar_one_or_none()
+    if not recipient:
+        recipient_result = await db.execute(
+            select(User).where(or_(User.email == query, User.username == query))
+        )
+        recipient = recipient_result.scalar_one_or_none()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found")
+
+    if recipient.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot transfer to yourself")
+
+    # Read transfer charge from config
+    charge_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "transfer_charge_percent")
+    )
+    charge_config = charge_result.scalar_one_or_none()
+    charge_percent = Decimal(charge_config.value) if charge_config and charge_config.value else Decimal("5")
+    charge_amount = (amount * charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+
+    receiver_gets = amount - charge_amount
+
+    if receiver_gets <= 0:
+        raise HTTPException(status_code=400, detail="Amount too small after charge deduction")
+
+    # Deduct from sender's matching bonus wallet
+    current_user.matching_bonus_wallet = (mb_balance - amount).quantize(WALLET_PRECISION)
+    # Credit recipient's main wallet
+    recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
+
+    # Log transfer
+    transfer = TransferLog(
+        sender_id=current_user.id,
+        receiver_id=recipient.id,
+        amount=receiver_gets,
+        fee=charge_amount,
+        note=data.note or "Matching bonus transfer",
+        status="completed",
+    )
+    db.add(transfer)
+    await db.commit()
+    await db.refresh(current_user)
+
+    await notify_admin(
+        db=db, type="matching_bonus_transfer",
+        message=f"User {current_user.full_name} transferred {float(receiver_gets)} USDT from matching bonus to {recipient.full_name} ({recipient.email})",
+        user_id=current_user.id, request=request,
+    )
+
+    return {
+        "message": f"Transferred {float(receiver_gets)} USDT from matching bonus to {recipient.full_name}",
+        "amount": float(receiver_gets),
+        "charge": float(charge_amount),
+        "charge_percent": float(charge_percent),
+        "recipient": recipient.full_name,
+        "recipient_email": recipient.email,
+        "new_mb_balance": float(current_user.matching_bonus_wallet),
         "transfer_id": transfer.id,
     }
 

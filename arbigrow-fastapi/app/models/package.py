@@ -49,6 +49,10 @@ class Package(Base):
 
     ad_duration_seconds: Mapped[int] = mapped_column(Integer, default=30, server_default="30")
 
+    signup_arbx_bonus: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), default=Decimal("0.00000000000000"), server_default="0.00000000000000"
+    )
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     created_at: Mapped[datetime] = mapped_column(

@@ -1,6 +1,7 @@
+import logging
 from decimal import Decimal, ROUND_HALF_UP
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_, case, delete, update, desc, desc
 
@@ -13,19 +14,28 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
+from app.models.transfer_log import TransferLog
+from app.models.matching_bonus import MatchingBonus
+from app.models.mining_log import MiningLog
+from app.models.captcha import CaptchaEarning
+from app.models.ad_view import AdView
 from app.schemas.admin import (
     UpdateKYCStatusRequest,
     CreditProfitRequest,
     UpdateWalletBalancesRequest,
     BulkTogglePackagesRequest,
+    ConfigUpdate,
 )
 from app.models.system_config import SystemConfig
 from app.models.mining_log import MiningLog
 from app.services.b2_service import generate_presigned_url
 from app.utils.format_decimal import format_decimal
-from app.utils.email import send_kyc_approved_email
 from app.utils.is_system_active import FEATURE_CONFIG_KEYS
+from app.core.referral import get_referral_level_rates
 from app.utils.referral import apply_cascading_referral_commissions
+from app.utils.notifications import notify_admin
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/admin",
@@ -33,13 +43,6 @@ router = APIRouter(
 )
 
 WALLET_PRECISION = Decimal("0.00000000000001")
-REFERRAL_LEVEL_RATES = {
-    1: "10%",
-    2: "8%",
-    3: "7%",
-    4: "6%",
-    5: "5%",
-}
 
 
 def _resolve_effective_status(
@@ -454,6 +457,9 @@ async def get_user_details(
     )
     kyc = kyc_result.scalar_one_or_none()
 
+    rates = await get_referral_level_rates(db)
+    display_rates = {lvl: f"{int(r)}%" if r == int(r) else f"{r}%" for lvl, r in rates.items()}
+
     # Referrer hierarchy
     referrer_ids = [
         user.parent_lvl_1_id,
@@ -478,18 +484,30 @@ async def get_user_details(
                     "email": ref_user.email,
                 })
 
-    downline_result = await db.execute(
-        select(User).where(
-            or_(
-                User.parent_lvl_1_id == user.id,
-                User.parent_lvl_2_id == user.id,
-                User.parent_lvl_3_id == user.id,
-                User.parent_lvl_4_id == user.id,
-                User.parent_lvl_5_id == user.id,
-            )
+    from sqlalchemy import text
+
+    team_stmt = text("""
+        WITH RECURSIVE team_tree AS (
+            SELECT id, 1 AS depth
+            FROM users
+            WHERE parent_lvl_1_id = :user_id
+            UNION ALL
+            SELECT u.id, tt.depth + 1
+            FROM users u
+            INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
         )
+        SELECT id, depth FROM team_tree
+    """)
+    team_rows = await db.execute(team_stmt, {"user_id": user.id})
+    team_data = team_rows.fetchall()
+
+    bonus_eligible_ids = {row[0] for row in team_data if row[1] <= 5}
+    non_bonus_ids = {row[0] for row in team_data if row[1] > 5}
+
+    downline_users_result = await db.execute(
+        select(User).where(User.id.in_([row[0] for row in team_data]))
     )
-    downline_users = downline_result.scalars().all()
+    downline_users = downline_users_result.scalars().all()
 
     level_map = {1: [], 2: [], 3: [], 4: [], 5: []}
     level_totals = {
@@ -581,7 +599,7 @@ async def get_user_details(
         referral_tree_levels.append(
             {
                 "level": level,
-                "commission_rate": REFERRAL_LEVEL_RATES[level],
+                "commission_rate": display_rates[level],
                 "total_earnings": format_decimal(level_totals[level]),
                 "users": level_map[level],
             }
@@ -627,6 +645,21 @@ async def get_user_details(
     return {
         "id": user.id,
         "full_name": user.full_name,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "date_of_birth": str(user.date_of_birth) if user.date_of_birth else None,
+        "gender": user.gender,
+        "nationality": user.nationality,
+        "country_of_residence": user.country_of_residence,
+        "mobile_number": user.mobile_number,
+        "residential_address": user.residential_address,
+        "city": user.city,
+        "state_province": user.state_province,
+        "postal_code": user.postal_code,
+        "national_id_number": user.national_id_number,
+        "passport_number": user.passport_number,
+        "religion": user.religion,
+        "marital_status": user.marital_status,
         "username": user.username,
         "email": user.email,
         "email_verified": user.email_verified,
@@ -657,8 +690,11 @@ async def get_user_details(
         } if kyc else None,
         "referrers": referrers,
         "referral_tree": {
+            "total_team_members": len(team_data),
             "total_referrals": len(downline_users),
             "total_active_referrals": total_active_referrals,
+            "bonus_eligible_members": len(bonus_eligible_ids),
+            "non_bonus_members": len(non_bonus_ids),
             "levels": referral_tree_levels,
         },
         "current_active_package": current_active_packages[0] if current_active_packages else None,
@@ -693,6 +729,7 @@ async def get_user_details(
 async def update_kyc_status(
     user_id: int,
     payload: UpdateKYCStatusRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -722,6 +759,13 @@ async def update_kyc_status(
         user.account_issue = issue_note
         await db.commit()
         await db.refresh(user)
+
+        await notify_admin(
+            db=db, type="kyc_rejected",
+            message=f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}",
+            user_id=user.id, request=request,
+        )
+
         return {
             "message": "User status updated successfully",
             "new_status": "issue",
@@ -743,12 +787,12 @@ async def update_kyc_status(
     if kyc:
         await db.refresh(kyc)
 
-    if (
-        kyc
-        and new_kyc_status == KYCStatus.approved
-        and previous_status != KYCStatus.approved
-    ):
-        await send_kyc_approved_email(user_id)
+    notif_type = "kyc_approved" if new_kyc_status == KYCStatus.approved else "kyc_rejected"
+    await notify_admin(
+        db=db, type=notif_type,
+        message=f"User #{user_id} KYC was {new_kyc_status.value} by admin",
+        user_id=user_id, request=request,
+    )
 
     return {
         "message": "User status updated successfully",
@@ -762,6 +806,7 @@ async def update_kyc_status(
 async def update_user_wallets(
     user_id: int,
     payload: UpdateWalletBalancesRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -783,7 +828,7 @@ async def update_user_wallets(
     ALLOWED_WALLET_FIELDS = {
         "main_wallet", "deposit_wallet", "withdraw_wallet",
         "referral_wallet", "generation_wallet", "arbx_wallet",
-        "arbx_mining_wallet",
+        "arbx_mining_wallet", "captcha_wallet", "ad_view_wallet",
     }
 
     for field, raw_value in update_fields.items():
@@ -798,6 +843,12 @@ async def update_user_wallets(
     await db.commit()
     await db.refresh(user)
 
+    await notify_admin(
+        db=db, type="wallet_updated",
+        message=f"Admin updated wallets for user #{user_id}: {', '.join(update_fields.keys())}",
+        user_id=user_id, request=request,
+    )
+
     return {
         "message": "Wallet balances updated successfully",
         "wallets": {
@@ -808,6 +859,8 @@ async def update_user_wallets(
             "generation_wallet": format_decimal(user.generation_wallet),
             "arbx_wallet": format_decimal(user.arbx_wallet),
             "arbx_mining_wallet": format_decimal(user.arbx_mining_wallet),
+            "captcha_wallet": format_decimal(user.captcha_wallet),
+            "ad_view_wallet": format_decimal(user.ad_view_wallet),
         },
     }
 
@@ -815,6 +868,7 @@ async def update_user_wallets(
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -890,6 +944,12 @@ async def delete_user(
     await db.execute(delete(User).where(User.id == user_id))
     await db.commit()
 
+    await notify_admin(
+        db=db, type="user_deleted",
+        message=f"User #{user_id} was deleted by admin",
+        user_id=user_id, request=request,
+    )
+
     return {"message": "User deleted successfully"}
 
 
@@ -897,6 +957,7 @@ async def delete_user(
 async def credit_user_profit(
     user_id: int,
     payload: CreditProfitRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -926,6 +987,12 @@ async def credit_user_profit(
 
     await db.commit()
     await db.refresh(user)
+
+    await notify_admin(
+        db=db, type="profit_credited",
+        message=f"Admin credited {profit_amount} USDT profit to user #{user_id}",
+        user_id=user_id, request=request,
+    )
 
     return {
         "message": "Profit credited and cascading referral distribution applied",
@@ -1048,6 +1115,97 @@ async def update_mining_config(
     return {"message": f"{key} set to {config.value}"}
 
 
+# ── Dynamic Commission Config ──────────────────────────────────
+@router.get("/commission-config")
+async def get_commission_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    from app.core.referral import DEFAULT_REFERRAL_RATES
+    configs = {}
+    for level in range(1, 6):
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == f"commission_l{level}")
+        )
+        row = result.scalar_one_or_none()
+        if row:
+            configs[f"commission_l{level}"] = row.value
+        else:
+            configs[f"commission_l{level}"] = str(DEFAULT_REFERRAL_RATES[level])
+    return {"data": configs}
+
+
+@router.put("/commission-config/{key}")
+async def update_commission_config(
+    key: str,
+    data: ConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    from app.core.referral import DEFAULT_REFERRAL_RATES
+    valid_keys = {f"commission_l{l}" for l in range(1, 6)}
+    if key not in valid_keys:
+        raise HTTPException(status_code=400, detail=f"Invalid key. Must be one of: {', '.join(sorted(valid_keys))}")
+    try:
+        val = Decimal(data.value)
+        if val < 0 or val > 100:
+            raise HTTPException(status_code=400, detail="Commission must be between 0 and 100")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
+
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
+    config = result.scalar_one_or_none()
+    if config:
+        config.value = data.value
+    else:
+        config = SystemConfig(key=key, value=data.value)
+        db.add(config)
+    await db.commit()
+    return {"message": f"Commission {key} updated to {data.value}%"}
+
+
+# ── Transfer & Withdrawal Charge Config ────────────────────────
+@router.get("/fee-config")
+async def get_fee_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    configs = {}
+    for key in ["transfer_charge_percent", "withdrawal_charge_percent"]:
+        result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
+        row = result.scalar_one_or_none()
+        configs[key] = row.value if row else ("5" if "charge" in key else "")
+    return {"data": configs}
+
+
+@router.put("/fee-config/{key}")
+async def update_fee_config(
+    key: str,
+    data: ConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent"}
+    if key not in valid_keys:
+        raise HTTPException(status_code=400, detail=f"Invalid key. Must be one of: {', '.join(sorted(valid_keys))}")
+    try:
+        val = Decimal(data.value)
+        if val < 0 or val > 100:
+            raise HTTPException(status_code=400, detail="Charge must be between 0 and 100")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
+
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
+    config = result.scalar_one_or_none()
+    if config:
+        config.value = data.value
+    else:
+        config = SystemConfig(key=key, value=data.value)
+        db.add(config)
+    await db.commit()
+    return {"message": f"{key} updated to {data.value}%"}
+
+
 @router.get("/mining/stats")
 async def get_mining_stats(
     page: int = Query(1, ge=1),
@@ -1116,6 +1274,7 @@ async def admin_list_packages(
                 "daily_captcha_limit": p.daily_captcha_limit or 0,
                 "task_type": p.task_type.value if p.task_type else "captcha",
                 "ad_duration_seconds": p.ad_duration_seconds or 30,
+                "signup_arbx_bonus": float(p.signup_arbx_bonus or 0),
                 "is_active": p.is_active,
                 "created_at": p.created_at.isoformat() if p.created_at else None,
                 "updated_at": p.updated_at.isoformat() if p.updated_at else None,
@@ -1139,6 +1298,7 @@ async def admin_update_package(
     daily_captcha_limit: int | None = None,
     task_type: str | None = None,
     ad_duration_seconds: int | None = None,
+    signup_arbx_bonus: float | None = None,
     is_active: bool | None = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
@@ -1171,6 +1331,8 @@ async def admin_update_package(
         package.task_type = TaskType(task_type)
     if ad_duration_seconds is not None:
         package.ad_duration_seconds = ad_duration_seconds
+    if signup_arbx_bonus is not None:
+        package.signup_arbx_bonus = Decimal(str(signup_arbx_bonus))
     if is_active is not None:
         package.is_active = is_active
 
@@ -1263,6 +1425,7 @@ async def admin_create_package(
     daily_captcha_limit: int = 12,
     task_type: str = "captcha",
     ad_duration_seconds: int = 30,
+    signup_arbx_bonus: float = 0,
     is_active: bool = True,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
@@ -1285,6 +1448,7 @@ async def admin_create_package(
         daily_captcha_limit=daily_captcha_limit,
         task_type=TaskType(task_type),
         ad_duration_seconds=ad_duration_seconds,
+        signup_arbx_bonus=Decimal(str(signup_arbx_bonus)),
         is_active=is_active,
     )
     db.add(package)
@@ -1388,5 +1552,82 @@ async def admin_bulk_toggle_packages(
         "status": "updated",
         "updated_count": len(packages),
         "is_active": body.is_active,
+    }
+
+
+# ── Real-time Statistics ─────────────────────────────────────────────────
+
+@router.get("/realtime-stats")
+async def get_realtime_stats(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    approved_deposits_result = await db.execute(
+        select(func.coalesce(func.sum(Deposit.amount), 0)).where(Deposit.status == "approved")
+    )
+    total_deposited = Decimal(str(approved_deposits_result.scalar() or 0))
+
+    approved_withdrawals_result = await db.execute(
+        select(func.coalesce(func.sum(Withdrawal.amount), 0)).where(Withdrawal.status == "approved")
+    )
+    total_withdrawn = Decimal(str(approved_withdrawals_result.scalar() or 0))
+
+    users_with_deposits_result = await db.execute(
+        select(func.count(func.distinct(Deposit.user_id))).where(Deposit.status == "approved")
+    )
+    users_with_deposits = users_with_deposits_result.scalar() or 0
+
+    total_transferred_result = await db.execute(
+        select(func.coalesce(func.sum(TransferLog.amount), 0))
+    )
+    total_transferred = Decimal(str(total_transferred_result.scalar() or 0))
+
+    total_referral_result = await db.execute(
+        select(func.coalesce(func.sum(ReferralProfitHistory.amount), 0))
+    )
+    total_referral = Decimal(str(total_referral_result.scalar() or 0))
+
+    total_matching_result = await db.execute(
+        select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+    )
+    total_matching = Decimal(str(total_matching_result.scalar() or 0))
+
+    total_profit_result = await db.execute(
+        select(func.coalesce(func.sum(InvestmentProfitHistory.amount), 0))
+    )
+    total_profit_shared = Decimal(str(total_profit_result.scalar() or 0))
+
+    total_mining_result = await db.execute(
+        select(func.coalesce(func.sum(MiningLog.amount), 0))
+    )
+    total_mining = Decimal(str(total_mining_result.scalar() or 0))
+
+    total_captcha_result = await db.execute(
+        select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
+    )
+    total_captcha = Decimal(str(total_captcha_result.scalar() or 0))
+
+    total_ad_result = await db.execute(
+        select(func.coalesce(func.sum(AdView.amount_earned), 0))
+    )
+    total_ad = Decimal(str(total_ad_result.scalar() or 0))
+
+    total_distributed = total_referral + total_matching + total_profit_shared + total_mining + total_captcha + total_ad
+
+    ecommerce_result = await db.execute(
+        select(func.coalesce(func.sum(User.ecommerce_wallet), 0))
+    )
+    total_ecommerce_funded = Decimal(str(ecommerce_result.scalar() or 0))
+
+    company_running_profit = total_deposited - total_withdrawn - total_distributed
+
+    return {
+        "users_with_deposits": users_with_deposits,
+        "total_deposited": format_decimal(total_deposited),
+        "total_withdrawn": format_decimal(total_withdrawn),
+        "total_transferred": format_decimal(total_transferred),
+        "total_distributed": format_decimal(total_distributed),
+        "total_ecommerce_funded": format_decimal(total_ecommerce_funded),
+        "company_running_profit": format_decimal(company_running_profit),
     }
 

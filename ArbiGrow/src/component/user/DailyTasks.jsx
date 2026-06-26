@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import {
@@ -15,6 +16,7 @@ import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
 
 export default function DailyTasks() {
+  const { t } = useTranslation();
   const [captcha, setCaptcha] = useState(null);
   const [userInput, setUserInput] = useState("");
   const [stats, setStats] = useState(null);
@@ -48,7 +50,7 @@ export default function DailyTasks() {
       setCaptcha(data);
       setCooldown(5);
     } catch (err) {
-      const detail = err.response?.data?.detail || err.message || "Failed to get captcha";
+      const detail = err.response?.data?.detail || err.message || t('dailyTasks.loading');
       setError(detail);
     } finally {
       setLoading(false);
@@ -74,11 +76,11 @@ export default function DailyTasks() {
       const data = res.data || res;
       setResult(data);
       if (data.success) {
-        setUser({ main_wallet: data.new_balance });
+        setUser({ captcha_wallet: data.new_balance });
         await fetchStats();
       }
     } catch (err) {
-      const detail = err.response?.data?.detail || err.message || "Submission failed";
+      const detail = err.response?.data?.detail || err.message || t('dailyTasks.verifying');
       setError(detail);
     } finally {
       setSubmitting(false);
@@ -103,10 +105,10 @@ export default function DailyTasks() {
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <Keyboard className="w-6 h-6 text-cyan-400" />
-            Captcha Typing
+            {t('dailyTasks.title')}
           </h2>
           <p className="text-gray-400 text-sm mt-1">
-            Type captchas to earn USDT based on your package
+            {t('dailyTasks.subtitle')}
           </p>
         </div>
       </div>
@@ -115,13 +117,13 @@ export default function DailyTasks() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10">
-            <div className="text-xs text-gray-400 mb-1">Earn Per Captcha</div>
+            <div className="text-xs text-gray-400 mb-1">{t('dailyTasks.earnPerCaptcha')}</div>
             <div className="text-2xl font-bold text-green-400">
               ${Number(stats.earn_per_captcha || 0).toFixed(4)}
             </div>
           </div>
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10">
-            <div className="text-xs text-gray-400 mb-1">Today's Progress</div>
+            <div className="text-xs text-gray-400 mb-1">{t('dailyTasks.todaysProgress')}</div>
             <div className="text-2xl font-bold text-white">
               {stats.typed_today}/{stats.daily_limit}
             </div>
@@ -133,11 +135,11 @@ export default function DailyTasks() {
             </div>
           </div>
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10">
-            <div className="text-xs text-gray-400 mb-1">Remaining Today</div>
+            <div className="text-xs text-gray-400 mb-1">{t('dailyTasks.remainingToday')}</div>
             <div className="text-2xl font-bold text-cyan-400">{stats.remaining}</div>
           </div>
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10">
-            <div className="text-xs text-gray-400 mb-1">Total Earned (All)</div>
+            <div className="text-xs text-gray-400 mb-1">{t('dailyTasks.totalEarned')}</div>
             <div className="text-2xl font-bold text-green-400">
               ${Number(stats.total_earned_all || 0).toFixed(4)}
             </div>
@@ -149,9 +151,9 @@ export default function DailyTasks() {
       {stats && stats.daily_limit === 0 && (
         <div className="p-6 text-center">
           <AlertCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">No Active Package</h3>
+          <h3 className="text-xl font-bold text-white mb-2">{t('dailyTasks.noPackageTitle')}</h3>
           <p className="text-gray-400">
-            Purchase a package to start earning by typing captchas.
+            {t('dailyTasks.noPackageDesc')}
           </p>
         </div>
       )}
@@ -163,11 +165,11 @@ export default function DailyTasks() {
             {/* Reset timer */}
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400 flex items-center gap-1">
-                <Clock className="w-4 h-4" /> Resets in {resetTime()}
+                <Clock className="w-4 h-4" /> {t('dailyTasks.resetsIn', { time: resetTime() })}
               </span>
               {stats && (
                 <span className="text-gray-400">
-                  Today: <span className="text-white font-bold">{stats.typed_today}</span> / {stats.daily_limit}
+                    {t('dailyTasks.today')} <span className="text-white font-bold">{stats.typed_today}</span> / {stats.daily_limit}
                 </span>
               )}
             </div>
@@ -184,7 +186,7 @@ export default function DailyTasks() {
                     draggable={false}
                   />
                   <div className="text-xs text-gray-500 mt-2">
-                    Captcha ID: #{captcha.captcha_id} · Expires in 2 min
+                    {t('dailyTasks.captchaId', { id: captcha.captcha_id })}
                   </div>
                 </div>
 
@@ -194,7 +196,7 @@ export default function DailyTasks() {
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !submitting && handleSubmit()}
                   disabled={submitting}
-                  placeholder="Type the captcha text above..."
+                  placeholder={t('dailyTasks.captchaPlaceholder')}
                   autoFocus
                   className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-lg tracking-widest"
                 />
@@ -209,7 +211,7 @@ export default function DailyTasks() {
                   ) : (
                     <Zap className="w-4 h-4" />
                   )}
-                  {submitting ? "Verifying..." : "Submit Answer"}
+                  {submitting ? t('dailyTasks.verifying') : t('dailyTasks.submitAnswer')}
                 </button>
               </div>
             )}
@@ -224,23 +226,23 @@ export default function DailyTasks() {
                     <XCircle className="w-5 h-5 text-red-400" />
                   )}
                   <span className={`font-bold ${result.success ? "text-green-400" : "text-red-400"}`}>
-                    {result.success ? "Correct!" : "Wrong"}
+                    {result.success ? t('dailyTasks.correct') : t('dailyTasks.wrong')}
                   </span>
                 </div>
                 {result.success && (
                   <div className="flex items-center gap-2 text-sm">
                     <DollarSign className="w-4 h-4 text-green-400" />
-                    <span className="text-green-300">+{Number(result.earned).toFixed(4)} USDT earned</span>
+                    <span className="text-green-300">{t('dailyTasks.earned', { amount: Number(result.earned).toFixed(4) })}</span>
                   </div>
                 )}
                 <div className="text-xs text-gray-400 mt-1">
-                  {result.remaining_today} captchas remaining today
+                  {t('dailyTasks.remainingCaptchas', { count: result.remaining_today })}
                 </div>
                 <button
                   onClick={() => { setResult(null); setCaptcha(null); setUserInput(""); }}
                   className="mt-3 w-full p-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold"
                 >
-                  Get Next Captcha
+                  {t('dailyTasks.getNextCaptcha')}
                 </button>
               </div>
             )}
@@ -269,15 +271,15 @@ export default function DailyTasks() {
                 ) : (
                   <Keyboard className="w-4 h-4" />
                 )}
-                {loading ? "Loading..." : cooldown > 0 ? `Wait ${cooldown}s` : "Get New Captcha"}
+                {loading ? t('dailyTasks.loading') : cooldown > 0 ? t('dailyTasks.waitSeconds', { count: cooldown }) : t('dailyTasks.getNewCaptcha')}
               </button>
             )}
 
             {/* Daily limit reached */}
             {stats.remaining <= 0 && (
               <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-center">
-                <div className="text-yellow-400 font-bold mb-1">Daily Limit Reached</div>
-                <div className="text-yellow-300/70 text-sm">Come back tomorrow! Resets in {resetTime()}</div>
+                <div className="text-yellow-400 font-bold mb-1">{t('dailyTasks.dailyLimitReached')}</div>
+                <div className="text-yellow-300/70 text-sm">{t('dailyTasks.comeBack', { time: resetTime() })}</div>
               </div>
             )}
           </div>
@@ -286,13 +288,13 @@ export default function DailyTasks() {
           {stats && (
             <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-white/[0.01] border border-white/10">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-sm">Today's Earnings</span>
+                <span className="text-gray-400 text-sm">{t('dailyTasks.todaysEarnings')}</span>
                 <span className="text-green-400 font-bold">
                   +${Number(stats.total_earned_today || 0).toFixed(4)} USDT
                 </span>
               </div>
               <div className="flex items-center justify-between mt-2">
-                <span className="text-gray-400 text-sm">Lifetime Earnings</span>
+                <span className="text-gray-400 text-sm">{t('dailyTasks.lifetimeEarnings')}</span>
                 <span className="text-cyan-400 font-bold">
                   ${Number(stats.total_earned_all || 0).toFixed(4)} USDT
                 </span>

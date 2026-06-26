@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 
 from app.core.database import get_db
-from app.core.referral import REFERRAL_LEVEL_RATES
+from app.core.referral import get_referral_level_rates
 
 from app.models.user import User
 from app.models.investments import Investment
@@ -111,7 +111,7 @@ async def add_profit(
 
         db.add(history)
 
-      # FETCH ALL PARENTS
+        # FETCH ALL PARENTS
 
         parent_ids = [
             user.parent_lvl_1_id,
@@ -146,9 +146,9 @@ async def add_profit(
             )
             active_parent_ids = set(active_result.scalars().all())
 
-        # CASCADING COMMISSION
+        # FLAT COMMISSION
 
-        previous_reward = profit_amount
+        rates = await get_referral_level_rates(db)
 
         for level, parent_id in enumerate(parent_ids, start=1):
 
@@ -157,10 +157,10 @@ async def add_profit(
             if not parent:
                 continue
 
-            rate = REFERRAL_LEVEL_RATES[level]
+            rate = rates[level]
 
             reward = (
-                previous_reward * rate
+                profit_amount * rate
             ) / Decimal("100")
 
             if parent_id in active_parent_ids:
@@ -181,8 +181,6 @@ async def add_profit(
                 )
 
                 db.add(referral_history)
-
-            previous_reward = reward
 
         # complete investment
         if investment.profit_earned >= investment.expected_profit:

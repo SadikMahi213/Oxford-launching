@@ -222,9 +222,11 @@ export default function UserManagement({ users, setUsers }) {
       await fetchUsers();
     } catch (error) {
       console.error("Failed to update KYC:", error);
-      setUpdateMessage(
-        error?.response?.data?.detail || "Failed to update KYC status",
-      );
+      const detail = error?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d) => d.msg || JSON.stringify(d)).join("; ")
+        : detail || "Failed to update KYC status";
+      setUpdateMessage(msg);
     } finally {
       setIsUpdating(false);
     }
@@ -562,7 +564,7 @@ export default function UserManagement({ users, setUsers }) {
                   : "bg-white/5 border border-white/10 text-gray-400 hover:text-white"
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === "pending" ? "Processing" : status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
           ))}
         </div>
@@ -601,7 +603,7 @@ export default function UserManagement({ users, setUsers }) {
             >
               {displayedStatusCounts[status] ?? 0}
             </div>
-            <div className="text-sm text-gray-400 capitalize">{status}</div>
+            <div className="text-sm text-gray-400 capitalize">{status === "pending" ? "Processing" : status}</div>
           </div>
         ))}
       </div>
@@ -660,7 +662,7 @@ export default function UserManagement({ users, setUsers }) {
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(normalizedStatus)}`}
                       >
-                        {normalizedStatus.toUpperCase()}
+                        {normalizedStatus === "pending" ? "PROCESSING" : normalizedStatus.toUpperCase()}
                       </span>
                     </td>
                     <td className="p-4 text-center">

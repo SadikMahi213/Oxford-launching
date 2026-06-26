@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Send, Download, ArrowUpRight, ArrowDownLeft, CalendarDays, FileText } from "lucide-react";
 import { getTransferHistory } from "../../api/user.api.js";
+import { useTranslation } from "react-i18next";
 
 export default function TransferHistory({ setActivePage }) {
+  const { t } = useTranslation();
   const [data, setData] = useState({ sent: [], received: [] });
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all");
@@ -31,30 +33,30 @@ export default function TransferHistory({ setActivePage }) {
             <Download className="w-6 h-6 text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Transfer History</h1>
-            <p className="text-sm text-gray-400">View your sent and received transfers</p>
+            <h1 className="text-2xl font-bold text-white">{t("transferHistory.title")}</h1>
+            <p className="text-sm text-gray-400">{t("transferHistory.subtitle")}</p>
           </div>
         </div>
 
         {loading ? (
-          <p className="text-gray-400 text-center py-12">Loading...</p>
+          <p className="text-gray-400 text-center py-12">{t("transferHistory.loading")}</p>
         ) : all.length === 0 ? (
           <div className="text-center py-12">
             <Send className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-400">No transfers yet</p>
+            <p className="text-gray-400">{t("transferHistory.noTransfers")}</p>
           </div>
         ) : (
           <>
             <div className="flex gap-2 mb-4">
-              {["all", "sent", "received"].map((t) => (
+              {["all", "sent", "received"].map((tabKey) => (
                 <button
-                  key={t}
-                  onClick={() => setTab(t)}
+                  key={tabKey}
+                  onClick={() => setTab(tabKey)}
                   className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize ${
-                    tab === t ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"
+                    tab === tabKey ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" : "bg-white/5 text-gray-400 border border-white/10"
                   }`}
                 >
-                  {t === "sent" ? `Sent (${data.sent?.length || 0})` : t === "received" ? `Received (${data.received?.length || 0})` : "All"}
+                  {tabKey === "sent" ? t("transferHistory.sent", { count: data.sent?.length || 0 }) : tabKey === "received" ? t("transferHistory.received", { count: data.received?.length || 0 }) : t("transferHistory.all")}
                 </button>
               ))}
             </div>
@@ -79,7 +81,7 @@ export default function TransferHistory({ setActivePage }) {
                     </div>
                     <div className="min-w-0">
                       <p className="text-white font-medium text-sm truncate">
-                        {t.dir === "sent" ? `To: ${t.receiver_name || "User #" + t.receiver_id}` : `From: ${t.sender_name || "User #" + t.sender_id}`}
+                        {t.dir === "sent" ? t("transferHistory.to", { name: t.receiver_name || t("transferHistory.user", { id: t.receiver_id }) }) : t("transferHistory.from", { name: t.sender_name || t("transferHistory.user", { id: t.sender_id }) })}
                       </p>
                       {t.note && (
                         <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-0.5">

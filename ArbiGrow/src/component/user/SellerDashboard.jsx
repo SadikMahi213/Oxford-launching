@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Image, FileText, Send, AlertCircle, MessageCircle, PlusCircle } from "lucide-react";
@@ -20,6 +21,7 @@ const STEPS = [
 ];
 
 const SellerDashboard = () => {
+  const { t } = useTranslation();
   const { user } = useUserStore();
   const [tab, setTab] = useState("overview");
   const [seller, setSeller] = useState(null);
@@ -121,7 +123,7 @@ const SellerDashboard = () => {
     if (!registerName.trim()) return;
     try {
       const res = await registerSeller(registerName, registerDesc);
-      setMsg("Store created! Status: " + res.data.status);
+      setMsg(t('seller.storeCreated', { status: res.data.status }));
       setShowCreateStore(false);
       setRegisterName("");
       setRegisterDesc("");
@@ -135,7 +137,7 @@ const SellerDashboard = () => {
     try {
       const res = await updateSellerProfile(profile, activeStoreId);
       setCompletion(res.data.profile_completion);
-      setMsg("Profile saved! (" + res.data.profile_completion + "%)");
+      setMsg(t('seller.profileSaved', { percent: res.data.profile_completion }));
       loadData(activeStoreId);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -145,7 +147,7 @@ const SellerDashboard = () => {
   const handleSubmitForReview = async () => {
     try {
       const res = await sellerSubmitForReview(activeStoreId);
-      setMsg("Submitted for review!");
+      setMsg(t('seller.submittedForReview'));
       setSeller(prev => ({ ...prev, status: "pending_review" }));
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -165,7 +167,7 @@ const SellerDashboard = () => {
         arbx_allocated: parseFloat(newProduct.arbx_allocated || 0),
       });
       setNewProduct({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0 });
-      setMsg("Product added!");
+      setMsg(t('seller.productAdded'));
       loadData(activeStoreId);
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -228,7 +230,7 @@ const SellerDashboard = () => {
       const res = await transferToEcommerce(parseFloat(transferAmount));
       setWallet(res.data);
       setTransferAmount("");
-      setMsg("Transferred $" + transferAmount);
+      setMsg(t('seller.transferred', { amount: transferAmount }));
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -244,7 +246,7 @@ const SellerDashboard = () => {
   };
 
   const handleDeleteProduct = async (p) => {
-    if (!confirm("Delete this product?")) return;
+    if (!confirm(t('seller.deleteConfirm'))) return;
     try {
       await deleteProduct(p.id, activeStoreId);
       loadData(activeStoreId);
@@ -278,27 +280,28 @@ const SellerDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl md:text-3xl font-bold">
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Become a Seller
+              {t('seller.becomeASeller')}
             </span>
           </h1>
-          <p className="text-sm text-gray-400">Start your online store on our marketplace</p>
+          <p className="text-sm text-gray-400">{t('seller.startStore')}</p>
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 max-w-lg space-y-4">
           <div>
-            <label className="text-sm text-gray-400">Store Name</label>
-            <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My Store" />
+            <label className="text-sm text-gray-400">{t('seller.storeName')}</label>
+            <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.storeNamePlaceholder')} />
+
           </div>
           <div>
-            <label className="text-sm text-gray-400">Description (optional) <span className="text-gray-500">(rich text supported)</span></label>
+            <label className="text-sm text-gray-400">{t('seller.description')} <span className="text-gray-500">{t('seller.descriptionRichText')}</span></label>
             <RichTextEditor
               content={registerDesc}
               onChange={setRegisterDesc}
-              placeholder="Tell buyers about your store..."
+              placeholder={t('seller.descPlaceholder')}
               minHeight="100px"
             />
           </div>
           <button onClick={handleRegister} className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
-            <Store className="w-4 h-4 inline mr-2" /> Register as Seller
+            <Store className="w-4 h-4 inline mr-2" /> {t('seller.registerAsSeller')}
           </button>
           {msg && <p className="text-sm text-center text-green-400">{msg}</p>}
         </div>
@@ -312,29 +315,29 @@ const SellerDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl md:text-3xl font-bold">
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Create New Store
+              {t('seller.createNewStore')}
             </span>
           </h1>
-          <p className="text-sm text-gray-400">Add another store to your seller account</p>
+          <p className="text-sm text-gray-400">{t('seller.addStore')}</p>
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 max-w-lg space-y-4">
           <div>
-            <label className="text-sm text-gray-400">Store Name</label>
-            <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My New Store" />
+            <label className="text-sm text-gray-400">{t('seller.storeName')}</label>
+            <input value={registerName} onChange={(e) => setRegisterName(e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.storeNamePlaceholder2')} />
           </div>
           <div>
-            <label className="text-sm text-gray-400">Description (optional) <span className="text-gray-500">(rich text supported)</span></label>
+            <label className="text-sm text-gray-400">{t('seller.description')} <span className="text-gray-500">{t('seller.descriptionRichText')}</span></label>
             <RichTextEditor
               content={registerDesc}
               onChange={setRegisterDesc}
-              placeholder="Tell buyers about your store..."
+              placeholder={t('seller.descPlaceholder')}
               minHeight="100px"
             />
           </div>
           <div className="flex gap-3">
-            <button onClick={() => { setShowCreateStore(false); setRegisterName(""); setRegisterDesc(""); }} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">Cancel</button>
+            <button onClick={() => { setShowCreateStore(false); setRegisterName(""); setRegisterDesc(""); }} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">{t('seller.cancel')}</button>
             <button onClick={handleRegister} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
-              <PlusCircle className="w-4 h-4 inline mr-1" /> Create Store
+              <PlusCircle className="w-4 h-4 inline mr-1" /> {t('seller.createStore')}
             </button>
           </div>
           {msg && <p className="text-sm text-center text-green-400">{msg}</p>}
@@ -352,16 +355,16 @@ const SellerDashboard = () => {
               {seller.store_name}
             </span>
           </h1>
-          <p className="text-sm text-gray-400">Seller Dashboard</p>
+          <p className="text-sm text-gray-400">{t('seller.dashboard')}</p>
           {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-yellow-500/10 to-yellow-500/[0.02] border border-yellow-500/30 p-8 text-center space-y-3">
           <Send className="w-12 h-12 text-yellow-400 mx-auto" />
-          <h2 className="text-xl font-bold text-yellow-300">Under Review</h2>
-          <p className="text-gray-400 max-w-md mx-auto">Your seller application has been submitted for review. Our team will review your information and get back to you soon.</p>
+          <h2 className="text-xl font-bold text-yellow-300">{t('seller.underReview')}</h2>
+          <p className="text-gray-400 max-w-md mx-auto">{t('seller.underReviewDesc')}</p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
             <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-            Profile completion: {completion}%
+            {t('seller.profileCompletion', { percent: completion })}%
           </div>
         </div>
       </div>
@@ -377,19 +380,19 @@ const SellerDashboard = () => {
               {seller.store_name}
             </span>
           </h1>
-          <p className="text-sm text-gray-400">Seller Dashboard</p>
+          <p className="text-sm text-gray-400">{t('seller.dashboard')}</p>
           {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
         </motion.div>
         <div className="rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/[0.02] border border-red-500/30 p-8 text-center space-y-4">
           <AlertCircle className="w-12 h-12 text-red-400 mx-auto" />
-          <h2 className="text-xl font-bold text-red-300">Application Rejected</h2>
+          <h2 className="text-xl font-bold text-red-300">{t('seller.applicationRejected')}</h2>
           {seller.rejection_reason && (
             <p className="text-gray-300 bg-red-500/10 rounded-xl px-4 py-3 max-w-md mx-auto border border-red-500/20">
-              Reason: {seller.rejection_reason}
+              {t('seller.reason', { reason: seller.rejection_reason })}
             </p>
           )}
           <button onClick={() => { setSeller(prev => ({ ...prev, status: "draft" })); }} className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
-            Update Profile & Re-submit
+            {t('seller.updateAndResubmit')}
           </button>
         </div>
       </div>
@@ -407,7 +410,7 @@ const SellerDashboard = () => {
                   {seller.store_name}
                 </span>
               </h1>
-              <p className="text-sm text-gray-400">Complete your seller profile ({stepProgress}/{STEPS.length} sections)</p>
+              <p className="text-sm text-gray-400">{t('seller.completeProfile', { count: stepProgress, total: STEPS.length })}</p>
             </div>
           </div>
           {allStores.length > 1 && <StoreSwitcher stores={allStores} activeId={activeStoreId} onSwitch={switchStore} />}
@@ -415,7 +418,7 @@ const SellerDashboard = () => {
 
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-gray-400">
-            <span>Profile Completion</span>
+            <span>{t('seller.profileCompletionLabel')}</span>
             <span>{completion}%</span>
           </div>
           <div className="h-2 rounded-full bg-white/10 overflow-hidden">
@@ -434,7 +437,7 @@ const SellerDashboard = () => {
               }`}
             >
               {isStepComplete(i) ? <Check className="w-3 h-3" /> : <s.icon className="w-3 h-3" />}
-              {s.label}
+              {t('seller.' + s.id)}
             </button>
           ))}
         </div>
@@ -442,19 +445,19 @@ const SellerDashboard = () => {
         <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 max-w-2xl space-y-4">
           {profileStep === 0 && (
             <>
-              <h3 className="text-white font-semibold flex items-center gap-2"><User className="w-4 h-4 text-purple-400" /> Basic Information</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><User className="w-4 h-4 text-purple-400" /> {t('seller.basicInfo')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400">Full Name</label>
+                  <label className="text-xs text-gray-400">{t('seller.fullName')}</label>
                   <input value={user?.full_name || ""} disabled className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Email</label>
+                  <label className="text-xs text-gray-400">{t('seller.email')}</label>
                   <input value={user?.email || ""} disabled className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Phone *</label>
-                  <input value={profile.phone} onChange={(e) => updateProfileField("phone", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="+8801XXXXXXXXX" />
+                  <label className="text-xs text-gray-400">{t('seller.phone')}</label>
+                  <input value={profile.phone} onChange={(e) => updateProfileField("phone", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.phonePlaceholder')} />
                 </div>
               </div>
             </>
@@ -462,43 +465,43 @@ const SellerDashboard = () => {
 
           {profileStep === 1 && (
             <>
-              <h3 className="text-white font-semibold flex items-center gap-2"><Store className="w-4 h-4 text-purple-400" /> Store Information</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><Store className="w-4 h-4 text-purple-400" /> {t('seller.storeInfo')}</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-gray-400">Store Name *</label>
-                  <input value={profile.store_name} onChange={(e) => updateProfileField("store_name", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="My Awesome Store" />
+                  <label className="text-xs text-gray-400">{t('seller.storeNameReq')}</label>
+                  <input value={profile.store_name} onChange={(e) => updateProfileField("store_name", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.storeNamePlaceholder3')} />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Description * <span className="text-gray-500">(rich text supported)</span></label>
+                  <label className="text-xs text-gray-400">{t('seller.descriptionReq')} <span className="text-gray-500">{t('seller.descriptionRichText')}</span></label>
                   <RichTextEditor
                     content={profile.description}
                     onChange={(html) => updateProfileField("description", html)}
-                    placeholder="Describe your store..."
+                    placeholder={t('seller.descriptionPlaceholder')}
                     minHeight="100px"
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
-                    <label className="text-xs text-gray-400">WhatsApp Number</label>
+                    <label className="text-xs text-gray-400">{t('seller.whatsappNumber')}</label>
                     <input value={profile.whatsapp_number} onChange={(e) => updateProfileField("whatsapp_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="+1234567890" />
-                    <p className="text-[10px] text-gray-500 mt-0.5">Customers can message you on this number</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">{t('seller.whatsappHint')}</p>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Store Logo</label>
+                    <label className="text-xs text-gray-400">{t('seller.storeLogo')}</label>
                     <div className="flex gap-2 mt-1">
-                      <input value={profile.store_logo_key} onChange={(e) => updateProfileField("store_logo_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <input value={profile.store_logo_key} onChange={(e) => updateProfileField("store_logo_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder={t('seller.pasteUrlOrUpload')} />
                       <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "store_logo_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
-                        {uploadingField === "store_logo_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        {uploadingField === "store_logo_key" ? "..." : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                         <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "store_logo_key")} hidden />
                       </label>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">Store Banner</label>
+                    <label className="text-xs text-gray-400">{t('seller.storeBanner')}</label>
                     <div className="flex gap-2 mt-1">
-                      <input value={profile.store_banner_key} onChange={(e) => updateProfileField("store_banner_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <input value={profile.store_banner_key} onChange={(e) => updateProfileField("store_banner_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder={t('seller.pasteUrlOrUpload')} />
                       <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "store_banner_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
-                        {uploadingField === "store_banner_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        {uploadingField === "store_banner_key" ? "..." : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                         <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "store_banner_key")} hidden />
                       </label>
                     </div>
@@ -510,28 +513,28 @@ const SellerDashboard = () => {
 
           {profileStep === 2 && (
             <>
-              <h3 className="text-white font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-purple-400" /> Identity Information</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-purple-400" /> {t('seller.identityInfo')}</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-gray-400">NID / Passport Number *</label>
-                  <input value={profile.nid_number} onChange={(e) => updateProfileField("nid_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="NID number" />
+                  <label className="text-xs text-gray-400">{t('seller.nidPassport')}</label>
+                  <input value={profile.nid_number} onChange={(e) => updateProfileField("nid_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.nidPlaceholder')} />
                 </div>                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-gray-400">NID Front Image *</label>
+                    <label className="text-xs text-gray-400">{t('seller.nidFront')}</label>
                     <div className="flex gap-2 mt-1">
-                      <input value={profile.nid_front_image_key} onChange={(e) => updateProfileField("nid_front_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <input value={profile.nid_front_image_key} onChange={(e) => updateProfileField("nid_front_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder={t('seller.pasteUrlOrUpload')} />
                       <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "nid_front_image_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
-                        {uploadingField === "nid_front_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        {uploadingField === "nid_front_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                         <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "nid_front_image_key")} hidden />
                       </label>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-400">NID Back Image *</label>
+                    <label className="text-xs text-gray-400">{t('seller.nidBack')}</label>
                     <div className="flex gap-2 mt-1">
-                      <input value={profile.nid_back_image_key} onChange={(e) => updateProfileField("nid_back_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder="Paste URL or upload..." />
+                      <input value={profile.nid_back_image_key} onChange={(e) => updateProfileField("nid_back_image_key", e.target.value)} className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" placeholder={t('seller.pasteUrlOrUpload')} />
                       <label className={`px-3 py-2 rounded-xl text-xs font-medium cursor-pointer flex items-center gap-1.5 transition-all ${uploadingField === "nid_back_image_key" ? "bg-purple-500/50 text-white animate-pulse" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
-                        {uploadingField === "nid_back_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                        {uploadingField === "nid_back_image_key" ? "..." : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                         <input type="file" accept="image/*" onChange={(e) => handleUploadSellerImage(e, "nid_back_image_key")} hidden />
                       </label>
                     </div>
@@ -543,23 +546,23 @@ const SellerDashboard = () => {
 
           {profileStep === 3 && (
             <>
-              <h3 className="text-white font-semibold flex items-center gap-2"><MapPin className="w-4 h-4 text-purple-400" /> Address Information</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><MapPin className="w-4 h-4 text-purple-400" /> {t('seller.addressInfo')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400">Country *</label>
-                  <input value={profile.country} onChange={(e) => updateProfileField("country", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="Bangladesh" />
+                  <label className="text-xs text-gray-400">{t('seller.country')}</label>
+                  <input value={profile.country} onChange={(e) => updateProfileField("country", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.countryPlaceholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Division / State *</label>
-                  <input value={profile.division_state} onChange={(e) => updateProfileField("division_state", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="Dhaka" />
+                  <label className="text-xs text-gray-400">{t('seller.divisionState')}</label>
+                  <input value={profile.division_state} onChange={(e) => updateProfileField("division_state", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.divisionPlaceholder')} />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">District / City *</label>
-                  <input value={profile.district_city} onChange={(e) => updateProfileField("district_city", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="Dhaka" />
+                  <label className="text-xs text-gray-400">{t('seller.districtCity')}</label>
+                  <input value={profile.district_city} onChange={(e) => updateProfileField("district_city", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder={t('seller.districtPlaceholder')} />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-xs text-gray-400">Full Address *</label>
-                  <textarea value={profile.full_address} onChange={(e) => updateProfileField("full_address", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={2} placeholder="Street, area, post code..." />
+                  <label className="text-xs text-gray-400">{t('seller.fullAddress')}</label>
+                  <textarea value={profile.full_address} onChange={(e) => updateProfileField("full_address", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={2} placeholder={t('seller.addressPlaceholder')} />
                 </div>
               </div>
             </>
@@ -567,22 +570,22 @@ const SellerDashboard = () => {
 
           {profileStep === 4 && (
             <>
-              <h3 className="text-white font-semibold flex items-center gap-2"><Globe className="w-4 h-4 text-purple-400" /> Social Links <span className="text-xs text-gray-500 font-normal">(optional)</span></h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><Globe className="w-4 h-4 text-purple-400" /> {t('seller.socialLinks')} <span className="text-xs text-gray-500 font-normal">{t('seller.optional')}</span></h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400">Facebook URL</label>
+                  <label className="text-xs text-gray-400">{t('seller.facebookUrl')}</label>
                   <input value={profile.facebook_url} onChange={(e) => updateProfileField("facebook_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://facebook.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">YouTube URL</label>
+                  <label className="text-xs text-gray-400">{t('seller.youtubeUrl')}</label>
                   <input value={profile.youtube_url} onChange={(e) => updateProfileField("youtube_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://youtube.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">TikTok URL</label>
+                  <label className="text-xs text-gray-400">{t('seller.tiktokUrl')}</label>
                   <input value={profile.tiktok_url} onChange={(e) => updateProfileField("tiktok_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://tiktok.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Website URL</label>
+                  <label className="text-xs text-gray-400">{t('seller.websiteUrl')}</label>
                   <input value={profile.website_url} onChange={(e) => updateProfileField("website_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
                 </div>
               </div>
@@ -593,20 +596,20 @@ const SellerDashboard = () => {
             <button onClick={() => setProfileStep(Math.max(0, profileStep - 1))} disabled={profileStep === 0}
               className="flex items-center gap-1 px-4 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 disabled:opacity-30 text-sm"
             >
-              <ChevronLeft className="w-4 h-4" /> Previous
+              <ChevronLeft className="w-4 h-4" /> {t('seller.previous')}
             </button>
             <div className="flex gap-2">
               {msg && <p className="text-xs text-green-400 self-center">{msg}</p>}
               <button onClick={handleProfileUpdate}
                 className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all text-sm"
               >
-                <Check className="w-4 h-4 inline mr-1" /> Save
+                <Check className="w-4 h-4 inline mr-1" /> {t('seller.save')}
               </button>
             </div>
             <button onClick={() => setProfileStep(Math.min(STEPS.length - 1, profileStep + 1))} disabled={profileStep === STEPS.length - 1}
               className="flex items-center gap-1 px-4 py-2 rounded-lg bg-white/10 text-gray-300 hover:bg-white/20 disabled:opacity-30 text-sm"
             >
-              Next <ChevronRight className="w-4 h-4" />
+              {t('seller.next')} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -619,7 +622,7 @@ const SellerDashboard = () => {
                 : "bg-white/10 text-gray-500 cursor-not-allowed"
             }`}
           >
-            <Send className="w-4 h-4" /> Submit for Review {completion >= 100 ? "" : `(${completion}% needed)`}
+            <Send className="w-4 h-4" /> {completion >= 100 ? t('seller.submitForReview') : t('seller.submitForReview') + ' ' + t('seller.percentNeeded', { percent: completion })}
           </button>
         </div>
       </div>
@@ -628,10 +631,10 @@ const SellerDashboard = () => {
 
   // ── Approved state ──
   const tabs = [
-    { id: "overview", label: "Overview", icon: Store },
-    { id: "products", label: "Products", icon: Package },
-    { id: "orders", label: "Orders", icon: DollarSign },
-    { id: "wallet", label: "Wallet", icon: Coins },
+    { id: "overview", label: t('seller.overview'), icon: Store },
+    { id: "products", label: t('seller.products'), icon: Package },
+    { id: "orders", label: t('seller.orders'), icon: DollarSign },
+    { id: "wallet", label: t('seller.wallet'), icon: Coins },
   ];
 
   return (
@@ -642,7 +645,7 @@ const SellerDashboard = () => {
             {seller?.store_name}
           </span>
         </h1>
-        <p className="text-sm text-gray-400">Seller Dashboard</p>
+        <p className="text-sm text-gray-400">{t('seller.dashboard')}</p>
       </motion.div>
 
       {/* Store Switcher + Create */}
@@ -665,7 +668,7 @@ const SellerDashboard = () => {
           onClick={() => { setShowCreateStore(true); setRegisterName(""); setRegisterDesc(""); }}
           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-dashed border-white/20 text-gray-400 hover:text-white hover:border-purple-500/50 hover:bg-purple-500/10 transition-all"
         >
-          <PlusCircle className="w-3 h-3" /> New Store
+          <PlusCircle className="w-3 h-3" /> {t('seller.newStore')}
         </button>
       </div>
 
@@ -687,23 +690,23 @@ const SellerDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <Package className="w-5 h-5 text-purple-400 mb-2" />
-            <p className="text-sm text-gray-400">Products</p>
+            <p className="text-sm text-gray-400">{t('seller.productsCount')}</p>
             <p className="text-2xl font-bold text-white">{products.length}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <DollarSign className="w-5 h-5 text-green-400 mb-2" />
-            <p className="text-sm text-gray-400">Orders</p>
+            <p className="text-sm text-gray-400">{t('seller.ordersCount')}</p>
             <p className="text-2xl font-bold text-white">{orders.length}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <Coins className="w-5 h-5 text-cyan-400 mb-2" />
-            <p className="text-sm text-gray-400">Ecommerce Wallet</p>
+            <p className="text-sm text-gray-400">{t('seller.ecommerceWalletBalance')}</p>
             <p className="text-2xl font-bold text-white">${parseFloat(wallet.ecommerce_wallet).toFixed(2)}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <MessageCircle className="w-5 h-5 text-green-400 mb-2" />
-            <p className="text-sm text-gray-400">WhatsApp</p>
-            <p className="text-sm font-bold text-white truncate">{seller?.whatsapp_number || "Not set"}</p>
+            <p className="text-sm text-gray-400">{t('seller.whatsapp')}</p>
+            <p className="text-sm font-bold text-white truncate">{seller?.whatsapp_number || t('seller.notSet')}</p>
           </div>
         </div>
       )}
@@ -711,16 +714,16 @@ const SellerDashboard = () => {
       {tab === "products" && (
         <div className="space-y-4">
             <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-3">
-            <h3 className="text-white font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> Add Product</h3>
+            <h3 className="text-white font-semibold flex items-center gap-2"><Plus className="w-4 h-4" /> {t('seller.addProduct')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder="Product name" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder="Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder="Category" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder="OFA to allocate for promotion" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder={t('seller.productName')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder={t('seller.price')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder={t('seller.category')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder={t('seller.ofaAllocated')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
             </div>
 
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Product Images</label>
+              <label className="text-xs text-gray-400 mb-1 block">{t('seller.productImages')}</label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {newProduct.image_urls.map((url, idx) => (
                   <div key={idx}
@@ -741,41 +744,41 @@ const SellerDashboard = () => {
               </div>
               <div className="flex gap-2">
                 <input value={productImageUrlInput} onChange={(e) => setProductImageUrlInput(e.target.value)}
-                  placeholder="Paste image URL" className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                  placeholder={t('seller.pasteImageUrl')} className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
                   onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddImageUrl(); } }} />
                 <button onClick={handleAddImageUrl} className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"><Plus className="w-3.5 h-3.5" /></button>
                 <label className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs text-white cursor-pointer flex items-center gap-1">
-                  {productUploading ? <span className="animate-pulse">...</span> : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                  {productUploading ? <span className="animate-pulse">...</span> : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                   <input type="file" accept="image/*" onChange={handleUploadProductImage} hidden />
                 </label>
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-gray-400 mb-1.5 block">Description <span className="text-gray-500">(rich text supported)</span></label>
+              <label className="text-xs text-gray-400 mb-1.5 block">{t('seller.productDesc')} <span className="text-gray-500">{t('seller.descriptionRichText')}</span></label>
               <RichTextEditor
                 content={newProduct.description}
                 onChange={(html) => setNewProduct({ ...newProduct, description: html })}
-                placeholder="Write a detailed product description..."
+                placeholder={t('seller.productDescPlaceholder')}
                 minHeight="120px"
               />
             </div>
-            <button onClick={handleAddProduct} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"><Plus className="w-4 h-4 inline mr-1" /> Add Product</button>
+            <button onClick={handleAddProduct} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"><Plus className="w-4 h-4 inline mr-1" /> {t('seller.addProduct')}</button>
           </div>
 
           <div className="space-y-2">
             {products.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No products yet</p>
+              <p className="text-gray-400 text-center py-4">{t('seller.noProducts')}</p>
             ) : (
               products.map((p) => (
                 <div key={p.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium">{p.name}</p>
-                    <p className="text-xs text-gray-400">${parseFloat(p.price).toFixed(2)} | OFA: {parseFloat(p.arbx_allocated).toFixed(2)} | {p.is_active ? "Active" : "Inactive"}</p>
+                    <p className="text-xs text-gray-400">${parseFloat(p.price).toFixed(2)} | OFA: {parseFloat(p.arbx_allocated).toFixed(2)} | {p.is_active ? t('seller.active') : t('seller.inactive')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleToggleProduct(p)} className={`px-3 py-1 rounded-lg text-xs font-medium ${p.is_active ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"}`}>
-                      {p.is_active ? "Deactivate" : "Activate"}
+                      {p.is_active ? t('seller.deactivate') : t('seller.activate')}
                     </button>
                     <button onClick={() => handleDeleteProduct(p)} className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"><Trash2 className="w-4 h-4" /></button>
                   </div>
@@ -789,13 +792,13 @@ const SellerDashboard = () => {
       {tab === "orders" && (
         <div className="space-y-2">
           {orders.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No orders yet</p>
+            <p className="text-gray-400 text-center py-8">{t('seller.noOrders')}</p>
           ) : (
             orders.map((o) => (
               <div key={o.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex justify-between items-center">
                 <div>
-                  <p className="text-white font-medium">Order #{o.id}</p>
-                  <p className="text-xs text-gray-400">{o.customer_name || "Unknown"} | {o.created_at ? new Date(o.created_at).toLocaleDateString() : ""}</p>
+                  <p className="text-white font-medium">{t('seller.orderNumber', { id: o.id })}</p>
+                  <p className="text-xs text-gray-400">{o.customer_name || t('seller.unknown')} | {o.created_at ? new Date(o.created_at).toLocaleDateString() : ""}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-cyan-400 font-bold">${parseFloat(o.total).toFixed(2)}</p>
@@ -814,15 +817,15 @@ const SellerDashboard = () => {
       {tab === "wallet" && (
         <div className="space-y-4 max-w-lg">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
-            <p className="text-sm text-gray-400">Ecommerce Wallet Balance</p>
+            <p className="text-sm text-gray-400">{t('seller.ecommerceWalletBalance')}</p>
             <p className="text-3xl font-bold text-cyan-400">${parseFloat(wallet.ecommerce_wallet).toFixed(2)}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-3">
-            <h3 className="text-white font-semibold">Transfer from Main Wallet</h3>
-            <p className="text-xs text-gray-400">Available: ${parseFloat(wallet.main_wallet).toFixed(2)}</p>
+            <h3 className="text-white font-semibold">{t('seller.transferFromMain')}</h3>
+            <p className="text-xs text-gray-400">{t('seller.available', { balance: parseFloat(wallet.main_wallet).toFixed(2) })}</p>
             <div className="flex gap-2">
-              <input value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} type="number" step="0.01" placeholder="Amount" className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <button onClick={handleTransfer} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">Transfer</button>
+              <input value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} type="number" step="0.01" placeholder={t('walletTransfer.amount_plh')} className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <button onClick={handleTransfer} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">{t('seller.transfer')}</button>
             </div>
           </div>
         </div>

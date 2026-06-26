@@ -22,3 +22,8 @@ from app.models.ad import Ad
 from app.models.user_ad_view import UserAdView
 from app.models.invoice import Invoice
 from app.models.transfer_log import TransferLog
+from app.models.visitor_log import VisitorLog
+from app.models.notification import AdminNotification
+from app.models.rank import Rank
+from app.models.rank_history import RankHistory
+from app.models.matching_bonus import MatchingBonus

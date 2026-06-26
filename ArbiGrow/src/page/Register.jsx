@@ -5,16 +5,67 @@ import Button from "../component/Button";
 import { registerUser } from "../api/auth.api.js";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { CheckCircle2, Circle, Eye, EyeOff } from "lucide-react";
-import Logo from "../assets/oxford.png";
 import api from "../api/axiosInstance.js";
+import { useTranslation } from "react-i18next";
+
+const COUNTRIES = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+  "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+  "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", "Chad", "Chile", "China", "Colombia",
+  "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+  "Denmark", "Djibouti", "Dominican Republic", "DR Congo",
+  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+  "Fiji", "Finland", "France",
+  "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Guatemala", "Guinea", "Guyana",
+  "Haiti", "Honduras", "Hungary",
+  "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan",
+  "Kazakhstan", "Kenya", "Kuwait", "Kyrgyzstan",
+  "Laos", "Latvia", "Lebanon", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+  "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico",
+  "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+  "Namibia", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia",
+  "Norway",
+  "Oman",
+  "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+  "Qatar",
+  "Romania", "Russia", "Rwanda",
+  "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Somalia",
+  "South Africa", "South Korea", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+  "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Togo", "Trinidad and Tobago", "Tunisia", "Turkey",
+  "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan",
+  "Vatican City", "Venezuela", "Vietnam",
+  "Yemen",
+  "Zambia", "Zimbabwe",
+];
+
+const GENDERS = ["Male", "Female", "Other"];
+const RELIGIONS = ["Islam", "Hinduism", "Christianity", "Buddhism", "Judaism", "Sikhism", "Other"];
+const MARITAL_STATUSES = ["Married", "Unmarried"];
 
 export default function RegisterForm() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isReferralLocked, setIsReferralLocked] = useState(false);
   const [agree, setAgree] = useState(false);
   const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
     email: "",
-    full_name: "",
+    date_of_birth: "",
+    gender: "",
+    nationality: "",
+    country_of_residence: "",
+    mobile_number: "",
+    residential_address: "",
+    city: "",
+    state_province: "",
+    postal_code: "",
+    national_id_number: "",
+    passport_number: "",
+    religion: "",
+    marital_status: "",
     referral_code: "",
     password: "",
     confirm_password: "",
@@ -27,27 +78,19 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const [packages, setPackages] = useState([]);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [selectedPackageId, setSelectedPackageId] = useState("");
   const [packagesLoading, setPackagesLoading] = useState(true);
 
   const passwordRequirements = useMemo(
     () => [
-      { key: "length", label: "At least 8 characters", valid: formData.password.length >= 8 },
-      { key: "uppercase", label: "At least one uppercase letter", valid: /[A-Z]/.test(formData.password) },
-      { key: "lowercase", label: "At least one lowercase letter", valid: /[a-z]/.test(formData.password) },
-      { key: "number", label: "At least one number", valid: /[0-9]/.test(formData.password) },
-      { key: "special", label: "At least one special character", valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) },
+      { key: "length", label: t("auth.register.req_chars"), valid: formData.password.length >= 8 },
+      { key: "uppercase", label: t("auth.register.req_upper"), valid: /[A-Z]/.test(formData.password) },
+      { key: "lowercase", label: t("auth.register.req_lower"), valid: /[a-z]/.test(formData.password) },
+      { key: "number", label: t("auth.register.req_number"), valid: /[0-9]/.test(formData.password) },
+      { key: "special", label: t("auth.register.req_special"), valid: /[!@#$%^&*(),.?":{}|<>]/.test(formData.password) },
     ],
-    [formData.password],
+    [formData.password, t],
   );
-
-  const passwordMessages = [
-    "Password must be at least 8 characters",
-    "Password must include an uppercase letter",
-    "Password must include a lowercase letter",
-    "Password must include a number",
-    "Password must include a special character",
-  ];
   const allPasswordRequirementsMet = passwordRequirements.every((item) => item.valid);
   const showPasswordGuide = formData.password.length > 0 && !allPasswordRequirementsMet;
 
@@ -63,12 +106,17 @@ export default function RegisterForm() {
     api.get("v1/investments/packages").then((res) => {
       const data = res.data?.packages || [];
       setPackages(data);
+      if (data.length === 1) {
+        setSelectedPackageId(String(data[0].id));
+      }
     }).catch(() => {
       setPackages([]);
     }).finally(() => {
       setPackagesLoading(false);
     });
   }, []);
+
+  const selectedPackage = packages.find((p) => String(p.id) === selectedPackageId);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,19 +128,25 @@ export default function RegisterForm() {
   const handleAgree = (e) => setAgree(e.target.checked);
 
   const validateForm = () => {
+    if (!selectedPackageId) return t("auth.register.err_plan");
+    if (!formData.first_name.trim()) return t("auth.register.err_firstName");
+    if (!formData.last_name.trim()) return t("auth.register.err_lastName");
     const emailRegex = /^\S+@\S+\.\S+$/;
-    if (!selectedPackage) return "Please select a plan";
-    if (!formData.email.trim()) return "Email is required";
-    if (!emailRegex.test(formData.email)) return "Invalid email format";
-    if (!formData.full_name.trim()) return "Name is required";
-    if (!formData.password.trim()) return "Password is required";
-    if (formData.password.length < 8) return "Password must be at least 8 characters";
-    if (!/[A-Z]/.test(formData.password)) return "Password must include an uppercase letter";
-    if (!/[a-z]/.test(formData.password)) return "Password must include a lowercase letter";
-    if (!/[0-9]/.test(formData.password)) return "Password must include a number";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) return "Password must include a special character";
-    if (formData.password !== formData.confirm_password) return "Passwords do not match";
-    if (!agree) return "You must agree to terms & conditions";
+    if (!formData.email.trim()) return t("auth.register.err_email");
+    if (!emailRegex.test(formData.email)) return t("auth.register.err_emailFormat");
+    if (!formData.date_of_birth) return t("auth.register.err_dob");
+    if (!formData.gender) return t("auth.register.err_gender");
+    if (!formData.nationality) return t("auth.register.err_nationality");
+    if (!formData.country_of_residence) return t("auth.register.err_country");
+    if (!formData.mobile_number.trim()) return t("auth.register.err_mobile");
+    if (!formData.password.trim()) return t("auth.register.err_password");
+    if (formData.password.length < 8) return t("auth.register.err_passwordLength");
+    if (!/[A-Z]/.test(formData.password)) return t("auth.register.err_passwordUpper");
+    if (!/[a-z]/.test(formData.password)) return t("auth.register.err_passwordLower");
+    if (!/[0-9]/.test(formData.password)) return t("auth.register.err_passwordNumber");
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) return t("auth.register.err_passwordSpecial");
+    if (formData.password !== formData.confirm_password) return t("auth.register.err_passwordMatch");
+    if (!agree) return t("auth.register.err_agree");
     return null;
   };
 
@@ -111,8 +165,14 @@ export default function RegisterForm() {
       setIsSuccess(false);
       const payload = {
         ...formData,
-        package_id: selectedPackage.id,
+        full_name: `${formData.first_name.trim()} ${formData.last_name.trim()}`,
+        package_id: Number(selectedPackageId),
       };
+      for (const key of Object.keys(payload)) {
+        if (payload[key] === "" || payload[key] === undefined) {
+          delete payload[key];
+        }
+      }
       await registerUser(payload);
       setMessage("Registration successful!");
       setIsSuccess(true);
@@ -142,7 +202,13 @@ export default function RegisterForm() {
     }
   };
 
-  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackage;
+  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId;
+
+  const fieldClass = "w-full px-4 py-2 border border-white/20 rounded-lg bg-[#0C1035] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50";
+  const labelClass = "block text-sm font-semibold text-gray-300 mb-1";
+  const errorMsg = (field) => errors.find((e) => e.field === field)?.message && (
+    <p className="text-xs text-red-500 mt-1">{errors.find((e) => e.field === field).message}</p>
+  );
 
   return (
     <>
@@ -150,251 +216,281 @@ export default function RegisterForm() {
       <div className="min-h-screen bg-[#0A122C] px-4 pt-[120px] sm:pt-20 md:pt-28 lg:pt-36 pb-12">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white">Create Your Account</h1>
-            <p className="text-gray-400 mt-2">Choose a plan and fill in your details to get started</p>
+            <h1 className="text-3xl font-bold text-white">{t("auth.register.title")}</h1>
+            <p className="text-gray-400 mt-2">{t("auth.register.subtitle")}</p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-6">
-            {!selectedPackage ? (
-              <>
-                <h2 className="text-xl font-bold text-white mb-6 text-center">Select Your Plan</h2>
-                {packagesLoading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                  </div>
-                ) : (
-                  <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                    {packages.map((pkg, idx) => (
-                      <motion.button
-                        key={pkg.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        onClick={() => setSelectedPackage(pkg)}
-                        className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-[#0d1428] to-[#0a0e27] p-6 text-left transition-all hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/10"
-                      >
-                        <div className="absolute inset-0 opacity-5">
-                          <svg className="size-full" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                              <pattern id={`circuit-${pkg.id}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <circle cx="5" cy="5" r="1" fill="#00d4ff" />
-                                <circle cx="35" cy="35" r="1" fill="#00d4ff" />
-                                <path d="M5 5 L35 5 L35 35" stroke="#00d4ff" strokeWidth="0.5" fill="none" />
-                              </pattern>
-                            </defs>
-                            <rect width="100%" height="100%" fill={`url(#circuit-${pkg.id})`} />
-                          </svg>
-                        </div>
-                        <div className="relative">
-                          <div className="mb-6 flex items-start justify-between">
-                            <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br">
-                              <img src={Logo} alt="Logo" className="w-12 h-12 object-contain" />
-                            </div>
-                            <div className="size-10 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 p-1">
-                              <div className="size-full rounded-sm bg-gradient-to-br from-yellow-300 to-yellow-500 opacity-80" />
-                            </div>
-                          </div>
-                          <div className="mb-4">
-                            <p className="mb-1 text-xs text-gray-400 tracking-widest">
-                              {pkg.task_type === "ad_view" ? "AD VIEW PACKAGE" : "CAPTCHA TYPING PACKAGE"}
-                            </p>
-                            <h3 className="text-xl font-semibold text-white">{pkg.name}</h3>
-                          </div>
-                          <div className="mb-6">
-                            <p className="text-4xl font-bold tracking-tight text-white">
-                              ${Number(pkg.investment_amount).toLocaleString()}
-                            </p>
-                            <p className="mt-1 text-sm text-gray-400">Investment Amount</p>
-                          </div>
-                          <div className="space-y-2 mb-4">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">{pkg.task_type === "ad_view" ? "Daily Ads" : "Daily Captcha"}</span>
-                              <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} {pkg.task_type === "ad_view" ? "Ads" : "Tasks"}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">Duration</span>
-                              <span className="text-cyan-300 font-medium">{pkg.duration_days} Days</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">Daily Payment</span>
-                              <span className="text-green-300 font-medium">${Number(pkg.daily_payment).toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-400">Total Return</span>
-                              <span className="text-yellow-300 font-medium">${Number(pkg.total_return).toLocaleString()}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                            <div className="rounded-md bg-cyan-500/10 px-3 py-1">
-                              <p className="text-xs font-medium text-cyan-300">
-                                {pkg.task_type === "ad_view"
-                                  ? `${pkg.ad_duration_seconds || 30}s per Ad`
-                                  : `${pkg.captcha_task_duration_seconds || 30}s per Captcha`}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1">
-                              <div className="size-2 rounded-full bg-blue-400" />
-                              <span className="text-xs text-blue-300">{pkg.duration_days} Days</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 transition-opacity group-hover:opacity-100" />
-                      </motion.button>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-white">
-                    {selectedPackage.name}
-                  </h2>
-                  <button
-                    onClick={() => { setSelectedPackage(null); setMessage(""); }}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    Change plan
-                  </button>
+            <form className="space-y-6 text-black" onSubmit={handleSubmit}>
+
+              {/* Package Selection */}
+              {packagesLoading ? (
+                <div className="flex justify-center py-6">
+                  <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
                 </div>
+              ) : (
+                <div>
+                  <label className={`${labelClass} text-cyan-300`}>{t("auth.register.selectPlan")}</label>
+                  <select
+                    value={selectedPackageId}
+                    onChange={(e) => { setSelectedPackageId(e.target.value); setMessage(""); }}
+                    className={fieldClass}
+                  >
+                    <option value="">{t("auth.register.choosePlan")}</option>
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}/day)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-                <form className="space-y-4 text-black" onSubmit={handleSubmit}>
+              {selectedPackage && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-white/5 border border-white/10"
+                >
                   <div>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter your email"
-                      className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      onChange={handleChange}
-                    />
-                    {errors.find((e) => e.field === "email") && (
-                      <p className="text-xs text-red-500 mt-1">{errors.find((e) => e.field === "email").message}</p>
-                    )}
+                    <p className="text-xs text-gray-400">{t("auth.register.planSummary_investment")}</p>
+                    <p className="text-sm font-bold text-white">${Number(selectedPackage.investment_amount).toLocaleString()}</p>
                   </div>
-
                   <div>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={formData.full_name}
-                      placeholder="Enter your full name"
-                      onChange={handleChange}
-                      className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-black"
-                    />
-                    {errors.find((e) => e.field === "full_name") && (
-                      <p className="text-xs text-red-500 mt-1">{errors.find((e) => e.field === "full_name").message}</p>
-                    )}
+                    <p className="text-xs text-gray-400">{t("auth.register.planSummary_daily")}</p>
+                    <p className="text-sm font-bold text-green-300">${Number(selectedPackage.daily_payment).toFixed(2)}</p>
                   </div>
-
                   <div>
+                    <p className="text-xs text-gray-400">{t("auth.register.planSummary_duration")}</p>
+                    <p className="text-sm font-bold text-cyan-300">{t("auth.register.planSummary_days", { count: selectedPackage.duration_days })}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">{t("auth.register.planSummary_return")}</p>
+                    <p className="text-sm font-bold text-yellow-300">${Number(selectedPackage.total_return).toLocaleString()}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Personal Information */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="text-base font-bold text-cyan-300 mb-4">{t("auth.register.personalInfo")}</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>{t("auth.register.firstName")}</label>
+                    <input type="text" name="first_name" placeholder={t("auth.register.firstName_plh")} value={formData.first_name} onChange={handleChange} className={fieldClass} />
+                    {errorMsg("first_name")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.lastName")}</label>
+                    <input type="text" name="last_name" placeholder={t("auth.register.lastName_plh")} value={formData.last_name} onChange={handleChange} className={fieldClass} />
+                    {errorMsg("last_name")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.dob")}</label>
+                    <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} className={fieldClass} />
+                    {errorMsg("date_of_birth")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.gender")}</label>
+                    <select name="gender" value={formData.gender} onChange={handleChange} className={fieldClass}>
+                      <option value="">{t("auth.register.selectGender")}</option>
+                      {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                    {errorMsg("gender")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.nationality")}</label>
+                    <select name="nationality" value={formData.nationality} onChange={handleChange} className={fieldClass}>
+                      <option value="">{t("auth.register.selectNationality")}</option>
+                      {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    {errorMsg("nationality")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.religion")}</label>
+                    <select name="religion" value={formData.religion} onChange={handleChange} className={fieldClass}>
+                      <option value="">{t("auth.register.selectReligion")}</option>
+                      {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.maritalStatus")}</label>
+                    <select name="marital_status" value={formData.marital_status} onChange={handleChange} className={fieldClass}>
+                      <option value="">{t("auth.register.selectMarital")}</option>
+                      {MARITAL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact & Address */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="text-base font-bold text-cyan-300 mb-4">{t("auth.register.contactAddress")}</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>{t("auth.register.email")}</label>
+                    <input type="email" name="email" placeholder={t("auth.register.email_plh")} value={formData.email} onChange={handleChange} className={fieldClass} />
+                    {errorMsg("email")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.mobile")}</label>
+                    <input type="tel" name="mobile_number" placeholder={t("auth.register.mobile_plh")} value={formData.mobile_number} onChange={handleChange} className={fieldClass} />
+                    {errorMsg("mobile_number")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.country")}</label>
+                    <select name="country_of_residence" value={formData.country_of_residence} onChange={handleChange} className={fieldClass}>
+                      <option value="">{t("auth.register.selectCountry")}</option>
+                      {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    {errorMsg("country_of_residence")}
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.city")}</label>
+                    <input type="text" name="city" placeholder={t("auth.register.city_plh")} value={formData.city} onChange={handleChange} className={fieldClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.state")}</label>
+                    <input type="text" name="state_province" placeholder={t("auth.register.state_plh")} value={formData.state_province} onChange={handleChange} className={fieldClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.postal")}</label>
+                    <input type="text" name="postal_code" placeholder={t("auth.register.postal_plh")} value={formData.postal_code} onChange={handleChange} className={fieldClass} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className={labelClass}>{t("auth.register.address")}</label>
+                    <textarea name="residential_address" placeholder={t("auth.register.address_plh")} value={formData.residential_address} onChange={handleChange} className={fieldClass} rows="2" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Identity Information */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="text-base font-bold text-cyan-300 mb-4">{t("auth.register.identityInfo")}</h3>
+                <p className="text-xs text-gray-500 mb-3">{t("auth.register.identityDesc")}</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>{t("auth.register.nationalId")}</label>
+                    <input type="text" name="national_id_number" placeholder={t("auth.register.nationalId_plh")} value={formData.national_id_number} onChange={handleChange} className={fieldClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>{t("auth.register.passport")}</label>
+                    <input type="text" name="passport_number" placeholder={t("auth.register.passport_plh")} value={formData.passport_number} onChange={handleChange} className={fieldClass} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Account Security */}
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="text-base font-bold text-cyan-300 mb-4">{t("auth.register.accountSecurity")}</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>{t("auth.register.referralCode")}</label>
                     <input
                       type="text"
                       name="referral_code"
                       value={formData.referral_code}
-                      placeholder="Enter referral code (optional)"
+                      placeholder={t("auth.register.referral_plh")}
                       readOnly={isReferralLocked}
                       onChange={handleChange}
-                      className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-black"
+                      className={fieldClass}
                     />
                     {isReferralLocked && (
-                      <p className="text-xs text-[#00CFF5] mt-1">Referral applied from invitation link</p>
+                      <p className="text-xs text-[#00CFF5] mt-1">{t("auth.register.referralApplied")}</p>
                     )}
-                    {errors.find((e) => e.field === "referral_code") && (
-                      <p className="text-xs text-red-500 mt-1">{errors.find((e) => e.field === "referral_code").message}</p>
-                    )}
+                    {errorMsg("referral_code")}
                   </div>
-
-                  <div className="relative w-full">
+                  <div></div>
+                  <div className="relative">
+                    <label className={labelClass}>{t("auth.register.password")}</label>
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      placeholder="Enter your password"
+                      placeholder={t("auth.register.password_plh")}
                       value={formData.password}
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4171AD]"
+                      className={fieldClass}
                       onChange={handleChange}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#4171AD] transition"
+                      className="absolute right-3 top-[34px] text-gray-500 hover:text-cyan-300 transition"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
-                    {errors.find((e) => e.field === "password") && (
-                      <p className="text-xs text-red-500 mt-1">{errors.find((e) => e.field === "password").message}</p>
-                    )}
+                    {errorMsg("password")}
                   </div>
-
-                  <div className="relative w-full">
+                  <div className="relative">
+                    <label className={labelClass}>{t("auth.register.confirmPassword")}</label>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       name="confirm_password"
-                      placeholder="Confirm your password"
+                      placeholder={t("auth.register.confirm_plh")}
                       value={formData.confirm_password}
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4171AD]"
+                      className={fieldClass}
                       onChange={handleChange}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#4171AD] transition"
+                      className="absolute right-3 top-[34px] text-gray-500 hover:text-cyan-300 transition"
                     >
                       {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+                </div>
 
-                  {showPasswordGuide && (
-                    <div className="rounded-lg border border-[#35598f] bg-[#101b3d] px-3 py-3">
-                      <p className="text-xs font-semibold tracking-wide text-white">Password requirements</p>
-                      <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {passwordRequirements.map((item) => (
-                          <p
-                            key={item.key}
-                            className={`flex items-center gap-2 text-xs ${item.valid ? "text-emerald-300" : "text-gray-300"}`}
-                          >
-                            {item.valid ? <CheckCircle2 size={14} className="shrink-0" /> : <Circle size={14} className="shrink-0" />}
-                            {item.label}
-                          </p>
-                        ))}
-                      </div>
+                {showPasswordGuide && (
+                  <div className="rounded-lg border border-cyan-500/30 bg-[#0C1035] px-3 py-3 mt-4">
+                    <p className="text-xs font-semibold tracking-wide text-white">{t("auth.register.passwordReqs")}</p>
+                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {passwordRequirements.map((item) => (
+                        <p
+                          key={item.key}
+                          className={`flex items-center gap-2 text-xs ${item.valid ? "text-emerald-300" : "text-gray-300"}`}
+                        >
+                          {item.valid ? <CheckCircle2 size={14} className="shrink-0" /> : <Circle size={14} className="shrink-0" />}
+                          {item.label}
+                        </p>
+                      ))}
                     </div>
-                  )}
-
-                  <div className="flex items-start gap-2 text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      name="agree"
-                      className="mt-1 h-4 w-4 rounded border-gray-300"
-                      checked={agree}
-                      onChange={handleAgree}
-                    />
-                    <p className="text-gray-400">
-                      I agree to the{" "}
-                      <a className="text-[#00CFF5] cursor-pointer hover:underline" href="/terms-conditions" rel="noopener noreferrer" target="_blank">
-                        Terms & Conditions
-                      </a>
-                    </p>
                   </div>
+                )}
+              </div>
 
-                  {message && !passwordMessages.includes(message) && (
-                    <p className={`text-center text-sm ${isSuccess ? "text-blue-500" : "text-red-500"}`}>{message}</p>
-                  )}
+              <div className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="agree"
+                  className="mt-1 h-4 w-4 rounded border-gray-300 accent-cyan-500"
+                  checked={agree}
+                  onChange={handleAgree}
+                />
+                <p className="text-gray-400">
+                  {t("auth.register.agree")}{" "}
+                  <a className="text-[#00CFF5] cursor-pointer hover:underline" href="/terms-conditions" rel="noopener noreferrer" target="_blank">
+                    {t("auth.register.terms")}
+                  </a>
+                </p>
+              </div>
 
-                  <div className="flex justify-center pt-1">
-                    <Button type="submit" disabled={isButtonDisabled} variant="gradient">
-                      {loading ? "Registering..." : "Register"}
-                    </Button>
-                  </div>
+              {message && (
+                <p className={`text-center text-sm ${isSuccess ? "text-green-400" : "text-red-500"}`}>{message}</p>
+              )}
 
-                  <p className="text-center text-sm text-white pt-2">
-                    Already have an account?{" "}
-                    <Link to="/login" className="text-[#00CFF5] cursor-pointer hover:underline font-bold">
-                      Login
-                    </Link>
-                  </p>
-                </form>
-              </>
-            )}
+              <div className="flex justify-center pt-1">
+                <Button type="submit" disabled={isButtonDisabled} variant="gradient">
+                  {loading ? t("auth.register.registering") : t("auth.register.submit")}
+                </Button>
+              </div>
+
+              <p className="text-center text-sm text-white pt-2">
+                {t("auth.register.hasAccount")}{" "}
+                <Link to="/login" className="text-[#00CFF5] cursor-pointer hover:underline font-bold">
+                  {t("auth.register.login")}
+                </Link>
+              </p>
+            </form>
           </div>
         </div>
       </div>

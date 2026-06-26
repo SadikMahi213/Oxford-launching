@@ -1,8 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Depends, Request
+from google.api_core import exceptions as google_exceptions
+
 from app.api.v1.deps import get_current_admin_user
 from app.core.rate_limiter import limiter
 from app.services.ga4_service import ga4_service
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin/analytics", tags=["Admin Analytics"])
 
 
@@ -14,6 +19,21 @@ def _fallback(msg="Analytics not available"):
     return {"success": False, "data": None, "message": msg}
 
 
+def _handle_ga_error(exc: google_exceptions.GoogleAPIError):
+    msg = str(exc)
+    logger.warning("GA4 API error: %s", msg)
+    if "SERVICE_DISABLED" in msg:
+        return _fallback(
+            "Google Analytics Data API is not enabled. "
+            "Visit https://console.developers.google.com/apis/api/"
+            "analyticsdata.googleapis.com/overview?project=oxford-498705 "
+            "to enable it."
+        )
+    if "not found" in msg.lower() or "property" in msg.lower():
+        return _fallback("GA4 property not found. Check your Property ID.")
+    return _fallback("Google Analytics API error. Check configuration.")
+
+
 @router.get("/overview")
 @limiter.limit("30/minute")
 async def get_overview(
@@ -23,11 +43,14 @@ async def get_overview(
     if not ga4_service.enabled:
         return _fallback("Google Analytics is not configured")
 
-    overview = ga4_service.get_overview()
-    daily = ga4_service.get_daily_visitors()
-    active = ga4_service.get_realtime_active_users()
-    top_pages = ga4_service.get_top_pages()
-    landing_pages = ga4_service.get_landing_pages()
+    try:
+        overview = ga4_service.get_overview()
+        daily = ga4_service.get_daily_visitors()
+        active = ga4_service.get_realtime_active_users()
+        top_pages = ga4_service.get_top_pages()
+        landing_pages = ga4_service.get_landing_pages()
+    except google_exceptions.PermissionDenied as exc:
+        return _handle_ga_error(exc)
 
     return _ok({
         **overview,
@@ -46,8 +69,10 @@ async def get_realtime(
 ):
     if not ga4_service.enabled:
         return _fallback()
-
-    active = ga4_service.get_realtime_active_users()
+    try:
+        active = ga4_service.get_realtime_active_users()
+    except google_exceptions.PermissionDenied as exc:
+        return _handle_ga_error(exc)
     return _ok({"activeUsers": active})
 
 
@@ -59,10 +84,14 @@ async def get_countries(
 ):
     if not ga4_service.enabled:
         return _fallback()
-
+    try:
+        countries = ga4_service.get_countries()
+        cities = ga4_service.get_cities()
+    except google_exceptions.PermissionDenied as exc:
+        return _handle_ga_error(exc)
     return _ok({
-        "countries": ga4_service.get_countries(),
-        "cities": ga4_service.get_cities(),
+        "countries": countries,
+        "cities": cities,
     })
 
 
@@ -74,11 +103,16 @@ async def get_devices(
 ):
     if not ga4_service.enabled:
         return _fallback()
-
+    try:
+        devices = ga4_service.get_devices()
+        operating_systems = ga4_service.get_operating_systems()
+        browsers = ga4_service.get_browsers()
+    except google_exceptions.PermissionDenied as exc:
+        return _handle_ga_error(exc)
     return _ok({
-        "devices": ga4_service.get_devices(),
-        "operatingSystems": ga4_service.get_operating_systems(),
-        "browsers": ga4_service.get_browsers(),
+        "devices": devices,
+        "operatingSystems": operating_systems,
+        "browsers": browsers,
     })
 
 
@@ -90,5 +124,8 @@ async def get_traffic_sources(
 ):
     if not ga4_service.enabled:
         return _fallback()
-
-    return _ok({"sources": ga4_service.get_traffic_sources()})
+    try:
+        sources = ga4_service.get_traffic_sources()
+    except google_exceptions.PermissionDenied as exc:
+        return _handle_ga_error(exc)
+    return _ok({"sources": sources})

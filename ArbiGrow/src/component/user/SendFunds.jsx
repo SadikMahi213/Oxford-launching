@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle } from "lucide-react";
 import { sendFunds, searchUsers } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
 
 export default function SendFunds({ setActivePage }) {
+  const { t } = useTranslation();
   const { user, setUser } = useUserStore();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
@@ -12,6 +15,7 @@ export default function SendFunds({ setActivePage }) {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
+  const [transferChargePercent, setTransferChargePercent] = useState(5);
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -29,12 +33,12 @@ export default function SendFunds({ setActivePage }) {
         setSearchedUser(others[0]);
         setMsg("");
       } else if (allUsers.length > 0 && allUsers[0].id === user?.id) {
-        setMsg("Cannot send funds to yourself");
+        setMsg(t('sendFunds.err_self'));
       } else {
-        setMsg("No user found matching '" + q + "'");
+        setMsg(t('sendFunds.err_noUser', { query: q }));
       }
     } catch (err) {
-      setMsg("Search failed: " + (err?.response?.data?.detail || err.message));
+      setMsg(t('sendFunds.err_search', { error: err?.response?.data?.detail || err.message }));
     } finally {
       setSearching(false);
     }
@@ -53,14 +57,14 @@ export default function SendFunds({ setActivePage }) {
         note: note || undefined,
       });
       setUser({ main_wallet: res.data.new_balance });
-      setMsg(`Sent ${amount} USDT to ${searchedUser.full_name}`);
+      setMsg(t('sendFunds.success', { amount, name: searchedUser.full_name }));
       setIsSuccess(true);
       setAmount("");
       setNote("");
       setRecipient("");
       setSearchedUser(null);
     } catch (err) {
-      setMsg(err.response?.data?.detail || "Transfer failed");
+      setMsg(err.response?.data?.detail || t('sendFunds.err_failed'));
     } finally {
       setLoading(false);
     }
@@ -69,6 +73,7 @@ export default function SendFunds({ setActivePage }) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen p-4 md:p-6">
       <div className="max-w-xl mx-auto">
+        <KycWarningBanner />
         <div className="flex items-center gap-3 mb-8">
           <button onClick={() => setActivePage?.("overview")} className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10">
             <ArrowLeft className="w-5 h-5 text-gray-400" />
@@ -77,19 +82,19 @@ export default function SendFunds({ setActivePage }) {
             <Send className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Send Funds</h1>
-            <p className="text-sm text-gray-400">Transfer USDT to another user</p>
+            <h1 className="text-2xl font-bold text-white">{t('sendFunds.title')}</h1>
+            <p className="text-sm text-gray-400">{t('sendFunds.subtitle')}</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
-            <label className="block text-sm text-gray-400">Search Recipient</label>
+            <label className="block text-sm text-gray-400">{t('sendFunds.searchLabel')}</label>
             <div className="flex gap-2">
               <input
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Email, username, or user ID..."
+                placeholder={t('sendFunds.search_plh')}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
@@ -99,7 +104,7 @@ export default function SendFunds({ setActivePage }) {
                 className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 flex items-center gap-2"
               >
                 {searching ? <Loader className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                Search
+                {t('sendFunds.search')}
               </button>
             </div>
 
@@ -121,7 +126,7 @@ export default function SendFunds({ setActivePage }) {
           {searchedUser && (
             <form onSubmit={handleSubmit} className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Amount (USDT)</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('sendFunds.amount')}</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -129,21 +134,38 @@ export default function SendFunds({ setActivePage }) {
                     min="0"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={t('sendFunds.amount_plh')}
                     required
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-emerald-500/50"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">USDT</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Available: {Number(user?.main_wallet || 0).toFixed(2)} USDT</p>
+                <p className="text-xs text-gray-500 mt-1">{t('sendFunds.available', { balance: Number(user?.main_wallet || 0).toFixed(2) })}</p>
               </div>
 
+              {amount > 0 && (
+                <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>{t('sendFunds.transferAmount')}</span>
+                    <span className="text-white">${Number(amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400 mt-1">
+                    <span>{t('sendFunds.charge', { percentage: transferChargePercent })}</span>
+                    <span className="text-amber-400">-${(Number(amount) * transferChargePercent / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-white/10 mt-2 pt-2 flex justify-between text-sm">
+                    <span className="text-gray-300 font-semibold">{t('sendFunds.receiverGets')}</span>
+                    <span className="text-green-400 font-bold">${(Number(amount) * (1 - transferChargePercent / 100)).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm text-gray-400 mb-2">Note (optional)</label>
+                <label className="block text-sm text-gray-400 mb-2">{t('sendFunds.note')}</label>
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="What's this for?"
+                  placeholder={t('sendFunds.note_plh')}
                   className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
@@ -161,7 +183,7 @@ export default function SendFunds({ setActivePage }) {
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                {loading ? "Sending..." : `Send ${amount || "0"} USDT`}
+                {loading ? t('sendFunds.sending') : t('sendFunds.send', { amount: amount || "0" })}
               </button>
             </form>
           )}

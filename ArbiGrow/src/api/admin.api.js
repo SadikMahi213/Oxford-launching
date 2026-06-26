@@ -250,6 +250,11 @@ export const getUserStatistics = async (token) => {
   return res.data || {};
 };
 
+export const getAdminRealtimeStats = async (token) => {
+  const res = await api.get("v1/admin/realtime-stats", authHeaders(token));
+  return res.data || {};
+};
+
 // Platform Statistics
 export const getPlatformStats = async (token) => {
   const res = await api.get("v1/platform-stats/", authHeaders(token));
@@ -485,6 +490,127 @@ export const getAnalyticsDevices = async (token) => {
 export const getAnalyticsTrafficSources = async (token) => {
   const res = await api.get("v1/admin/analytics/traffic-sources", authHeaders(token));
   return res.data || {};
+};
+
+// ── Self-hosted Analytics ────────────────────────────────────────────
+
+export const getSelfAnalyticsSummary = async (token) => {
+  const res = await api.get("v1/admin/self-analytics/summary", authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsCountries = async (token, limit = 10) => {
+  const res = await api.get(`v1/admin/self-analytics/countries?limit=${limit}`, authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsDevices = async (token) => {
+  const res = await api.get("v1/admin/self-analytics/devices", authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsSources = async (token) => {
+  const res = await api.get("v1/admin/self-analytics/sources", authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsDaily = async (token, days = 30) => {
+  const res = await api.get(`v1/admin/self-analytics/charts/daily?days=${days}`, authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsWeekly = async (token, weeks = 12) => {
+  const res = await api.get(`v1/admin/self-analytics/charts/weekly?weeks=${weeks}`, authHeaders(token));
+  return res.data || {};
+};
+
+export const getSelfAnalyticsMonthly = async (token, months = 12) => {
+  const res = await api.get(`v1/admin/self-analytics/charts/monthly?months=${months}`, authHeaders(token));
+  return res.data || {};
+};
+
+// ── Login Security (Blocked Accounts) ─────────────────────────────────────
+
+export const getBlockedAccounts = async (token, { page = 1, limit = 50 } = {}) => {
+  const res = await api.get(
+    `v1/admin/security/blocked-accounts?page=${page}&limit=${limit}`,
+    authHeaders(token),
+  );
+  return res.data || { users: [], total: 0 };
+};
+
+export const unblockAccount = async (token, userId) => {
+  const res = await api.patch(
+    `v1/admin/security/unblock/${userId}`,
+    {},
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const getSecurityLogs = async (token, { page = 1, limit = 50, event_type = "", user_id = "", search = "" } = {}) => {
+  const params = new URLSearchParams();
+  params.append("page", page);
+  params.append("limit", limit);
+  if (event_type) params.append("event_type", event_type);
+  if (user_id) params.append("user_id", user_id);
+  if (search) params.append("search", search);
+  const res = await api.get(
+    `v1/admin/security/logs?${params.toString()}`,
+    authHeaders(token),
+  );
+  return res.data || { logs: [], total: 0 };
+};
+
+export const getSecurityEventTypes = async (token) => {
+  const res = await api.get("v1/admin/security/event-types", authHeaders(token));
+  return res.data || { event_types: [] };
+};
+
+// ── Rank System ─────────────────────────────────────────────────────────
+
+export const getAdminRanks = async (token) => {
+  const res = await api.get("v1/admin/ranks/", authHeaders(token));
+  return res.data || [];
+};
+
+export const getAdminRank = async (token, rankId) => {
+  const res = await api.get(`v1/admin/ranks/${rankId}`, authHeaders(token));
+  return res.data || {};
+};
+
+export const createAdminRank = async (token, data) => {
+  const res = await api.post("v1/admin/ranks/", data, authHeaders(token));
+  return res.data || {};
+};
+
+export const updateAdminRank = async (token, rankId, data) => {
+  const res = await api.put(`v1/admin/ranks/${rankId}`, data, authHeaders(token));
+  return res.data || {};
+};
+
+export const deleteAdminRank = async (token, rankId) => {
+  await api.delete(`v1/admin/ranks/${rankId}`, authHeaders(token));
+};
+
+export const getAllRankHistory = async (token, { user_id, page = 1, limit = 50 } = {}) => {
+  const params = new URLSearchParams();
+  if (user_id) params.append("user_id", user_id);
+  params.append("page", page);
+  params.append("limit", limit);
+  const res = await api.get(`v1/admin/ranks/history/all?${params.toString()}`, authHeaders(token));
+  return res.data || [];
+};
+
+export const getAllMatchingBonuses = async (token, { user_id, rank_id, bonus_type, page = 1, limit = 50 } = {}) => {
+  const params = new URLSearchParams();
+  if (user_id) params.append("user_id", user_id);
+  if (rank_id) params.append("rank_id", rank_id);
+  if (bonus_type) params.append("bonus_type", bonus_type);
+  params.append("page", page);
+  params.append("limit", limit);
+  const res = await api.get(`v1/admin/ranks/bonuses/all?${params.toString()}`, authHeaders(token));
+  return res.data || [];
 };
 
 // ── Task Management (REMOVED — replaced by Captcha Typing System) ─────────────────

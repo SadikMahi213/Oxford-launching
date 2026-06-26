@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     GOOGLE_ANALYTICS_CREDENTIALS: str = ""
     GOOGLE_ANALYTICS_PROPERTY_ID: str = ""
 
+    MAX_FAILED_ATTEMPTS: int = 5
+    SECURITY_LOG_ENABLED: bool = True
+
     class Config:
         env_file = ".env"
 

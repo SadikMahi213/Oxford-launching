@@ -1,8 +1,10 @@
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Home, ArrowLeft } from "lucide-react";
 
 
 export function NotFoundPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-[#0a0e27]">
      
@@ -17,10 +19,10 @@ export function NotFoundPage() {
               404
             </h1>
             <h2 className="mb-4 text-2xl font-semibold text-white">
-              Page Not Found
+              {t("notFound.title")}
             </h2>
             <p className="text-gray-400">
-              The page you're looking for doesn't exist or has been moved.
+              {t("notFound.description")}
             </p>
           </div>
 
@@ -28,7 +30,7 @@ export function NotFoundPage() {
             <Link to="/">
               <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-medium text-white shadow-lg shadow-cyan-500/25 transition-all hover:shadow-cyan-500/40">
                 <Home className="size-5" />
-                Return to Homepage
+                {t("notFound.home")}
               </button>
             </Link>
             <button
@@ -36,7 +38,7 @@ export function NotFoundPage() {
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-medium text-white backdrop-blur-sm transition-all hover:bg-white/10"
             >
               <ArrowLeft className="size-5" />
-              Go Back
+              {t("notFound.goBack")}
             </button>
           </div>
         </div>

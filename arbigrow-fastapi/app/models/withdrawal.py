@@ -23,6 +23,7 @@ class Withdrawal(Base):
     source_wallet = Column(String(50), nullable=False)
     network_name = Column(String(100), nullable=True)
     amount = Column(Numeric(24, 14), nullable=False)
+    charge = Column(Numeric(24, 14), nullable=True, default=0)
     destination_address = Column(String(255), nullable=False)
     note = Column(Text, nullable=True)
 

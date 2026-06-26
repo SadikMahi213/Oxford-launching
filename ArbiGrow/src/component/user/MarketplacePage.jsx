@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { ShoppingCart, Plus, Minus, Search, User, Mail, Phone, MapPin, X, ChevronLeft, ChevronRight, ImageOff, MessageCircle } from "lucide-react";
@@ -6,6 +7,7 @@ import useUserStore from "../../store/userStore";
 import { listProducts, placeOrder, getMyOrders } from "../../api/ecommerce.api.js";
 
 const MarketplacePage = () => {
+  const { t } = useTranslation();
   const { user } = useUserStore();
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState({});
@@ -79,12 +81,12 @@ const MarketplacePage = () => {
 
   const validateForm = () => {
     const errors = {};
-    if (!customer.name.trim()) errors.name = "Full name is required";
-    if (!customer.email.trim()) errors.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) errors.email = "Invalid email format";
-    if (!customer.phone.trim()) errors.phone = "Phone number is required";
-    else if (!/^\+?[\d\s\-()]{7,20}$/.test(customer.phone)) errors.phone = "Invalid phone number";
-    if (!customer.address.trim()) errors.address = "Delivery address is required";
+    if (!customer.name.trim()) errors.name = t('marketplace.err_nameRequired');
+    if (!customer.email.trim()) errors.email = t('marketplace.err_emailRequired');
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) errors.email = t('marketplace.err_emailInvalid');
+    if (!customer.phone.trim()) errors.phone = t('marketplace.err_phoneRequired');
+    else if (!/^\+?[\d\s\-()]{7,20}$/.test(customer.phone)) errors.phone = t('marketplace.err_phoneInvalid');
+    if (!customer.address.trim()) errors.address = t('marketplace.err_addressRequired');
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -106,11 +108,11 @@ const MarketplacePage = () => {
       });
       setCart({});
       setShowCheckoutForm(false);
-      setCheckoutMsg("Order placed successfully! (COD)");
+      setCheckoutMsg(t('marketplace.orderSuccess'));
       setTimeout(() => setCheckoutMsg(""), 3000);
       fetchOrders();
     } catch (err) {
-      setCheckoutMsg("Failed to place order: " + (err.response?.data?.detail || err.message));
+      setCheckoutMsg(t('marketplace.orderFailed', { error: err.response?.data?.detail || err.message }));
     }
   };
 
@@ -119,16 +121,16 @@ const MarketplacePage = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl md:text-3xl font-bold">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Marketplace
+            {t('marketplace.title')}
           </span>
         </h1>
-        <p className="text-sm text-gray-400">Browse products and place orders</p>
+        <p className="text-sm text-gray-400">{t('marketplace.subtitle')}</p>
       </motion.div>
 
       <div className="flex gap-2">
-        <button onClick={() => setView("shop")} className={`px-4 py-2 rounded-lg text-sm transition-colors ${view === "shop" ? "bg-cyan-600 text-white" : "bg-white/10 text-gray-300 hover:bg-white/20"}`}>Shop</button>
+        <button onClick={() => setView("shop")} className={`px-4 py-2 rounded-lg text-sm transition-colors ${view === "shop" ? "bg-cyan-600 text-white" : "bg-white/10 text-gray-300 hover:bg-white/20"}`}>{t('marketplace.shop')}</button>
         <button onClick={() => setView("orders")} className={`px-4 py-2 rounded-lg text-sm transition-colors ${view === "orders" ? "bg-cyan-600 text-white" : "bg-white/10 text-gray-300 hover:bg-white/20"}`}>
-          My Orders ({orders.length})
+          {t('marketplace.myOrders', { count: orders.length })}
         </button>
       </div>
 
@@ -140,17 +142,17 @@ const MarketplacePage = () => {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t('marketplace.searchPlaceholder')}
                 className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
               />
             </div>
-            <button onClick={fetchProducts} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-sm font-medium transition-colors">Search</button>
+            <button onClick={fetchProducts} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-sm font-medium transition-colors">{t('marketplace.search')}</button>
           </div>
 
           {loading ? (
-            <div className="text-center text-gray-400 py-8">Loading products...</div>
+            <div className="text-center text-gray-400 py-8">{t('marketplace.loadingProducts')}</div>
           ) : products.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">No products available yet</div>
+            <div className="text-center text-gray-400 py-8">{t('marketplace.noProducts')}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {products.map((p) => (
@@ -168,7 +170,7 @@ const MarketplacePage = () => {
                   <div className="p-4 space-y-2">
                     <h3 className="text-white font-semibold">{p.name}</h3>
                     <div className="text-xs text-gray-400 line-clamp-2">{p.description ? p.description.replace(/<[^>]*>/g, "") : ""}</div>
-                    <p className="text-sm text-gray-300">By: {p.store_name}</p>
+                    <p className="text-sm text-gray-300">{t('marketplace.by', { store: p.store_name })}</p>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-lg font-bold text-cyan-400">${parseFloat(p.price).toFixed(2)}</span>
                       <div className="flex items-center gap-1">
@@ -180,7 +182,7 @@ const MarketplacePage = () => {
                           </div>
                         ) : (
                           <button onClick={(e) => { e.stopPropagation(); addToCart(p); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-medium transition-colors">
-                            <ShoppingCart className="w-3.5 h-3.5" /> Add
+                            <ShoppingCart className="w-3.5 h-3.5" /> {t('marketplace.add')}
                           </button>
                         )}
                         {p.seller_whatsapp && (
@@ -190,7 +192,7 @@ const MarketplacePage = () => {
                             rel="noopener noreferrer"
                             onClick={(e) => e.stopPropagation()}
                             className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-green-600/80 hover:bg-green-500 text-[10px] font-medium text-white transition-colors"
-                            title="Contact seller on WhatsApp"
+                            title={t('marketplace.contactSellerWhatsapp')}
                           >
                             <MessageCircle className="w-3 h-3" />
                           </a>
@@ -207,7 +209,7 @@ const MarketplacePage = () => {
             <motion.div initial={{ y: 100 }} animate={{ y: 0 }}
               className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 p-4 shadow-xl z-50"
             >
-              <h3 className="text-white font-semibold mb-2">Cart ({cartItems.length} items)</h3>
+              <h3 className="text-white font-semibold mb-2">{t('marketplace.cart', { count: cartItems.length })}</h3>
               {cartItems.map((i) => (
                 <div key={i.product.id} className="flex justify-between text-sm text-gray-300 py-1">
                   <span>{i.product.name} x{i.qty}</span>
@@ -215,11 +217,11 @@ const MarketplacePage = () => {
                 </div>
               ))}
               <div className="border-t border-white/10 my-2 pt-2 flex justify-between text-white font-bold">
-                <span>Total</span>
+                <span>{t('marketplace.total')}</span>
                 <span>${cartTotal.toFixed(2)}</span>
               </div>
               <button onClick={() => setShowCheckoutForm(true)} className="w-full mt-2 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">
-                Proceed to Checkout
+                {t('marketplace.proceedToCheckout')}
               </button>
               {checkoutMsg && <p className="text-xs text-center mt-1 text-green-400">{checkoutMsg}</p>}
             </motion.div>
@@ -230,13 +232,13 @@ const MarketplacePage = () => {
       {view === "orders" && (
         <div className="space-y-3">
           {orders.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No orders yet</p>
+            <p className="text-gray-400 text-center py-8">{t('marketplace.noOrders')}</p>
           ) : (
             orders.map((o) => (
               <div key={o.id} className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-white font-medium">Order #{o.id}</p>
+                    <p className="text-white font-medium">{t('marketplace.orderNumber', { id: o.id })}</p>
                     <p className="text-xs text-gray-400">{o.customer_name} | {o.created_at ? new Date(o.created_at).toLocaleDateString() : ""}</p>
                   </div>
                   <div className="text-right">
@@ -263,26 +265,26 @@ const MarketplacePage = () => {
             className="w-full max-w-lg rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold text-white mb-1">Customer Information</h2>
-            <p className="text-sm text-gray-400 mb-5">Please confirm your details to place the order</p>
+            <h2 className="text-xl font-bold text-white mb-1">{t('marketplace.customerInfo')}</h2>
+            <p className="text-sm text-gray-400 mb-5">{t('marketplace.confirmDetails')}</p>
 
             <div className="space-y-4">
               <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><User className="w-3.5 h-3.5" /> Full Name *</label>
+                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><User className="w-3.5 h-3.5" /> {t('marketplace.fullName')}</label>
                 <input value={customer.name} onChange={(e) => { setCustomer({ ...customer, name: e.target.value }); setFormErrors({ ...formErrors, name: "" }); }}
                   className={`w-full px-4 py-2.5 rounded-xl bg-white/5 border ${formErrors.name ? "border-red-500" : "border-white/10"} text-white focus:outline-none focus:border-cyan-500/50`} />
                 {formErrors.name && <p className="text-xs text-red-400 mt-1">{formErrors.name}</p>}
               </div>
 
               <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><Mail className="w-3.5 h-3.5" /> Email *</label>
+                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><Mail className="w-3.5 h-3.5" /> {t('marketplace.email')}</label>
                 <input value={customer.email} onChange={(e) => { setCustomer({ ...customer, email: e.target.value }); setFormErrors({ ...formErrors, email: "" }); }}
                   className={`w-full px-4 py-2.5 rounded-xl bg-white/5 border ${formErrors.email ? "border-red-500" : "border-white/10"} text-white focus:outline-none focus:border-cyan-500/50`} />
                 {formErrors.email && <p className="text-xs text-red-400 mt-1">{formErrors.email}</p>}
               </div>
 
               <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><Phone className="w-3.5 h-3.5" /> Phone *</label>
+                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><Phone className="w-3.5 h-3.5" /> {t('marketplace.phone')}</label>
                 <input value={customer.phone} onChange={(e) => { setCustomer({ ...customer, phone: e.target.value }); setFormErrors({ ...formErrors, phone: "" }); }}
                   placeholder="+1234567890"
                   className={`w-full px-4 py-2.5 rounded-xl bg-white/5 border ${formErrors.phone ? "border-red-500" : "border-white/10"} text-white focus:outline-none focus:border-cyan-500/50`} />
@@ -290,22 +292,22 @@ const MarketplacePage = () => {
               </div>
 
               <div>
-                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><MapPin className="w-3.5 h-3.5" /> Delivery Address *</label>
+                <label className="flex items-center gap-1.5 text-sm text-gray-300 mb-1"><MapPin className="w-3.5 h-3.5" /> {t('marketplace.deliveryAddress')}</label>
                 <textarea value={customer.address} onChange={(e) => { setCustomer({ ...customer, address: e.target.value }); setFormErrors({ ...formErrors, address: "" }); }}
-                  rows={3} placeholder="Street, City, Area, Postal Code"
+                  rows={3} placeholder={t('marketplace.addressPlaceholder')}
                   className={`w-full px-4 py-2.5 rounded-xl bg-white/5 border ${formErrors.address ? "border-red-500" : "border-white/10"} text-white focus:outline-none focus:border-cyan-500/50`} />
                 {formErrors.address && <p className="text-xs text-red-400 mt-1">{formErrors.address}</p>}
               </div>
 
               <div className="border-t border-white/10 pt-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Cart total</p>
+                  <p className="text-sm text-gray-400">{t('marketplace.cartTotal')}</p>
                   <p className="text-xl font-bold text-cyan-400">${cartTotal.toFixed(2)}</p>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowCheckoutForm(false)} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all">Cancel</button>
+                  <button onClick={() => setShowCheckoutForm(false)} className="px-5 py-2.5 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all">{t('marketplace.cancel')}</button>
                   <button onClick={handleCheckout} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">
-                    Place Order (COD)
+                    {t('marketplace.placeOrder')}
                   </button>
                 </div>
               </div>
@@ -359,7 +361,7 @@ const MarketplacePage = () => {
 
               <div className="w-full md:w-1/2 space-y-4">
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">Store</p>
+                  <p className="text-sm text-gray-400 mb-1">{t('marketplace.store')}</p>
                   <p className="text-white font-medium">{selectedProduct.store_name}</p>
                   {selectedProduct.seller_whatsapp && (
                     <a
@@ -368,23 +370,23 @@ const MarketplacePage = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-xs font-medium text-white transition-colors"
                     >
-                      <MessageCircle className="w-3.5 h-3.5" /> Contact on WhatsApp
+                      <MessageCircle className="w-3.5 h-3.5" /> {t('marketplace.contactWhatsapp')}
                     </a>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">Price</p>
+                  <p className="text-sm text-gray-400 mb-1">{t('marketplace.price')}</p>
                   <p className="text-2xl font-bold text-cyan-400">${parseFloat(selectedProduct.price).toFixed(2)}</p>
                 </div>
                 {selectedProduct.category && (
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Category</p>
+                    <p className="text-sm text-gray-400 mb-1">{t('marketplace.category')}</p>
                     <span className="inline-block px-3 py-1 rounded-full text-xs bg-cyan-500/20 text-cyan-300">{selectedProduct.category}</span>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">Description</p>
-                  <div className="text-sm text-gray-300 leading-relaxed prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProduct.description ? DOMPurify.sanitize(selectedProduct.description) : "No description available" }} />
+                  <p className="text-sm text-gray-400 mb-1">{t('marketplace.description')}</p>
+                  <div className="text-sm text-gray-300 leading-relaxed prose prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: selectedProduct.description ? DOMPurify.sanitize(selectedProduct.description) : t('marketplace.noDescription') }} />
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   {cart[selectedProduct.id] ? (
@@ -395,7 +397,7 @@ const MarketplacePage = () => {
                     </div>
                   ) : (
                     <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">
-                      <ShoppingCart className="w-4 h-4" /> Add to Cart
+                      <ShoppingCart className="w-4 h-4" /> {t('marketplace.addToCart')}
                     </button>
                   )}
                 </div>

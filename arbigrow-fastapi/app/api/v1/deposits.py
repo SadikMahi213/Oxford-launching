@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from app.core.database import get_db
+from app.core.referral import get_referral_level_rates
 from app.models.deposit import Deposit
 from app.models.user import User
+from app.models.referral_profit_history import ReferralProfitHistory
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.utils.email import send_deposit_success_email
 from app.services.invoice_service import generate_user_invoice
+from app.utils.notifications import notify_admin
 
 router = APIRouter(prefix="/deposits", tags=["Deposits"])
 
@@ -20,6 +23,7 @@ router = APIRouter(prefix="/deposits", tags=["Deposits"])
 @router.post("/")
 async def create_deposit_request(
     data: DepositCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -48,6 +52,12 @@ async def create_deposit_request(
 
     await db.commit()
     await db.refresh(deposit)
+
+    await notify_admin(
+        db=db, type="deposit_request",
+        message=f"User {current_user.full_name} requested deposit of {deposit.amount} USDT via {deposit.network_name}",
+        user_id=current_user.id, request=request,
+    )
 
     return {
         "message": "Deposit request submitted successfully",
@@ -136,6 +146,7 @@ async def get_admin_deposits(
 async def update_deposit_status(
     deposit_id: int,
     data: DepositStatusUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user)
 ):
@@ -173,8 +184,81 @@ async def update_deposit_status(
         user.main_wallet += amount
         user.deposit_wallet += amount
 
+        # Distribute direct referral and generation bonuses on deposit (flat rates)
+        wprec = Decimal("0.00000000000001")
+        parent_ids = [
+            user.parent_lvl_1_id,
+            user.parent_lvl_2_id,
+            user.parent_lvl_3_id,
+            user.parent_lvl_4_id,
+            user.parent_lvl_5_id,
+        ]
+        parent_rows = await db.execute(
+            select(User).where(User.id.in_([p for p in parent_ids if p]))
+        )
+        parents_map = {p.id: p for p in parent_rows.scalars().all()}
+        rates = await get_referral_level_rates(db)
+        for level_idx, pid in enumerate(parent_ids):
+            if not pid:
+                continue
+            parent = parents_map.get(pid)
+            if not parent:
+                continue
+            rate = rates[level_idx + 1]
+            bonus = (amount * Decimal(str(rate)) / Decimal("100")).quantize(wprec, rounding=ROUND_HALF_UP)
+            if bonus <= 0:
+                continue
+            if level_idx == 0:
+                parent.referral_wallet += bonus
+            else:
+                parent.generation_wallet += bonus
+            db.add(ReferralProfitHistory(
+                source_user_id=deposit.user_id,
+                receiver_user_id=pid,
+                deposit_id=deposit.id,
+                level=level_idx + 1,
+                percentage=Decimal(str(rate)),
+                amount=bonus,
+                type="deposit_referral" if level_idx == 0 else "deposit_generation",
+            ))
+
+        # Trigger rank evaluation for the deposit user
+        from app.services.rank_service import evaluate_and_process_rank
+        await evaluate_and_process_rank(
+            user_id=deposit.user_id,
+            db=db,
+            source_user_id=deposit.user_id,
+            reference_id=deposit.id,
+            reference_type="deposit",
+        )
+
+        # Also trigger rank evaluation for all ancestors (team volume changes)
+        ancestor_ids = [
+            user.parent_lvl_1_id,
+            user.parent_lvl_2_id,
+            user.parent_lvl_3_id,
+            user.parent_lvl_4_id,
+            user.parent_lvl_5_id,
+        ]
+        for aid in ancestor_ids:
+            if aid:
+                await evaluate_and_process_rank(
+                    user_id=aid,
+                    db=db,
+                    source_user_id=deposit.user_id,
+                    reference_id=deposit.id,
+                    reference_type="deposit",
+                )
+
     await db.commit()
     await db.refresh(deposit)
+
+    notif_type = "deposit_approved" if data.status == "approved" else "deposit_rejected"
+    await notify_admin(
+        db=db, type=notif_type,
+        message=f"Deposit #{deposit.id} of {deposit.amount} USDT by user #{deposit.user_id} was {data.status} by admin",
+        user_id=deposit.user_id, request=request,
+    )
 
     if data.status == "approved":
         try:

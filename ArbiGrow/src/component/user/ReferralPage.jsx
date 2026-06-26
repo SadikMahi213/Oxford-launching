@@ -1,5 +1,4 @@
-// src/pages/ReferralPage.jsx
-
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Users,
@@ -26,7 +25,11 @@ const ReferralPage = ({
   copiedLink,
   activeLevel,
   lc,
+  totalTeamMembers,
+  bonusEligibleMembers,
+  nonBonusMembers,
 }) => {
+  const { t } = useTranslation();
   const { user } = useUserStore();
   const totalEarned =
     Number(user?.referral_wallet || 0) + Number(user?.generation_wallet || 0);
@@ -37,11 +40,11 @@ const ReferralPage = ({
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-1">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Referral Program
+            {t('referral.title')}
           </span>
         </h1>
         <p className="text-gray-400 text-sm">
-          Invite friends and earn rewards up to 5 levels deep
+          {t('referral.subtitle')}
         </p>
       </div>
 
@@ -95,8 +98,8 @@ const ReferralPage = ({
             <LinkIcon className="w-4 h-4 text-cyan-400" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-sm">Your Referral Link</h3>
-            <p className="text-xs text-gray-400">Share to invite new members</p>
+            <h3 className="font-bold text-white text-sm">{t('referral.yourLink')}</h3>
+            <p className="text-xs text-gray-400">{t('referral.shareDesc')}</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -111,12 +114,12 @@ const ReferralPage = ({
             {copiedLink ? (
               <>
                 <Check className="w-4 h-4" />
-                Copied!
+                {t('referral.copied')}
               </>
             ) : (
               <>
                 <Copy className="w-4 h-4" />
-                Copy
+                {t('referral.copy')}
               </>
             )}
           </button>
@@ -126,9 +129,35 @@ const ReferralPage = ({
         <div className="flex items-center gap-3 mt-3">
           <ShareReferralButton />
           <p className="text-xs text-gray-500">
-            Share your referral link on social media
+            {t('referral.shareText')}
           </p>
         </div>
+      </motion.div>
+
+      {/* ── Team Stats ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.33 }}
+        className="grid grid-cols-3 gap-3"
+      >
+        {[
+          { label: t('referral.totalTeam'), value: totalTeamMembers ?? totalReferrals, color: "text-cyan-400", bg: "from-blue-600/10 to-cyan-600/10", border: "border-cyan-500/30" },
+          { label: t('referral.bonusEligible'), value: bonusEligibleMembers ?? totalReferrals, color: "text-green-400", bg: "from-green-600/10 to-emerald-600/10", border: "border-green-500/30" },
+          { label: t('referral.nonBonus'), value: nonBonusMembers ?? 0, color: "text-amber-400", bg: "from-amber-600/10 to-orange-600/10", border: "border-amber-500/30" },
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className={`p-3 md:p-4 rounded-xl bg-gradient-to-br ${stat.bg} backdrop-blur-xl border ${stat.border} flex flex-col items-center text-center`}
+          >
+            <div className={`text-xl md:text-2xl font-bold ${stat.color}`}>
+              {stat.value}
+            </div>
+            <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">
+              {stat.label}
+            </div>
+          </div>
+        ))}
       </motion.div>
 
       {/* ── Network Tree ── */}
@@ -142,9 +171,9 @@ const ReferralPage = ({
         <div className="p-4 md:p-5 border-b border-white/10 flex items-center gap-3">
           <GitBranch className="w-5 h-5 text-cyan-400 flex-shrink-0" />
           <div>
-            <h2 className="font-bold text-white">Network Tree</h2>
+            <h2 className="font-bold text-white">{t('referral.networkTree')}</h2>
             <p className="text-xs text-gray-400">
-              {totalReferrals} members across 5 levels
+              {t('referral.membersAcross', { count: totalReferrals })}
             </p>
           </div>
         </div>
@@ -171,7 +200,7 @@ const ReferralPage = ({
                   <span
                     className={`text-[10px] font-semibold ${isActive ? lc2.text : "text-gray-500"}`}
                   >
-                    Level {lvl.level}
+                    {t('referral.level', { level: lvl.level })}
                   </span>
                   <span
                     className={`text-lg font-bold leading-none ${isActive ? "text-white" : "text-gray-500"}`}
@@ -200,19 +229,18 @@ const ReferralPage = ({
               L{selectedReferralLevel}
             </span>
             <span className="text-white text-sm font-semibold">
-              {activeLevel.users.length} member
-              {activeLevel.users.length !== 1 ? "s" : ""}
+              {t('referral.memberCount', { count: activeLevel.users.length })}
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs">
             <div className="flex items-center gap-1">
               <Award className={`w-3.5 h-3.5 ${lc.text}`} />
               <span className={`${lc.text} font-semibold`}>
-                {activeLevel.commissionRate} commission
+                {t('referral.commission', { rate: activeLevel.commissionRate })}
               </span>
             </div>
             <span className="text-green-400 font-semibold">
-              ${activeLevel.totalEarnings.toFixed(2)} earned
+              {t('referral.earned', { amount: activeLevel.totalEarnings.toFixed(2) })}
             </span>
           </div>
         </div>
@@ -260,7 +288,7 @@ const ReferralPage = ({
                           : "bg-gray-500/10 text-gray-500 border-gray-500/30"
                       }`}
                     >
-                      {user?.status === "active" ? "● Active" : "○ Inactive"}
+                      {user?.status === "active" ? t('referral.active') : t('referral.inactive')}
                       {/* {console.log("fking", user)} */}
                     </span>
                   </div>
@@ -269,17 +297,17 @@ const ReferralPage = ({
                   <div className="grid grid-cols-3 gap-1.5 mb-3">
                     {[
                       {
-                        label: "Joined",
+                        label: t('referral.joined'),
                         value: user.joinDate,
                         cls: "text-white",
                       },
                       {
-                        label: "Earnings",
+                        label: t('referral.earnings'),
                         value: `$${user.totalEarnings.toFixed(2)}`,
                         cls: "text-green-400",
                       },
                       {
-                        label: "Sub-refs",
+                        label: t('referral.subRefs'),
                         value: String(user.directReferrals),
                         cls: lc.text,
                       },
@@ -305,7 +333,7 @@ const ReferralPage = ({
                     className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r ${lc.bg} border ${lc.border}`}
                   >
                     <Users className={`w-3 h-3 ${lc.text} flex-shrink-0`} />
-                    <span className="text-gray-500 text-[10px]">via</span>
+                    <span className="text-gray-500 text-[10px]">{t('referral.via')}</span>
                     <span
                       className={`${lc.text} text-[10px] font-semibold truncate`}
                     >
@@ -327,7 +355,7 @@ const ReferralPage = ({
             disabled={selectedReferralLevel === 1}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            <ChevronLeft className="w-3.5 h-3.5" /> Prev
+            <ChevronLeft className="w-3.5 h-3.5" /> {t('referral.prev')}
           </button>
 
           <div className="flex items-center gap-1.5">
@@ -355,7 +383,7 @@ const ReferralPage = ({
             disabled={selectedReferralLevel === 5}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            Next <ChevronRight className="w-3.5 h-3.5" />
+            {t('referral.next')} <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </motion.div>

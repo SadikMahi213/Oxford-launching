@@ -121,9 +121,9 @@ export default function UserDetailModal({
   const referralLevels = useMemo(() => {
     const fallbackRates = {
       1: "10%",
-      2: "8%",
-      3: "7%",
-      4: "6%",
+      2: "9%",
+      3: "8%",
+      4: "7%",
       5: "5%",
     };
     const sourceLevels = Array.isArray(selectedUser?.referral_tree?.levels)
@@ -170,6 +170,9 @@ export default function UserDetailModal({
   const totalActiveReferrals = Number(
     selectedUser?.referral_tree?.total_active_referrals || 0,
   );
+  const totalTeamMembers = Number(selectedUser?.referral_tree?.total_team_members || 0);
+  const bonusEligibleMembers = Number(selectedUser?.referral_tree?.bonus_eligible_members || 0);
+  const nonBonusMembers = Number(selectedUser?.referral_tree?.non_bonus_members || 0);
   const activeLevel =
     referralLevels.find((level) => level.level === selectedReferralLevel) ||
     referralLevels[0];
@@ -206,40 +209,26 @@ export default function UserDetailModal({
             {/* Content */}
             <div className="p-6 space-y-6">
               {/* Basic Info */}
-              <div className="grid md:grid-cols-2 gap-4">
-                <InfoCard
-                  icon={User}
-                  label="Full Name"
-                  value={selectedUser?.full_name || "N/A"}
-                />
-                <InfoCard
-                  icon={User}
-                  label="Username"
-                  value={selectedUser?.username || "N/A"}
-                />
-                <InfoCard
-                  icon={Mail}
-                  label="Email"
-                  value={selectedUser?.email || "N/A"}
-                  breakAll
-                />
-                <InfoCard
-                  icon={Phone}
-                  label="Phone"
-                  value={selectedUser?.kyc?.phone_number || "N/A"}
-                />
-                <InfoCard
-                  icon={MapPin}
-                  label="Country"
-                  value={selectedUser?.kyc?.country || "N/A"}
-                />
-                <InfoCard
-                  icon={FileText}
-                  label="Document Type"
-                  value={
-                    selectedUser?.kyc?.document_type?.toUpperCase() || "N/A"
-                  }
-                />
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <InfoCard icon={User} label="Full Name" value={selectedUser?.full_name || "N/A"} />
+                <InfoCard icon={User} label="First Name" value={selectedUser?.first_name || "N/A"} />
+                <InfoCard icon={User} label="Last Name" value={selectedUser?.last_name || "N/A"} />
+                <InfoCard icon={User} label="Username" value={selectedUser?.username || "N/A"} />
+                <InfoCard icon={Mail} label="Email" value={selectedUser?.email || "N/A"} breakAll />
+                <InfoCard icon={Phone} label="Mobile Number" value={selectedUser?.mobile_number || selectedUser?.kyc?.phone_number || "N/A"} />
+                <InfoCard icon={MapPin} label="Date of Birth" value={selectedUser?.date_of_birth || "N/A"} />
+                <InfoCard icon={MapPin} label="Gender" value={selectedUser?.gender || "N/A"} />
+                <InfoCard icon={MapPin} label="Nationality" value={selectedUser?.nationality || "N/A"} />
+                <InfoCard icon={MapPin} label="Religion" value={selectedUser?.religion || "N/A"} />
+                <InfoCard icon={MapPin} label="Marital Status" value={selectedUser?.marital_status || "N/A"} />
+                <InfoCard icon={MapPin} label="Country of Residence" value={selectedUser?.country_of_residence || selectedUser?.kyc?.country || "N/A"} />
+                <InfoCard icon={MapPin} label="City" value={selectedUser?.city || "N/A"} />
+                <InfoCard icon={MapPin} label="State/Province" value={selectedUser?.state_province || "N/A"} />
+                <InfoCard icon={MapPin} label="Postal Code" value={selectedUser?.postal_code || "N/A"} />
+                <InfoCard icon={MapPin} label="Residential Address" value={selectedUser?.residential_address || "N/A"} />
+                <InfoCard icon={FileText} label="National ID Number" value={selectedUser?.national_id_number || "N/A"} />
+                <InfoCard icon={FileText} label="Passport Number" value={selectedUser?.passport_number || "N/A"} />
+                <InfoCard icon={FileText} label="KYC Document Type" value={selectedUser?.kyc?.document_type?.toUpperCase() || "N/A"} />
               </div>
 
               {/* Active Packages */}
@@ -378,13 +367,30 @@ export default function UserDetailModal({
                   <div>
                     <h3 className="text-lg font-bold text-white">Referral Tree</h3>
                     <p className="text-xs text-gray-400">
-                      {totalReferrals} members across 5 levels
+                      {totalTeamMembers > 0 ? `${totalTeamMembers} total team members` : `${totalReferrals} members across 5 levels`}
                       {totalActiveReferrals > 0
                         ? ` • ${totalActiveReferrals} active`
                         : ""}
                     </p>
                   </div>
                 </div>
+
+                {totalTeamMembers > 0 && (
+                  <div className="grid grid-cols-3 gap-2 px-4 md:px-5 pt-3">
+                    <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-center">
+                      <div className="text-lg font-bold text-cyan-400">{totalTeamMembers}</div>
+                      <div className="text-[9px] text-gray-500">Total Team</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-center">
+                      <div className="text-lg font-bold text-green-400">{bonusEligibleMembers}</div>
+                      <div className="text-[9px] text-gray-500">Bonus Eligible</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-white/5 border border-white/10 text-center">
+                      <div className="text-lg font-bold text-amber-400">{nonBonusMembers}</div>
+                      <div className="text-[9px] text-gray-500">Non-Bonus</div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="px-4 md:px-5 pt-4 pb-1">
                   <div
@@ -642,7 +648,7 @@ export default function UserDetailModal({
                     onChange={(e) => setUserStatus(e.target.value)}
                     className="flex-1 px-4 py-3 rounded-xl  bg-[#0C1035] border border-white/20 text-white focus:border-cyan-500/50 focus:outline-none"
                   >
-                    <option value="pending">Pending</option>
+                    <option value="pending">Processing</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
                     <option value="issue">Issue</option>

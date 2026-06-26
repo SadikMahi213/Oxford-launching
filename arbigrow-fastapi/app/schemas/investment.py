@@ -4,7 +4,7 @@ from decimal import Decimal
 
 class BuyInvestmentRequest(BaseModel):
     package_name: str
-    amount: Decimal = Field(gt=0)
+    amount: Decimal = Field(ge=0)
 
 
 class BuyInvestmentResponse(BaseModel):

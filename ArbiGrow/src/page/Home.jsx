@@ -2,23 +2,17 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../component/Navbar";
 import { Hero } from "../component/Hero";
 import ExecutiveSummary from "../component/ExecutiveSummary";
-import TechnicalArchitecture from "../component/TechnicalArchitecture";
-import CoreFeatures from "../component/CoreFeatures";
-import SecurityAudit from "../component/SecurityAudit";
-import Roadmap from "./Roadmap.jsx";
-import Legal from "../component/Legal";
-import Founders from "../component/Founder";
-import Privacy from "../component/Privachy";
-import FAQ from "../component/FAQ";
 import Footer from "../component/Footer";
 import { SecurityCompliance } from "../component/SecurityCompliance";
-import { TradingAnalytics } from "../component/TradingAnalytics";
+import { GlobalCertifications } from "../component/GlobalCertifications";
+import { SecurityStandards } from "../component/SecurityStandards";
+import { CorporateIntegrity } from "../component/CorporateIntegrity";
+import Founders from "../component/Founder";
+import { PrivacySecurity } from "../component/PrivacySecurity";
 import { WhyChooseUs } from "../component/WhyChooseUs";
 import { MemberBenefits } from "../component/MemberBenefits";
-import { OurInvestors } from "../component/OurInvestors";
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { getPlatformStats } from "../api/admin.api.js";
-
 
 const Home = () => {
   const [stats, setStats] = useState(null);
@@ -28,7 +22,6 @@ const Home = () => {
       try {
         const data = await getPlatformStats();
         setStats(data);
-        // console.log("Static Data", data)
       } catch (error) {
         console.error("Failed to load platform stats", error);
       }
@@ -43,34 +36,36 @@ const Home = () => {
         <Hero />
       </div>
       <ExecutiveSummary />
-      <SecurityCompliance />
-      {/* <TradingAnalytics /> */}
-      {stats && <PlatformStatistics stats={stats} />}
-      <WhyChooseUs />
-      <MemberBenefits />
-
-      <div id="architecture">
-        <TechnicalArchitecture />
+      <div className="flex justify-center my-8 md:my-12">
+        <img
+          src="/WhatsApp%20Image%202026-06-24%20at%2021.12.20%20(1).jpeg"
+          alt="Financial Services"
+          className="w-full max-w-3xl md:max-w-4xl lg:max-w-5xl h-auto object-contain rounded-2xl"
+        />
       </div>
-      <div id="features">
-        <CoreFeatures />
+      <div id="services">
+        <WhyChooseUs />
+      </div>
+      <MemberBenefits />
+      {stats && <PlatformStatistics stats={stats} />}
+      <div id="founders">
+        <Founders />
+      </div>
+      <div id="commitment">
+        <SecurityCompliance />
+      </div>
+      <div id="certifications">
+        <GlobalCertifications />
       </div>
       <div id="security">
-        <SecurityAudit />
+        <SecurityStandards />
       </div>
-      <div id="roadmap">
-        <Roadmap />
+      <div id="corporate">
+        <CorporateIntegrity />
       </div>
-      <Legal />
-      <div id="about">
-        <Founders />
-        <OurInvestors />
+      <div id="privacy">
+        <PrivacySecurity />
       </div>
-      <Privacy />
-      <div id="faq">
-        <FAQ />
-      </div>
-
       <Footer />
     </div>
   );

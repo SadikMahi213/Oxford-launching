@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.deps import get_current_admin_user
 from app.core.database import get_db
 from app.core.rate_limiter import limiter
-from app.core.referral import REFERRAL_LEVEL_RATES
+from app.core.referral import get_referral_level_rates
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -122,6 +122,8 @@ async def apply_roi_to_all_active_investments(
     completed_now = 0
     skipped = 0
 
+    rates = await get_referral_level_rates(db)
+
     for investment in investments:
         remaining_percentage = investment.roi_percent - investment.profit_percentage_paid
         if remaining_percentage <= 0:
@@ -187,8 +189,8 @@ async def apply_roi_to_all_active_investments(
                 if not parent:
                     continue
 
-                rate = REFERRAL_LEVEL_RATES[level]
-                reward = (previous_reward * rate) / Decimal("100")
+                rate = rates[level]
+                reward = (profit_amount * rate) / Decimal("100")
                 if reward <= 0:
                     continue
 
@@ -209,7 +211,6 @@ async def apply_roi_to_all_active_investments(
                         created_at=now_utc,
                     )
                 )
-                previous_reward = reward
 
         if investment.profit_percentage_paid >= investment.roi_percent:
             investment.status = "completed"

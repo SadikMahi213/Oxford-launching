@@ -18,6 +18,12 @@ import AdManagement from "../component/admin/AdManagement.jsx";
 import AdminReports from "../component/admin/AdminReports.jsx";
 import AdminWhatsAppConfig from "../component/admin/AdminWhatsAppConfig.jsx";
 import AnalyticsDashboard from "../component/admin/analytics/AnalyticsDashboard.jsx";
+import SelfAnalyticsDashboard from "../component/admin/self_analytics/SelfAnalyticsDashboard.jsx";
+import NotificationHistory from "../component/admin/notifications/NotificationHistory.jsx";
+import BlockedAccounts from "../component/admin/security/BlockedAccounts.jsx";
+import RankManagement from "../component/admin/RankManagement.jsx";
+import RankHistoryPage from "../component/admin/RankHistory.jsx";
+import BonusHistory from "../component/admin/BonusHistory.jsx";
 import { Camera, Check, X } from "lucide-react";
 import api from "../api/axiosInstance.js";
 
@@ -102,6 +108,12 @@ export default function AdminDashboard() {
         return <DashboardOverview users={users} />;
       case "analytics":
         return <AnalyticsDashboard />;
+      case "self-analytics":
+        return <SelfAnalyticsDashboard />;
+      case "notifications":
+        return <NotificationHistory />;
+      case "security":
+        return <BlockedAccounts />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
       case "deposits":
@@ -122,6 +134,12 @@ export default function AdminDashboard() {
         return <RoiManagement />;
       case "ecommerce":
         return <AdminEcommerce />;
+      case "ranks":
+        return <RankManagement />;
+      case "rank-history":
+        return <RankHistoryPage />;
+      case "bonus-history":
+        return <BonusHistory />;
       case "ads":
         return <AdManagement />;
       case "reports":

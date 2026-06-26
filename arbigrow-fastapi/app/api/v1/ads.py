@@ -210,7 +210,7 @@ async def complete_ad(
     earned = (ad_investments[0][1].earn_per_captcha or Decimal("0")).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
-    user.main_wallet = (user.main_wallet + earned).quantize(
+    user.ad_view_wallet = (user.ad_view_wallet + earned).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
 
@@ -255,7 +255,7 @@ async def complete_ad(
         "success": True,
         "earned": earned,
         "remaining_today": remaining,
-        "new_balance": user.main_wallet,
+        "new_balance": user.ad_view_wallet,
     }
 
 

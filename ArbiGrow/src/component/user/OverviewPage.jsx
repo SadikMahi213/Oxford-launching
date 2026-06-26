@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import {
   Wallet,
@@ -15,7 +16,11 @@ import {
   Store,
   Send,
   Clock,
+  ShieldCheck,
+  Award,
+  GitBranch,
 } from "lucide-react";
+import { useNavigate } from "react-router";
 import useUserStore from "../../store/userStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -26,6 +31,10 @@ import {
   claimMining,
   getMiningStatus,
   getMyEarningsHistory,
+  getMatchingWallet,
+  getMyMatchingBonuses,
+  getNetworkAnalytics,
+  getReferralNetwork,
 } from "../../api/user.api.js";
 import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
 import { MarketsCrawl } from "./overview/MarketsCrawl.jsx";
@@ -33,6 +42,8 @@ import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
 import ProfileIdentityCard from "./ProfileIdentityCard.jsx";
 
 const OverviewPage = ({ setActivePage }) => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const MINING_CYCLE_MS = 24 * 60 * 60 * 1000;
   const { user, setUser, logout } = useUserStore();
   const [isTokenInfoOpen, setIsTokenInfoOpen] = useState(false);
@@ -49,12 +60,17 @@ const OverviewPage = ({ setActivePage }) => {
   const miningBaseRef = useRef(0);
   const miningStartRef = useRef(0);
   const capRef = useRef(20);
+  const [matchingBonus, setMatchingBonus] = useState(0);
+  const [matchingBonusHistory, setMatchingBonusHistory] = useState([]);
+  const [networkAnalytics, setNetworkAnalytics] = useState({ totalNetworkMembers: 0, activeMembers: 0, inactiveMembers: 0 });
+  const [networkAnalyticsLoading, setNetworkAnalyticsLoading] = useState(true);
+  const [referralLevels, setReferralLevels] = useState([]);
   const isMiningActive = user?.is_mining && user?.mining_started_at;
 
   const syncUserFromServer = useCallback(async () => {
     const userResponse = await refreshUserStore();
     if (userResponse?.status === 200 && userResponse?.data?.user) {
-      setUser(userResponse.data.user);
+      setUser({ ...userResponse.data.user, kyc_status: userResponse.data.kyc_status });
     }
     return userResponse;
   }, [setUser]);
@@ -104,6 +120,49 @@ const OverviewPage = ({ setActivePage }) => {
 
     loadUser();
   }, [handleUnauthorized, setUser, syncUserFromServer]);
+
+  useEffect(() => {
+    const loadMatchingWallet = async () => {
+      try {
+        const res = await getMatchingWallet();
+        setMatchingBonus(Number(res?.data?.total_matching_bonus || 0));
+      } catch (e) { /* ignore */ }
+    };
+    loadMatchingWallet();
+  }, []);
+
+  useEffect(() => {
+    const loadNetworkAnalytics = async () => {
+      try {
+        const res = await getNetworkAnalytics();
+        const data = res?.data || {};
+        setNetworkAnalytics({
+          totalNetworkMembers: Number(data.total_network_members || 0),
+          activeMembers: Number(data.active_members || 0),
+          inactiveMembers: Number(data.inactive_members || 0),
+        });
+      } catch (e) { /* ignore */ }
+      setNetworkAnalyticsLoading(false);
+    };
+    loadNetworkAnalytics();
+  }, []);
+
+  useEffect(() => {
+    const loadReferralData = async () => {
+      try {
+        const res = await getReferralNetwork();
+        const payload = res?.data || {};
+        const levelsFromApi = Array.isArray(payload.levels) ? payload.levels : [];
+        setReferralLevels(levelsFromApi.map(l => ({
+          level: l.level,
+          commissionRate: l.commission_rate || `${l.level}%`,
+          totalEarnings: Number(l.total_earnings || 0),
+          users: l.users || [],
+        })));
+      } catch (e) { /* ignore */ }
+    };
+    loadReferralData();
+  }, []);
 
   useEffect(() => {
     if (!user?.is_mining || !user?.mining_started_at) {
@@ -208,12 +267,12 @@ const OverviewPage = ({ setActivePage }) => {
   };
 
   const walletLabelMap = {
-    main_wallet: "Main Wallet",
-    arbx_wallet: "OFA token Wallet",
-    deposit_wallet: "Deposit Wallet",
-    withdraw_wallet: "Withdraw Wallet",
-    referral_wallet: "Referral Wallet",
-    generation_wallet: "Generation Wallet",
+    main_wallet: t('overview.wallets.main'),
+    arbx_wallet: t('overview.wallets.ofa'),
+    deposit_wallet: t('overview.wallets.deposit'),
+    withdraw_wallet: t('overview.wallets.withdraw'),
+    referral_wallet: t('overview.wallets.referral'),
+    generation_wallet: t('overview.wallets.generation'),
   };
 
   const handleStartMining = async () => {
@@ -290,12 +349,22 @@ const OverviewPage = ({ setActivePage }) => {
   const canClaim =
     isMiningActive && remainingTime !== null && remainingTime <= 0;
   const isTimerRunning = isMiningActive && !canClaim;
+  const loadMatchingBonusHistory = async () => {
+    try {
+      const res = await getMyMatchingBonuses({ page: 1, limit: 200 });
+      const data = Array.isArray(res?.data) ? res.data : [];
+      setMatchingBonusHistory(data);
+    } catch (e) { /* ignore */ }
+  };
+
   const historyItems =
     walletHistoryModal === "deposit"
       ? depositHistory
       : walletHistoryModal === "withdrawal"
         ? withdrawalHistory
-        : earningsHistory.filter((e) => e.wallet_type === walletHistoryModal);
+        : walletHistoryModal === "matching"
+          ? matchingBonusHistory
+          : earningsHistory.filter((e) => e.wallet_type === walletHistoryModal);
 
   const handleWalletCardClick = (wallet) => {
     if (wallet.historyType === "deposit") {
@@ -314,37 +383,37 @@ const OverviewPage = ({ setActivePage }) => {
   const shortcuts = [
     {
       id: "deposit",
-      label: "Deposit",
+      label: t('overview.shortcuts.deposit'),
       icon: Download,
       onClick: () => setActivePage("deposit"),
     },
     {
       id: "packages",
-      label: "Packages",
+      label: t('overview.shortcuts.packages'),
       icon: Coins,
       onClick: () => setActivePage("packages"),
     },
     {
       id: "investments",
-      label: "My Investments",
+      label: t('overview.shortcuts.investments'),
       icon: Wallet,
       onClick: () => setActivePage("investments"),
     },
     {
       id: "withdraw",
-      label: "Withdraw",
+      label: t('overview.shortcuts.withdraw'),
       icon: Upload,
       onClick: () => setActivePage("withdraw"),
     },
     {
       id: "market",
-      label: "Market",
+      label: t('overview.shortcuts.market'),
       icon: TrendingUp,
       onClick: () => setActivePage("market"),
     },
     {
       id: "referral",
-      label: "Referral",
+      label: t('overview.shortcuts.referral'),
       icon: Users,
       onClick: () => setActivePage("referral"),
     },
@@ -352,39 +421,51 @@ const OverviewPage = ({ setActivePage }) => {
     // NEW
     {
       id: "profile",
-      label: "Profile",
+      label: t('overview.shortcuts.profile'),
       icon: User,
       onClick: () => setActivePage("profile"),
     },
     {
       id: "support",
-      label: "Support",
+      label: t('overview.shortcuts.support'),
       icon: Headset,
-      onClick: () => window.open("https://t.me/ArbigrowOfficial", "_blank"),
+      onClick: () => window.open("https://t.me/+aIajLcllDPBlOTE0", "_blank"),
     },
     {
       id: "marketplace",
-      label: "Marketplace",
+      label: t('overview.shortcuts.marketplace'),
       icon: ShoppingCart,
       onClick: () => setActivePage("marketplace"),
     },
     {
       id: "seller",
-      label: "Seller",
+      label: t('overview.shortcuts.seller'),
       icon: Store,
       onClick: () => setActivePage("seller"),
     },
     {
       id: "send-funds",
-      label: "Send Funds",
+      label: t('overview.shortcuts.sendFunds'),
       icon: Send,
       onClick: () => setActivePage("send-funds"),
     },
     {
       id: "transfer-history",
-      label: "Transfers",
+      label: t('overview.shortcuts.transfers'),
       icon: Clock,
       onClick: () => setActivePage("transfer-history"),
+    },
+    {
+      id: "matching-bonus-transfer",
+      label: t('overview.shortcuts.mbTransfer'),
+      icon: Award,
+      onClick: () => setActivePage("matching-bonus-transfer"),
+    },
+    {
+      id: "kyc",
+      label: t('overview.shortcuts.kyc'),
+      icon: ShieldCheck,
+      onClick: () => navigate("/verification-page"),
     },
   ];
 
@@ -479,51 +560,51 @@ const OverviewPage = ({ setActivePage }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           {
-            label: "Main Wallet",
+            label: t('overview.wallets.main'),
             balance: Number(user?.main_wallet ?? 0),
-            description: "Usable Balance",
+            description: t('overview.wallets.main_desc'),
             icon: Wallet,
             currency: "USDT",
           },
           {
-            label: "OFA token Wallet",
+            label: t('overview.wallets.ofa'),
             balance: Number(user?.arbx_wallet ?? 0),
-            description: "Token Information",
+            description: t('overview.wallets.ofa_desc'),
             icon: Coins,
             currency: "OFA token",
             hasInfo: true,
           },
           {
-            label: "Deposit Wallet",
+            label: t('overview.wallets.deposit'),
             balance:
               totalApprovedDeposits !== null
                 ? totalApprovedDeposits
                 : Number(user?.deposit_wallet ?? 0),
-            description: "Total Deposited",
+            description: t('overview.wallets.deposit_desc'),
             icon: Download,
             currency: "USDT",
             historyType: "deposit",
           },
           {
-            label: "Withdraw Wallet",
+            label: t('overview.wallets.withdraw'),
             balance: Number(user?.withdraw_wallet ?? 0),
-            description: "Total Withdrawn",
+            description: t('overview.wallets.withdraw_desc'),
             icon: Upload,
             currency: "USDT",
             historyType: "withdrawal",
           },
           {
-            label: "Referral Wallet",
+            label: t('overview.wallets.referral'),
             balance: Number(user?.referral_wallet ?? 0),
-            description: "Referral Earnings",
+            description: t('overview.wallets.referral_desc'),
             icon: Users,
             currency: "USDT",
             historyType: "referral",
           },
           {
-            label: "Generation Wallet",
+            label: t('overview.wallets.generation'),
             balance: Number(user?.generation_wallet ?? 0),
-            description: "Generation Bonus",
+            description: t('overview.wallets.generation_desc'),
             icon: TrendingUp,
             currency: "USDT",
             historyType: "generation",
@@ -577,12 +658,12 @@ const OverviewPage = ({ setActivePage }) => {
                     setIsTokenInfoOpen(true);
                   }}
                   className="text-cyan-300 hover:text-cyan-200 transition-colors"
-                  aria-label="Open token information"
+                  aria-label={t('overview.wallets.openTokenInfo')}
                 >
                   {wallet.description}
                 </button>
               ) : wallet.historyType ? (
-                <span className="text-cyan-300">Click to view history</span>
+                  <span className="text-cyan-300">{t('overview.wallets.clickHistory')}</span>
               ) : (
                 wallet.description
               )}
@@ -590,6 +671,42 @@ const OverviewPage = ({ setActivePage }) => {
           </motion.div>
         ))}
       </div>
+
+      {/* Matching Bonus Wallet */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="p-4 md:p-5 rounded-2xl bg-gradient-to-br from-purple-600/15 to-pink-600/10 backdrop-blur-xl border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 group relative overflow-hidden"
+      >
+        <div className="absolute -top-6 -right-6 w-16 h-16 bg-purple-500/10 rounded-full blur-xl"></div>
+        <div className="relative flex items-center justify-between mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 flex items-center justify-center">
+            <Award className="w-5 h-5 text-purple-400" />
+          </div>
+          <div className="text-xs px-2 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            {t('overview.wallets.matching')}
+          </div>
+        </div>
+        <div className="text-xl md:text-2xl font-bold text-white mb-0.5">
+          ${matchingBonus.toFixed(2)}
+        </div>
+        <div className="text-xs text-purple-300/70 mb-3">{t('overview.wallets.matching_desc')}</div>
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); loadMatchingBonusHistory(); setWalletHistoryModal("matching"); }}
+            className="flex-1 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-medium transition-all"
+          >
+            {t('overview.wallets.viewHistory')}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setActivePage?.("matching-bonus-transfer"); }}
+            className="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:opacity-90 text-white text-xs font-medium transition-all"
+          >
+            {t('overview.wallets.transfer')}
+          </button>
+        </div>
+      </motion.div>
 
       {/* Token Information Modal */}
       {typeof document !== "undefined" &&
@@ -613,7 +730,7 @@ const OverviewPage = ({ setActivePage }) => {
                 >
                   <div className="flex items-start justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                      Token Information
+                      {t('overview.tokenInfo.title')}
                     </h3>
                     {/* <button
                       type="button"
@@ -628,47 +745,47 @@ const OverviewPage = ({ setActivePage }) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 border-b border-white/10 pb-4 sm:pb-5">
                     <div>
                       <div className="text-xs text-gray-400 mb-1">
-                        Token Name
+                        {t('overview.tokenInfo.name')}
                       </div>
                       <div className="text-white font-semibold">
-                        Arbitrax AI
+                        {t('overview.tokenInfo.nameVal')}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-1">
-                        Token Symbol
+                        {t('overview.tokenInfo.symbol')}
                       </div>
-                      <div className="text-white font-semibold">OFA</div>
+                      <div className="text-white font-semibold">{t('overview.tokenInfo.symbolVal')}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">Network</div>
+                      <div className="text-xs text-gray-400 mb-1">{t('overview.tokenInfo.network')}</div>
                       <div className="text-white font-semibold">
-                        Arbitrum One (ERC-20)
+                        {t('overview.tokenInfo.networkVal')}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-1">
-                        Total Supply
+                        {t('overview.tokenInfo.supply')}
                       </div>
                       <div className="text-white font-semibold">
-                        1,000,000,000 OFA
+                        {t('overview.tokenInfo.supplyVal')}
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 pt-4 sm:pt-5 mb-5 sm:mb-6">
                     <div>
-                      <div className="text-xs text-gray-400 mb-1">Utility</div>
+                      <div className="text-xs text-gray-400 mb-1">{t('overview.tokenInfo.utility')}</div>
                       <div className="text-white">
-                        Governance, Arbitrage Fee Discounts, and Staking Rewards
+                        {t('overview.tokenInfo.utilityVal')}
                       </div>
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 mb-1">
-                        Token Listed
+                        {t('overview.tokenInfo.listed')}
                       </div>
                       <div className="text-white">
-                        Socket, Rango, Sonarwatch, Metamask
+                        {t('overview.tokenInfo.listedVal')}
                       </div>
                     </div>
                   </div>
@@ -678,7 +795,7 @@ const OverviewPage = ({ setActivePage }) => {
                     onClick={() => setIsTokenInfoOpen(false)}
                     className="w-full sm:w-auto px-6 py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 hover:text-white hover:bg-cyan-500/30 transition-colors"
                   >
-                    Close
+                    {t('overview.tokenInfo.close')}
                   </button>
                 </motion.div>
               </motion.div>
@@ -710,19 +827,21 @@ const OverviewPage = ({ setActivePage }) => {
                   <div className="mb-5 flex items-center justify-between">
                     <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                       {walletHistoryModal === "deposit"
-                        ? "Deposit History"
+                        ? t('overview.historyTypes.deposit')
                         : walletHistoryModal === "withdrawal"
-                          ? "Withdrawal History"
+                          ? t('overview.historyTypes.withdrawal')
                           : walletHistoryModal === "referral"
-                            ? "Referral Earnings History"
-                            : "Generation Earnings History"}
+                            ? t('overview.historyTypes.referral')
+                            : walletHistoryModal === "matching"
+                              ? t('overview.historyTypes.matching')
+                              : t('overview.historyTypes.generation')}
                     </h3>
                     <button
                       type="button"
                       onClick={() => setWalletHistoryModal(null)}
                       className="rounded-lg border border-white/20 px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:border-cyan-400/60 transition-colors"
                     >
-                      Close
+                      {t('overview.history.close')}
                     </button>
                   </div>
 
@@ -732,41 +851,50 @@ const OverviewPage = ({ setActivePage }) => {
                         <thead>
                           <tr className="border-b border-white/10">
                             <th className="p-4 text-left text-sm text-gray-400">
-                              Date
+                              {t('overview.history.date')}
                             </th>
                             <th className="p-4 text-left text-sm text-gray-400">
-                              Amount
+                              {t('overview.history.amount')}
                             </th>
                             {walletHistoryModal === "deposit" ? (
                               <>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  Network
+                                  {t('overview.history.network')}
                                 </th>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  TXID
+                                  {t('overview.history.txid')}
                                 </th>
                               </>
                             ) : walletHistoryModal === "withdrawal" ? (
                               <>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  Source Wallet
+                                  {t('overview.history.sourceWallet')}
                                 </th>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  Destination
+                                  {t('overview.history.destination')}
+                                </th>
+                              </>
+                            ) : walletHistoryModal === "matching" ? (
+                              <>
+                                <th className="p-4 text-left text-sm text-gray-400">
+                                  {t('overview.history.rank')}
+                                </th>
+                                <th className="p-4 text-left text-sm text-gray-400">
+                                  {t('overview.history.rate')}
                                 </th>
                               </>
                             ) : (
                               <>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  From User
+                                  {t('overview.history.fromUser')}
                                 </th>
                                 <th className="p-4 text-left text-sm text-gray-400">
-                                  Level
+                                  {t('overview.history.level')}
                                 </th>
                               </>
                             )}
                             <th className="p-4 text-left text-sm text-gray-400">
-                              Status
+                              {t('overview.history.status')}
                             </th>
                           </tr>
                         </thead>
@@ -777,7 +905,7 @@ const OverviewPage = ({ setActivePage }) => {
                                 colSpan="5"
                                 className="p-6 text-center text-gray-400"
                               >
-                                No {walletHistoryModal} history found.
+                                {t('overview.history.noHistory', { type: t(`overview.historyTypes.${walletHistoryModal}`) })}
                               </td>
                             </tr>
                           )}
@@ -791,7 +919,9 @@ const OverviewPage = ({ setActivePage }) => {
                                 {formatDate(item.created_at)}
                               </td>
                               <td className="p-4 font-semibold text-white">
-                                {formatAmount(item.amount)} USDT
+                                {walletHistoryModal === "matching"
+                                  ? `+${parseFloat(item.bonus_amount || 0).toFixed(2)} USDT`
+                                  : `${formatAmount(item.amount)} USDT`}
                               </td>
 
                               {walletHistoryModal === "deposit" ? (
@@ -812,6 +942,15 @@ const OverviewPage = ({ setActivePage }) => {
                                   </td>
                                   <td className="p-4 text-gray-400 font-mono text-xs break-all">
                                     {item.destination_address || "-"}
+                                  </td>
+                                </>
+                              ) : walletHistoryModal === "matching" ? (
+                                <>
+                                  <td className="p-4 text-gray-400">
+                                    {item.rank_name || `Rank #${item.rank_id}`}
+                                  </td>
+                                  <td className="p-4 text-gray-400">
+                                    {parseFloat(item.bonus_percent || 0)}%
                                   </td>
                                 </>
                               ) : (
@@ -837,7 +976,7 @@ const OverviewPage = ({ setActivePage }) => {
                                   {walletHistoryModal === "deposit" ||
                                   walletHistoryModal === "withdrawal"
                                     ? item.status
-                                    : "received"}
+                                    : t('overview.history.received')}
                                 </span>
                               </td>
                             </tr>
@@ -862,21 +1001,89 @@ const OverviewPage = ({ setActivePage }) => {
       >
         <h3 className="text-xl font-bold text-white mb-3">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            OFA token: The Power of AI on Arbitrum
+            {t('overview.ofaDesc.title')}
           </span>
         </h3>
         <p className="text-gray-300 mb-3">
-          These {Number(user.arbx_wallet).toFixed(7)} OFA tokens you earned are
-          not just a number, they are a part of tomorrow&apos;s global arbitrage
-          ecosystem.
+          {t('overview.ofaDesc.body', { balance: Number(user.arbx_wallet).toFixed(7) })}
         </p>
         <p className="text-gray-300">
-          You can already <strong className="text-cyan-400">convert OFA to USDT</strong> on the Convert page.
-          External transfers will be enabled soon according to our roadmap.{" "}
+          {t('overview.ofaDesc.convert')}{" "}
+          {t('overview.ofaDesc.external')}{" "}
           <span className="text-cyan-400 font-semibold">
-            Grow your network, accumulate more tokens!
+            {t('overview.ofaDesc.grow')}
           </span>
         </p>
+      </motion.div>
+
+      {/* ── Network Analytics ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+        className="rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 p-4 md:p-6"
+      >
+        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <Users className="w-5 h-5 text-cyan-400" />
+          {t('overview.networkAnalytics.title')}
+        </h2>
+        {networkAnalyticsLoading ? (
+          <div className="text-gray-400 text-sm">{t('overview.networkAnalytics.loading')}</div>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600/10 to-cyan-600/10 border border-blue-500/30 text-center">
+              <div className="text-xl md:text-2xl font-bold text-cyan-400">{networkAnalytics.totalNetworkMembers}</div>
+              <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">{t('overview.networkAnalytics.total')}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-gradient-to-br from-green-600/10 to-emerald-600/10 border border-green-500/30 text-center">
+              <div className="text-xl md:text-2xl font-bold text-green-400">{networkAnalytics.activeMembers}</div>
+              <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">{t('overview.networkAnalytics.active')}</div>
+            </div>
+            <div className="p-3 rounded-xl bg-gradient-to-br from-amber-600/10 to-orange-600/10 border border-amber-500/30 text-center">
+              <div className="text-xl md:text-2xl font-bold text-amber-400">{networkAnalytics.inactiveMembers}</div>
+              <div className="text-[10px] md:text-xs text-gray-400 mt-0.5">{t('overview.networkAnalytics.inactive')}</div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* ── Level Performance ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22 }}
+        className="rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 p-4 md:p-6"
+      >
+        <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <GitBranch className="w-5 h-5 text-cyan-400" />
+          {t('overview.teamPerformance.title')}
+        </h2>
+        {referralLevels.length === 0 ? (
+          <div className="text-gray-400 text-sm">{t('overview.teamPerformance.loading')}</div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {referralLevels.map((lvl) => {
+              const colors = [
+                { bg: "from-blue-600/15 to-cyan-600/10", border: "border-blue-500/30", text: "text-blue-400" },
+                { bg: "from-cyan-600/15 to-teal-600/10", border: "border-cyan-500/30", text: "text-cyan-400" },
+                { bg: "from-purple-600/15 to-violet-600/10", border: "border-purple-500/30", text: "text-purple-400" },
+                { bg: "from-pink-600/15 to-rose-600/10", border: "border-pink-500/30", text: "text-pink-400" },
+                { bg: "from-amber-600/15 to-orange-600/10", border: "border-amber-500/30", text: "text-amber-400" },
+              ][lvl.level - 1] || colors[0];
+              return (
+                <div
+                  key={lvl.level}
+                  onClick={() => setActivePage("referral")}
+                  className={`p-3 md:p-4 rounded-xl bg-gradient-to-br ${colors.bg} backdrop-blur-xl border ${colors.border} cursor-pointer hover:scale-105 transition-all duration-300 text-center`}
+                >
+                  <div className={`text-xs font-semibold ${colors.text} mb-1`}>{t('overview.teamPerformance.level', { level: lvl.level })}</div>
+                  <div className={`text-sm font-bold ${colors.text}`}>{lvl.commissionRate}</div>
+                  <div className="text-white text-xs mt-1">${lvl.totalEarnings.toFixed(2)}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </motion.div>
 
       {/* ARBX Mining Wallet */}
@@ -893,7 +1100,7 @@ const OverviewPage = ({ setActivePage }) => {
             </div>
             <div>
               <h3 className="text-xl font-bold text-white mb-1">
-OFA token Mining Wallet
+                {t('overview.mining.title')}
               </h3>
               <div className="text-2xl font-bold text-yellow-400 font-mono tracking-wider">
                 {isMiningActive && simulatedMiningBalance !== null
@@ -906,10 +1113,10 @@ OFA token Mining Wallet
               </div>
               <div className="text-sm text-gray-400">
                 {isTimerRunning && remainingTime !== null
-                  ? `${formatTime(remainingTime)} remaining in cycle`
+                  ? t('overview.mining.remaining', { time: formatTime(remainingTime) })
                   : canClaim
-                    ? "Mining complete — ready to claim!"
-                    : 'Mined continuously over a 24-hour cycle'}
+                    ? t('overview.mining.complete')
+                    : t('overview.mining.continuous')}
               </div>
             </div>
           </div>
@@ -931,12 +1138,12 @@ OFA token Mining Wallet
             <Pickaxe className="w-5 h-5" />
 
             {!isMiningActive &&
-              (isMiningActionLoading ? "Starting..." : "Start Mining")}
+              (isMiningActionLoading ? t('overview.mining.starting') : t('overview.mining.start'))}
 
             {isTimerRunning && formatTime(remainingTime)}
 
             {canClaim &&
-              (isMiningActionLoading ? "Claiming..." : "Claim Reward")}
+              (isMiningActionLoading ? t('overview.mining.claiming') : t('overview.mining.claim'))}
           </button>
         </div>
         {miningActionError && (
@@ -953,20 +1160,20 @@ OFA token Mining Wallet
       >
         <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
           <Pickaxe className="w-5 h-5 text-yellow-400" />
-          How Mining Works
+          {t('overview.mining.howTitle')}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
-          <div className="space-y-2">
-            <p><span className="text-yellow-400 font-semibold">1.</span> Click <strong>"Start Mining"</strong> to begin a 24-hour mining cycle.</p>
-            <p><span className="text-yellow-400 font-semibold">2.</span> OFA tokens are mined continuously at a rate proportional to the daily cap divided by 86,400 seconds.</p>
-            <p><span className="text-yellow-400 font-semibold">3.</span> After <strong>at least 1 minute</strong>, you can click <strong>"Claim Reward"</strong> to transfer mined tokens to your Mining Wallet.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-300">
+            <div className="space-y-2">
+              <p>{t('overview.mining.step1')}</p>
+              <p>{t('overview.mining.step2')}</p>
+              <p>{t('overview.mining.step3')}</p>
+            </div>
+            <div className="space-y-2">
+              <p>{t('overview.mining.step4')}</p>
+              <p>{t('overview.mining.step5')}</p>
+              <p>{t('overview.mining.step6')}</p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <p><span className="text-yellow-400 font-semibold">4.</span> You can claim multiple times during a cycle — each claim gives you the tokens mined since your last claim.</p>
-            <p><span className="text-yellow-400 font-semibold">5.</span> When the 24-hour cycle ends, mining resets automatically. Start a new cycle to continue earning.</p>
-            <p><span className="text-yellow-400 font-semibold">6.</span> Mined OFA tokens can be <strong>converted to USDT</strong> via the Convert page. External transfers are coming soon.</p>
-          </div>
-        </div>
       </motion.div>
 
       {/* Global Live Activity Feed */}

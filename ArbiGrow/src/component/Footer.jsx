@@ -1,18 +1,20 @@
 import { motion } from "motion/react";
 import { useInView } from "react-intersection-observer";
+import { useTranslation } from "react-i18next";
 import {
   Facebook,
   Send,
   Mail,
   FileText,
   Shield,
-  AlertTriangle,
+
   Youtube,
   Twitter,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
 export default function Footer() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [ref, inView] = useInView({
@@ -36,16 +38,14 @@ export default function Footer() {
                 Oxford Financial Ads
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
-                Decentralized AI trading infrastructure built on Arbitrum.
-                Next-generation automated trading powered by blockchain security
-                and advanced algorithms.
+                {t("footer.description")}
               </p>
 
               {/* Social Links */}
               <div className="flex gap-4">
                 {/* Facebook */}
                 <a
-                  href="https://www.facebook.com/share/189Y6dLmQq/"
+                  href="https://www.facebook.com/share/1EMeQasFKm/"
                   target="_blank"
                   className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600 hover:border-blue-600 transition-all duration-300"
                 >
@@ -54,7 +54,7 @@ export default function Footer() {
 
                 {/* Telegram */}
                 <a
-                  href="https://t.me/Arbigrow"
+                  href="https://t.me/+aIajLcllDPBlOTE0"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300"
@@ -64,7 +64,7 @@ export default function Footer() {
 
                 {/* YouTube */}
                 <a
-                  href="https://www.youtube.com/@arbigrowofficial"
+                  href="https://youtube.com/@oxfordfinancialads?si=d2gVVW5NJBZyGbZF"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-red-600 hover:border-red-600 transition-all duration-300"
@@ -72,14 +72,14 @@ export default function Footer() {
                   <Youtube className="w-5 h-5" />
                 </a>
 
-                {/* Twitter */}
-                <a
-                  href="https://x.com/arbigrow"
-                  target="_blank"
-                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-sky-500 hover:border-sky-500 transition-all duration-300"
+                {/* Twitter — Coming Soon */}
+                <div
+                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center opacity-50 cursor-not-allowed group relative"
+                  title={t("common.comingSoon")}
                 >
                   <Twitter className="w-5 h-5" />
-                </a>
+                  <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">{t("common.comingSoon")}</span>
+                </div>
 
                 {/* Mail */}
                 <a
@@ -94,7 +94,7 @@ export default function Footer() {
 
             {/* Legal Column */}
             <div>
-              <h3 className="font-bold mb-4">Legal</h3>
+              <h3 className="font-bold mb-4">{t("footer.legal")}</h3>
               <ul className="space-y-3">
                 <li onClick={() => navigate("/terms-conditions")}>
                   <a
@@ -102,7 +102,7 @@ export default function Footer() {
                     className="text-gray-400 hover:text-cyan-400 transition-colors duration-300 flex items-center gap-2"
                   >
                     <FileText className="w-4 h-4" />
-                    Terms & Conditions
+                    {t("footer.terms")}
                   </a>
                 </li>
                 <li onClick={() => navigate("/privacy-policy")}>
@@ -111,7 +111,7 @@ export default function Footer() {
                     className="text-gray-400 hover:text-cyan-400 transition-colors duration-300 flex items-center gap-2"
                   >
                     <Shield className="w-4 h-4" />
-                    Privacy Policy
+                    {t("footer.privacy")}
                   </a>
                 </li>
                 <li onClick={() => navigate("/legal-information")}>
@@ -120,7 +120,7 @@ export default function Footer() {
                     className="text-gray-400 hover:text-cyan-400 transition-colors duration-300 flex items-center gap-2"
                   >
                     <FileText className="w-4 h-4" />
-                    Legal Information
+                    {t("footer.legalInfo")}
                   </a>
                 </li>
               </ul>
@@ -128,61 +128,33 @@ export default function Footer() {
 
             {/* Contact Column */}
             <div>
-              <h3 className="font-bold mb-4">Contact</h3>
+              <h3 className="font-bold mb-4">{t("footer.globalContact")}</h3>
               <ul className="space-y-3">
                 <li className="text-gray-400">
-                  <span className="block text-sm mb-1">Official Email</span>
-                  <a
-                    href="mailto:support.oxfordfinancialads@gmail.com"
-                    className="text-cyan-400 hover:text-cyan-300"
-                  >
-                    support.oxfordfinancialads@gmail.com
-                  </a>
+                  <span className="block text-sm text-cyan-400 font-medium">{t("footer.contactName")}</span>
+                  <span className="block text-xs text-gray-500">{t("footer.contactDesc")}</span>
                 </li>
                 <li className="text-gray-400">
-                  <span className="block text-sm mb-1">Support</span>
+                  <span className="block text-sm mb-1">{t("footer.officialEmail")}</span>
                   <a
                     href="mailto:support.oxfordfinancialads@gmail.com"
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-cyan-400 hover:text-cyan-300 text-sm"
                   >
                     support.oxfordfinancialads@gmail.com
                   </a>
                 </li>
+                <li className="text-gray-400 text-xs">
+                  <span className="block">{t("footer.serving")}</span>
+                  <span className="block">{t("footer.support247")}</span>
+                </li>
               </ul>
-            </div>
-          </div>
-
-          {/* Risk Disclaimer */}
-          <div className="mb-8 p-6 rounded-xl bg-orange-900/10 border border-orange-500/30">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-semibold text-orange-400 mb-2">
-                  Risk Disclaimer
-                </h4>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  Trading cryptocurrencies and digital assets carries
-                  significant risk. Past performance is not indicative of future
-                  results. Oxford Financial Ads does not provide financial advice. All users
-                  trade at their own risk and should only invest capital they
-                  can afford to lose. This platform is not available in
-                  restricted jurisdictions. Please consult with a qualified
-                  financial advisor before making investment decisions.
-                </p>
-              </div>
             </div>
           </div>
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-white/10 flex flex-col items-center gap-4 text-center">
             <div className="text-gray-400 text-sm">
-              © 2026 Oxford Financial Ads. All rights reserved. C-Corporation registered in
-              Delaware, USA.
-            </div>
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <span>Powered by Arbitrum</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
-              <span>Built on Ethereum</span>
+              {t("footer.copyright")}
             </div>
           </div>
         </motion.div>

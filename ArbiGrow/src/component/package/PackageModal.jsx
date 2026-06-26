@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Button from "../Button";
 import useUserStore from "../../store/userStore";
+import KycWarningBanner from "../user/KycWarningBanner.jsx";
 import {
   buyInvestment,
   refreshUserStore,
@@ -30,11 +31,11 @@ export default function PackageModal({
 
   if (!selectedPackage) return null;
 
-  const amt = selectedPackage.investment_amount || selectedPackage.amount || 0;
-  const dailyPmt = selectedPackage.daily_payment || selectedPackage.dailyPayment || 0;
-  const totalRet = selectedPackage.total_return || selectedPackage.totalReturn || 0;
-  const captchaReq = selectedPackage.captcha_required_per_day || selectedPackage.captchaRequiredPerDay || 0;
-  const durDays = selectedPackage.duration_days || selectedPackage.durationDays || 0;
+  const amt = selectedPackage.investment_amount ?? selectedPackage.amount ?? 0;
+  const dailyPmt = selectedPackage.daily_payment ?? selectedPackage.dailyPayment ?? 0;
+  const totalRet = selectedPackage.total_return ?? selectedPackage.totalReturn ?? 0;
+  const captchaReq = selectedPackage.captcha_required_per_day ?? selectedPackage.captchaRequiredPerDay ?? 0;
+  const durDays = selectedPackage.duration_days ?? selectedPackage.durationDays ?? 0;
 
   const handleClose = () => {
     setPurchaseError("");
@@ -56,7 +57,7 @@ export default function PackageModal({
     try {
       const payload = {
         package_name: selectedPackage.name,
-        amount: selectedPackage.investment_amount || selectedPackage.amount,
+        amount: selectedPackage.investment_amount ?? selectedPackage.amount ?? 0,
       };
 
       const purchaseResponse = await buyInvestment(payload);
@@ -64,7 +65,7 @@ export default function PackageModal({
       try {
         const userResponse = await refreshUserStore();
         if (userResponse?.data?.user) {
-          setUser(userResponse.data.user);
+          setUser({ ...userResponse.data.user, kyc_status: userResponse.data.kyc_status });
         }
       } catch {
         // Purchase succeeded, wallet refresh can be retried later.
@@ -77,13 +78,14 @@ export default function PackageModal({
         handleClose();
       }, 1000);
     } catch (error) {
+      const status = error?.response?.status;
       const detail = error?.response?.data?.detail;
       const message = Array.isArray(detail)
         ? detail
             .map((item) => item?.msg)
             .filter(Boolean)
             .join(", ")
-        : detail || "Failed to activate package";
+        : detail || (status ? `Server error (${status})` : "Failed to activate package");
       setPurchaseError(message);
     } finally {
       setIsPurchasing(false);
@@ -185,15 +187,18 @@ export default function PackageModal({
               )}
 
               {isLoggedIn && (
-                <Button
-                  variant="gradient"
-                  onClick={handlePurchase}
-                  disabled={isPurchasing}
-                >
-                  {isPurchasing
-                    ? "Activating..."
-                    : "Activate Package"}
-                </Button>
+                <>
+                  <KycWarningBanner />
+                  <Button
+                    variant="gradient"
+                    onClick={handlePurchase}
+                    disabled={isPurchasing}
+                  >
+                    {isPurchasing
+                      ? "Activating..."
+                      : "Activate Package"}
+                  </Button>
+                </>
               )}
 
               {purchaseError && (

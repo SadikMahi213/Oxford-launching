@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { InvestmentSummaryCards } from "./InvestmentSummaryCards";
 import { InvestmentCard } from "./InvestmentCard";
 import { InvestmentEmptyState } from "./InvestmentEmptyState";
@@ -56,6 +57,7 @@ const mapInvestment = (investment) => {
 };
 
 export function MyInvestments({ refreshKey, onNavigateToPackages }) {
+  const { t } = useTranslation();
   const [selectedInvestment, setSelectedInvestment] = useState(null);
   const [investments, setInvestments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ export function MyInvestments({ refreshKey, onNavigateToPackages }) {
       setInvestments(items.map(mapInvestment));
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      setError(detail || "Failed to load investments.");
+      setError(detail || t('investments.error'));
       setInvestments([]);
     } finally {
       setLoading(false);
@@ -102,17 +104,17 @@ export function MyInvestments({ refreshKey, onNavigateToPackages }) {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-1">
             <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              My Investments
+              {t('investments.title')}
             </span>
           </h1>
           <p className="text-sm text-gray-400">
-            Track your active investment packages and earnings
+            {t('investments.subtitle')}
           </p>
         </div>
 
         {loading ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-gray-300">
-            Loading investments...
+            {t('investments.loading')}
           </div>
         ) : error ? (
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-300">

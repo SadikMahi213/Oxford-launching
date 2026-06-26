@@ -41,8 +41,15 @@ export default function ProfileIdentityCard() {
   const joinDate = formatDate(user?.created_at)
   const userId = user?.id ? `financial@${user.id}` : "-"
   const memberId = user?.referral_code ? `#MEM-${user.referral_code}` : userId
-  const hasKYC = !!(user?.phone_number && user?.country)
-  const kycStatus = hasKYC ? "Verified" : "Pending"
+  const kycRaw = user?.kyc_status
+  const hasKYC = kycRaw === "approved"
+  const getKycStatus = () => {
+    if (kycRaw === "approved") return "Verified"
+    if (kycRaw === "rejected") return "Rejected"
+    if (kycRaw === "pending") return "Processing"
+    return "Unverified"
+  }
+  const kycStatus = getKycStatus()
 
   const displayUrl = user?.profile_image_url
   const [photoLoaded, setPhotoLoaded] = useState(false)
@@ -219,7 +226,7 @@ export default function ProfileIdentityCard() {
                     label="KYC Status"
                     value={kycStatus}
                     icon={ShieldCheck}
-                    accent={hasKYC ? "bg-emerald-500/15 text-emerald-400" : "bg-yellow-500/15 text-yellow-400"}
+                    accent={kycRaw === "approved" ? "bg-emerald-500/15 text-emerald-400" : kycRaw === "pending" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"}
                   />
                 </div>
 

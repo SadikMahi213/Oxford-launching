@@ -1,27 +1,49 @@
 import { motion } from 'motion/react';
-import { Shield, Smartphone, Headphones, Zap } from 'lucide-react';
+import { Keyboard, Eye, Database, Palette, Film, Megaphone, Globe, Award } from 'lucide-react';
+import { useTranslation } from "react-i18next";
 
 export function WhyChooseUs() {
+  const { t } = useTranslation();
   const features = [
     {
-      icon: Shield,
-      title: 'Secure Payments',
-      description: 'Our system is fully protected with bank-grade encryption and multi-layer security protocols.',
+      icon: Keyboard,
+      title: t("home.whyChooseUs.captchaTitle"),
+      description: t("home.whyChooseUs.captchaDesc"),
     },
     {
-      icon: Smartphone,
-      title: 'Easy Interface',
-      description: 'Anyone can use it effortlessly with our intuitive design and user-friendly navigation.',
+      icon: Eye,
+      title: t("home.whyChooseUs.watchAdsTitle"),
+      description: t("home.whyChooseUs.watchAdsDesc"),
     },
     {
-      icon: Headphones,
-      title: '24/7 Support',
-      description: 'We are always here to assist you with dedicated support team available around the clock.',
+      icon: Database,
+      title: t("home.whyChooseUs.dataEntryTitle"),
+      description: t("home.whyChooseUs.dataEntryDesc"),
     },
     {
-      icon: Zap,
-      title: 'Fast Transactions',
-      description: 'Instant deposit and smooth withdrawal with lightning-fast processing times.',
+      icon: Palette,
+      title: t("home.whyChooseUs.graphicsTitle"),
+      description: t("home.whyChooseUs.graphicsDesc"),
+    },
+    {
+      icon: Film,
+      title: t("home.whyChooseUs.videoTitle"),
+      description: t("home.whyChooseUs.videoDesc"),
+    },
+    {
+      icon: Megaphone,
+      title: t("home.whyChooseUs.marketingTitle"),
+      description: t("home.whyChooseUs.marketingDesc"),
+    },
+    {
+      icon: Globe,
+      title: t("home.whyChooseUs.networkTitle"),
+      description: t("home.whyChooseUs.networkDesc"),
+    },
+    {
+      icon: Award,
+      title: t("home.whyChooseUs.benefitsTitle"),
+      description: t("home.whyChooseUs.benefitsDesc"),
     },
   ];
 
@@ -43,18 +65,18 @@ export function WhyChooseUs() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Why{' '}
+            {t("home.whyChooseUs.title")}{' '}
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Choose Us?
+              {t("home.whyChooseUs.titleHighlight")}
             </span>
           </h2>
-          <p className="text-gray-400 text-lg max-w-3xl mx-auto">
-            Experience the perfect blend of security, simplicity, and performance
+          <p className="text-gray-400 text-lg max-w-full md:max-w-3xl mx-auto px-2">
+            {t("home.whyChooseUs.subtitle")}
           </p>
         </motion.div>
 
         {/* Features Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-4">
   {features.map((feature, index) => (
     <motion.div
       key={index}
@@ -65,7 +87,7 @@ export function WhyChooseUs() {
       className="group relative"
     >
       {/* Glass card */}
-      <div className="relative h-full p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500 hover:-translate-y-2">
+      <div className="relative h-full p-4 sm:p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500 hover:-translate-y-2">
 
         <div className="relative flex flex-col items-center text-center md:items-start md:text-left">
           {/* Icon */}

@@ -8,6 +8,7 @@ import enum
 class DocumentType(str, enum.Enum):
     nid = "nid"
     passport = "passport"
+    driving_license = "driving_license"
 
 
 class KYCStatus(str, enum.Enum):

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Check, ChevronDown, Copy, Send } from "lucide-react";
 import {
   createDepositRequest,
@@ -10,8 +11,7 @@ import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
   error?.response?.data?.message ||
-  error?.message ||
-  "Something went wrong";
+  error?.message;
 
 const formatDate = (value) => {
   const date = new Date(value);
@@ -69,6 +69,7 @@ const getApiFieldErrors = (error) => {
 };
 
 export default function DepositPage() {
+  const { t } = useTranslation();
   const [networks, setNetworks] = useState([]);
   const [deposits, setDeposits] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,7 +107,7 @@ export default function DepositPage() {
       } catch (error) {
         setFeedback({
           type: "error",
-          message: getErrorMessage(error),
+          message: getErrorMessage(error) || t('deposit.err_general'),
         });
       } finally {
         setIsLoading(false);
@@ -164,19 +165,19 @@ export default function DepositPage() {
     const normalizedTxid = txid.trim();
 
     if (!selectedNetworkId) {
-      nextFieldErrors.network = "Field required";
+      nextFieldErrors.network = t('deposit.err_field');
     }
 
     if (!normalizedAmount) {
-      nextFieldErrors.amount = "Field required";
+      nextFieldErrors.amount = t('deposit.err_field');
     } else if (Number.isNaN(amountNumber) || amountNumber <= 0) {
-      nextFieldErrors.amount = "Amount must be greater than 0.";
+      nextFieldErrors.amount = t('deposit.err_amount');
     }
 
     if (!normalizedTxid) {
-      nextFieldErrors.txid = "Field required";
+      nextFieldErrors.txid = t('deposit.err_field');
     } else if (normalizedTxid.length < 5) {
-      nextFieldErrors.txid = "Must be at least 5 characters.";
+      nextFieldErrors.txid = t('deposit.err_txid');
     }
 
     if (Object.values(nextFieldErrors).some(Boolean)) {
@@ -205,7 +206,7 @@ export default function DepositPage() {
 
       setFeedback({
         type: "success",
-        message: "Deposit request submitted successfully.",
+        message: t('deposit.success'),
       });
       setFieldErrors(INITIAL_FIELD_ERRORS);
       setAmount("");
@@ -219,7 +220,7 @@ export default function DepositPage() {
 
       setFeedback({
         type: "error",
-        message: getErrorMessage(error),
+        message: getErrorMessage(error) || t('deposit.err_general'),
       });
     } finally {
       setIsSubmitting(false);
@@ -231,14 +232,14 @@ export default function DepositPage() {
       <div>
         <h1 className="text-3xl font-bold">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Deposit USDT
+            {t('deposit.title')}
           </span>
         </h1>
-        <p className="text-sm text-gray-400">Add funds to your account</p>
+        <p className="text-sm text-gray-400">{t('deposit.subtitle')}</p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">Select Network</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('deposit.selectNetwork')}</h3>
 
         <div className="relative">
           <select
@@ -256,7 +257,7 @@ export default function DepositPage() {
               value=""
               style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
             >
-              {isLoading ? "Loading networks..." : "Select network"}
+              {isLoading ? t('deposit.loadingNetworks') : t('deposit.selectNetwork_plh')}
             </option>
             {networks.map((item) => (
               <option
@@ -277,14 +278,14 @@ export default function DepositPage() {
 
         {!isLoading && networks.length === 0 && (
           <p className="mt-3 text-sm text-yellow-300">
-            No active deposit network found. Please contact support.
+            {t('deposit.err_noNetwork')}
           </p>
         )}
 
         {network && (
           <div className="mt-4 space-y-4">
             <div>
-              <label className="text-sm text-gray-400">Deposit Address</label>
+              <label className="text-sm text-gray-400">{t('deposit.depositAddress')}</label>
 
               <div className="mt-1 flex gap-2">
                 <div className="flex-1 break-all rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm">
@@ -304,8 +305,7 @@ export default function DepositPage() {
             <div className="flex gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               <p className="text-sm text-yellow-200">
-                Only send {network.display_name} assets to this address. Other
-                assets may be lost.
+                {t('deposit.warning', { network: network.display_name })}
               </p>
             </div>
           </div>
@@ -313,7 +313,7 @@ export default function DepositPage() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">Submit Deposit</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('deposit.submit')}</h3>
 
         <form className="space-y-4" onSubmit={handleSubmitDeposit}>
           <input
@@ -328,7 +328,7 @@ export default function DepositPage() {
             className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${
               fieldErrors.amount ? "border-red-500/60" : "border-white/10"
             }`}
-            placeholder="Amount"
+            placeholder={t('deposit.amount_plh')}
           />
           {fieldErrors.amount && (
             <p className="-mt-2 text-xs text-red-300">{fieldErrors.amount}</p>
@@ -343,7 +343,7 @@ export default function DepositPage() {
             className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${
               fieldErrors.txid ? "border-red-500/60" : "border-white/10"
             }`}
-            placeholder="Transaction ID"
+            placeholder={t('deposit.txid_plh')}
           />
           {fieldErrors.txid && (
             <p className="-mt-2 text-xs text-red-300">{fieldErrors.txid}</p>
@@ -355,25 +355,25 @@ export default function DepositPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send size={18} />
-            {isSubmitting ? "Submitting..." : "Submit Deposit"}
+            {isSubmitting ? t('deposit.submitting') : t('deposit.submit')}
           </button>
         </form>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl">
         <div className="border-b border-white/10 p-6">
-          <h3 className="text-lg font-semibold">Deposit History</h3>
+          <h3 className="text-lg font-semibold">{t('deposit.history')}</h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="p-4 text-left text-sm text-gray-400">Date</th>
-                <th className="p-4 text-left text-sm text-gray-400">Amount</th>
-                <th className="p-4 text-left text-sm text-gray-400">Network</th>
-                <th className="p-4 text-left text-sm text-gray-400">TXID</th>
-                <th className="p-4 text-left text-sm text-gray-400">Status</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('deposit.date')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('deposit.amount')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('deposit.network')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('deposit.txid')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('deposit.status')}</th>
               </tr>
             </thead>
 
@@ -381,7 +381,7 @@ export default function DepositPage() {
               {isLoading && (
                 <tr>
                   <td colSpan="5" className="p-6 text-center text-gray-400">
-                    Loading deposit history...
+                    {t('deposit.loadingHistory')}
                   </td>
                 </tr>
               )}
@@ -389,7 +389,7 @@ export default function DepositPage() {
               {!isLoading && deposits.length === 0 && (
                 <tr>
                   <td colSpan="5" className="p-6 text-center text-gray-400">
-                    No deposit history found.
+                    {t('deposit.noHistory')}
                   </td>
                 </tr>
               )}

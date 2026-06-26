@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Wallet,
@@ -12,6 +13,7 @@ import {
   DollarSign,
   Package,
   FileText,
+  ShieldCheck,
   Users,
   UserCircle,
   Download,
@@ -26,6 +28,7 @@ import {
   Check,
   Link as LinkIcon,
   GitBranch,
+  Trophy,
   Star,
   Award,
   MessageCircle,
@@ -33,6 +36,7 @@ import {
   Store,
   ArrowLeftRight,
   Repeat,
+  LogOut,
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
@@ -43,7 +47,6 @@ import ReferralPage from "../component/user/ReferralPage.jsx";
 import ProfilePage from "../component/user/ProfilePage.jsx";
 import OverviewPage from "../component/user/OverviewPage.jsx";
 import useUserStore from "../store/userStore.js";
-import { LogOut } from "lucide-react";
 import TransactionHistoryPage from "../component/user/TransactionHistoryPage.jsx";
 import {
   getReferralNetwork,
@@ -69,16 +72,22 @@ import AdsView from "../component/user/AdsView.jsx";
 import ConvertOFA from "../component/user/ConvertOFA.jsx";
 import InvoicePage from "../component/user/InvoicePage.jsx";
 import SendFunds from "../component/user/SendFunds.jsx";
+import MatchingBonusTransfer from "../component/user/MatchingBonusTransfer.jsx";
 import TransferHistory from "../component/user/TransferHistory.jsx";
+import ReferralBonusHistory from "../component/user/ReferralBonusHistory.jsx";
+import GenerationBonusHistory from "../component/user/GenerationBonusHistory.jsx";
+import MatchingBonusInfo from "../component/user/MatchingBonusInfo.jsx";
+import VerificationPage from "./VerificationPage.jsx";
+import VerificationPending from "./VerificationPending.jsx";
 import WhatsAppFloatingButton from "../component/user/WhatsAppButton.jsx";
 import ShareReferralButton from "../component/user/ShareReferralButton.jsx";
 // Mock data for market prices
 
 const EMPTY_REFERRAL_LEVELS = [
   { level: 1, commissionRate: "10%", totalEarnings: 0, users: [] },
-  { level: 2, commissionRate: "8%", totalEarnings: 0, users: [] },
-  { level: 3, commissionRate: "7%", totalEarnings: 0, users: [] },
-  { level: 4, commissionRate: "6%", totalEarnings: 0, users: [] },
+  { level: 2, commissionRate: "9%", totalEarnings: 0, users: [] },
+  { level: 3, commissionRate: "8%", totalEarnings: 0, users: [] },
+  { level: 4, commissionRate: "7%", totalEarnings: 0, users: [] },
   { level: 5, commissionRate: "5%", totalEarnings: 0, users: [] },
 ];
 const HOLD_ALLOWED_PAGES = new Set([
@@ -92,6 +101,7 @@ const HOLD_ALLOWED_PAGES = new Set([
 ]);
 
 export function UserDashboard() {
+  const { t } = useTranslation();
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [investmentsRefreshKey, setInvestmentsRefreshKey] = useState(0);
   const [activePage, setActivePage] = useState("overview");
@@ -212,6 +222,9 @@ export function UserDashboard() {
         setReferralTotals({
           totalReferrals: Number(payload.total_referrals || 0),
           totalActiveReferrals: Number(payload.total_active_referrals || 0),
+          totalTeamMembers: Number(payload.total_team_members || 0),
+          bonusEligibleMembers: Number(payload.bonus_eligible_members || 0),
+          nonBonusMembers: Number(payload.non_bonus_members || 0),
         });
       } catch (error) {
         setReferralLevels(EMPTY_REFERRAL_LEVELS);
@@ -414,116 +427,140 @@ export function UserDashboard() {
   const userPages = [
     {
       id: "overview",
-      label: "Overview",
+      label: t("userDashboard.sidebar.overview"),
       icon: Home,
-      description: "Dashboard & Wallets",
+      description: t("userDashboard.sidebar.overview_desc"),
     },
     {
       id: "deposit",
-      label: "Deposit",
+      label: t("userDashboard.sidebar.deposit"),
       icon: Download,
-      description: "Add funds",
+      description: t("userDashboard.sidebar.deposit_desc"),
     },
     {
       id: "invoices",
-      label: "Invoices",
+      label: t("userDashboard.sidebar.invoices"),
       icon: FileText,
-      description: "View & download PDF invoices",
+      description: t("userDashboard.sidebar.invoices_desc"),
     },
     {
       id: "packages",
-      label: "Packages",
+      label: t("userDashboard.sidebar.packages"),
       icon: Package,
-      description: "Investment plans",
+      description: t("userDashboard.sidebar.packages_desc"),
     },
     {
       id: "investments",
-      label: "My Investments",
+      label: t("userDashboard.sidebar.investments"),
       icon: TrendingUp,
-      description: "Active investments",
+      description: t("userDashboard.sidebar.investments_desc"),
     },
     {
       id: "tasks",
-      label: "Captcha Typing",
+      label: t("userDashboard.sidebar.captcha"),
       icon: Keyboard,
     },
     {
       id: "ads",
-      label: "Ad View",
+      label: t("userDashboard.sidebar.adView"),
       icon: Eye,
-      description: "Watch & earn USDT",
+      description: t("userDashboard.sidebar.adView_desc"),
     },
     {
       id: "withdraw",
-      label: "Withdraw",
+      label: t("userDashboard.sidebar.withdraw"),
       icon: Upload,
-      description: "Withdraw funds",
+      description: t("userDashboard.sidebar.withdraw_desc"),
     },
     {
       id: "transactions",
-      label: "Transactions",
+      label: t("userDashboard.sidebar.transactions"),
       icon: FileText,
-      description: "Transaction history",
+      description: t("userDashboard.sidebar.transactions_desc"),
     },
     {
       id: "referral",
-      label: "Referral",
+      label: t("userDashboard.sidebar.referral"),
       icon: Users,
-      description: "Invite & earn",
+      description: t("userDashboard.sidebar.referral_desc"),
+    },
+    {
+      id: "referral-bonuses",
+      label: t("userDashboard.sidebar.referralBonuses"),
+      icon: Users,
+      description: t("userDashboard.sidebar.referralBonuses_desc"),
+    },
+    {
+      id: "generation-bonuses",
+      label: t("userDashboard.sidebar.genBonuses"),
+      icon: GitBranch,
+      description: t("userDashboard.sidebar.genBonuses_desc"),
+    },
+    {
+      id: "matching-bonus",
+      label: t("userDashboard.sidebar.matchingBonus"),
+      icon: Trophy,
+      description: t("userDashboard.sidebar.matchingBonus_desc"),
     },
     {
       id: "transfer",
-      label: "Wallet Transfer",
+      label: t("userDashboard.sidebar.walletTransfer"),
       icon: ArrowLeftRight,
-      description: "Transfer between wallets",
+      description: t("userDashboard.sidebar.walletTransfer_desc"),
     },
     {
       id: "convert",
-      label: "Convert OFA",
+      label: t("userDashboard.sidebar.convertOFA"),
       icon: Repeat,
-      description: "OFA to USDT swap",
+      description: t("userDashboard.sidebar.convertOFA_desc"),
     },
     {
       id: "market",
-      label: "Market",
+      label: t("userDashboard.sidebar.market"),
       icon: TrendingUp,
-      description: "Crypto market overview",
+      description: t("userDashboard.sidebar.market_desc"),
     },
     {
       id: "marketplace",
-      label: "Marketplace",
+      label: t("userDashboard.sidebar.marketplace"),
       icon: ShoppingCart,
-      description: "Buy products",
+      description: t("userDashboard.sidebar.marketplace_desc"),
     },
     {
       id: "seller",
-      label: "Seller Dashboard",
+      label: t("userDashboard.sidebar.seller"),
       icon: Store,
-      description: "Manage your store",
+      description: t("userDashboard.sidebar.seller_desc"),
+    },
+    {
+      id: "kyc",
+      label: t("userDashboard.sidebar.kyc"),
+      icon: ShieldCheck,
+      description: t("userDashboard.sidebar.kyc_desc"),
     },
     {
       id: "profile",
-      label: "Profile",
+      label: t("userDashboard.sidebar.profile"),
       icon: UserCircle,
-      description: "Account settings",
+      description: t("userDashboard.sidebar.profile_desc"),
     },
     {
       id: "terms",
-      label: "Terms & Conditions",
+      label: t("userDashboard.sidebar.terms"),
       icon: FileText,
-      description: "Platform terms",
+      description: t("userDashboard.sidebar.terms_desc"),
     },
     {
       id: "privacy",
-      label: "Privacy Policy",
+      label: t("userDashboard.sidebar.privacy"),
       icon: Lock,
-      description: "Data & privacy",
+      description: t("userDashboard.sidebar.privacy_desc"),
     },
     {
       id: "whitepaper",
-      label: "Technical Whitepaper",
+      label: t("userDashboard.sidebar.whitepaper"),
       icon: Award,
-      description: "Project documentation",
+      description: t("userDashboard.sidebar.whitepaper_desc"),
     },
   ];
 
@@ -623,7 +660,34 @@ export function UserDashboard() {
           copiedLink={copiedLink}
           activeLevel={activeLevel}
           lc={lc}
+          totalTeamMembers={referralTotals.totalTeamMembers}
+          bonusEligibleMembers={referralTotals.bonusEligibleMembers}
+          nonBonusMembers={referralTotals.nonBonusMembers}
         />
+      );
+    }
+
+    if (activePage === "referral-bonuses") {
+      return <ReferralBonusHistory setActivePage={safeSetActivePage} />;
+    }
+
+    if (activePage === "generation-bonuses") {
+      return <GenerationBonusHistory setActivePage={safeSetActivePage} />;
+    }
+
+    if (activePage === "matching-bonus") {
+      return <MatchingBonusInfo setActivePage={safeSetActivePage} />;
+    }
+
+    if (activePage === "kyc") {
+      return <VerificationPage embedded onSuccess={() => safeSetActivePage("kyc-pending")} />;
+    }
+
+    if (activePage === "kyc-pending") {
+      return (
+        <div className="p-4 md:p-6">
+          <VerificationPending embedded />
+        </div>
       );
     }
 
@@ -716,6 +780,10 @@ export function UserDashboard() {
       return <SendFunds setActivePage={setActivePage} />;
     }
 
+    if (activePage === "matching-bonus-transfer") {
+      return <MatchingBonusTransfer setActivePage={setActivePage} />;
+    }
+
     if (activePage === "transfer-history") {
       return <TransferHistory setActivePage={setActivePage} />;
     }
@@ -727,8 +795,8 @@ export function UserDashboard() {
             <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-600/20 to-cyan-600/20 border border-blue-500/30 flex items-center justify-center">
               <FileText className="w-10 h-10 text-cyan-400" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Coming Soon</h2>
-            <p className="text-gray-400">This page is under development</p>
+            <h2 className="text-2xl font-bold mb-2">{t("userDashboard.comingSoon")}</h2>
+            <p className="text-gray-400">{t("userDashboard.inDevelopment")}</p>
           </div>
         </div>
       );
@@ -863,7 +931,7 @@ export function UserDashboard() {
                 <div>
                   <div className="font-bold text-white">Oxford Financial Ads</div>
                   <div className="text-[10px] text-cyan-400/80 uppercase tracking-wider">
-                    User Portal
+                    {t("userDashboard.header")}
                   </div>
                 </div>
               )}
@@ -905,6 +973,10 @@ export function UserDashboard() {
                     window.open("/technical-whitepaper.pdf", "_blank");
                     return;
                   }
+                  if (page.id === "kyc") {
+                    safeSetActivePage("kyc");
+                    return;
+                  }
                   if (isAccountOnHold && !HOLD_ALLOWED_PAGES.has(page.id)) {
                     return;
                   }
@@ -929,7 +1001,7 @@ export function UserDashboard() {
                       {page.label}
                       {page.comingSoon && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
-                          Soon
+                          {t("userDashboard.sidebar.soon")}
                         </span>
                       )}
                     </div>
@@ -949,7 +1021,7 @@ export function UserDashboard() {
           <div className="p-4 border-t border-white/10 space-y-3">
             <div className="mb-3">
               <a
-                href="https://t.me/ArbigrowOfficial"
+                href="https://t.me/+aIajLcllDPBlOTE0"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
@@ -957,8 +1029,8 @@ export function UserDashboard() {
                 <button className="w-full flex items-center gap-3 px-2 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
                   <MessageCircle className="w-5 h-5 text-cyan-400" />
                   <span className="text-sm text-gray-300">
-                    Chat with us.{" "}
-                    <span className="text-green-400">We are online!</span>
+                    {t("nav.chat")}{" "}
+                    <span className="text-green-400">{t("nav.online")}</span>
                   </span>
                 </button>
               </a>
@@ -973,7 +1045,7 @@ export function UserDashboard() {
                transition-all duration-300"
             >
               <LogOut className="w-5 h-5" />
-              {!sidebarCollapsed && <span className="text-sm">Logout</span>}
+              {!sidebarCollapsed && <span className="text-sm">{t("nav.logout")}</span>}
             </button>
 
             {/* Collapse Button */}
@@ -989,7 +1061,7 @@ export function UserDashboard() {
               ) : (
                 <>
                   <ChevronLeft className="w-5 h-5" />
-                  <span className="text-sm">Collapse</span>
+                  <span className="text-sm">{t("common.collapse")}</span>
                 </>
               )}
             </button>
@@ -1011,7 +1083,7 @@ export function UserDashboard() {
       >
         {isAccountOnHold && (
           <div className="mx-4 mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-            Your account is currently on hold. You can only use deposits right now.
+            {t("userDashboard.accountOnHold")}
             {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
           </div>
         )}

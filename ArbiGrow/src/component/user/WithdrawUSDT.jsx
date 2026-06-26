@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronDown, Copy, Send } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
 import {
   createWithdrawalRequest,
   getActiveDepositNetworks,
@@ -10,6 +12,7 @@ import {
 import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
 
 const MIN_WITHDRAW_AMOUNT = 10;
+const MAX_WITHDRAW_AMOUNT = 700;
 const MAIN_WALLET_BUFFER_RATE = 0.01;
 
 const formatDate = (value) => {
@@ -47,8 +50,7 @@ const getStatusColor = (status) => {
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
   error?.response?.data?.message ||
-  error?.message ||
-  "Something went wrong";
+  error?.message;
 
 const INITIAL_FIELD_ERRORS = {
   wallet: "",
@@ -94,6 +96,7 @@ const getApiFieldErrors = (error) => {
 };
 
 export default function WithdrawPage() {
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
   const [selectedWalletKey, setSelectedWalletKey] = useState("");
@@ -122,12 +125,12 @@ export default function WithdrawPage() {
     () => [
       {
         key: "main_wallet",
-        label: "Main Wallet",
+        label: t('withdraw.mainWallet'),
         balance: toNumber(user?.main_wallet),
       },
       {
         key: "arbx_wallet",
-        label: "OFA token Wallet",
+        label: t('withdraw.ofaWallet'),
         balance: toNumber(user?.arbx_wallet),
         disabled: true,
       },
@@ -143,13 +146,23 @@ export default function WithdrawPage() {
       // },
       {
         key: "referral_wallet",
-        label: "Referral Wallet",
+        label: t('withdraw.referralWallet'),
         balance: toNumber(user?.referral_wallet),
       },
       {
         key: "generation_wallet",
-        label: "Generation Wallet",
+        label: t('withdraw.generationWallet'),
         balance: toNumber(user?.generation_wallet),
+      },
+      {
+        key: "captcha_wallet",
+        label: t('withdraw.captchaWallet'),
+        balance: toNumber(user?.captcha_wallet),
+      },
+      {
+        key: "ad_view_wallet",
+        label: t('withdraw.adWallet'),
+        balance: toNumber(user?.ad_view_wallet),
       },
     ],
     [user],
@@ -184,6 +197,7 @@ export default function WithdrawPage() {
     return parsedAmount;
   }, [amount]);
 
+  const EARNING_WALLETS = new Set(["captcha_wallet", "ad_view_wallet"]);
   const mainWalletBalance = toNumber(user?.main_wallet);
   const requiredMainWalletBalance = useMemo(
     () => amountNumber * (1 + MAIN_WALLET_BUFFER_RATE),
@@ -194,7 +208,7 @@ export default function WithdrawPage() {
     [requiredMainWalletBalance, mainWalletBalance],
   );
   const hasEnoughMainWalletBalance =
-    amountNumber <= 0 || mainWalletShortfall === 0;
+    amountNumber <= 0 || EARNING_WALLETS.has(selectedWalletKey) || mainWalletShortfall === 0;
 
   useEffect(() => {
     const loadData = async () => {
@@ -209,7 +223,7 @@ export default function WithdrawPage() {
           ]);
 
         if (userResponse?.data?.user) {
-          setUser(userResponse.data.user);
+          setUser({ ...userResponse.data.user, kyc_status: userResponse.data.kyc_status });
         }
 
         setWithdrawals(withdrawalsResponse?.data?.data || []);
@@ -217,7 +231,7 @@ export default function WithdrawPage() {
       } catch (error) {
         setFeedback({
           type: "error",
-          message: getErrorMessage(error),
+          message: getErrorMessage(error) || t('withdraw.err_general'),
         });
         setWithdrawals([]);
         setNetworks([]);
@@ -238,29 +252,31 @@ export default function WithdrawPage() {
     const normalizedAddress = destinationAddress.trim();
 
     if (!selectedWalletKey) {
-      nextFieldErrors.wallet = "Field required";
+      nextFieldErrors.wallet = t('withdraw.err_field');
     }
 
     if (!selectedNetworkId) {
-      nextFieldErrors.network = "Field required";
+      nextFieldErrors.network = t('withdraw.err_field');
     }
 
     if (!normalizedAmount) {
-      nextFieldErrors.amount = "Field required";
+      nextFieldErrors.amount = t('withdraw.err_field');
     } else if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      nextFieldErrors.amount = "Please enter a valid amount.";
+      nextFieldErrors.amount = t('withdraw.err_validAmount');
     } else if (parsedAmount < MIN_WITHDRAW_AMOUNT) {
-      nextFieldErrors.amount = `Minimum withdrawal amount is ${MIN_WITHDRAW_AMOUNT} USDT.`;
+      nextFieldErrors.amount = t('withdraw.err_min', { min: MIN_WITHDRAW_AMOUNT });
+    } else if (parsedAmount > MAX_WITHDRAW_AMOUNT) {
+      nextFieldErrors.amount = t('withdraw.err_max', { max: MAX_WITHDRAW_AMOUNT });
     } else if (selectedWallet && parsedAmount > selectedWallet.balance) {
-      nextFieldErrors.amount = `Insufficient balance in ${selectedWallet.label}. Available: ${selectedWallet.balance.toFixed(7)}.`;
+      nextFieldErrors.amount = t('withdraw.err_balance', { wallet: selectedWallet.label, balance: selectedWallet.balance.toFixed(7) });
     } else if (!hasEnoughMainWalletBalance) {
-      nextFieldErrors.amount = `Insufficient Main Wallet balance. Required: ${requiredMainWalletBalance.toFixed(7)} USDT (Amount + 1%), Available: ${mainWalletBalance.toFixed(7)} USDT.`;
+      nextFieldErrors.amount = t('withdraw.err_mainBalance', { required: requiredMainWalletBalance.toFixed(7), available: mainWalletBalance.toFixed(7) });
     }
 
     if (!normalizedAddress) {
-      nextFieldErrors.destinationAddress = "Field required";
+      nextFieldErrors.destinationAddress = t('withdraw.err_field');
     } else if (normalizedAddress.length < 5) {
-      nextFieldErrors.destinationAddress = "Must be at least 5 characters.";
+      nextFieldErrors.destinationAddress = t('withdraw.err_address');
     }
 
     if (Object.values(nextFieldErrors).some(Boolean)) {
@@ -290,8 +306,7 @@ export default function WithdrawPage() {
 
       setFeedback({
         type: "success",
-        message:
-          "Withdrawal request submitted. It is now pending admin review.",
+        message: t('withdraw.success'),
       });
       setFieldErrors(INITIAL_FIELD_ERRORS);
       setAmount("");
@@ -306,7 +321,7 @@ export default function WithdrawPage() {
 
       setFeedback({
         type: "error",
-        message: getErrorMessage(error),
+        message: getErrorMessage(error) || t('withdraw.err_general'),
       });
     } finally {
       setIsSubmitting(false);
@@ -317,19 +332,20 @@ export default function WithdrawPage() {
 
   return (
     <div className="space-y-6 p-6">
+      <KycWarningBanner />
       <div>
         <h1 className="text-3xl font-bold">
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-            Withdraw Funds
+            {t('withdraw.title')}
           </span>
         </h1>
         <p className="text-sm text-gray-400">
-          Submit a withdrawal request from your wallet balances
+          {t('withdraw.subtitle')}
         </p>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">Select Wallet</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.selectWallet')}</h3>
 
         <div className="relative">
           <select
@@ -346,7 +362,7 @@ export default function WithdrawPage() {
               value=""
               style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
             >
-              Select wallet
+              {t('withdraw.selectWallet_plh')}
             </option>
             {walletOptions.map((wallet) => (
               <option
@@ -356,7 +372,7 @@ export default function WithdrawPage() {
                 style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
               >
                 {wallet.label} ({wallet.balance.toFixed(7)}
-                {wallet.disabled ? " (Coming Soon)" : ""})
+                {wallet.disabled ? ` ${t('withdraw.comingSoon')}` : ""})
               </option>
             ))}
           </select>
@@ -370,17 +386,16 @@ export default function WithdrawPage() {
         {selectedWallet && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-              <p className="text-sm text-gray-400">Available Balance</p>
+              <p className="text-sm text-gray-400">{t('withdraw.availableBalance')}</p>
               <p className="text-lg font-semibold text-cyan-400">
-                {selectedWallet.balance.toFixed(7)} USDT
+                {t('withdraw.balance', { balance: selectedWallet.balance.toFixed(7) })}
               </p>
             </div>
 
             <div className="flex gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               <p className="text-sm text-yellow-200">
-                Minimum withdrawal amount is {MIN_WITHDRAW_AMOUNT} USDT. The
-                standard processing time for withdrawals is 4–6 hours.
+                {t('withdraw.info', { min: MIN_WITHDRAW_AMOUNT, max: MAX_WITHDRAW_AMOUNT })}
               </p>
             </div>
           </div>
@@ -388,7 +403,7 @@ export default function WithdrawPage() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">Select Network</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.selectNetwork')}</h3>
 
         <div className="relative">
           <select
@@ -406,7 +421,7 @@ export default function WithdrawPage() {
               value=""
               style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
             >
-              {isLoading ? "Loading networks..." : "Select network"}
+              {isLoading ? t('withdraw.loadingNetworks') : t('withdraw.selectNetwork_plh')}
             </option>
             {networks.map((network) => (
               <option
@@ -427,19 +442,20 @@ export default function WithdrawPage() {
 
         {!isLoading && networks.length === 0 && (
           <p className="mt-3 text-sm text-yellow-300">
-            No active withdrawal network found. Please contact support.
+            {t('withdraw.noNetwork')}
           </p>
         )}
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">Submit Withdrawal</h3>
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.submit')}</h3>
 
         <form className="space-y-4" onSubmit={handleSubmitWithdraw}>
           <input
             type="number"
             step="any"
             min={MIN_WITHDRAW_AMOUNT}
+            max={MAX_WITHDRAW_AMOUNT}
             value={amount}
             onChange={(event) => {
               setAmount(event.target.value);
@@ -448,10 +464,27 @@ export default function WithdrawPage() {
             className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${
               fieldErrors.amount ? "border-red-500/60" : "border-white/10"
             }`}
-            placeholder={`Amount (min ${MIN_WITHDRAW_AMOUNT} USDT)`}
+            placeholder={t('withdraw.amount_plh', { min: MIN_WITHDRAW_AMOUNT, max: MAX_WITHDRAW_AMOUNT })}
           />
           {fieldErrors.amount && (
             <p className="-mt-2 text-xs text-red-300">{fieldErrors.amount}</p>
+          )}
+
+          {amountNumber > 0 && (
+            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>{t('withdraw.requestedAmount')}</span>
+                <span className="text-white">${Number(amount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-400 mt-1">
+                <span>{t('withdraw.charge')}</span>
+                <span className="text-amber-400">-${(Number(amount) * 0.05).toFixed(2)}</span>
+              </div>
+              <div className="border-t border-white/10 mt-2 pt-2 flex justify-between text-sm">
+                <span className="text-gray-300 font-semibold">{t('withdraw.netReceivable')}</span>
+                <span className="text-green-400 font-bold">${(Number(amount) * 0.95).toFixed(2)}</span>
+              </div>
+            </div>
           )}
 
           {amountNumber > 0 && (
@@ -463,12 +496,11 @@ export default function WithdrawPage() {
               }`}
             >
               <p>
-                Required Main Wallet (Amount + 1%):{" "}
-                {requiredMainWalletBalance.toFixed(7)} USDT
+                {t('withdraw.mainRequired', { amount: requiredMainWalletBalance.toFixed(7) })}
               </p>
-              <p>Main Wallet Available: {mainWalletBalance.toFixed(7)} USDT</p>
+              <p>{t('withdraw.mainAvailable', { balance: mainWalletBalance.toFixed(7) })}</p>
               {!hasEnoughMainWalletBalance && (
-                <p>Need extra: {mainWalletShortfall.toFixed(7)} USDT</p>
+                <p>{t('withdraw.needExtra', { shortfall: mainWalletShortfall.toFixed(7) })}</p>
               )}
             </div>
           )}
@@ -484,7 +516,7 @@ export default function WithdrawPage() {
                 ? "border-red-500/60"
                 : "border-white/10"
             }`}
-            placeholder="Destination wallet address"
+            placeholder={t('withdraw.address_plh')}
           />
           {fieldErrors.destinationAddress && (
             <p className="-mt-2 text-xs text-red-300">
@@ -496,7 +528,7 @@ export default function WithdrawPage() {
             value={note}
             onChange={(event) => setNote(event.target.value)}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"
-            placeholder="Note (optional)"
+            placeholder={t('withdraw.note_plh')}
           />
 
           <button
@@ -510,26 +542,26 @@ export default function WithdrawPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send size={18} />
-            {isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
+            {isSubmitting ? t('withdraw.submitting') : t('withdraw.submitRequest')}
           </button>
         </form>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl">
         <div className="border-b border-white/10 p-6">
-          <h3 className="text-lg font-semibold">Withdrawal History</h3>
+          <h3 className="text-lg font-semibold">{t('withdraw.history')}</h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="p-4 text-left text-sm text-gray-400">Date</th>
-                <th className="p-4 text-left text-sm text-gray-400">Amount</th>
-                <th className="p-4 text-left text-sm text-gray-400">Wallet</th>
-                <th className="p-4 text-left text-sm text-gray-400">Network</th>
-                <th className="p-4 text-left text-sm text-gray-400">Address</th>
-                <th className="p-4 text-left text-sm text-gray-400">Status</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.date')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.amount')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.address')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.status')}</th>
               </tr>
             </thead>
 
@@ -537,7 +569,7 @@ export default function WithdrawPage() {
               {isLoading && (
                 <tr>
                   <td colSpan="6" className="p-6 text-center text-gray-400">
-                    Loading withdrawal history...
+                    {t('withdraw.loadingHistory')}
                   </td>
                 </tr>
               )}
@@ -545,7 +577,7 @@ export default function WithdrawPage() {
               {!isLoading && withdrawals.length === 0 && (
                 <tr>
                   <td colSpan="6" className="p-6 text-center text-gray-400">
-                    No withdrawal history found.
+                    {t('withdraw.noHistory')}
                   </td>
                 </tr>
               )}

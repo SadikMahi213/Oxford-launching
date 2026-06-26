@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Menu,
@@ -10,8 +11,6 @@ import {
   LayoutDashboard,
   Shield,
   Facebook,
-
-  Linkedin,
   Twitter,
   Send,
   Youtube,
@@ -21,22 +20,22 @@ import {
 import Button from "./Button";
 import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
+import LanguageSwitcher from "./LanguageSwitcher";
 import logo from "../assets/oxford.png";
 import { useLocation } from "react-router";
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Zustand state
   const token = useUserStore((state) => state.token);
   const logout = useUserStore((state) => state.logout);
   const isLoggedIn = !!token;
 
   const is_admin = useUserStore.getState().user?.is_admin;
-  // console.log("is admin", is_admin);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -53,12 +52,10 @@ export default function Navbar() {
 }, [location]);
 
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Architecture", href: "#architecture" },
-    { label: "Packages", action: () => navigate("/packages") },
-    { label: "Security", href: "#security" },
-    { label: "Roadmap", href: "#roadmap" },
-    { label: "FAQ", href: "#faq" },
+    { label: t("nav.home"), href: "#home" },
+    { label: t("nav.commitment"), href: "#commitment" },
+    { label: t("nav.packages"), action: () => navigate("/packages") },
+    { label: t("nav.services"), href: "#services" },
   ];
 
   const scrollToSection = useCallback((href) => {
@@ -153,49 +150,49 @@ export default function Navbar() {
                 ))}
               </div>
 
-              {/* Desktop Auth Buttons */}
-              <div className="hidden lg:flex items-center gap-2">
-                {!isLoggedIn ? (
+              {/* Language Switcher + Auth + Mobile Hamburger */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <LanguageSwitcher />
+                <div className="hidden lg:flex items-center gap-2">
+                  {!isLoggedIn ? (
                   <>
                     <Button
                       variant="frosted"
                       icon={<LogIn />}
                       onClick={() => navigate("/login")}
                     >
-                      Login
+                      {t("nav.login")}
                     </Button>
                     <Button
                       variant="gradient"
                       icon={<Zap />}
                       onClick={() => navigate("/register")}
                     >
-                      Register
+                      {t("nav.register")}
                     </Button>
                   </>
                 ) : (
                   <>
-                    {/* Normal Dashboard */}
                     <Button
                       icon={<LayoutDashboard />}
                       variant="frosted"
                       onClick={() => navigate("/dashboard")}
                     >
-                      Dashboard
+                      {t("nav.dashboard")}
                     </Button>
 
-                    {/* Admin Only Button */}
                     {is_admin && (
                       <Button
                         icon={<Shield />}
                         variant="frosted"
                         onClick={() => navigate("/admin-dashboard")}
                       >
-                        Admin
+                        {t("nav.admin")}
                       </Button>
                     )}
 
                     <Button variant="gradient" onClick={handleLogout}>
-                      Logout
+                      {t("nav.logout")}
                     </Button>
                   </>
                 )}
@@ -233,6 +230,7 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+      </div>
       </motion.nav>
 
       {/* Mobile Menu */}
@@ -294,19 +292,18 @@ export default function Navbar() {
                       icon={<LogIn />}
                       onClick={() => navigate("/login")}
                     >
-                      Login
+                      {t("nav.login")}
                     </Button>
                     <Button
                       variant="frosted"
                       icon={<UserPlus />}
                       onClick={() => navigate("/register")}
                     >
-                      Register
+                      {t("nav.register")}
                     </Button>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2 mb-6">
-                    {/* User Dashboard */}
                     <Button
                       variant="frosted"
                       icon={<LayoutDashboard />}
@@ -315,9 +312,8 @@ export default function Navbar() {
                         setIsMobileMenuOpen(false);
                       }}
                     >
-                      Dashboard
+                      {t("nav.dashboard")}
                     </Button>
-                    {/* Admin only Button */}
                     {is_admin && (
                       <Button
                         variant="frosted"
@@ -327,7 +323,7 @@ export default function Navbar() {
                           setIsMobileMenuOpen(false);
                         }}
                       >
-                        Admin
+                        {t("nav.admin")}
                       </Button>
                     )}
                     <Button
@@ -337,7 +333,7 @@ export default function Navbar() {
                         setIsMobileMenuOpen(false);
                       }}
                     >
-                      Logout
+                      {t("nav.logout")}
                     </Button>
                   </div>
                 )}
@@ -367,7 +363,7 @@ export default function Navbar() {
                   {/* Chat With Us */}
 <div className="mb-6">
      <a
-    href="https://t.me/ArbigrowOfficial"
+    href="https://t.me/+aIajLcllDPBlOTE0"
     target="_blank"
     rel="noopener noreferrer"
     className="block"
@@ -376,17 +372,20 @@ export default function Navbar() {
   <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition">
     <MessageCircle className="w-5 h-5 text-cyan-400" />
     <span className="text-sm text-gray-300">
-      Chat with us. <span className="text-green-400">We are online!</span>
+      {t("nav.chat")} <span className="text-green-400">{t("nav.online")}</span>
     </span>
   </button>
   </a>
+</div>
+<div className="mb-6 flex justify-center">
+  <LanguageSwitcher position="top" />
 </div>
    {/* Footer Section */}
 <div className="mt-10 pt-6 border-t border-white/10">
 
   {/* Follow Text */}
   <p className="text-xs text-gray-400 mb-4">
-    Follow us on social media to find out the latest updates on our progress.
+    {t("nav.followUs")}
   </p>
 
   {/* Social Icons */}
@@ -395,7 +394,7 @@ export default function Navbar() {
 
   {/* Facebook */}
   <a
-    href="https://www.facebook.com/share/189Y6dLmQq/"
+    href="https://www.facebook.com/share/1EMeQasFKm/"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 rounded-full bg-[#1877F2] 
@@ -410,7 +409,7 @@ export default function Navbar() {
 
   {/* Telegram */}
   <a
-    href="https://t.me/ArbigrowOfficial"
+    href="https://t.me/+aIajLcllDPBlOTE0"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 rounded-full bg-[#229ED9] 
@@ -425,7 +424,7 @@ export default function Navbar() {
 
   {/* YouTube */}
   <a
-    href="https://youtube.com/@arbigrow-official?si=ucCCPJtcdebgkUfZ"
+    href="https://youtube.com/@oxfordfinancialads?si=d2gVVW5NJBZyGbZF"
     target="_blank"
     rel="noopener noreferrer"
     className="w-10 h-10 rounded-full bg-[#FF0000] 
@@ -438,20 +437,17 @@ export default function Navbar() {
     <Youtube className="w-5 h-5" />
   </a>
 
-  {/* Twitter (X) */}
-  <a
-    href="https://x.com/arbigrow"
-    target="_blank"
-    rel="noopener noreferrer"
+  {/* Twitter (X) — Coming Soon */}
+  <div
     className="w-10 h-10 rounded-full bg-black 
                flex items-center justify-center 
-               text-white
-               hover:scale-110 hover:shadow-lg 
-               hover:shadow-white/30
-               transition-all duration-300"
+               text-white opacity-50 cursor-not-allowed
+               group relative"
+    title="Coming Soon"
   >
     <Twitter className="w-5 h-5" />
-  </a>
+    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">{t("nav.comingSoon")}</span>
+  </div>
 
   {/* Mail */}
   <a
@@ -480,7 +476,7 @@ export default function Navbar() {
     onClick={() => navigate("/terms-conditions")}
     className="cursor-pointer  hover:text-cyan-400 transition"
   >
-    Terms of Service
+    {t("nav.terms")}
   </span>
 
   <span className="text-gray-600">|</span>
@@ -489,7 +485,7 @@ export default function Navbar() {
     onClick={() => navigate("/privacy-policy")}
     className="cursor-pointer  hover:text-cyan-400 transition"
   >
-    Privacy Policy
+    {t("nav.privacy")}
   </span>
 
   <span className="text-gray-600">|</span>
@@ -498,7 +494,7 @@ export default function Navbar() {
     onClick={() => navigate("/legal-information")}
     className="cursor-pointer hover:text-cyan-400 transition"
   >
-   Legal Information
+   {t("nav.legal")}
   </span>
 
 </div>

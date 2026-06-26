@@ -76,15 +76,22 @@ export default function ProfileCard({ setActivePage }) {
   const [photoMsg, setPhotoMsg] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoMode, setPhotoMode] = useState("url"); // "url" | "file"
-  const [photoLoaded, setPhotoLoaded] = useState(false);
   const displayUrl = user?.profile_image_url;
+  const [photoLoaded, setPhotoLoaded] = useState(!!displayUrl);
   const initials = getInitials(user?.full_name);
   const showInitials = !displayUrl || !photoLoaded;
   const joinDate = formatJoinDate(user?.created_at);
   const lastLogin = getTimeAgo(user?.updated_at);
   const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
   const memberId = user?.referral_code ? `MEM-${user.referral_code}` : userId;
-  const kycStatus = user?.phone_number && user?.country ? "Verified" : "Pending";
+  const kycRaw = user?.kyc_status;
+  const getKycStatus = () => {
+    if (kycRaw === "approved") return "Verified";
+    if (kycRaw === "rejected") return "Rejected";
+    if (kycRaw === "pending") return "Processing";
+    return "Unverified";
+  };
+  const kycStatus = getKycStatus();
   const position = "Member";
 
   const handleSavePhoto = async () => {
@@ -113,8 +120,8 @@ export default function ProfileCard({ setActivePage }) {
         });
         setPhotoMsg("Photo saved");
       }
-      setPhotoLoaded(false);
       setUser({ profile_image_url: res.data.profile_image_url });
+      setPhotoLoaded(true);
       setShowPhotoInput(false);
       setPhotoUrl("");
       setPhotoFile(null);
@@ -127,13 +134,15 @@ export default function ProfileCard({ setActivePage }) {
     }
   };
 
-  const hasKYC = !!(user?.phone_number && user?.country);
+  const hasKYC = user?.kyc_status === "approved";
+  const kycBadgeColor = kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400";
+  const kycBadgeBg = kycRaw === "approved" ? "bg-emerald-500/10 border-emerald-500/30" : kycRaw === "pending" ? "bg-yellow-500/10 border-yellow-500/30" : "bg-red-500/10 border-red-500/30";
   const badges = [];
   if (user?.email_verified) {
     badges.push({ label: "Email Verified", icon: Mail, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" });
   }
   if (hasKYC) {
-    badges.push({ label: "KYC Verified", icon: BadgeCheck, color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/30" });
+    badges.push({ label: "KYC Verified", icon: BadgeCheck, color: kycBadgeColor, bg: kycBadgeBg });
   }
   if (user?.is_mining) {
     badges.push({ label: "Mining Active", icon: Pickaxe, color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30" });
@@ -373,8 +382,8 @@ export default function ProfileCard({ setActivePage }) {
               <span>ID: <span className="text-white/80">{userId || "-"}</span></span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-400">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
-              <span>KYC: <span className={hasKYC ? "text-emerald-400" : "text-yellow-400"}>{kycStatus}</span></span>
+              <ShieldCheck className={`w-3 h-3 ${kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400"}`} />
+              <span>KYC: <span className={kycRaw === "approved" ? "text-emerald-400" : kycRaw === "pending" ? "text-yellow-400" : "text-red-400"}>{kycStatus}</span></span>
             </div>
             <div className="flex items-center gap-1.5 text-gray-400">
               <Award className="w-3 h-3 text-purple-400" />

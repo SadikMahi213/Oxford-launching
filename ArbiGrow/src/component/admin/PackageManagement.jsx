@@ -34,6 +34,7 @@ const EMPTY_FORM = {
   daily_captcha_limit: 12,
   task_type: "captcha",
   ad_duration_seconds: 30,
+  signup_arbx_bonus: 0,
 };
 
 export default function PackageManagement() {
@@ -119,6 +120,7 @@ export default function PackageManagement() {
         daily_captcha_limit: Number(form.daily_captcha_limit) || 12,
         task_type: form.task_type || "captcha",
         ad_duration_seconds: Number(form.ad_duration_seconds) || 30,
+        signup_arbx_bonus: Number(form.signup_arbx_bonus) || 0,
       });
       setSuccessMessage(`Package "${form.name}" created successfully`);
       setShowCreate(false);
@@ -149,6 +151,7 @@ export default function PackageManagement() {
         daily_captcha_limit: Number(form.daily_captcha_limit),
         task_type: form.task_type || "captcha",
         ad_duration_seconds: Number(form.ad_duration_seconds) || 30,
+        signup_arbx_bonus: Number(form.signup_arbx_bonus) || 0,
         is_active: form.is_active,
       });
       setSuccessMessage(`Package "${form.name}" updated successfully`);
@@ -227,6 +230,7 @@ export default function PackageManagement() {
       daily_captcha_limit: pkg.daily_captcha_limit || 12,
       task_type: pkg.task_type || "captcha",
       ad_duration_seconds: pkg.ad_duration_seconds || 30,
+      signup_arbx_bonus: pkg.signup_arbx_bonus ?? 0,
       is_active: pkg.is_active,
     });
     setShowEdit(pkg);
@@ -332,6 +336,7 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tasks/Day</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">OFA Bonus</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Investors</th>
@@ -364,6 +369,7 @@ export default function PackageManagement() {
                     </td>
                     <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
                     <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
+                    <td className="px-4 py-3 text-purple-300">{(pkg.signup_arbx_bonus || 0).toFixed(2)} OFA</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.duration_days}d</td>
                     <td className="px-4 py-3">
                       <button
@@ -567,6 +573,18 @@ export default function PackageManagement() {
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">OFA Signup Bonus</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.signup_arbx_bonus}
+                  onChange={(e) => setForm({ ...form, signup_arbx_bonus: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                />
               </div>
 
               {showEdit && (

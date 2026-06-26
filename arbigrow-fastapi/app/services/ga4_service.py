@@ -14,6 +14,7 @@ from google.analytics.data_v1beta.types import (
     RunRealtimeReportRequest,
 )
 from google.oauth2.service_account import Credentials
+from google.api_core import exceptions as google_exceptions
 
 from app.core.config import settings
 
@@ -80,7 +81,14 @@ class GoogleAnalyticsService:
             limit=limit,
         )
 
-        response = self._client.run_report(request)
+        try:
+            response = self._client.run_report(request)
+        except google_exceptions.PermissionDenied as exc:
+            logger.warning("GA4 API permission denied: %s", exc)
+            raise
+        except google_exceptions.GoogleAPIError as exc:
+            logger.error("GA4 API error: %s", exc)
+            return []
         return self._rows_to_dicts(response)
 
     def _run_realtime(

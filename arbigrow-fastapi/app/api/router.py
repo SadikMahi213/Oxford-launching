@@ -5,6 +5,7 @@ from app.api.v1 import (
     kyc,
     admin,
     user,
+    user_network,
     deposit_network,
     deposits,
     investments,
@@ -20,6 +21,12 @@ from app.api.v1 import (
     invoice,
     whatsapp,
     admin_analytics,
+    admin_self_analytics,
+    tracker,
+    admin_notifications,
+    admin_security,
+    ranks,
+    admin_ranks,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -27,6 +34,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(user.router)
+api_router.include_router(user_network.router)
 api_router.include_router(kyc.router)
 api_router.include_router(admin.router)
 api_router.include_router(deposit_network.router)
@@ -44,3 +52,9 @@ api_router.include_router(admin_ads.router)
 api_router.include_router(invoice.router)
 api_router.include_router(whatsapp.router)
 api_router.include_router(admin_analytics.router)
+api_router.include_router(admin_self_analytics.router)
+api_router.include_router(tracker.router)
+api_router.include_router(admin_notifications.router)
+api_router.include_router(admin_security.router)
+api_router.include_router(ranks.router)
+api_router.include_router(admin_ranks.router)

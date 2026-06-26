@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
-from app.core.referral import REFERRAL_LEVEL_RATES
+from app.core.referral import get_referral_level_rates
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -108,15 +108,15 @@ async def _apply_referral_cascade(
     )
     active_parent_ids = set(active_result.scalars().all())
 
-    previous_reward = profit_amount
+    rates = await get_referral_level_rates(db)
 
     for level, parent_id in enumerate(parent_ids, start=1):
         parent = parents_map.get(parent_id)
         if not parent:
             continue
 
-        rate = REFERRAL_LEVEL_RATES[level]
-        reward = _to_wallet_precision((previous_reward * rate) / Decimal("100"))
+        rate = rates[level]
+        reward = _to_wallet_precision((profit_amount * rate) / Decimal("100"))
 
         if reward <= 0:
             continue
@@ -142,9 +142,7 @@ async def _apply_referral_cascade(
                     type="daily_roi",
                     created_at=now_utc,
                 )
-            )
-
-        previous_reward = reward
+                            )
 
 
 async def _process_investment(investment_id: int, now_utc: datetime) -> bool:

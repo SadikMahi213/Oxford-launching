@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import api from "../../api/axiosInstance";
+import { useTranslation } from "react-i18next";
 
 const authHeaders = () => {
   const token = useUserStore.getState().token;
@@ -34,6 +35,7 @@ const INVOICE_TYPES = [
 ];
 
 export default function InvoicePage() {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState("");
@@ -207,17 +209,17 @@ export default function InvoicePage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-1">
             <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              Invoices
+              {t("invoice.title")}
             </span>
           </h1>
-          <p className="text-gray-400 text-sm">View and download your transaction invoices</p>
+          <p className="text-gray-400 text-sm">{t("invoice.subtitle")}</p>
         </div>
         <button
           onClick={fetchInvoices}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
         >
           <RefreshCw className="w-3 h-3" />
-          Refresh
+          {t("invoice.refresh")}
         </button>
       </div>
 
@@ -229,7 +231,7 @@ export default function InvoicePage() {
           className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600/20 to-cyan-600/10 border border-blue-500/30 text-blue-300 text-sm"
         >
           <Sparkles className="w-4 h-4 animate-pulse" />
-          Generating your first invoice...
+          {t("invoice.generatingFirst")}
         </motion.div>
       )}
 
@@ -237,14 +239,14 @@ export default function InvoicePage() {
       <div>
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Sparkles className="w-3 h-3" />
-          Quick Generate
+          {t("invoice.quickGenerate")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { type: "daily", label: "Daily Summary", icon: Calendar, color: "from-blue-600/20 to-cyan-600/10 border-blue-500/30" },
-            { type: "weekly", label: "Weekly Summary", icon: Calendar, color: "from-cyan-600/20 to-teal-600/10 border-cyan-500/30" },
-            { type: "monthly", label: "Monthly Summary", icon: Calendar, color: "from-purple-600/20 to-violet-600/10 border-purple-500/30" },
-            { type: "statement", label: "Full Statement", icon: FileBarChart, color: "from-amber-600/20 to-orange-600/10 border-amber-500/30" },
+            { type: "daily", labelKey: "dailySummary", icon: Calendar, color: "from-blue-600/20 to-cyan-600/10 border-blue-500/30" },
+            { type: "weekly", labelKey: "weeklySummary", icon: Calendar, color: "from-cyan-600/20 to-teal-600/10 border-cyan-500/30" },
+            { type: "monthly", labelKey: "monthlySummary", icon: Calendar, color: "from-purple-600/20 to-violet-600/10 border-purple-500/30" },
+            { type: "statement", labelKey: "fullStatement", icon: FileBarChart, color: "from-amber-600/20 to-orange-600/10 border-amber-500/30" },
           ].map((btn) => (
             <motion.button
               key={btn.type}
@@ -260,7 +262,7 @@ export default function InvoicePage() {
                 <btn.icon className="w-5 h-5 text-white" />
               )}
               <span className="text-xs font-semibold text-white/80">
-                {generating === btn.type ? "Generating..." : btn.label}
+                {generating === btn.type ? t("invoice.generating") : t("invoice." + btn.labelKey)}
               </span>
             </motion.button>
           ))}
@@ -281,7 +283,7 @@ export default function InvoicePage() {
               }`}
             >
               <type.icon className="w-3 h-3" />
-              {type.label}
+              {type.value ? t("invoice." + type.value) : t("invoice.allInvoices")}
             </button>
           ))}
         </div>
@@ -296,7 +298,7 @@ export default function InvoicePage() {
         <div className="p-4 md:p-5 border-b border-white/10">
           <h2 className="font-bold text-white flex items-center gap-2">
             <FileText className="w-4 h-4 text-cyan-400" />
-            Your Invoices
+            {t("invoice.yourInvoices")}
             <span className="text-xs text-gray-500 font-normal ml-2">
               ({invoices.length})
             </span>
@@ -306,16 +308,16 @@ export default function InvoicePage() {
         {loading ? (
           <div className="p-8 text-center">
             <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-cyan-400" />
-            <p className="text-gray-400 text-sm">Loading invoices...</p>
+            <p className="text-gray-400 text-sm">{t("invoice.loadingInvoices")}</p>
           </div>
         ) : invoices.length === 0 && !autoGenerated ? (
           <div className="p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/10 flex items-center justify-center mx-auto mb-4">
               <FileText className="w-8 h-8 text-cyan-400" />
             </div>
-            <p className="text-gray-300 font-semibold">No invoices yet</p>
+            <p className="text-gray-300 font-semibold">{t("invoice.noInvoices")}</p>
             <p className="text-gray-500 text-xs mt-1 max-w-xs mx-auto">
-              Click any Quick Generate button above to create a transaction summary invoice
+              {t("invoice.noInvoicesDesc")}
             </p>
             <div className="flex flex-wrap gap-2 justify-center mt-4">
               <button
@@ -328,7 +330,7 @@ export default function InvoicePage() {
                 ) : (
                   <Sparkles className="w-3 h-3" />
                 )}
-                Generate Daily
+                {t("invoice.generateDaily")}
               </button>
               <button
                 onClick={() => generateInvoice("statement")}
@@ -340,7 +342,7 @@ export default function InvoicePage() {
                 ) : (
                   <FileBarChart className="w-3 h-3" />
                 )}
-                Generate Statement
+                {t("invoice.generateStatement")}
               </button>
             </div>
           </div>
@@ -386,7 +388,7 @@ export default function InvoicePage() {
                     inv.status === "failed" ? "bg-red-500/10 text-red-400" :
                     "bg-yellow-500/10 text-yellow-400"
                   }`}>
-                    {inv.status === "generated" ? "Ready" : inv.status}
+                    {inv.status === "generated" ? t("invoice.ready") : inv.status}
                   </span>
 
                   <button
@@ -397,7 +399,7 @@ export default function InvoicePage() {
                         ? "bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 border border-white/10 hover:border-blue-500/30"
                         : "bg-white/[0.02] text-gray-600 cursor-not-allowed"
                     }`}
-                    title="View PDF"
+                    title={t("invoice.viewPdf")}
                   >
                     {isDownloading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -414,7 +416,7 @@ export default function InvoicePage() {
                         ? "bg-white/5 hover:bg-cyan-500/20 text-gray-400 hover:text-cyan-400 border border-white/10 hover:border-cyan-500/30"
                         : "bg-white/[0.02] text-gray-600 cursor-not-allowed"
                     }`}
-                    title="Download PDF"
+                    title={t("invoice.downloadPdf")}
                   >
                     {isDownloading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -437,11 +439,10 @@ export default function InvoicePage() {
         >
           <h3 className="font-bold text-white text-sm flex items-center gap-2 mb-3">
             <CheckCircle2 className="w-4 h-4 text-green-400" />
-            Need Help?
+            {t("invoice.needHelp")}
           </h3>
           <p className="text-gray-400 text-xs">
-            Invoices are automatically generated when deposits and withdrawals are approved.
-            Use the Quick Generate buttons above to create periodic summaries anytime.
+            {t("invoice.helpDesc")}
           </p>
         </motion.div>
       )}
