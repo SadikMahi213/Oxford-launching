@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "motion/react"
 import { BadgeCheck, IdCard, ShieldCheck, CalendarDays, Crown, Camera, Check, X } from "lucide-react"
 import useUserStore from "../../store/userStore"
+import { getUserRankInfo } from "../../api/user.api.js"
 import api from "../../api/axiosInstance.js"
 
 function getInitials(name) {
@@ -37,6 +38,7 @@ function InfoBox({ label, value, icon: Icon, accent }) {
 
 export default function ProfileIdentityCard() {
   const { user, setUser } = useUserStore()
+  const [currentRank, setCurrentRank] = useState(null)
   const initials = getInitials(user?.full_name)
   const joinDate = formatDate(user?.created_at)
   const userId = user?.id ? `financial@${user.id}` : "-"
@@ -61,6 +63,22 @@ export default function ProfileIdentityCard() {
   const [photoMode, setPhotoMode] = useState("url")
   const [photoLoading, setPhotoLoading] = useState(false)
   const [photoMsg, setPhotoMsg] = useState("")
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchRank = async () => {
+      try {
+        const res = await getUserRankInfo()
+        if (!cancelled && res?.data?.current_rank) {
+          setCurrentRank(res.data.current_rank)
+        }
+      } catch {
+        // rank fetch is non-critical
+      }
+    }
+    fetchRank()
+    return () => { cancelled = true }
+  }, [])
 
   const handleSavePhoto = async () => {
     setPhotoLoading(true)
@@ -241,7 +259,7 @@ export default function ProfileIdentityCard() {
                 <Crown className="w-4 h-4 text-cyan-400" />
                 <div>
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider">Position</p>
-                  <p className="text-sm font-semibold text-white">Member</p>
+                  <p className="text-sm font-semibold text-white">{currentRank?.name || "Member"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
