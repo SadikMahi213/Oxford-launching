@@ -624,7 +624,7 @@ export default function UserDetailModal({
                         <div className="p-2 bg-white/5 text-center text-sm text-gray-400">
                           {selectedUser?.documentType === "passport"
                             ? "Passport"
-                            : selectedUser?.documentType === "driving_licence"
+                            : selectedUser?.documentType === "driving_license"
                               ? idx === 0
                                 ? "Driving Licence Front"
                                 : "Driving Licence Back"

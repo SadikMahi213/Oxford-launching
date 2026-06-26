@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from decimal import Decimal, ROUND_HALF_UP
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.models.kyc import KYC, DocumentType
+from app.models.user import User
+from app.models.system_config import SystemConfig
 from app.services.b2_service import upload_to_b2
 from app.utils.notifications import notify_admin
 
 router = APIRouter(prefix="/kyc", tags=["KYC"])
+
+WALLET_PRECISION = Decimal("0.00000000000001")
 
 
 @router.post("/submit")
@@ -37,6 +42,28 @@ async def submit_kyc(
 
     if existing_kyc:
         raise HTTPException(status_code=400, detail="KYC already submitted")
+
+    # Dynamic KYC fee check
+    fee_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "kyc_fee")
+    )
+    kyc_fee_config = fee_result.scalar_one_or_none()
+    kyc_fee = Decimal(kyc_fee_config.value) if kyc_fee_config else Decimal("0")
+
+    user_result = await db.execute(select(User).where(User.id == user_id))
+    user = user_result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if kyc_fee > 0:
+        if user.main_wallet < kyc_fee:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient balance. KYC verification requires {kyc_fee} USDT. Your main wallet balance is {user.main_wallet} USDT.",
+            )
+        user.main_wallet = (user.main_wallet - kyc_fee).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
 
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
@@ -80,5 +107,6 @@ async def submit_kyc(
 
     return {
         "message": "KYC submitted successfully",
-        "status": new_kyc.status
+        "status": new_kyc.status,
+        "fee_deducted": str(kyc_fee) if kyc_fee > 0 else "0",
     }

@@ -1,10 +1,11 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users } from "lucide-react";
+import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users, DollarSign } from "lucide-react";
 import useUserStore from "../../store/userStore";
 import {
   getSystemConfig, updateSystemConfig,
   getMiningConfig, updateMiningConfig, getMiningStats,
+  getFeeConfig, updateFeeConfig,
 } from "../../api/admin.api.js";
 
 const FEATURE_LABELS = {
@@ -18,11 +19,13 @@ const SystemConfigPanel = () => {
   const [config, setConfig] = useState({});
   const [miningConfig, setMiningConfig] = useState({});
   const [miningStats, setMiningStats] = useState({ data: [], total_active_miners: 0 });
+  const [feeConfig, setFeeConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState("");
   const [capInput, setCapInput] = useState("");
   const [rateInput, setRateInput] = useState("");
   const [cooldownInput, setCooldownInput] = useState("");
+  const [kycFeeInput, setKycFeeInput] = useState("");
   const [miningPage, setMiningPage] = useState(1);
 
   useEffect(() => {
@@ -32,6 +35,7 @@ const SystemConfigPanel = () => {
       getSystemConfig(token).then((r) => setConfig(r.data || {})),
       getMiningConfig(token).then((r) => setMiningConfig(r.data || {})),
       getMiningStats(token, 1).then((r) => setMiningStats(r)),
+      getFeeConfig(token).then((r) => setFeeConfig(r.data || {})),
     ])
       .catch(() => setMsg("Failed to load config"))
       .finally(() => setLoading(false));
@@ -92,6 +96,18 @@ const SystemConfigPanel = () => {
       setMiningConfig({ ...miningConfig, mining_claim_cooldown_minutes: cooldownInput.trim() });
       setMsg(`Claim cooldown set to ${cooldownInput.trim()} minutes`);
       setCooldownInput("");
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const saveKycFee = async () => {
+    if (!kycFeeInput.trim()) return;
+    try {
+      await updateFeeConfig(token, "kyc_fee", kycFeeInput.trim());
+      setFeeConfig({ ...feeConfig, kyc_fee: kycFeeInput.trim() });
+      setMsg(`KYC fee set to ${kycFeeInput.trim()} USDT`);
+      setKycFeeInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -220,6 +236,32 @@ const SystemConfigPanel = () => {
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
               >Save</button>
               <span className="text-xs text-gray-500">Min wait: {miningConfig.mining_claim_cooldown_minutes || "1"} min</span>
+            </div>
+          </motion.div>
+
+          {/* Fee Configuration */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-4"
+          >
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-400" /> Fee Configuration
+            </h3>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">KYC Fee (USDT):</label>
+              <input
+                value={kycFeeInput}
+                onChange={(e) => setKycFeeInput(e.target.value)}
+                placeholder={feeConfig.kyc_fee || "0"}
+                className="w-24 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                type="number"
+                min="0"
+                step="0.01"
+              />
+              <button onClick={saveKycFee}
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
+              >Save</button>
+              <span className="text-xs text-gray-500">Current: {feeConfig.kyc_fee || "0"} USDT</span>
             </div>
           </motion.div>
 

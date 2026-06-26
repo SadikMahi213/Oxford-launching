@@ -14,7 +14,6 @@ from app.api.v1.deps import get_current_user
 from app.core.rate_limiter import limiter
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.utils.notifications import notify_admin
-from app.utils.kyc_helper import check_kyc_approved
 
 
 router = APIRouter(prefix="/investments", tags=["Investments"])
@@ -43,7 +42,6 @@ async def buy_investment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await check_kyc_approved(current_user, db)
     if (current_user.account_status or "").lower() == "on_hold":
         issue_note = (current_user.account_issue or "").strip()
         detail = "Your account is on hold. Investment purchases are currently disabled."

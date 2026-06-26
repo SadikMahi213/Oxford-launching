@@ -698,7 +698,6 @@ async def wallet_transfer(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await check_kyc_approved(current_user, db)
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
 
@@ -743,7 +742,6 @@ async def convert_ofa_to_usdt(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await check_kyc_approved(current_user, db)
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
     cfg = result.scalar_one_or_none()
     OFA_TO_USDT_RATE = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
@@ -1086,4 +1084,26 @@ async def get_user_list(
             }
             for u in users
         ],
+    }
+
+
+@router.get("/fee-info")
+async def get_fee_info(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "kyc_fee")
+    )
+    cfg = result.scalar_one_or_none()
+    kyc_fee = Decimal(cfg.value) if cfg and cfg.value else Decimal("0")
+
+    kyc_result = await db.execute(
+        select(KYC).where(KYC.user_id == current_user.id)
+    )
+    existing_kyc = kyc_result.scalar_one_or_none()
+
+    return {
+        "kyc_fee": str(kyc_fee),
+        "has_kyc": existing_kyc is not None,
     }

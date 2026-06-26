@@ -371,6 +371,16 @@ export const getMiningStats = async (token, page = 1) => {
   return res.data || {};
 };
 
+export const getFeeConfig = async (token) => {
+  const res = await api.get("v1/admin/fee-config", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateFeeConfig = async (token, key, value) => {
+  const res = await api.put(`v1/admin/fee-config/${key}`, { value }, authHeaders(token));
+  return res.data || {};
+};
+
 // ── Package Management ──────────────────────────────────────────────────
 
 export const getAdminPackages = async (token) => {

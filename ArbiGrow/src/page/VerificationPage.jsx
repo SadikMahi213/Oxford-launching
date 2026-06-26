@@ -14,6 +14,7 @@ import {
   Car,
 } from "lucide-react";
 import { submitKYC } from "../api/kyc.api.js";
+import { getFeeInfo } from "../api/user.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
 import { useNavigate } from "react-router";
 import { countries } from "../constants/countries";
@@ -39,6 +40,8 @@ export default function VerificationPage({ embedded, onSuccess }) {
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [profileImageUploading, setProfileImageUploading] = useState(false);
   const [profileImageMsg, setProfileImageMsg] = useState("");
+  const [kycFee, setKycFee] = useState("0");
+  const [hasExistingKyc, setHasExistingKyc] = useState(false);
 
   const frontInputRef = useRef(null);
   const backInputRef = useRef(null);
@@ -68,6 +71,16 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
     return () => URL.revokeObjectURL(previewUrl);
   }, [backImage]);
+
+  useEffect(() => {
+    getFeeInfo().then((res) => {
+      const data = res?.data;
+      if (data) {
+        setKycFee(data.kyc_fee || "0");
+        setHasExistingKyc(data.has_kyc || false);
+      }
+    }).catch(() => {});
+  }, []);
 
   const validateImageFile = (file) => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp", "application/pdf"];
@@ -184,6 +197,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
     if (idType !== "passport" && !backImage) {
       setError("Please upload the back image");
+      return;
+    }
+
+    if (!hasExistingKyc && parseFloat(kycFee) > 0 && parseFloat(user?.main_wallet || 0) < parseFloat(kycFee)) {
+      setError(`Insufficient balance. KYC fee is ${kycFee} USDT but your main wallet has ${user?.main_wallet || 0} USDT.`);
       return;
     }
 
@@ -507,22 +525,22 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
                 <button
                   type="button"
-                  onClick={() => setIdType("driving_licence")}
+                  onClick={() => setIdType("driving_license")}
                   className={`relative p-4 rounded-xl border transition-all duration-300 ${
-                    idType === "driving_licence"
+                    idType === "driving_license"
                       ? "bg-amber-500/20 border-amber-500/50 shadow-lg shadow-amber-500/20"
                       : "bg-white/5 border-white/10 hover:bg-white/10"
                   }`}
                 >
                   <Car
-                    className={`w-6 h-6 mx-auto mb-2 ${idType === "driving_licence" ? "text-amber-400" : "text-gray-400"}`}
+                    className={`w-6 h-6 mx-auto mb-2 ${idType === "driving_license" ? "text-amber-400" : "text-gray-400"}`}
                   />
                   <div
-                    className={`text-sm font-semibold ${idType === "driving_licence" ? "text-white" : "text-gray-400"}`}
+                    className={`text-sm font-semibold ${idType === "driving_license" ? "text-white" : "text-gray-400"}`}
                   >
                     Driving Licence
                   </div>
-                  {idType === "driving_licence" && (
+                  {idType === "driving_license" && (
                     <motion.div
                       layoutId="activeIndicator"
                       className="absolute inset-0 rounded-xl border-2 border-amber-400"
@@ -534,7 +552,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
               {/* ID Number Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {idType === "nid" ? "National ID Number" : idType === "driving_licence" ? "Driving Licence Number" : "Passport Number"}
+                  {idType === "nid" ? "National ID Number" : idType === "driving_license" ? "Driving Licence Number" : "Passport Number"}
                 </label>
 
                 <div className="relative flex items-center">
@@ -569,6 +587,26 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   )}
                 </div>
               </div>
+
+              {/* KYC Fee Notice */}
+              {parseFloat(kycFee) > 0 && !hasExistingKyc && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-gray-300">
+                      <p className="font-medium text-amber-300">KYC Verification Fee</p>
+                      <p className="mt-1">
+                        A fee of <strong>{kycFee} USDT</strong> will be deducted from your main wallet for KYC processing.
+                      </p>
+                      {parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
+                        <p className="mt-1 text-red-400 text-xs">
+                          Insufficient balance. Your main wallet has {user?.main_wallet || 0} USDT.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* File Uploads */}
               <div className="space-y-4">

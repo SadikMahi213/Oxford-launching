@@ -15,7 +15,6 @@ from app.models.product import Product
 from app.models.order import Order, OrderItem
 from app.models.ecommerce_config import EcommerceConfig
 from app.services.b2_service import upload_to_b2, generate_presigned_url
-from app.utils.kyc_helper import check_kyc_approved
 
 router = APIRouter(prefix="/ecommerce", tags=["Ecommerce"])
 
@@ -231,7 +230,6 @@ async def transfer_to_ecommerce_wallet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await check_kyc_approved(current_user, db)
     dec_amount = Decimal(str(amount)).quantize(WALLET_PRECISION)
     available = current_user.main_wallet or Decimal("0")
     if available < dec_amount:
@@ -272,7 +270,6 @@ async def create_product(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await check_kyc_approved(current_user, db)
     seller = await _get_seller(db, current_user, seller_id)
     if not seller:
         raise HTTPException(400, "You must be a seller to add products")
