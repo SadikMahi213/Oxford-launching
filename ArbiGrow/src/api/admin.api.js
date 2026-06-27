@@ -633,6 +633,11 @@ export const deleteAdminRank = async (token, rankId) => {
   await api.delete(`v1/admin/ranks/${rankId}`, authHeaders(token));
 };
 
+export const getRankDistribution = async (token) => {
+  const res = await api.get("v1/admin/ranks/distribution", authHeaders(token));
+  return res.data || {};
+};
+
 export const getAllRankHistory = async (token, { user_id, page = 1, limit = 50 } = {}) => {
   const params = new URLSearchParams();
   if (user_id) params.append("user_id", user_id);

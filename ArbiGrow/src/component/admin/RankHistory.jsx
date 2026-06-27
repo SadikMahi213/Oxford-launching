@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import useUserStore from "../../store/userStore.js";
 import { getAllRankHistory, getAdminRanks } from "../../api/admin.api.js";
-import { Trophy, TrendingUp } from "lucide-react";
+import RankDistribution from "./RankDistribution.jsx";
+import { Trophy, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
@@ -16,7 +17,7 @@ export default function RankHistoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [filterUser, setFilterUser] = useState("");
+  const [showDistribution, setShowDistribution] = useState(true);
 
   const rankMap = {};
   ranks.forEach((r) => { rankMap[r.id] = r; });
@@ -60,14 +61,22 @@ export default function RankHistoryPage() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        <input
-          type="text"
-          placeholder="Filter by User ID"
-          value={filterUser}
-          onChange={(e) => { setFilterUser(e.target.value); setPage(1); }}
-          className="w-48 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-sm text-white"
-        />
+      <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] overflow-hidden">
+        <button
+          onClick={() => setShowDistribution(!showDistribution)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Trophy className="size-4 text-yellow-400" />
+            Position List Check — Rank Distribution
+          </span>
+          {showDistribution ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+        </button>
+        {showDistribution && (
+          <div className="px-4 pb-4">
+            <RankDistribution />
+          </div>
+        )}
       </div>
 
       {loading ? (

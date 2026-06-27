@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import useUserStore from "../../store/userStore.js";
 import { getAllMatchingBonuses } from "../../api/admin.api.js";
-import { DollarSign } from "lucide-react";
+import RankDistribution from "./RankDistribution.jsx";
+import { DollarSign, Trophy, ChevronDown, ChevronUp } from "lucide-react";
 
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
@@ -15,15 +16,14 @@ export default function BonusHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const [filterUser, setFilterUser] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [showDistribution, setShowDistribution] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const data = await getAllMatchingBonuses(token, {
-        user_id: filterUser || undefined,
         bonus_type: filterType || undefined,
         page,
         limit: 50,
@@ -33,7 +33,7 @@ export default function BonusHistory() {
       setError(getErrorMessage(e));
     }
     setLoading(false);
-  }, [token, page, filterUser, filterType]);
+  }, [token, page, filterType]);
 
   useEffect(() => {
     if (token) load();
@@ -56,28 +56,40 @@ export default function BonusHistory() {
         </div>
       )}
 
-      <div className="flex gap-4">
-        <input
-          type="text"
-          placeholder="Filter by User ID"
-          value={filterUser}
-          onChange={(e) => { setFilterUser(e.target.value); setPage(1); }}
-          className="w-48 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-sm text-white"
-        />
-        <select
-          value={filterType}
-          onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
-          className="w-48 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-sm text-white"
-        >
-          <option value="">All Types</option>
-          <option value="matching">Matching</option>
-          <option value="extra">Extra</option>
-          <option value="travel">Travel</option>
-          <option value="company_profit">Company Profit</option>
-          <option value="development">Development</option>
-          <option value="international">International</option>
-          <option value="position">Position</option>
-        </select>
+      <div className="space-y-4">
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] overflow-hidden">
+          <button
+            onClick={() => setShowDistribution(!showDistribution)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Trophy className="size-4 text-yellow-400" />
+              Position List Check — Rank Distribution
+            </span>
+            {showDistribution ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+          {showDistribution && (
+            <div className="px-4 pb-4">
+              <RankDistribution />
+            </div>
+          )}
+        </div>
+        <div className="flex gap-4">
+          <select
+            value={filterType}
+            onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
+            className="w-48 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-sm text-white"
+          >
+            <option value="">All Types</option>
+            <option value="matching">Matching</option>
+            <option value="extra">Extra</option>
+            <option value="travel">Travel</option>
+            <option value="company_profit">Company Profit</option>
+            <option value="development">Development</option>
+            <option value="international">International</option>
+            <option value="position">Position</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (

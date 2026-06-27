@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -31,6 +31,41 @@ async def list_ranks(
         select(Rank).order_by(Rank.sort_order.asc())
     )
     return result.scalars().all()
+
+
+@router.get("/distribution")
+async def rank_distribution(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(
+        select(
+            Rank.id,
+            Rank.name,
+            Rank.slug,
+            Rank.sort_order,
+            func.count(User.id).label("user_count"),
+        )
+        .outerjoin(User, User.current_rank_id == Rank.id)
+        .group_by(Rank.id, Rank.name, Rank.slug, Rank.sort_order)
+        .order_by(Rank.sort_order.asc())
+    )
+    rows = result.all()
+    total_users = sum(r.user_count for r in rows)
+    return {
+        "total_users": total_users,
+        "ranks": [
+            {
+                "rank_id": r.id,
+                "rank_name": r.name,
+                "slug": r.slug,
+                "sort_order": r.sort_order,
+                "user_count": r.user_count,
+                "percentage": round(r.user_count / total_users * 100, 2) if total_users > 0 else 0,
+            }
+            for r in rows
+        ],
+    }
 
 
 @router.get("/{rank_id}", response_model=RankResponse)
