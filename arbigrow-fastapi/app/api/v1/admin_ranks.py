@@ -92,8 +92,8 @@ async def update_rank(
     if not rank:
         raise HTTPException(status_code=404, detail="Rank not found")
 
-    update_data = payload.model_dump(exclude_unset=True)
-    bonus_configs = update_data.pop("bonus_configs", None)
+    bonus_configs = payload.bonus_configs
+    update_data = payload.model_dump(exclude={"bonus_configs"}, exclude_unset=True)
 
     for field, value in update_data.items():
         setattr(rank, field, value)
