@@ -78,6 +78,7 @@ export default function KYCRequests() {
       setIsDrawerOpen(true);
     } catch (err) {
       console.error(err);
+      alert("Failed to load KYC details: " + (err.response?.data?.detail || err.message));
     }
   };
 

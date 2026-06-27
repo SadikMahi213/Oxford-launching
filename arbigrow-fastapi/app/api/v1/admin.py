@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_, case, delete, update, desc, desc
+from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -504,7 +505,7 @@ async def get_user_details(
         raise HTTPException(status_code=404, detail="User not found")
 
     kyc_result = await db.execute(
-        select(KYC).where(KYC.user_id == user.id)
+        select(KYC).options(selectinload(KYC.package)).where(KYC.user_id == user.id)
     )
     kyc = kyc_result.scalar_one_or_none()
 
