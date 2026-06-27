@@ -27,13 +27,6 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 # Withdrawal charge now read dynamically from SystemConfig (withdrawal_charge_percent)
 ALLOWED_SOURCE_WALLETS = {
     "main_wallet",
-    "arbx_wallet",
-    "deposit_wallet",
-    "withdraw_wallet",
-    "referral_wallet",
-    "generation_wallet",
-    "captcha_wallet",
-    "ad_view_wallet",
 }
 
 

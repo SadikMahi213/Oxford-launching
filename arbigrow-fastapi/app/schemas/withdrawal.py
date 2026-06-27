@@ -6,11 +6,6 @@ from pydantic import BaseModel, Field
 
 AllowedSourceWallet = Literal[
     "main_wallet",
-    "arbx_wallet",
-    "deposit_wallet",
-    "withdraw_wallet",
-    "referral_wallet",
-    "generation_wallet",
 ]
 
 AllowedWithdrawalStatus = Literal["approved", "rejected"]

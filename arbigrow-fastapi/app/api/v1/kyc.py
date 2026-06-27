@@ -97,12 +97,12 @@ async def submit_kyc(
         raise HTTPException(status_code=404, detail="User not found")
 
     if kyc_fee > 0:
-        if user.main_wallet < kyc_fee:
+        if user.deposit_wallet < kyc_fee:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient balance. KYC verification requires {kyc_fee} USDT. Your main wallet balance is {user.main_wallet} USDT.",
+                detail=f"Insufficient balance. KYC verification requires {kyc_fee} USDT. Your deposit wallet balance is {user.deposit_wallet} USDT.",
             )
-        user.main_wallet = (user.main_wallet - kyc_fee).quantize(
+        user.deposit_wallet = (user.deposit_wallet - kyc_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
 

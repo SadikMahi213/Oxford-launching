@@ -5,50 +5,44 @@ import { ArrowLeftRight, ArrowRight, Wallet, Coins, Users, TrendingUp, ShoppingC
 import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 
-const WALLET_OPTIONS = [
-  { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT" },
+const FROM_WALLET_OPTIONS = [
+  { value: "deposit_wallet", label: "Deposit Wallet", icon: Wallet, currency: "USDT", description: "KYC & transfers" },
   { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
   { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
   { value: "matching_bonus_wallet", label: "Matching Bonus Wallet", icon: Award, currency: "USDT" },
   { value: "ecommerce_wallet", label: "Ecommerce Wallet", icon: ShoppingCart, currency: "USDT" },
   { value: "captcha_wallet", label: "Captcha Typing Wallet", icon: Keyboard, currency: "USDT" },
   { value: "ad_view_wallet", label: "Ad View Wallet", icon: Eye, currency: "USDT" },
-  { value: "arbx_wallet", label: "OFA token Wallet", icon: Coins, currency: "OFA", comingSoon: true },
-  { value: "arbx_mining_wallet", label: "Mining Wallet", icon: Pickaxe, currency: "OFA", comingSoon: true },
+];
+
+const TO_WALLET_OPTIONS = [
+  { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT", description: "Purchase, invest, withdraw" },
 ];
 
 const walletBalances = (user) => ({
   main_wallet: Number(user?.main_wallet ?? 0),
+  deposit_wallet: Number(user?.deposit_wallet ?? 0),
   referral_wallet: Number(user?.referral_wallet ?? 0),
   generation_wallet: Number(user?.generation_wallet ?? 0),
   matching_bonus_wallet: Number(user?.matching_bonus_wallet ?? 0),
   ecommerce_wallet: Number(user?.ecommerce_wallet ?? 0),
   captcha_wallet: Number(user?.captcha_wallet ?? 0),
   ad_view_wallet: Number(user?.ad_view_wallet ?? 0),
-  arbx_wallet: Number(user?.arbx_wallet ?? 0),
-  arbx_mining_wallet: Number(user?.arbx_mining_wallet ?? 0),
 });
 
 export default function WalletTransfer() {
   const { t } = useTranslation();
   const { user, setUser } = useUserStore();
   const balances = walletBalances(user);
-  const [fromWallet, setFromWallet] = useState("main_wallet");
-  const [toWallet, setToWallet] = useState("referral_wallet");
+  const [fromWallet, setFromWallet] = useState("referral_wallet");
+  const [toWallet, setToWallet] = useState("main_wallet");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const swapWallets = () => {
-    setFromWallet(toWallet);
-    setToWallet(fromWallet);
-  };
-
-  const fromWalletData = WALLET_OPTIONS.find((w) => w.value === fromWallet);
-  const toWalletData = WALLET_OPTIONS.find((w) => w.value === toWallet);
-
-  const isOFAWalletSelected = fromWalletData?.comingSoon || toWalletData?.comingSoon;
+  const fromWalletData = FROM_WALLET_OPTIONS.find((w) => w.value === fromWallet);
+  const toWalletData = TO_WALLET_OPTIONS.find((w) => w.value === toWallet);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,10 +51,6 @@ export default function WalletTransfer() {
 
     if (!amount || parseFloat(amount) <= 0) {
       setMessage(t('walletTransfer.err_amount'));
-      return;
-    }
-    if (fromWallet === toWallet) {
-      setMessage(t('walletTransfer.err_sameWallet'));
       return;
     }
     if (parseFloat(amount) > balances[fromWallet]) {
@@ -120,37 +110,26 @@ export default function WalletTransfer() {
                 onChange={(e) => setFromWallet(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 appearance-none"
               >
-                {WALLET_OPTIONS.map((w) => (
+                {FROM_WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? ` [${t('walletTransfer.comingSoon')}]` : ""}
+                    {w.label} (${balances[w.value].toFixed(2)})
                   </option>
                 ))}
               </select>
             </div>
 
             <div className="flex justify-center md:col-span-1">
-              <button
-                type="button"
-                onClick={swapWallets}
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-cyan-500/20 transition-colors"
-              >
+              <div className="w-10 h-10 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
                 <ArrowRight className="w-5 h-5 text-cyan-400" />
-              </button>
+              </div>
             </div>
 
             <div className="md:col-span-2">
               <label className="block text-sm text-gray-400 mb-2">{t('walletTransfer.to')}</label>
-              <select
-                value={toWallet}
-                onChange={(e) => setToWallet(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50 appearance-none"
-              >
-                {WALLET_OPTIONS.map((w) => (
-                  <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} ({balances[w.value].toFixed(w.currency === "OFA" ? 7 : 2)}){w.comingSoon ? ` [${t('walletTransfer.comingSoon')}]` : ""}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-between">
+                <span>{toWalletData?.label}</span>
+                <span className="text-sm text-gray-400">${balances[toWallet].toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -158,13 +137,13 @@ export default function WalletTransfer() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-400">{t('walletTransfer.fromBalance')}</span>
               <span className="text-sm text-white font-medium">
-                {fromWalletData?.currency === "USDT" ? "$" : ""}{balances[fromWallet].toFixed(fromWalletData?.currency === "OFA" ? 7 : 2)} {fromWalletData?.currency === "OFA" ? "OFA" : ""}
+                ${balances[fromWallet].toFixed(2)}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-400">{t('walletTransfer.toBalance')}</span>
               <span className="text-sm text-white font-medium">
-                {toWalletData?.currency === "USDT" ? "$" : ""}{balances[toWallet].toFixed(toWalletData?.currency === "OFA" ? 7 : 2)} {toWalletData?.currency === "OFA" ? "OFA" : ""}
+                ${balances[toWallet].toFixed(2)}
               </span>
             </div>
           </div>
@@ -181,9 +160,7 @@ export default function WalletTransfer() {
                 placeholder={t('walletTransfer.amount_plh')}
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-cyan-500/50"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                {fromWalletData?.currency === "USDT" ? "USDT" : "OFA"}
-              </span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">USDT</span>
             </div>
           </div>
 
@@ -193,21 +170,12 @@ export default function WalletTransfer() {
             </p>
           )}
 
-          {isOFAWalletSelected && (
-            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center gap-3">
-              <Clock className="w-5 h-5 text-yellow-400 shrink-0" />
-              <p className="text-sm text-yellow-300">
-                {t('walletTransfer.ofaComingSoon')}
-              </p>
-            </div>
-          )}
-
           <button
             type="submit"
-            disabled={loading || isOFAWalletSelected}
+            disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {loading ? t('walletTransfer.transferring') : isOFAWalletSelected ? t('walletTransfer.comingSoon') : t('walletTransfer.transfer')}
+            {loading ? t('walletTransfer.transferring') : t('walletTransfer.transfer')}
           </button>
         </form>
       </div>

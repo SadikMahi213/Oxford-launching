@@ -701,33 +701,27 @@ async def wallet_transfer(
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
 
-    ofa_wallets = {"arbx_wallet", "arbx_mining_wallet"}
-    if data.from_wallet in ofa_wallets or data.to_wallet in ofa_wallets:
-        raise HTTPException(status_code=400, detail="OFA token transfers are coming soon")
-
-    if data.from_wallet == "withdraw_wallet" or data.to_wallet == "withdraw_wallet":
-        raise HTTPException(status_code=400, detail="Withdrawal balance cannot be transferred")
-
-    if data.from_wallet == "deposit_wallet" or data.to_wallet == "deposit_wallet":
-        raise HTTPException(status_code=400, detail="Deposit balance cannot be transferred")
-
-    from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
+    from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
+    to_balance = getattr(current_user, data.to_wallet) or Decimal("0")
 
     if from_balance < amount:
         raise HTTPException(status_code=400, detail=f"Insufficient balance in {data.from_wallet}")
+
+    setattr(current_user, data.from_wallet, (from_balance - amount).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP))
+    setattr(current_user, data.to_wallet, (to_balance + amount).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP))
 
     await db.commit()
     await db.refresh(current_user)
 
     await notify_admin(
         db=db, type="wallet_transfer",
-        message=f"User {current_user.full_name} initiated transfer of {float(amount)} from {data.from_wallet} to {data.to_wallet}",
+        message=f"User {current_user.full_name} transferred {float(amount)} from {data.from_wallet} to {data.to_wallet}",
         user_id=current_user.id, request=request,
     )
 
     return WalletTransferResponse(
-        message=f"Transfer of {float(amount)} from {data.from_wallet} to {data.to_wallet} recorded",
+        message=f"Transfer of {float(amount)} from {data.from_wallet} to {data.to_wallet} completed",
         from_wallet=data.from_wallet,
         to_wallet=data.to_wallet,
         amount=float(amount),

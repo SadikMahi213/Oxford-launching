@@ -168,17 +168,20 @@ class ReferralNetworkResponse(BaseModel):
         json_encoders = {Decimal: lambda v: format(v, ".14f")}
 
 
-ALLOWED_WALLETS = [
-    "main_wallet",
+TRANSFER_FROM_WALLETS = [
+    "deposit_wallet",
     "referral_wallet", "generation_wallet", "ecommerce_wallet",
-    "arbx_wallet", "arbx_mining_wallet",
     "captcha_wallet", "ad_view_wallet", "matching_bonus_wallet",
+]
+
+TRANSFER_TO_WALLETS = [
+    "main_wallet",
 ]
 
 
 class WalletTransferRequest(BaseModel):
-    from_wallet: str = Field(..., pattern=f"^({'|'.join(ALLOWED_WALLETS)})$")
-    to_wallet: str = Field(..., pattern=f"^({'|'.join(ALLOWED_WALLETS)})$")
+    from_wallet: str = Field(..., pattern=f"^({'|'.join(TRANSFER_FROM_WALLETS)})$")
+    to_wallet: str = Field(..., pattern=f"^({'|'.join(TRANSFER_TO_WALLETS)})$")
     amount: Decimal = Field(gt=0)
 
 
