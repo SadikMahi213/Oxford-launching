@@ -73,12 +73,12 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
   const nextRank = rankInfo?.next_rank;
   const currentRank = rankInfo?.current_rank;
+  const personalVolume = parseFloat(rankInfo?.personal_volume || 0);
   const teamVolume = parseFloat(rankInfo?.team_volume || 0);
   const totalMatchingBonus = parseFloat(rankInfo?.total_matching_bonus_earned || 0);
+  const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
+  const nextTargetVolume = parseFloat(rankInfo?.next_target_volume || 0);
   const progress = rankInfo?.progress ?? 100;
-
-  const nextTargetVolume = nextRank ? parseFloat(nextRank.target_volume) : 0;
-  const remainingVolume = Math.max(0, nextTargetVolume - teamVolume);
 
   const currentMatchingPercent = currentRank
     ? parseFloat(currentRank.matching_percent)
@@ -141,8 +141,8 @@ export default function MatchingBonusInfo({ setActivePage }) {
           </div>
         ) : (
           <>
-            {/* ── Current Status Card ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* ── Current Status Cards ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                   <Award className="w-4 h-4 text-yellow-400" />
@@ -160,6 +160,19 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  {t("matchingBonusInfo.yourDeposit")}
+                </div>
+                <div className="text-xl font-bold text-emerald-400">
+                  {personalVolume.toFixed(2)} USDT
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {t("matchingBonusInfo.ownDepositDesc")}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
+                <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                   <Layers className="w-4 h-4 text-blue-400" />
                   {t("matchingBonusInfo.teamVolume")}
                 </div>
@@ -167,22 +180,22 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {teamVolume.toFixed(2)} USDT
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {nextRank
-                    ? t("matchingBonusInfo.toNextRank", { amount: remainingVolume.toFixed(2) })
-                    : t("matchingBonusInfo.maxRank")}
+                  {t("matchingBonusInfo.networkTotal")}
                 </div>
               </div>
 
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  {t("matchingBonusInfo.matchingBonus")}
+                  <Target className="w-4 h-4 text-purple-400" />
+                  {t("matchingBonusInfo.nextTarget")}
                 </div>
-                <div className="text-xl font-bold text-emerald-400">
-                  {currentMatchingPercent}%
+                <div className="text-xl font-bold text-purple-400">
+                  {nextTargetVolume.toLocaleString()} USDT
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {t("matchingBonusInfo.currentRate")}
+                  {nextRank
+                    ? t("matchingBonusInfo.rankTarget", { rank: nextRank.name })
+                    : t("matchingBonusInfo.maxRank")}
                 </div>
               </div>
 

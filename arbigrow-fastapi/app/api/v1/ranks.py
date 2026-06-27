@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
+from app.models.deposit import Deposit
 from app.schemas.rank import (
     RankResponse,
     RankHistoryResponse,
@@ -51,6 +52,13 @@ async def get_my_rank(
     )
     next_rank = next_rank_result.scalar_one_or_none()
 
+    # Compute user's own approved deposits
+    personal_result = await db.execute(
+        select(func.coalesce(func.sum(Deposit.amount), 0))
+        .where(Deposit.user_id == current_user.id, Deposit.status == "approved")
+    )
+    personal_volume = Decimal(str(personal_result.scalar()))
+
     # Compute total matching bonus earned
     total_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
@@ -58,15 +66,21 @@ async def get_my_rank(
     )
     total_matching_bonus = total_result.scalar() or Decimal("0")
 
+    team_volume = current_user.team_volume or Decimal("0")
+    next_target = next_rank.target_volume if next_rank else Decimal("0")
+
     return {
         "user_id": current_user.id,
         "current_rank": RankResponse.model_validate(current_rank) if current_rank else None,
         "next_rank": RankResponse.model_validate(next_rank) if next_rank else None,
-        "team_volume": str(current_user.team_volume or 0),
+        "personal_volume": str(personal_volume),
+        "team_volume": str(team_volume),
         "total_matching_bonus_earned": str(total_matching_bonus),
+        "remaining_volume": str(max(Decimal("0"), next_target - team_volume)),
+        "next_target_volume": str(next_target),
         "progress": (
-            float(current_user.team_volume or 0) / float(next_rank.target_volume) * 100
-            if next_rank and next_rank.target_volume > 0
+            float(team_volume) / float(next_target) * 100
+            if next_rank and next_target > 0
             else 100.0
         ),
     }
