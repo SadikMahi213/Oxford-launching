@@ -76,6 +76,7 @@ async def submit_kyc(
         raise HTTPException(status_code=400, detail="KYC verification is currently disabled by the administrator")
 
     # Validate kyc_package_id if provided
+    pkg = None
     if kyc_package_id:
         pkg_result = await db.execute(
             select(KycPackage).where(KycPackage.id == kyc_package_id, KycPackage.is_active == True)
@@ -84,25 +85,29 @@ async def submit_kyc(
         if not pkg:
             raise HTTPException(status_code=400, detail="Invalid or inactive KYC package selected")
 
-    # Dynamic KYC fee check
+    # Calculate total fee: kyc_fee (base) + package price (if any)
     fee_result = await db.execute(
         select(SystemConfig).where(SystemConfig.key == "kyc_fee")
     )
     kyc_fee_config = fee_result.scalar_one_or_none()
     kyc_fee = Decimal(kyc_fee_config.value) if kyc_fee_config else Decimal("0")
 
+    total_fee = kyc_fee
+    if pkg:
+        total_fee += pkg.price
+
     user_result = await db.execute(select(User).where(User.id == user_id))
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if kyc_fee > 0:
-        if user.deposit_wallet < kyc_fee:
+    if total_fee > 0:
+        if user.deposit_wallet < total_fee:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient balance. KYC verification requires {kyc_fee} USDT. Your deposit wallet balance is {user.deposit_wallet} USDT.",
+                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet balance is {user.deposit_wallet} USDT.",
             )
-        user.deposit_wallet = (user.deposit_wallet - kyc_fee).quantize(
+        user.deposit_wallet = (user.deposit_wallet - total_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
 
@@ -151,5 +156,5 @@ async def submit_kyc(
     return {
         "message": "KYC submitted successfully",
         "status": new_kyc.status,
-        "fee_deducted": str(kyc_fee) if kyc_fee > 0 else "0",
+        "fee_deducted": str(total_fee) if total_fee > 0 else "0",
     }
