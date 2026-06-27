@@ -281,7 +281,9 @@
       "sendFunds": "Send Funds",
       "transfers": "Transfers",
       "mbTransfer": "MB Transfer",
-      "kyc": "KYC Verification"
+      "kyc": "KYC Verification",
+      "matchingBonusPlan": "Matching Bonus Plan",
+      "walletTransfer": "Wallet Transfer"
     },
     "wallets": {
       "main": "Main Wallet",

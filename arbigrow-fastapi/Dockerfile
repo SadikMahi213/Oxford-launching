@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright + Chromium for PDF generation
 RUN pip install --no-cache-dir playwright && \
-    python -m playwright install chromium && \
-    python -m playwright install-deps chromium
+    python -m playwright install chromium chromium-headless-shell && \
+    python -m playwright install-deps chromium chromium-headless-shell
 
 COPY . .
 

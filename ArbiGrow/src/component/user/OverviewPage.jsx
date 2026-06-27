@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Award,
   GitBranch,
+  Trophy,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import useUserStore from "../../store/userStore";
@@ -466,6 +467,18 @@ const OverviewPage = ({ setActivePage }) => {
       label: t('overview.shortcuts.kyc'),
       icon: ShieldCheck,
       onClick: () => navigate("/verification-page"),
+    },
+    {
+      id: "matching-bonus-plan",
+      label: t('overview.shortcuts.matchingBonusPlan'),
+      icon: Trophy,
+      onClick: () => setActivePage("matching-bonus"),
+    },
+    {
+      id: "wallet-transfer",
+      label: t('overview.shortcuts.walletTransfer'),
+      icon: ArrowLeftRight,
+      onClick: () => setActivePage("transfer"),
     },
   ];
 
