@@ -102,19 +102,14 @@ async def submit_kyc(
         raise HTTPException(status_code=404, detail="User not found")
 
     if total_fee > 0:
-        if user.deposit_wallet >= total_fee:
-            user.deposit_wallet = (user.deposit_wallet - total_fee).quantize(
-                WALLET_PRECISION, rounding=ROUND_HALF_UP
-            )
-        elif user.main_wallet >= total_fee:
-            user.main_wallet = (user.main_wallet - total_fee).quantize(
-                WALLET_PRECISION, rounding=ROUND_HALF_UP
-            )
-        else:
+        if user.deposit_wallet < total_fee:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet has {user.deposit_wallet} USDT and main wallet has {user.main_wallet} USDT.",
+                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet balance is {user.deposit_wallet} USDT.",
             )
+        user.deposit_wallet = (user.deposit_wallet - total_fee).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
 
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
