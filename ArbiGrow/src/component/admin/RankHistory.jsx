@@ -27,7 +27,7 @@ export default function RankHistoryPage() {
     setError("");
     try {
       const [h, r] = await Promise.all([
-        getAllRankHistory(token, { user_id: filterUser || undefined, page, limit: 50 }),
+        getAllRankHistory(token, { page, limit: 50 }),
         getAdminRanks(token),
       ]);
       setHistory(Array.isArray(h) ? h : []);
@@ -36,7 +36,7 @@ export default function RankHistoryPage() {
       setError(getErrorMessage(e));
     }
     setLoading(false);
-  }, [token, page, filterUser]);
+  }, [token, page]);
 
   useEffect(() => {
     if (token) load();
