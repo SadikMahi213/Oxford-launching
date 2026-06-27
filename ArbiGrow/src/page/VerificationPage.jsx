@@ -213,9 +213,13 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
-    if (!hasExistingKyc && parseFloat(kycFee) > 0 && parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee)) {
-      setError(t("kycVerification.errors.insufficientBalance", { fee: kycFee, balance: user?.deposit_wallet || "0" }));
-      return;
+    if (!hasExistingKyc && parseFloat(kycFee) > 0) {
+      const depBal = parseFloat(user?.deposit_wallet || 0);
+      const mainBal = parseFloat(user?.main_wallet || 0);
+      if (depBal < parseFloat(kycFee) && mainBal < parseFloat(kycFee)) {
+        setError(t("kycVerification.errors.insufficientBalance", { fee: kycFee, balance: depBal }));
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -614,7 +618,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                               __html: t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee })
                             }}
                           />
-                          {parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee) && (
+                          {parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee) && parseFloat(user?.main_wallet || 0) < parseFloat(kycFee) && (
                             <p className="mt-1 text-red-400 text-xs">
                               {t("kycVerification.insufficientBalance", { balance: user?.deposit_wallet || "0" })}
                             </p>
