@@ -17,6 +17,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Playwright + Chromium for PDF generation
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.cache/ms-playwright
 RUN pip install --no-cache-dir playwright && \
     python -m playwright install chromium chromium-headless-shell && \
     python -m playwright install-deps chromium chromium-headless-shell
@@ -31,8 +32,8 @@ CMD ["python", "run.py"]
 # ── Stage 3: Production (gunicorn + uvicorn) ──────
 FROM base AS prod
 ENV RELOAD=false
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.cache/ms-playwright
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser && \
-    chown -R appuser:appuser /app
-USER appuser
+    chown -R appuser:appuser /app /app/.cache
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
