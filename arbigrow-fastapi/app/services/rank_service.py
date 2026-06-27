@@ -1,7 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import datetime, timezone
 
-from sqlalchemy import select, or_, func as sa_func, text as sa_text
+from sqlalchemy import select, func as sa_func, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -9,9 +8,6 @@ from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.deposit import Deposit
-from app.models.investments import Investment
-from app.schemas.rank import BONUS_TYPES
-
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 
@@ -90,6 +86,7 @@ async def _has_rank_bonus_been_paid(
             MatchingBonus.user_id == user_id,
             MatchingBonus.rank_id == rank_id,
         )
+        .with_for_update()
         .limit(1)
     )
     return result.first() is not None
@@ -160,6 +157,14 @@ async def _distribute_rank_bonuses(
         ("position", rank.position_bonus_percent),
     ]
 
+    total_pct = sum(p for _, p in bonus_configs)
+    if total_pct > rank.max_matching_percent:
+        scale = rank.max_matching_percent / total_pct
+        bonus_configs = [
+            (bt, (p * scale).quantize(BONUS_PERCENT_PRECISION, rounding=ROUND_HALF_UP))
+            for bt, p in bonus_configs
+        ]
+
     for bonus_type, percent in bonus_configs:
         await _create_bonus_entries(
             user_id=user_id,
@@ -210,19 +215,22 @@ async def evaluate_and_process_rank(
     """
     result = {"rank_upgraded": False, "bonuses_paid": [], "previous_rank": None, "new_rank": None}
 
-    user = await db.get(User, user_id)
+    user_result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = user_result.scalar_one_or_none()
     if not user:
         return result
 
     # Step 1: Calculate personal deposit and total team volume
     personal_volume, team_volume = await get_team_volume(user_id, db)
 
-    # Users with zero personal deposit are not eligible for any matching bonus
+    # Update user's team_volume (even if personal_volume is 0)
+    user.team_volume = team_volume
+
+    # Users with zero personal deposit are not eligible for matching bonuses
     if personal_volume <= 0:
         return result
-
-    # Update user's team_volume
-    user.team_volume = team_volume
 
     # Step 2: Find highest qualified rank
     qualified_rank = await _get_highest_qualified_rank(team_volume, db)
