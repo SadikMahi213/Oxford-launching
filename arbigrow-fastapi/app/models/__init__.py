@@ -27,3 +27,4 @@ from app.models.notification import AdminNotification
 from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
+from app.models.rank_bonus_config import RankBonusConfig

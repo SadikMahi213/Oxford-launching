@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -10,6 +10,7 @@ from app.models.user import User
 from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
+from app.models.rank_bonus_config import RankBonusConfig
 from app.schemas.rank import (
     RankCreate,
     RankUpdate,
@@ -61,8 +62,20 @@ async def create_rank(
             detail="Rank with this name or slug already exists",
         )
 
-    rank = Rank(**payload.model_dump())
+    bonus_configs = payload.bonus_configs
+    rank_data = payload.model_dump(exclude={"bonus_configs"})
+    rank = Rank(**rank_data)
     db.add(rank)
+    await db.flush()
+
+    for i, bc in enumerate(bonus_configs):
+        db.add(RankBonusConfig(
+            rank_id=rank.id,
+            bonus_type=bc.bonus_type,
+            bonus_percent=bc.bonus_percent,
+            sort_order=bc.sort_order or i,
+        ))
+
     await db.commit()
     await db.refresh(rank)
     return rank
@@ -80,8 +93,22 @@ async def update_rank(
         raise HTTPException(status_code=404, detail="Rank not found")
 
     update_data = payload.model_dump(exclude_unset=True)
+    bonus_configs = update_data.pop("bonus_configs", None)
+
     for field, value in update_data.items():
         setattr(rank, field, value)
+
+    if bonus_configs is not None:
+        await db.execute(
+            delete(RankBonusConfig).where(RankBonusConfig.rank_id == rank.id)
+        )
+        for i, bc in enumerate(bonus_configs):
+            db.add(RankBonusConfig(
+                rank_id=rank.id,
+                bonus_type=bc.bonus_type,
+                bonus_percent=bc.bonus_percent,
+                sort_order=bc.sort_order or i,
+            ))
 
     await db.commit()
     await db.refresh(rank)

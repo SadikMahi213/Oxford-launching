@@ -8,6 +8,7 @@ from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.deposit import Deposit
+from app.models.rank_bonus_config import RankBonusConfig
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 
@@ -143,20 +144,11 @@ async def _distribute_rank_bonuses(
     rank: Rank,
     eligible_amount: Decimal,
     db: AsyncSession,
+    bonus_configs: list[tuple[str, Decimal]],
     reference_id: int | None = None,
     reference_type: str | None = None,
 ):
     """Distribute all bonus types for a newly achieved rank."""
-    bonus_configs = [
-        ("matching", rank.matching_percent),
-        ("extra", rank.extra_bonus_percent),
-        ("travel", rank.travel_bonus_percent),
-        ("company_profit", rank.company_profit_percent),
-        ("development", rank.development_bonus_percent),
-        ("international", rank.international_bonus_percent),
-        ("position", rank.position_bonus_percent),
-    ]
-
     total_pct = sum(p for _, p in bonus_configs)
     if total_pct > rank.max_matching_percent:
         scale = rank.max_matching_percent / total_pct
@@ -270,6 +262,17 @@ async def evaluate_and_process_rank(
         if prev_rank:
             previous_target = prev_rank.target_volume
 
+    # Pre-load bonus configs for all new ranks
+    new_rank_ids = [r.id for r in new_ranks]
+    config_rows = await db.execute(
+        select(RankBonusConfig)
+        .where(RankBonusConfig.rank_id.in_(new_rank_ids))
+        .order_by(RankBonusConfig.sort_order)
+    )
+    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
+    for c in config_rows.scalars().all():
+        bonus_map.setdefault(c.rank_id, []).append((c.bonus_type, c.bonus_percent))
+
     # Step 6: Process each newly achieved rank
     last_achieved_rank = None
     for rank in new_ranks:
@@ -288,6 +291,13 @@ async def evaluate_and_process_rank(
             last_achieved_rank = rank
             continue
 
+        # Get bonus configs for this rank
+        configs = bonus_map.get(rank.id, [])
+        if not configs:
+            previous_target = rank.target_volume
+            last_achieved_rank = rank
+            continue
+
         # Distribute bonuses for this rank
         await _distribute_rank_bonuses(
             user_id=user_id,
@@ -295,6 +305,7 @@ async def evaluate_and_process_rank(
             rank=rank,
             eligible_amount=eligible,
             db=db,
+            bonus_configs=configs,
             reference_id=reference_id,
             reference_type=reference_type,
         )

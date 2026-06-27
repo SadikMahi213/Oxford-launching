@@ -80,9 +80,13 @@ export default function MatchingBonusInfo({ setActivePage }) {
   const nextTargetVolume = parseFloat(rankInfo?.next_target_volume || 0);
   const progress = rankInfo?.progress ?? 100;
 
-  const currentMatchingPercent = currentRank
-    ? parseFloat(currentRank.matching_percent)
-    : 0;
+  const getBonusPercent = (rank, type) => {
+    if (!rank?.bonus_configs) return 0;
+    const found = rank.bonus_configs.find((bc) => bc.bonus_type === type);
+    return found ? parseFloat(found.bonus_percent) : 0;
+  };
+
+  const currentMatchingPercent = getBonusPercent(currentRank, "matching");
 
   const filteredHistory = rankHistory.filter((h) => {
     if (!historySearch) return true;
@@ -255,7 +259,20 @@ export default function MatchingBonusInfo({ setActivePage }) {
               </div>
             )}
 
-            {/* ── Full Rank Table ── */}
+              {/* ── Full Rank Table ── */}
+            {(() => {
+              const allBonusTypes = [...new Set(
+                ranks.flatMap((r) =>
+                  (r.bonus_configs || []).map((bc) => bc.bonus_type)
+                )
+              )];
+              const bonusColors = [
+                "text-emerald-400", "text-purple-400", "text-orange-400",
+                "text-blue-400", "text-pink-400", "text-yellow-400",
+                "text-cyan-400", "text-rose-400", "text-violet-400",
+                "text-amber-400",
+              ];
+              return (
             <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden">
               <div className="p-5 border-b border-white/10">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -276,18 +293,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                       <th className="text-right p-4 text-gray-400 font-medium">
                         {t("matchingBonusInfo.volumeRequired")}
                       </th>
-                      <th className="text-right p-4 text-gray-400 font-medium">
-                        {t("matchingBonusInfo.matchingPercent")}
-                      </th>
-                      <th className="text-right p-4 text-gray-400 font-medium">
-                        {t("matchingBonusInfo.extraBonus")}
-                      </th>
-                      <th className="text-right p-4 text-gray-400 font-medium">
-                        {t("matchingBonusInfo.travel")}
-                      </th>
-                      <th className="text-right p-4 text-gray-400 font-medium">
-                        {t("matchingBonusInfo.companyProfit")}
-                      </th>
+                      {allBonusTypes.map((bt, i) => (
+                        <th key={bt} className={`text-right p-4 ${bonusColors[i] || "text-gray-400"} font-medium capitalize`}>
+                          {bt.replace("_", " ")}
+                        </th>
+                      ))}
                       <th className="text-center p-4 text-gray-400 font-medium">
                         {t("matchingBonusInfo.status")}
                       </th>
@@ -300,6 +310,10 @@ export default function MatchingBonusInfo({ setActivePage }) {
                       const isAchieved =
                         parseFloat(r.target_volume) <= teamVolume;
                       const isNext = nextRank?.id === r.id;
+                      const bonusMap = {};
+                      (r.bonus_configs || []).forEach((bc) => {
+                        bonusMap[bc.bonus_type] = parseFloat(bc.bonus_percent);
+                      });
                       return (
                         <tr
                           key={r.id}
@@ -338,24 +352,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                           <td className="p-4 text-right text-gray-300">
                             {parseFloat(r.target_volume).toLocaleString()} USDT
                           </td>
-                          <td className="p-4 text-right text-emerald-400 font-medium">
-                            {parseFloat(r.matching_percent)}%
-                          </td>
-                          <td className="p-4 text-right text-purple-400">
-                            {parseFloat(r.extra_bonus_percent) > 0
-                              ? `${parseFloat(r.extra_bonus_percent)}%`
-                              : "-"}
-                          </td>
-                          <td className="p-4 text-right text-orange-400">
-                            {parseFloat(r.travel_bonus_percent) > 0
-                              ? `${parseFloat(r.travel_bonus_percent)}%`
-                              : "-"}
-                          </td>
-                          <td className="p-4 text-right text-blue-400">
-                            {parseFloat(r.company_profit_percent) > 0
-                              ? `${parseFloat(r.company_profit_percent)}%`
-                              : "-"}
-                          </td>
+                          {allBonusTypes.map((bt, i) => (
+                            <td key={bt} className={`p-4 text-right font-medium ${bonusColors[i] || "text-gray-400"}`}>
+                              {bonusMap[bt] > 0 ? `${bonusMap[bt]}%` : "-"}
+                            </td>
+                          ))}
                           <td className="p-4 text-center">
                             {isCurrent ? (
                               <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
@@ -382,6 +383,8 @@ export default function MatchingBonusInfo({ setActivePage }) {
                 </table>
               </div>
             </div>
+              );
+            })()}
 
             {/* ── Bonus Explanation ── */}
             <div className="rounded-xl bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border border-blue-500/20 p-5">
@@ -434,7 +437,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                         {rangeLabel}
                       </div>
                       <div className="text-lg font-bold text-emerald-400 mt-1">
-                        {parseFloat(r.matching_percent)}%
+                        {getBonusPercent(r, "matching")}%
                       </div>
                     </div>
                   );

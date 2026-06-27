@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import AsyncSessionLocal
 from app.models.rank import Rank
+from app.models.rank_bonus_config import RankBonusConfig
 
 
 RANK_DATA = [
@@ -46,8 +47,17 @@ async def seed_ranks():
             return
 
         for data in RANK_DATA:
+            matching_pct = data.pop("matching_percent")
             rank = Rank(**data)
             session.add(rank)
+            await session.flush()
+
+            session.add(RankBonusConfig(
+                rank_id=rank.id,
+                bonus_type="matching",
+                bonus_percent=matching_pct,
+                sort_order=0,
+            ))
 
         await session.commit()
         print(f"Seeded {len(RANK_DATA)} ranks.")

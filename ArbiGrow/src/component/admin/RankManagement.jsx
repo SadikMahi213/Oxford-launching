@@ -6,23 +6,17 @@ import {
   updateAdminRank,
   deleteAdminRank,
 } from "../../api/admin.api.js";
-import { Plus, Pencil, Trash2, Power, PowerOff, Medal } from "lucide-react";
+import { Plus, Pencil, Trash2, Power, PowerOff, Medal, X } from "lucide-react";
 
 const EMPTY_FORM = {
   name: "",
   slug: "",
   sort_order: 1,
   target_volume: "0",
-  matching_percent: "0",
-  extra_bonus_percent: "0",
-  travel_bonus_percent: "0",
-  company_profit_percent: "0",
-  development_bonus_percent: "0",
-  international_bonus_percent: "0",
-  position_bonus_percent: "0",
   max_matching_percent: "100",
   is_active: true,
   description: "",
+  bonus_configs: [{ bonus_type: "matching", bonus_percent: "0", sort_order: 0 }],
 };
 
 const getErrorMessage = (error) =>
@@ -70,16 +64,16 @@ export default function RankManagement() {
       slug: rank.slug || "",
       sort_order: rank.sort_order || 1,
       target_volume: String(rank.target_volume || "0"),
-      matching_percent: String(rank.matching_percent || "0"),
-      extra_bonus_percent: String(rank.extra_bonus_percent || "0"),
-      travel_bonus_percent: String(rank.travel_bonus_percent || "0"),
-      company_profit_percent: String(rank.company_profit_percent || "0"),
-      development_bonus_percent: String(rank.development_bonus_percent || "0"),
-      international_bonus_percent: String(rank.international_bonus_percent || "0"),
-      position_bonus_percent: String(rank.position_bonus_percent || "0"),
       max_matching_percent: String(rank.max_matching_percent || "100"),
       is_active: rank.is_active ?? true,
       description: rank.description || "",
+      bonus_configs: Array.isArray(rank.bonus_configs) && rank.bonus_configs.length > 0
+        ? rank.bonus_configs.map((bc) => ({
+            bonus_type: bc.bonus_type || "",
+            bonus_percent: String(bc.bonus_percent || "0"),
+            sort_order: bc.sort_order ?? 0,
+          }))
+        : [{ bonus_type: "matching", bonus_percent: "0", sort_order: 0 }],
     });
     setShowModal(true);
   };
@@ -88,6 +82,32 @@ export default function RankManagement() {
     setShowModal(false);
     setEditing(null);
     setError("");
+  };
+
+  const addBonusField = () => {
+    setForm((f) => ({
+      ...f,
+      bonus_configs: [
+        ...f.bonus_configs,
+        { bonus_type: "", bonus_percent: "0", sort_order: f.bonus_configs.length },
+      ],
+    }));
+  };
+
+  const removeBonusField = (index) => {
+    setForm((f) => ({
+      ...f,
+      bonus_configs: f.bonus_configs.filter((_, i) => i !== index).map((bc, i) => ({ ...bc, sort_order: i })),
+    }));
+  };
+
+  const updateBonusField = (index, field, value) => {
+    setForm((f) => ({
+      ...f,
+      bonus_configs: f.bonus_configs.map((bc, i) =>
+        i === index ? { ...bc, [field]: value } : bc
+      ),
+    }));
   };
 
   const handleSubmit = async () => {
@@ -99,15 +119,12 @@ export default function RankManagement() {
         ...form,
         sort_order: Number(form.sort_order),
         target_volume: form.target_volume,
-        matching_percent: form.matching_percent,
-        extra_bonus_percent: form.extra_bonus_percent,
-        travel_bonus_percent: form.travel_bonus_percent,
-        company_profit_percent: form.company_profit_percent,
-        development_bonus_percent: form.development_bonus_percent,
-        international_bonus_percent: form.international_bonus_percent,
-        position_bonus_percent: form.position_bonus_percent,
         max_matching_percent: form.max_matching_percent,
-        is_active: form.is_active,
+        bonus_configs: form.bonus_configs.map((bc, i) => ({
+          bonus_type: bc.bonus_type,
+          bonus_percent: bc.bonus_percent,
+          sort_order: i,
+        })),
       };
       if (editing) {
         await updateAdminRank(token, editing.id, payload);
@@ -147,6 +164,12 @@ export default function RankManagement() {
     } catch (e) {
       setError(getErrorMessage(e));
     }
+  };
+
+  const getMatchingPercent = (rank) => {
+    if (!rank.bonus_configs) return "0";
+    const mc = rank.bonus_configs.find((bc) => bc.bonus_type === "matching");
+    return mc ? mc.bonus_percent : "0";
   };
 
   return (
@@ -211,7 +234,7 @@ export default function RankManagement() {
                       ${Number(rank.target_volume).toLocaleString()}
                     </td>
                     <td className="px-4 py-3 font-mono text-cyan-400">
-                      {rank.matching_percent}%
+                      {getMatchingPercent(rank)}%
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -295,28 +318,48 @@ export default function RankManagement() {
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm text-gray-400">Matching % *</label>
-                  <input type="text" value={form.matching_percent} onChange={(e) => setForm({ ...form, matching_percent: e.target.value })}
+                  <label className="mb-1 block text-sm text-gray-400">Max Matching %</label>
+                  <input type="text" value={form.max_matching_percent} onChange={(e) => setForm({ ...form, max_matching_percent: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white" />
                 </div>
               </div>
 
               <div className="border-t border-white/10 pt-4">
-                <p className="mb-3 text-sm font-medium text-gray-300">Bonus Percentages</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    ["extra_bonus_percent", "Extra %"],
-                    ["travel_bonus_percent", "Travel %"],
-                    ["company_profit_percent", "Company Profit %"],
-                    ["development_bonus_percent", "Development %"],
-                    ["international_bonus_percent", "International %"],
-                    ["position_bonus_percent", "Position %"],
-                    ["max_matching_percent", "Max Matching %"],
-                  ].map(([key, label]) => (
-                    <div key={key}>
-                      <label className="mb-1 block text-xs text-gray-400">{label}</label>
-                      <input type="text" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                        className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-white text-sm" />
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-medium text-gray-300">Bonus Percentages</p>
+                  <button
+                    type="button"
+                    onClick={addBonusField}
+                    className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    <Plus className="size-3" /> Add Bonus Field
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {form.bonus_configs.map((bc, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={bc.bonus_type}
+                        onChange={(e) => updateBonusField(index, "bonus_type", e.target.value)}
+                        placeholder="Type (e.g. matching, extra)"
+                        className="flex-1 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-white text-sm"
+                      />
+                      <input
+                        type="text"
+                        value={bc.bonus_percent}
+                        onChange={(e) => updateBonusField(index, "bonus_percent", e.target.value)}
+                        placeholder="%"
+                        className="w-24 rounded-xl border border-white/10 bg-[#0A122C] px-4 py-2.5 text-white text-sm text-right"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeBonusField(index)}
+                        className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                        title="Remove"
+                      >
+                        <X className="size-4" />
+                      </button>
                     </div>
                   ))}
                 </div>

@@ -1,7 +1,7 @@
 from sqlalchemy import String, Boolean, Integer, DateTime, func, Numeric, Text
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base import Base
 
@@ -27,34 +27,6 @@ class Rank(Base):
         Numeric(24, 14), nullable=False, default=Decimal("0")
     )
 
-    matching_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    extra_bonus_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    travel_bonus_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    company_profit_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    development_bonus_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    international_bonus_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
-    position_bonus_percent: Mapped[Decimal] = mapped_column(
-        Numeric(8, 4), nullable=False, default=Decimal("0")
-    )
-
     max_matching_percent: Mapped[Decimal] = mapped_column(
         Numeric(8, 4), nullable=False, default=Decimal("100")
     )
@@ -76,4 +48,12 @@ class Rank(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+    bonus_configs = relationship(
+        "RankBonusConfig",
+        backref="rank",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="RankBonusConfig.sort_order",
     )
