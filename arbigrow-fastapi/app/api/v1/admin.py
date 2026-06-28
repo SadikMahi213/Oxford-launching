@@ -18,8 +18,14 @@ from app.models.withdrawal import Withdrawal
 from app.models.transfer_log import TransferLog
 from app.models.matching_bonus import MatchingBonus
 from app.models.mining_log import MiningLog
-from app.models.captcha import CaptchaEarning
+from app.models.captcha import CaptchaEarning, CaptchaChallenge
 from app.models.ad_view import AdView
+from app.models.user_ad_view import UserAdView
+from app.models.invoice import Invoice
+from app.models.notification import Notification
+from app.models.order import Order, OrderItem
+from app.models.seller import Seller
+from app.models.announcement import Announcement
 from app.schemas.admin import (
     UpdateKYCStatusRequest,
     CreditProfitRequest,
@@ -981,6 +987,26 @@ async def delete_user(
         await db.execute(delete(Investment).where(Investment.id.in_(investment_ids)))
 
     await db.execute(delete(KYC).where(KYC.user_id == user_id))
+    await db.execute(delete(TransferLog).where(TransferLog.sender_id == user_id))
+    await db.execute(delete(TransferLog).where(TransferLog.receiver_id == user_id))
+    await db.execute(delete(MiningLog).where(MiningLog.user_id == user_id))
+    await db.execute(delete(CaptchaEarning).where(CaptchaEarning.user_id == user_id))
+    from app.models.captcha import CaptchaChallenge
+    await db.execute(delete(CaptchaChallenge).where(CaptchaChallenge.user_id == user_id))
+    await db.execute(delete(AdView).where(AdView.user_id == user_id))
+    from app.models.user_ad_view import UserAdView
+    await db.execute(delete(UserAdView).where(UserAdView.user_id == user_id))
+    await db.execute(delete(Invoice).where(Invoice.user_id == user_id))
+    await db.execute(delete(Notification).where(Notification.user_id == user_id))
+    await db.execute(delete(MatchingBonus).where(MatchingBonus.user_id == user_id))
+    from app.models.rank_history import RankHistory
+    await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
+    await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(
+        select(Order.id).where(Order.user_id == user_id).scalar_subquery()
+    )))
+    await db.execute(delete(Order).where(Order.user_id == user_id))
+    await db.execute(delete(Seller).where(Seller.user_id == user_id))
+    await db.execute(delete(Announcement).where(Announcement.user_id == user_id))
 
     await db.execute(
         update(User)
