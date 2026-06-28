@@ -159,22 +159,19 @@ async def buy_investment(
             reference_type="investment",
         )
 
-        ancestor_ids = [
-            user.parent_lvl_1_id,
-            user.parent_lvl_2_id,
-            user.parent_lvl_3_id,
-            user.parent_lvl_4_id,
-            user.parent_lvl_5_id,
-        ]
-        for aid in ancestor_ids:
-            if aid:
-                await evaluate_and_process_rank(
-                    user_id=aid,
-                    db=db,
-                    source_user_id=user.id,
-                    reference_id=investment.id,
-                    reference_type="investment",
-                )
+        # Also trigger rank evaluation for ALL ancestors up the parent_lvl_1_id chain
+        next_id = user.parent_lvl_1_id
+        while next_id:
+            await evaluate_and_process_rank(
+                user_id=next_id,
+                db=db,
+                source_user_id=user.id,
+                reference_id=investment.id,
+                reference_type="investment",
+            )
+            # Walk up the chain
+            par = await db.get(User, next_id)
+            next_id = par.parent_lvl_1_id if par else None
 
         await db.commit()
 
