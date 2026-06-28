@@ -37,6 +37,7 @@ import {
   ArrowLeftRight,
   Repeat,
   LogOut,
+  Building2,
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
@@ -59,6 +60,7 @@ import {
 } from "../api/user.api.js";
 import DepositPage from "../component/user/DepositUSDT.jsx";
 import WithdrawPage from "../component/user/WithdrawUSDT.jsx";
+import BankingSetup from "../component/user/BankingSetup.jsx";
 import TierSection from "../component/package/TierSection.jsx";
 import PackageModal from "../component/package/PackageModal.jsx";
 import { MyInvestments } from "../component/user/MyInvestments.jsx";
@@ -533,6 +535,12 @@ export function UserDashboard() {
       description: t("userDashboard.sidebar.seller_desc"),
     },
     {
+      id: "banking",
+      label: t("userDashboard.sidebar.banking"),
+      icon: Building2,
+      description: t("userDashboard.sidebar.banking_desc"),
+    },
+    {
       id: "kyc",
       label: t("userDashboard.sidebar.kyc"),
       icon: ShieldCheck,
@@ -677,6 +685,10 @@ export function UserDashboard() {
 
     if (activePage === "matching-bonus") {
       return <MatchingBonusInfo setActivePage={safeSetActivePage} />;
+    }
+
+    if (activePage === "banking") {
+      return <BankingSetup />;
     }
 
     if (activePage === "kyc") {

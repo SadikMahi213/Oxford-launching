@@ -658,4 +658,20 @@ export const getAllMatchingBonuses = async (token, { user_id, rank_id, bonus_typ
   return res.data || [];
 };
 
+// ── Bank Info Management ──────────────────────────────────────────────────
+
+export const getAdminBankInfoList = async (token) => {
+  const res = await api.get("v1/bank-info/admin", authHeaders(token));
+  return res.data || { data: [] };
+};
+
+export const updateBankInfoStatus = async (token, bankInfoId, status, adminNote) => {
+  const res = await api.patch(
+    `v1/bank-info/admin/${bankInfoId}`,
+    { status, admin_note: adminNote || null },
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
 // ── Task Management (REMOVED — replaced by Captcha Typing System) ─────────────────

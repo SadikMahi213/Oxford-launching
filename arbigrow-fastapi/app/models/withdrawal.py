@@ -25,6 +25,7 @@ class Withdrawal(Base):
     amount = Column(Numeric(24, 14), nullable=False)
     charge = Column(Numeric(24, 14), nullable=True, default=0)
     destination_address = Column(String(255), nullable=False)
+    bank_info_id = Column(Integer, ForeignKey("bank_info.id"), nullable=True)
     note = Column(Text, nullable=True)
 
     status = Column(String(20), default="pending", nullable=False)
@@ -35,3 +36,4 @@ class Withdrawal(Base):
 
     user = relationship("User", foreign_keys=[user_id])
     approver = relationship("User", foreign_keys=[approved_by])
+    bank_info = relationship("BankInfo", foreign_keys=[bank_info_id])

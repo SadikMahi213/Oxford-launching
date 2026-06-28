@@ -1001,6 +1001,8 @@ async def delete_user(
     await db.execute(delete(MatchingBonus).where(MatchingBonus.user_id == user_id))
     from app.models.rank_history import RankHistory
     await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
+    from app.models.bank_info import BankInfo
+    await db.execute(delete(BankInfo).where(BankInfo.user_id == user_id))
     await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(
         select(Order.id).where(Order.user_id == user_id).scalar_subquery()
     )))

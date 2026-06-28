@@ -8,6 +8,7 @@ from sqlalchemy.orm import joinedload
 
 from app.api.v1.deps import get_current_admin_user, get_current_user
 from app.core.database import get_db
+from app.models.bank_info import BankInfo
 from app.models.deposit_network import DepositNetwork
 from app.models.system_config import SystemConfig
 from app.models.user import User
@@ -83,20 +84,41 @@ async def create_withdrawal_request(
     if data.source_wallet not in ALLOWED_SOURCE_WALLETS:
         raise HTTPException(status_code=400, detail="Invalid wallet selected")
 
-    network_name = data.network_name.strip()
-    if not network_name:
-        raise HTTPException(status_code=400, detail="Please select a network")
-
-    active_network_result = await db.execute(
-        select(DepositNetwork).where(
-            DepositNetwork.network_name == network_name,
-            DepositNetwork.status.is_(True),
+    bank_info = None
+    destination_address: str | None = None
+    if data.use_bank_info:
+        bank_result = await db.execute(
+            select(BankInfo).where(
+                BankInfo.user_id == current_user.id,
+                BankInfo.status == "approved",
+            )
         )
-    )
-    active_network = active_network_result.scalar_one_or_none()
-    if not active_network:
-        raise HTTPException(
-            status_code=400, detail="Selected network is not active")
+        bank_info = bank_result.scalar_one_or_none()
+        if not bank_info:
+            raise HTTPException(
+                status_code=400,
+                detail="No approved banking information found. Please register your bank details first."
+            )
+        destination_address = f"Bank Transfer — {bank_info.bank_name} ({bank_info.account_number})"
+    else:
+        network_name = (data.network_name or "").strip()
+        if not network_name:
+            raise HTTPException(status_code=400, detail="Please select a network")
+
+        active_network_result = await db.execute(
+            select(DepositNetwork).where(
+                DepositNetwork.network_name == network_name,
+                DepositNetwork.status.is_(True),
+            )
+        )
+        active_network = active_network_result.scalar_one_or_none()
+        if not active_network:
+            raise HTTPException(
+                status_code=400, detail="Selected network is not active")
+
+        destination_address = (data.destination_address or "").strip()
+        if not destination_address or len(destination_address) < 5:
+            raise HTTPException(status_code=400, detail="Invalid destination address")
 
     amount = _to_wallet_precision(Decimal(str(data.amount)))
     if amount < MIN_WITHDRAW_AMOUNT:
@@ -150,10 +172,11 @@ async def create_withdrawal_request(
     withdrawal = Withdrawal(
         user_id=current_user.id,
         source_wallet=data.source_wallet,
-        network_name=network_name,
+        network_name=network_name if not bank_info else "Bank Transfer",
         amount=amount,
         charge=charge_amount,
-        destination_address=data.destination_address.strip(),
+        destination_address=destination_address,
+        bank_info_id=bank_info.id if bank_info else None,
         note=(data.note or "").strip() or None,
         status="pending",
     )

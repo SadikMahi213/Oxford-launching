@@ -27,6 +27,7 @@ import {
   Trophy,
   DollarSign,
   IdCard,
+  Building2,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -90,6 +91,12 @@ export default function AdminLayout({
       label: "KYC Package",
       icon: Package,
       description: "Configure KYC verification package",
+    },
+    {
+      id: "bank-info",
+      label: "Banking Info",
+      icon: Building2,
+      description: "Review user bank details",
     },
     {
       id: "deposits",

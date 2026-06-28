@@ -4,6 +4,7 @@ import AdminLayout from "../component/admin/AdminLayout.jsx";
 import UserManagement from "../component/admin/UserManagement.jsx";
 import KYCRequests from "../component/admin/KYCRequests.jsx";
 import KycPackageManagement from "../component/admin/KycPackageManagement.jsx";
+import BankInfoReview from "../component/admin/BankInfoReview.jsx";
 import DashboardOverview from "../component/admin/DashboardOverview.jsx";
 import useUserStore from "../store/userStore.js";
 import DepositRequests from "../component/admin/DepositRequests.jsx";
@@ -122,6 +123,8 @@ export default function AdminDashboard() {
         return <KYCRequests users={users} setUsers={setUsers} />;
       case "kyc-package":
         return <KycPackageManagement setActivePage={setActivePage} />;
+      case "bank-info":
+        return <BankInfoReview />;
       case "deposits":
         return <DepositRequests />;
       case "withdrawals":

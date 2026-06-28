@@ -184,3 +184,5 @@ export const getLevelAnalytics = (level) => api.get(`v1/user/level-analytics/${l
 export const getMatchingWallet = () => api.get("v1/user/matching-wallet", authHeaders());
 export const getFeeInfo = () => api.get("v1/user/fee-info", authHeaders());
 export const transferMatchingBonus = (payload) => api.post("v1/user/transfer-matching-bonus", payload, authHeaders());
+export const getMyBankInfo = () => api.get("v1/bank-info/my", authHeaders());
+export const submitBankInfo = (payload) => api.post("v1/bank-info/", payload, authHeaders());

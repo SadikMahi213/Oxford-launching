@@ -253,6 +253,8 @@
       "marketplace_desc": "Buy products",
       "seller": "Seller Dashboard",
       "seller_desc": "Manage your store",
+      "banking": "Banking Setup",
+      "banking_desc": "Register bank details",
       "kyc": "KYC Verification",
       "kyc_desc": "Verify your identity",
       "profile": "Profile",

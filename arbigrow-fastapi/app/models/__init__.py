@@ -28,3 +28,4 @@ from app.models.rank import Rank
 from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.rank_bonus_config import RankBonusConfig
+from app.models.bank_info import BankInfo
