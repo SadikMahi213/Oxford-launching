@@ -2,6 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.deposit_network import DepositNetwork
 from app.models.user import User
+from app.models.system_config import SystemConfig
 from app.schemas.deposit_network import DepositNetworkCreate, DepositNetworkUpdate, DepositNetworkResponse
 from fastapi import APIRouter, Depends, Query, HTTPException
 from app.core.database import get_db
@@ -43,8 +44,15 @@ async def get_active_deposit_networks(
 
     networks = result.scalars().all()
 
+    config_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "min_deposit_amount")
+    )
+    min_deposit_row = config_result.scalar_one_or_none()
+    min_deposit_amount = min_deposit_row.value if min_deposit_row else "10"
+
     return {
-        "data": networks
+        "data": networks,
+        "min_deposit_amount": min_deposit_amount
     }
 
 

@@ -26,6 +26,7 @@ const SystemConfigPanel = () => {
   const [rateInput, setRateInput] = useState("");
   const [cooldownInput, setCooldownInput] = useState("");
   const [kycFeeInput, setKycFeeInput] = useState("");
+  const [minDepositInput, setMinDepositInput] = useState("");
   const [miningPage, setMiningPage] = useState(1);
 
   useEffect(() => {
@@ -108,6 +109,18 @@ const SystemConfigPanel = () => {
       setFeeConfig({ ...feeConfig, kyc_fee: kycFeeInput.trim() });
       setMsg(`KYC fee set to ${kycFeeInput.trim()} USDT`);
       setKycFeeInput("");
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const saveMinDeposit = async () => {
+    if (!minDepositInput.trim()) return;
+    try {
+      await updateFeeConfig(token, "min_deposit_amount", minDepositInput.trim());
+      setFeeConfig({ ...feeConfig, min_deposit_amount: minDepositInput.trim() });
+      setMsg(`Minimum deposit amount set to ${minDepositInput.trim()} USDT`);
+      setMinDepositInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -262,6 +275,23 @@ const SystemConfigPanel = () => {
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
               >Save</button>
               <span className="text-xs text-gray-500">Current: {feeConfig.kyc_fee || "0"} USDT</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">Min Deposit (USDT):</label>
+              <input
+                value={minDepositInput}
+                onChange={(e) => setMinDepositInput(e.target.value)}
+                placeholder={feeConfig.min_deposit_amount || "10"}
+                className="w-24 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                type="number"
+                min="0"
+                step="0.01"
+              />
+              <button onClick={saveMinDeposit}
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
+              >Save</button>
+              <span className="text-xs text-gray-500">Current: {feeConfig.min_deposit_amount || "10"} USDT</span>
             </div>
           </motion.div>
 

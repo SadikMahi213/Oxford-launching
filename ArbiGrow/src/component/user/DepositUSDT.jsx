@@ -74,6 +74,7 @@ export default function DepositPage() {
   const [deposits, setDeposits] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [minDepositAmount, setMinDepositAmount] = useState(10);
 
   const [selectedNetworkId, setSelectedNetworkId] = useState("");
   const [copiedAddress, setCopiedAddress] = useState(false);
@@ -104,6 +105,7 @@ export default function DepositPage() {
 
         setNetworks(networksRes?.data?.data || []);
         setDeposits(depositsRes?.data?.data || []);
+        setMinDepositAmount(Number(networksRes?.data?.min_deposit_amount) || 10);
       } catch (error) {
         setFeedback({
           type: "error",
@@ -172,6 +174,8 @@ export default function DepositPage() {
       nextFieldErrors.amount = t('deposit.err_field');
     } else if (Number.isNaN(amountNumber) || amountNumber <= 0) {
       nextFieldErrors.amount = t('deposit.err_amount');
+    } else if (amountNumber < minDepositAmount) {
+      nextFieldErrors.amount = t('deposit.err_min_amount', { min: minDepositAmount });
     }
 
     if (!normalizedTxid) {
@@ -330,6 +334,9 @@ export default function DepositPage() {
             }`}
             placeholder={t('deposit.amount_plh')}
           />
+          <p className="mt-1 text-xs text-gray-500">
+            {t('deposit.min_amount_hint', { min: minDepositAmount })}
+          </p>
           {fieldErrors.amount && (
             <p className="-mt-2 text-xs text-red-300">{fieldErrors.amount}</p>
           )}

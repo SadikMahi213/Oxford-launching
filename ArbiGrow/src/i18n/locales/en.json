@@ -436,6 +436,8 @@
     "err_field": "Field required",
     "err_amount": "Amount must be greater than 0.",
     "err_txid": "Must be at least 5 characters.",
+    "err_min_amount": "Minimum deposit amount is {{min}} USDT.",
+    "min_amount_hint": "Minimum: {{min}} USDT",
     "err_noNetwork": "No active deposit network found. Please contact support."
   },
   "withdraw": {

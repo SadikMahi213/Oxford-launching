@@ -12,6 +12,7 @@ from app.models.user import User
 from app.models.package import Package
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
+from app.models.system_config import SystemConfig
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.utils.email import send_deposit_success_email
@@ -42,6 +43,18 @@ async def create_deposit_request(
         raise HTTPException(
             status_code=400,
             detail="This transaction hash has already been submitted"
+        )
+
+    config_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "min_deposit_amount")
+    )
+    min_deposit_row = config_result.scalar_one_or_none()
+    min_deposit_amount = Decimal(min_deposit_row.value) if min_deposit_row else Decimal("10")
+
+    if data.amount < min_deposit_amount:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Minimum deposit amount is {min_deposit_amount} USDT"
         )
 
     deposit = Deposit(
