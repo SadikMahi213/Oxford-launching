@@ -132,10 +132,13 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         selected_pkg = pkg_result.scalar_one_or_none()
 
         if selected_pkg:
-            # Give OFA signup bonus from package config
-            new_user.arbx_wallet = (new_user.arbx_wallet or 0) + (selected_pkg.signup_arbx_bonus or 0)
-
-            if selected_pkg.investment_amount == 0:
+            if selected_pkg.investment_amount > 0:
+                # Paid package — account is pending until payment verified
+                new_user.account_status = "pending_payment"
+                new_user.pending_package_id = selected_pkg.id
+            else:
+                # Free package — give signup bonus and create auto-investment
+                new_user.arbx_wallet = (new_user.arbx_wallet or 0) + (selected_pkg.signup_arbx_bonus or 0)
                 now = datetime.now(timezone.utc)
                 investment = Investment(
                     user_id=new_user.id,
@@ -196,6 +199,9 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
             "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
         )
         raise HTTPException(status_code=423, detail=blocked_msg)
+
+    # pending_payment users are allowed to login (they will see the payment page)
+    is_pending_payment = (user.account_status or "").lower() == "pending_payment"
 
     if not verify_password(user_data.password, user.hashed_password):
         user.failed_attempts = (user.failed_attempts or 0) + 1
@@ -287,7 +293,9 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         "access_token": access_token,
         "user": UserResponse(**user.__dict__,  phone_number=kyc.phone_number if kyc else None, country=kyc.country if kyc else None),
         "doc_submitted": doc_submitted,
-        "kyc_status": kyc_status
+        "kyc_status": kyc_status,
+        "payment_required": is_pending_payment,
+        "pending_package_id": user.pending_package_id,
     }
 
 

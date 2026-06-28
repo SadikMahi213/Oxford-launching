@@ -71,6 +71,7 @@ class UserResponse(BaseModel):
     mining_started_at: Optional[datetime] = None
     account_status: str = "active"
     account_issue: Optional[str] = None
+    pending_package_id: Optional[int] = None
     created_at: Optional[datetime] = None
 
     @model_validator(mode="before")
@@ -96,6 +97,8 @@ class LoginResponse(BaseModel):
     doc_submitted: bool
     kyc_status: Optional[str] = None
     kyc_note: Optional[str] = None
+    payment_required: bool = False
+    pending_package_id: Optional[int] = None
 
     class Config:
         from_attributes = True

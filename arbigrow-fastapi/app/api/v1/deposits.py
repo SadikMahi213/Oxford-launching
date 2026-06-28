@@ -3,11 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, timezone
 
 from app.core.database import get_db
 from app.core.referral import get_referral_level_rates
 from app.models.deposit import Deposit
 from app.models.user import User
+from app.models.package import Package
+from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
@@ -253,6 +256,33 @@ async def update_deposit_status(
             next_id = par.parent_lvl_1_id if par else None
 
         await db.commit()
+        await db.refresh(user)
+
+        # If user has a pending package, activate them
+        if user.pending_package_id:
+            pkg = await db.get(Package, user.pending_package_id)
+            if pkg and user.deposit_wallet >= pkg.investment_amount:
+                now = datetime.now(timezone.utc)
+                user.deposit_wallet -= pkg.investment_amount
+                investment = Investment(
+                    user_id=user.id,
+                    package_name=pkg.name,
+                    invested_amount=pkg.investment_amount,
+                    roi_percent=Decimal("0"),
+                    expected_profit=Decimal("0"),
+                    daily_payment=pkg.daily_payment,
+                    captcha_required_per_day=pkg.captcha_required_per_day,
+                    earn_per_captcha=pkg.earn_per_captcha,
+                    daily_captcha_limit=pkg.daily_captcha_limit,
+                    captchas_typed_today=0,
+                    start_date=now,
+                    end_date=now,
+                    status="active",
+                )
+                db.add(investment)
+                user.account_status = "active"
+                user.pending_package_id = None
+                await db.commit()
 
     notif_type = "deposit_approved" if data.status == "approved" else "deposit_rejected"
     await notify_admin(

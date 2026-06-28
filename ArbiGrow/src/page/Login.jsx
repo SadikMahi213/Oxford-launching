@@ -65,7 +65,9 @@ export default function LoginForm() {
 
       setUser({ ...res?.data?.user, kyc_status: res?.data?.kyc_status });
       setToken(res?.data?.access_token);
-      if (res?.data?.user?.is_admin) {
+      if (res?.data?.payment_required) {
+        navigate("/registration-payment");
+      } else if (res?.data?.user?.is_admin) {
         navigate("/admin-dashboard");
       } else {
         navigate("/dashboard");

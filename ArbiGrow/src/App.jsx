@@ -14,6 +14,7 @@ import { NotFoundPage } from "./page/NotFoundPage";
 import ProtectedRoute from "./component/ProtectedRoute";
 import LegalPage from "./page/LegalInformation";
 import VerificationPending from "./page/VerificationPending";
+import RegistrationPayment from "./page/RegistrationPayment";
 import AdminDashboard from "./page/AdminDashboard";
 import StrategyTiersPage from "./page/StrategyTiersPage.jsx";
 import { UserDashboard } from "./page/UserDashboard.jsx";
@@ -45,6 +46,7 @@ const App = () => {
           <Route path="/dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
           <Route path="/user-statistics" element={<ProtectedRoute><UserStatisticsPage /></ProtectedRoute>} />
           <Route path="/packages" element={<StrategyTiersPage />} />
+          <Route path="/registration-payment" element={<ProtectedRoute><RegistrationPayment /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </div>

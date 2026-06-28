@@ -173,10 +173,15 @@ export default function RegisterForm() {
           delete payload[key];
         }
       }
-      await registerUser(payload);
-      setMessage("Registration successful!");
+      const regRes = await registerUser(payload);
+      const isPaid = regRes?.data?.account_status === "pending_payment";
+      if (isPaid) {
+        setMessage("Registration submitted! Please complete payment to activate your account.");
+      } else {
+        setMessage("Registration successful!");
+      }
       setIsSuccess(true);
-      setTimeout(() => navigate("/login"), 600);
+      setTimeout(() => navigate(isPaid ? "/login" : "/login"), 800);
     } catch (error) {
       const res = error.response;
       setIsSuccess(false);

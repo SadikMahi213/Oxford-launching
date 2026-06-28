@@ -197,6 +197,9 @@ class User(Base):
 
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
+    # Pending package for registration (paid packages require payment before activation)
+    pending_package_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
     # Rank system
     current_rank_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("ranks.id", ondelete="SET NULL"),
