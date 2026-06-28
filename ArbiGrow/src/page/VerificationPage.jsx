@@ -82,6 +82,9 @@ export default function VerificationPage({ embedded, onSuccess }) {
       if (data) {
         setKycFee(data.kyc_fee || "0");
         setHasExistingKyc(data.has_kyc || false);
+        if (data.has_kyc && onSuccess) {
+          onSuccess();
+        }
       }
     }).catch(() => {});
     getActiveKycPackage().then((res) => {
@@ -213,8 +216,9 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
-    if (!hasExistingKyc && parseFloat(kycFee) > 0 && parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee)) {
-      setError(t("kycVerification.errors.insufficientBalance", { fee: kycFee, balance: user?.deposit_wallet || "0" }));
+    const totalFee = parseFloat(kycFee) + (activePackage ? parseFloat(activePackage.price) : 0);
+    if (!hasExistingKyc && totalFee > 0 && parseFloat(user?.deposit_wallet || 0) < totalFee) {
+      setError(t("kycVerification.errors.insufficientBalance", { fee: String(totalFee), balance: user?.deposit_wallet || "0" }));
       return;
     }
 

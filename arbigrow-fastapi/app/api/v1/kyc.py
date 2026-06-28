@@ -5,7 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
-from app.models.kyc import KYC, DocumentType, KycPackage
+from app.models.kyc import KYC, DocumentType, KycPackage, PaymentStatus
 from app.models.user import User
 from app.models.system_config import SystemConfig
 from app.services.b2_service import upload_to_b2
@@ -101,13 +101,14 @@ async def submit_kyc(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    deposit_balance = user.deposit_wallet or Decimal("0")
     if total_fee > 0:
-        if user.deposit_wallet < total_fee:
+        if deposit_balance < total_fee:
             raise HTTPException(
                 status_code=400,
-                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet balance is {user.deposit_wallet} USDT.",
+                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet balance is {deposit_balance} USDT.",
             )
-        user.deposit_wallet = (user.deposit_wallet - total_fee).quantize(
+        user.deposit_wallet = (deposit_balance - total_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
 
@@ -141,6 +142,7 @@ async def submit_kyc(
         back_image_key=back_key,
         kyc_package_id=kyc_package_id,
         transaction_id=transaction_id,
+        payment_status=PaymentStatus.paid,
     )
 
     db.add(new_kyc)

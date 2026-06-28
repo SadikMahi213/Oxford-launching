@@ -95,6 +95,7 @@ class LoginResponse(BaseModel):
     user: UserResponse
     doc_submitted: bool
     kyc_status: Optional[str] = None
+    kyc_note: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -104,6 +105,7 @@ class UserRefreshResponse(BaseModel):
     user: UserResponse
     doc_submitted: bool
     kyc_status: Optional[str] = None
+    kyc_note: Optional[str] = None
 
 
 class IdentityVerificationRequest(BaseModel):

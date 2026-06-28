@@ -1663,9 +1663,18 @@
   "verificationPending": {
     "backToHome": "Back to Home",
     "badge": "VERIFICATION PROCESSING",
+    "approvedBadge": "VERIFICATION APPROVED",
+    "rejectedBadge": "VERIFICATION REJECTED",
     "title": "Your Verification is",
     "titleHighlight": "In Progress",
+    "approvedTitle": "Your Verification is",
+    "approvedHighlight": "Approved",
+    "rejectedTitle": "Your Verification was",
+    "rejectedHighlight": "Rejected",
     "body": "Thank you for submitting your verification documents. Our team is currently reviewing your information.",
+    "approvedBody": "Your KYC verification has been approved. You can now access all platform features.",
+    "rejectedBody": "Your KYC verification was not approved. Please check the reason below and resubmit.",
+    "rejectionReason": "Reason for Rejection",
     "estimatedTime": "Estimated Processing Time",
     "timeValue": "2-3 Business Days",
     "timeDesc": "We'll notify you via email once your verification is complete"

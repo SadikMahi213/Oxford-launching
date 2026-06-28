@@ -72,6 +72,7 @@ async def get_me(
 
     doc_submitted = bool(kyc and kyc.document_number)
     kyc_status = kyc.status.value if kyc else None
+    kyc_note = kyc.admin_note if kyc else None
 
     return {
         "user": UserResponse(
@@ -80,7 +81,8 @@ async def get_me(
             country=kyc.country if kyc else None,
         ),
         "doc_submitted": doc_submitted,
-        "kyc_status": kyc_status
+        "kyc_status": kyc_status,
+        "kyc_note": kyc_note,
     }
 
 
@@ -1103,4 +1105,6 @@ async def get_fee_info(
     return {
         "kyc_fee": str(kyc_fee),
         "has_kyc": existing_kyc is not None,
+        "kyc_status": existing_kyc.status.value if existing_kyc else None,
+        "kyc_note": existing_kyc.admin_note if existing_kyc else None,
     }
