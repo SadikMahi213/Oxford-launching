@@ -111,9 +111,6 @@ async def submit_kyc(
         user.deposit_wallet = (deposit_balance - total_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
-        print(f"[kyc] User {user_id} deposit_wallet: {deposit_balance} - {total_fee} = {user.deposit_wallet}")
-
-    print(f"[kyc] User {user_id} total_fee={total_fee} deposit_balance={deposit_balance} has_pkg={pkg is not None}")
 
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
@@ -151,7 +148,6 @@ async def submit_kyc(
     db.add(new_kyc)
     await db.commit()
     await db.refresh(new_kyc)
-    print(f"[kyc] User {user_id} committed. New deposit_wallet={user.deposit_wallet}")
 
     await notify_admin(
         db=db, type="kyc_submitted",
