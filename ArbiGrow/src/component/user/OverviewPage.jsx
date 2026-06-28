@@ -590,10 +590,7 @@ const OverviewPage = ({ setActivePage }) => {
           },
           {
             label: t('overview.wallets.deposit'),
-            balance:
-              totalApprovedDeposits !== null
-                ? totalApprovedDeposits
-                : Number(user?.deposit_wallet ?? 0),
+            balance: Number(user?.deposit_wallet ?? 0),
             description: t('overview.wallets.deposit_desc'),
             icon: Download,
             currency: "USDT",
