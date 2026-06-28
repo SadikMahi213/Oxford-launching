@@ -15,6 +15,7 @@ import {
   Car,
 } from "lucide-react";
 import { submitKYC, getActiveKycPackage } from "../api/kyc.api.js";
+import { refreshUserStore } from "../api/user.api.js";
 import { getFeeInfo } from "../api/user.api.js";
 // import logo from "../assets/Arbigrow-Logo.png";
 import { useNavigate } from "react-router";
@@ -248,6 +249,12 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
       // console.log("KYC Response:", response?.data);
       if (response?.data?.message == "KYC submitted successfully") {
+        try {
+          const meRes = await refreshUserStore();
+          if (meRes?.data?.user) {
+            setUser(meRes.data.user);
+          }
+        } catch (_) {}
         if (onSuccess) {
           onSuccess();
         } else {

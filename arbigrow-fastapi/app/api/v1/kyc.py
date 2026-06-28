@@ -159,4 +159,5 @@ async def submit_kyc(
         "message": "KYC submitted successfully",
         "status": new_kyc.status,
         "fee_deducted": str(total_fee) if total_fee > 0 else "0",
+        "deposit_wallet_balance": str(user.deposit_wallet or Decimal("0")),
     }
