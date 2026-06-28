@@ -26,14 +26,15 @@ async def get_network_analytics(
     # Get all descendants via recursive CTE
     team_stmt = sa_text("""
         WITH RECURSIVE team_tree AS (
-            SELECT id FROM users WHERE parent_lvl_1_id = :uid
+            SELECT id, 1 AS depth FROM users WHERE parent_lvl_1_id = :uid
             UNION ALL
-            SELECT u.id FROM users u
+            SELECT u.id, tt.depth + 1 FROM users u
             INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
         SELECT id FROM team_tree
     """)
-    team_rows = await db.execute(team_stmt, {"uid": current_user.id})
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 40})
     team_ids = [row[0] for row in team_rows.fetchall()]
 
     total_network_members = len(team_ids)
@@ -90,10 +91,11 @@ async def get_level_analytics(
             UNION ALL
             SELECT u.id, tt.depth + 1 FROM users u
             INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
         SELECT id, depth FROM team_tree WHERE depth = :lvl
     """)
-    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level})
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level, "max_depth": 40})
     team_data = team_rows.fetchall()
     team_ids = [row[0] for row in team_data]
 

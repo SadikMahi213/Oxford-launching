@@ -183,6 +183,7 @@ async def get_my_withdrawals(
         select(Withdrawal)
         .where(Withdrawal.user_id == current_user.id)
         .order_by(Withdrawal.created_at.desc())
+        .limit(100)
     )
 
     withdrawals = result.scalars().all()

@@ -105,10 +105,11 @@ async def get_referral_network(
             SELECT u.id, tt.depth + 1
             FROM users u
             INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
         SELECT id, depth FROM team_tree
     """)
-    team_rows = await db.execute(team_stmt, {"user_id": current_user.id})
+    team_rows = await db.execute(team_stmt, {"user_id": current_user.id, "max_depth": 40})
     team_data = team_rows.fetchall()
 
     total_team_members = len(team_data)
@@ -449,7 +450,7 @@ async def get_earnings_history(
         select(ReferralProfitHistory)
         .where(ReferralProfitHistory.receiver_user_id == current_user.id)
         .order_by(ReferralProfitHistory.created_at.desc())
-        .limit(500)
+        .limit(100)
     )
     items = result.scalars().all()
 
@@ -637,7 +638,7 @@ async def get_profit_history(
         select(InvestmentProfitHistory)
         .where(InvestmentProfitHistory.investment_id.in_(investment_ids))
         .order_by(InvestmentProfitHistory.created_at.desc())
-        .limit(1000)
+        .limit(100)
     )
     items = history_result.scalars().all()
 

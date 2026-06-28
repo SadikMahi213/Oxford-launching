@@ -75,6 +75,7 @@ async def get_my_deposits(
         select(Deposit)
         .where(Deposit.user_id == current_user.id)
         .order_by(Deposit.created_at.desc())
+        .limit(100)
     )
 
     deposits = result.scalars().all()

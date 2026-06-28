@@ -29,7 +29,7 @@ def _parse_bool(value: str | None, default: bool = False) -> bool:
 
 
 def _serialize_announcement(item: Announcement) -> AnnouncementResponse:
-    resolved_image = item.image_url or generate_presigned_url(item.image_key)
+    resolved_image = generate_presigned_url(item.image_key) or item.image_url
     return AnnouncementResponse(
         id=item.id,
         title=item.title,

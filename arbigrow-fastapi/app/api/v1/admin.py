@@ -547,10 +547,11 @@ async def get_user_details(
             SELECT u.id, tt.depth + 1
             FROM users u
             INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
         SELECT id, depth FROM team_tree
     """)
-    team_rows = await db.execute(team_stmt, {"user_id": user.id})
+    team_rows = await db.execute(team_stmt, {"user_id": user.id, "max_depth": 40})
     team_data = team_rows.fetchall()
 
     bonus_eligible_ids = {row[0] for row in team_data if row[1] <= 5}

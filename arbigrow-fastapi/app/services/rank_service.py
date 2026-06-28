@@ -32,17 +32,19 @@ async def get_team_volume(
     )
     self_volume = Decimal(str(self_result.scalar()))
 
-    # Find ALL descendant user IDs at any depth via recursive CTE
+    # Find ALL descendant user IDs up to max_depth via recursive CTE
     descendant_stmt = sa_text("""
         WITH RECURSIVE team_tree AS (
-            SELECT id FROM users WHERE parent_lvl_1_id = :uid
+            SELECT id, 1 AS depth FROM users WHERE parent_lvl_1_id = :uid
             UNION ALL
-            SELECT u.id FROM users u
+            SELECT u.id, tt.depth + 1
+            FROM users u
             INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
         SELECT id FROM team_tree
     """)
-    descendant_result = await db.execute(descendant_stmt, {"uid": user_id})
+    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": 40})
     descendant_ids = [row[0] for row in descendant_result.fetchall()]
 
     team_volume = self_volume
