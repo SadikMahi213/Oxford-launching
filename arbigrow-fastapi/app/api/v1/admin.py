@@ -22,7 +22,7 @@ from app.models.captcha import CaptchaEarning, CaptchaChallenge
 from app.models.ad_view import AdView
 from app.models.user_ad_view import UserAdView
 from app.models.invoice import Invoice
-from app.models.notification import Notification
+from app.models.notification import AdminNotification
 from app.models.order import Order, OrderItem
 from app.models.seller import Seller
 from app.models.announcement import Announcement
@@ -997,7 +997,7 @@ async def delete_user(
     from app.models.user_ad_view import UserAdView
     await db.execute(delete(UserAdView).where(UserAdView.user_id == user_id))
     await db.execute(delete(Invoice).where(Invoice.user_id == user_id))
-    await db.execute(delete(Notification).where(Notification.user_id == user_id))
+    await db.execute(delete(AdminNotification).where(AdminNotification.user_id == user_id))
     await db.execute(delete(MatchingBonus).where(MatchingBonus.user_id == user_id))
     from app.models.rank_history import RankHistory
     await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
