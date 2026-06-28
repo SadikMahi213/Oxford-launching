@@ -65,7 +65,7 @@ services:
     command: >
       sh -c "
         echo 'Running migrations...' &&
-        alembic upgrade head &&
+        alembic upgrade heads &&
         echo 'Seeding database...' &&
         python seed.py &&
         echo 'Done!'
