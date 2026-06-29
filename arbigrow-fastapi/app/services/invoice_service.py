@@ -3,6 +3,7 @@ Invoice Service — generates PDF invoices using Playwright (Chromium).
 Professional A4 format per-transaction invoices for deposits and withdrawals.
 """
 import os
+import base64
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -111,6 +112,21 @@ def _fmt_currency(val, decimals=2) -> str:
 
 # ── HTML Template ───────────────────────────────────────────────────────────
 
+_logo_cache: Optional[str] = None
+
+def _get_logo_data_uri() -> str:
+    global _logo_cache
+    if _logo_cache:
+        return _logo_cache
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "oxford.png")
+    try:
+        with open(logo_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("ascii")
+        _logo_cache = f'<img src="data:image/png;base64,{b64}" alt="Oxford Financial Ads" style="width:44px;height:44px;object-fit:contain;border-radius:3px;" />'
+    except FileNotFoundError:
+        _logo_cache = '<div style="width:44px;height:44px;background:#032F61;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#B78A32;font-weight:700;font-size:14px;">OF</div>'
+    return _logo_cache
+
 def _build_invoice_html(
     invoice_number: str,
     invoice_type: str,
@@ -140,16 +156,7 @@ def _build_invoice_html(
     net_amount = float(amount or 0)
     total_amount = net_amount + fee
 
-    crest_svg = """<svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%">
-    <stop offset="0%" stop-color="#B78A32"/><stop offset="100%" stop-color="#8B6914"/>
-  </linearGradient></defs>
-  <path d="M50 5L90 20v30Q90 85 50 98 10 85 10 50V20Z" fill="url(#g)" stroke="#8B6914" stroke-width="1.5"/>
-  <path d="M30 22L35 12L45 18L50 8L55 18L65 12L70 22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-  <circle cx="50" cy="45" r="14" fill="none" stroke="#fff" stroke-width="2.5"/>
-  <circle cx="50" cy="45" r="8" fill="none" stroke="#fff" stroke-width="2"/>
-  <text x="50" y="49" text-anchor="middle" fill="#fff" font-size="12" font-weight="900" font-family="serif">OF</text>
-</svg>"""
+    logo_img = _get_logo_data_uri()
 
     tx_hash = tx_data.get("transaction_hash", "") if tx_data else ""
     tx_hash_display = tx_hash[:16] + "..." if len(tx_hash) > 16 else tx_hash
@@ -180,10 +187,10 @@ def _build_invoice_html(
 
   <div class="header">
     <div class="header-left">
-      {crest_svg}
+      {logo_img}
       <div>
-        <div class="company-name">OXFORD FINANCIAL</div>
-        <div class="company-sub">ArbiGrow &mdash; Professional Trading Solutions</div>
+        <div class="company-name">Oxford Financial Ads</div>
+        <div class="company-sub">Professional Financial Services</div>
       </div>
     </div>
     <div class="header-right">
@@ -287,7 +294,7 @@ def _build_invoice_html(
   </div>
 
   <div class="footer-band">
-    <p>OXFORD FINANCIAL &mdash; Professional Trading Solutions &bull; www.oxfordfinancialads.com</p>
+    <p>Oxford Financial Ads &mdash; Professional Financial Services &bull; www.oxfordfinancialads.com</p>
     <p style="font-size:9px;color:#B78A32;opacity:0.8;">This invoice is a confidential document. Unauthorised distribution is prohibited.</p>
   </div>
 
