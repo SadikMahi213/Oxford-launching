@@ -52,6 +52,8 @@ services:
       DB_SSL_REQUIRED: "false"
       AUTO_ROI_ENABLED: "true"
       AUTO_ROI_POLL_SECONDS: 21600
+    volumes:
+      - ./storage/invoices:/app/storage/invoices
     depends_on:
       postgres:
         condition: service_healthy
