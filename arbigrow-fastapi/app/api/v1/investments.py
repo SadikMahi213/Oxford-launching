@@ -97,11 +97,11 @@ async def buy_investment(
             detail="User not found",
         )
 
-    # check balance
-    if user.main_wallet < amount:
+    # check balance in deposit wallet
+    if user.deposit_wallet < amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Insufficient main wallet balance",
+            detail="Insufficient deposit wallet balance",
         )
 
     # Calculate expected profit and ROI from package
@@ -120,8 +120,8 @@ async def buy_investment(
     start_date = datetime.now(timezone.utc)
     end_date = start_date + timedelta(days=package.duration_days)
 
-    # deduct wallet
-    user.main_wallet = (user.main_wallet - amount).quantize(
+    # deduct from deposit wallet
+    user.deposit_wallet = (user.deposit_wallet - amount).quantize(
         WALLET_PRECISION,
         rounding=ROUND_HALF_UP,
     )
@@ -188,7 +188,7 @@ async def buy_investment(
         roi_percent=investment.roi_percent,
         expected_profit=investment.expected_profit,
         status=investment.status,
-        main_wallet_balance=user.main_wallet,
+        deposit_wallet_balance=user.deposit_wallet,
     )
 
 

@@ -14,7 +14,7 @@ class BuyInvestmentResponse(BaseModel):
     roi_percent: Decimal
     expected_profit: Decimal
     status: str
-    main_wallet_balance: Decimal
+    deposit_wallet_balance: Decimal
 
 
 class AddProfitRequest(BaseModel):

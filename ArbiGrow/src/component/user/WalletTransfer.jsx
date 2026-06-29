@@ -7,7 +7,6 @@ import useUserStore from "../../store/userStore.js";
 
 const FROM_WALLET_OPTIONS = [
   { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT", description: "Purchase, invest, withdraw" },
-  { value: "deposit_wallet", label: "Deposit Wallet", icon: Wallet, currency: "USDT", description: "KYC & transfers" },
   { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
   { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
   { value: "matching_bonus_wallet", label: "Matching Bonus Wallet", icon: Award, currency: "USDT" },

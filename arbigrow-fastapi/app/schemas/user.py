@@ -174,7 +174,7 @@ class ReferralNetworkResponse(BaseModel):
 
 
 TRANSFER_FROM_WALLETS = [
-    "deposit_wallet", "main_wallet",
+    "main_wallet",
     "referral_wallet", "generation_wallet", "ecommerce_wallet",
     "captcha_wallet", "ad_view_wallet", "matching_bonus_wallet",
 ]
