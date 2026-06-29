@@ -66,12 +66,12 @@ class User(Base):
         server_default="pending",
     )
 
-    # Account access control managed by admins.
+    # Account access control: inactive until KYC is approved.
     account_status: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
-        default="active",
-        server_default="active",
+        default="inactive",
+        server_default="inactive",
     )
     account_issue: Mapped[str | None] = mapped_column(Text, nullable=True)
 

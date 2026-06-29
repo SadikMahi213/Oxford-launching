@@ -11,6 +11,7 @@ from app.models.deposit import Deposit
 from app.models.user import User
 from app.models.package import Package
 from app.models.investments import Investment
+from app.models.kyc import KYC, KYCStatus
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.system_config import SystemConfig
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
@@ -293,7 +294,13 @@ async def update_deposit_status(
                     status="active",
                 )
                 db.add(investment)
-                user.account_status = "active"
+                kyc_result = await db.execute(
+                    select(KYC).where(KYC.user_id == user.id, KYC.status == KYCStatus.approved)
+                )
+                kyc_approved = kyc_result.scalar_one_or_none() is not None or (
+                    user.admin_kyc_status == "approved"
+                )
+                user.account_status = "active" if kyc_approved else "inactive"
                 user.pending_package_id = None
                 await db.commit()
 

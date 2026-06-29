@@ -852,7 +852,7 @@ async def update_kyc_status(
 
     # Always persist an admin status so users without KYC can still be managed.
     user.admin_kyc_status = new_kyc_status.value
-    user.account_status = "active"
+    user.account_status = "active" if new_kyc_status == KYCStatus.approved else "inactive"
     user.account_issue = None
     await db.commit()
     await db.refresh(user)

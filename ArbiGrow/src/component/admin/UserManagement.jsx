@@ -214,7 +214,7 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
             }
           : selectedUser?.kyc,
         status: updatedStatus,
-        account_status: updatedStatus === "issue" ? "on_hold" : "active",
+        account_status: response?.account_status || (updatedStatus === "issue" ? "on_hold" : "inactive"),
         issue_note: updatedIssueNote || null,
       };
 
