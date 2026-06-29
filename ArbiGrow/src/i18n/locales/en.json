@@ -3,7 +3,7 @@
     "name": "Oxford Financial Ads",
     "tagline": "Professional Financial Services",
     "description": "Elevate Your Brand Globally. Oxford Financial Ads is a fully international advertising agency dedicated to helping businesses establish their brands in the global marketplace.",
-    "copyright": "© 2026 Oxford Financial Ads. All rights reserved."
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
   },
   "nav": {
     "home": "Home",
@@ -24,7 +24,7 @@
     "taglineMobile": "AI Trading",
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
-    "copyright": "© {{year}} Oxford Financial Ads. All rights reserved.",
+    "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "legal": "Legal Information"
@@ -43,7 +43,7 @@
     "serving": "Serving Members Worldwide",
     "support247": "24/7 Online Operations & Support",
     "supportEmail": "support.oxfordfinancialads@gmail.com",
-    "copyright": "© 2026 Oxford Financial Ads. All rights reserved."
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
   },
   "hero": {
     "title": "Digital Advertising & Online Earning Platform",
@@ -1263,7 +1263,7 @@
     "subtitle": "Progressive rank-based bonus system",
     "currentRank": "Current Rank",
     "unranked": "Unranked",
-    "rate": "{{percent}}% matching bonus",
+    "rate": "Rate",
     "startBuilding": "Start building your team",
     "yourDeposit": "Your Deposit",
     "ownDepositDesc": "Your own approved deposits",
@@ -1308,7 +1308,6 @@
     "bonusHistoryDesc": "All matching bonus payments received",
     "noBonuses": "No matching bonuses yet",
     "eligibleVolume": "Eligible Volume",
-    "rate": "Rate",
     "bonusAmount": "Bonus Amount",
     "date": "Date",
     "page": "Page {{page}} of {{totalPages}}",
@@ -1896,7 +1895,7 @@
   },
   "tierSection": {
     "title": "Oxford Financial Ads Packages",
-    "subtitle": "12-Month Daily Payment Model \u2014 Investment Packages",
+    "subtitle": "12-Month Daily Payment Model — Investment Packages",
     "loading": "Loading packages...",
     "adViewPackage": "AD VIEW PACKAGE",
     "captchaPackage": "CAPTCHA TYPING PACKAGE",
