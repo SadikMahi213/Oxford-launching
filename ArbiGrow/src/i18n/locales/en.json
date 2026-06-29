@@ -490,7 +490,12 @@
     "err_max": "Maximum withdrawal amount is {{max}} USDT.",
     "err_balance": "Insufficient balance in {{wallet}}. Available: {{balance}}.",
     "err_mainBalance": "Insufficient Main Wallet balance. Required: {{required}} USDT (Amount + 1%), Available: {{available}} USDT.",
-    "err_address": "Must be at least 5 characters."
+    "err_address": "Must be at least 5 characters.",
+    "mode_banking": "Bank Transfer",
+    "mode_network": "Network Withdrawal",
+    "mode_both": "Banking + Network",
+    "err_mode_banking": "Only bank transfer withdrawals are allowed at this time.",
+    "err_mode_network": "Network withdrawals are currently disabled."
   },
   "walletTransfer": {
     "title": "Wallet Transfer",

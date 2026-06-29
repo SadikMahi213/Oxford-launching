@@ -293,6 +293,26 @@ const SystemConfigPanel = () => {
               >Save</button>
               <span className="text-xs text-gray-500">Current: {feeConfig.min_deposit_amount || "10"} USDT</span>
             </div>
+
+            {/* Withdrawal Mode */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">Withdrawal Mode:</label>
+              <select
+                value={feeConfig.withdrawal_mode || "both"}
+                onChange={(e) => updateFeeConfig(token, "withdrawal_mode", e.target.value).then(() => {
+                  setFeeConfig({ ...feeConfig, withdrawal_mode: e.target.value });
+                  setMsg(`Withdrawal mode set to ${e.target.value}`);
+                }).catch((err) => {
+                  setMsg("Error: " + (err.response?.data?.detail || err.message));
+                })}
+                className="w-40 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+              >
+                <option value="banking_only" style={{ color: "#0f172a" }}>Banking Only</option>
+                <option value="network_only" style={{ color: "#0f172a" }}>Network Only</option>
+                <option value="both" style={{ color: "#0f172a" }}>Banking + Network</option>
+              </select>
+              <span className="text-xs text-gray-500">Changes take effect immediately</span>
+            </div>
           </motion.div>
 
           {/* Active Miners */}

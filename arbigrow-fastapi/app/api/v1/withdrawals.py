@@ -84,6 +84,24 @@ async def create_withdrawal_request(
     if data.source_wallet not in ALLOWED_SOURCE_WALLETS:
         raise HTTPException(status_code=400, detail="Invalid wallet selected")
 
+    # Read withdrawal mode from config
+    mode_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "withdrawal_mode")
+    )
+    mode_row = mode_result.scalar_one_or_none()
+    withdrawal_mode = mode_row.value if mode_row else "both"
+
+    if withdrawal_mode == "banking_only" and not data.use_bank_info:
+        raise HTTPException(
+            status_code=403,
+            detail="Only bank transfer withdrawals are allowed at this time."
+        )
+    if withdrawal_mode == "network_only" and data.use_bank_info:
+        raise HTTPException(
+            status_code=403,
+            detail="Bank transfer withdrawals are currently disabled. Please use network withdrawal."
+        )
+
     bank_info = None
     destination_address: str | None = None
     if data.use_bank_info:

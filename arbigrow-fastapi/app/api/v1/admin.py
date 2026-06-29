@@ -1266,13 +1266,15 @@ async def get_fee_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     configs = {}
-    for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount"]:
+    for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode"]:
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
         if key == "kyc_package_enabled":
             configs[key] = row.value if row else "true"
         elif key == "min_deposit_amount":
             configs[key] = row.value if row else "10"
+        elif key == "withdrawal_mode":
+            configs[key] = row.value if row else "both"
         else:
             configs[key] = row.value if row else ("5" if "charge" in key else "0")
     return {"data": configs}
@@ -1285,12 +1287,15 @@ async def update_fee_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount"}
+    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode"}
     if key not in valid_keys:
         raise HTTPException(status_code=400, detail=f"Invalid key. Must be one of: {', '.join(sorted(valid_keys))}")
     if key == "kyc_package_enabled":
         if data.value.lower() not in ("true", "false"):
             raise HTTPException(status_code=400, detail="Value must be 'true' or 'false'")
+    elif key == "withdrawal_mode":
+        if data.value not in ("banking_only", "network_only", "both"):
+            raise HTTPException(status_code=400, detail="Value must be 'banking_only', 'network_only', or 'both'")
     else:
         try:
             val = Decimal(data.value)
@@ -1315,9 +1320,10 @@ async def update_fee_config(
         "transfer_charge_percent": "Transfer % charge",
         "withdrawal_charge_percent": "Withdrawal % charge",
         "min_deposit_amount": "Minimum deposit amount",
+        "withdrawal_mode": "Withdrawal mode",
     }
     label = labels.get(key, key.replace("_", " ").title())
-    suffix = "" if key in ("kyc_fee", "kyc_package_enabled", "min_deposit_amount") else "%"
+    suffix = "" if key in ("kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode") else "%"
     return {"message": f"{label} updated to {data.value}{suffix}"}
 
 
