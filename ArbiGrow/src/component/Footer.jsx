@@ -128,13 +128,18 @@ export default function Footer() {
 
             {/* Contact Column */}
             <div>
-              <h3 className="font-bold mb-4">{t("footer.globalContact")}</h3>
-              <ul className="space-y-3">
-                <li className="text-gray-400">
-                  <span className="block text-sm text-cyan-400 font-medium">{t("footer.contactName")}</span>
+              <h3 className="font-bold mb-4">{t("footer.locationTitle")}</h3>
+              <ul className="space-y-2">
+                <li className="text-gray-400 text-xs">
+                  <span className="block">{t("footer.address1")}</span>
+                  <span className="block">{t("footer.address2")}</span>
+                  <span className="block">{t("footer.address3")}</span>
+                  <span className="block">{t("footer.address4")}</span>
+                </li>
+                <li className="text-gray-400 pt-2">
                   <span className="block text-xs text-gray-500">{t("footer.contactDesc")}</span>
                 </li>
-                <li className="text-gray-400">
+                <li className="text-gray-400 pt-2">
                   <span className="block text-sm mb-1">{t("footer.officialEmail")}</span>
                   <a
                     href="mailto:support.oxfordfinancialads@gmail.com"
@@ -143,7 +148,7 @@ export default function Footer() {
                     {t("footer.supportEmail")}
                   </a>
                 </li>
-                <li className="text-gray-400 text-xs">
+                <li className="text-gray-400 text-xs pt-2">
                   <span className="block">{t("footer.serving")}</span>
                   <span className="block">{t("footer.support247")}</span>
                 </li>

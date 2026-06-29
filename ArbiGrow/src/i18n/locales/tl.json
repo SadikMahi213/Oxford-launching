@@ -29,13 +29,16 @@
     "terms": "Mga Tuntunin at Kundisyon",
     "privacy": "Patakaran sa Privacy",
     "legalInfo": "Legal na Impormasyon",
-    "globalContact": "Global na Kontak",
-    "contactName": "Oxford Financial Ads",
-    "contactDesc": "Global Digital Advertising Platform UK",
+    "contactDesc": "Global Digital Advertising Platform",
     "officialEmail": "Opisyal na Email",
     "serving": "Naglilingkod sa mga Miyembro sa Buong Mundo",
     "support247": "24/7 Online Operations at Suporta",
-    "copyright": "© 2019 Oxford Financial Ad. Lahat ng Karapatan ay Nakalaan. | Patakaran sa Privacy | Mga Tuntunin at Kundisyon | AML at KYC Policy | Makipag-ugnayan sa Amin"
+    "copyright": "© 2019 Oxford Financial Ad. Lahat ng Karapatan ay Nakalaan. | Patakaran sa Privacy | Mga Tuntunin at Kundisyon | AML at KYC Policy | Makipag-ugnayan sa Amin",
+    "locationTitle": "Lokasyon. Tanggapan ng Kumpanya",
+    "address1": "25 Business Square",
+    "address2": "Distrito ng Canary",
+    "address3": "London, EC2A 4AB",
+    "address4": "United Kingdom"
   },
   "hero": {
     "title": "Digital Advertising at Online Earning Platform",

@@ -29,13 +29,16 @@
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "legalInfo": "Legal Information",
-    "globalContact": "Global Contact",
-    "contactName": "Oxford Financial Ads",
-    "contactDesc": "Global Digital Advertising Platform UK",
+    "contactDesc": "Global Digital Advertising Platform",
     "officialEmail": "Official Email",
     "serving": "Serving Members For Everywhere for World",
     "support247": "24/7 Online Operations & Support Dey",
-    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
+    "locationTitle": "Location. Corporate Office",
+    "address1": "25 Business Square",
+    "address2": "Canary District",
+    "address3": "London, EC2A 4AB",
+    "address4": "United Kingdom"
   },
   "hero": {
     "title": "Digital Advertising & Online Earning Platform",

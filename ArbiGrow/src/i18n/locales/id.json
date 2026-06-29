@@ -29,13 +29,16 @@
     "terms": "Syarat & Ketentuan",
     "privacy": "Kebijakan Privasi",
     "legalInfo": "Informasi Hukum",
-    "globalContact": "Kontak Global",
-    "contactName": "Oxford Financial Ads",
-    "contactDesc": "Platform Periklanan Digital Global UK",
+    "contactDesc": "Platform Periklanan Digital Global",
     "officialEmail": "Email Resmi",
     "serving": "Melayani Anggota di Seluruh Dunia",
     "support247": "Operasi & Dukungan Online 24/7",
-    "copyright": "© 2019 Iklan Keuangan Oxford. Semua Hak Dilindungi Undang-undang. | Kebijakan Privasi | Syarat & Ketentuan | Kebijakan AML & KYC | Hubungi kami"
+    "copyright": "© 2019 Iklan Keuangan Oxford. Semua Hak Dilindungi Undang-undang. | Kebijakan Privasi | Syarat & Ketentuan | Kebijakan AML & KYC | Hubungi kami",
+    "locationTitle": "Lokasi. Kantor Perusahaan",
+    "address1": "25 Lapangan Bisnis",
+    "address2": "Distrik Canary",
+    "address3": "London, EC2A 4AB",
+    "address4": "Inggris Raya"
   },
   "hero": {
     "title": "Platform Periklanan Digital & Penghasilan Online",

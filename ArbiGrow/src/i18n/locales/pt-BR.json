@@ -29,13 +29,16 @@
     "terms": "Termos & Condições",
     "privacy": "Política de Privacidade",
     "legalInfo": "Informações Legais",
-    "globalContact": "Contato Global",
-    "contactName": "Oxford Financial Ads",
-    "contactDesc": "Plataforma Global de Publicidade Digital Reino Unido",
+    "contactDesc": "Plataforma global de publicidade digital",
     "officialEmail": "E-mail Oficial",
     "serving": "Atendendo Membros no Mundo Todo",
     "support247": "Operações e Suporte Online 24/7",
-    "copyright": "© 2019 Oxford Financial Ads. Todos os direitos reservados. | Política de Privacidade | Termos e Condições | Política AML e KYC | Contate-nos"
+    "copyright": "© 2019 Oxford Financial Ads. Todos os direitos reservados. | Política de Privacidade | Termos e Condições | Política AML e KYC | Contate-nos",
+    "locationTitle": "Localização. Escritório Corporativo",
+    "address1": "25 Praça de Negócios",
+    "address2": "Distrito das Canárias",
+    "address3": "Londres, EC2A 4AB",
+    "address4": "Reino Unido"
   },
   "hero": {
     "title": "Plataforma de Publicidade Digital e Ganhos Online",
