@@ -40,6 +40,10 @@ export const getActiveDepositNetworks = () => {
   return api.get("v1/deposit-networks/active", authHeaders());
 };
 
+export const getActiveWithdrawalMethods = () => {
+  return api.get("v1/withdrawal-methods/active", authHeaders());
+};
+
 export const createDepositRequest = (payload) => {
   return api.post("v1/deposits/", payload, authHeaders());
 };

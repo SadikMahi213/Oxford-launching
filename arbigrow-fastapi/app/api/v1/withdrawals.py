@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from app.api.v1.deps import get_current_admin_user, get_current_user
 from app.core.database import get_db
 from app.models.bank_info import BankInfo
-from app.models.deposit_network import DepositNetwork
+from app.models.withdrawal_method import WithdrawalMethod
 from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.withdrawal import Withdrawal
@@ -22,8 +22,6 @@ from app.utils.kyc_helper import check_kyc_approved
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
-MIN_WITHDRAW_AMOUNT = Decimal("10")
-MAX_WITHDRAW_AMOUNT = Decimal("700")
 WALLET_PRECISION = Decimal("0.00000000000001")
 # Withdrawal charge now read dynamically from SystemConfig (withdrawal_charge_percent)
 ALLOWED_SOURCE_WALLETS = {
@@ -39,9 +37,12 @@ def _serialize_withdrawal(withdrawal: Withdrawal, include_user: bool = False) ->
     item = {
         "id": withdrawal.id,
         "source_wallet": withdrawal.source_wallet,
+        "withdrawal_method_id": withdrawal.withdrawal_method_id,
+        "method_type": withdrawal.method_type,
         "network_name": withdrawal.network_name,
         "amount": float(withdrawal.amount),
         "destination_address": withdrawal.destination_address,
+        "account_type": withdrawal.account_type,
         "note": withdrawal.note,
         "status": withdrawal.status,
         "created_at": withdrawal.created_at,
@@ -84,27 +85,32 @@ async def create_withdrawal_request(
     if data.source_wallet not in ALLOWED_SOURCE_WALLETS:
         raise HTTPException(status_code=400, detail="Invalid wallet selected")
 
-    # Read withdrawal mode from config
-    mode_result = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "withdrawal_mode")
+    # Resolve withdrawal method
+    method_result = await db.execute(
+        select(WithdrawalMethod).where(
+            WithdrawalMethod.id == data.withdrawal_method_id,
+            WithdrawalMethod.status.is_(True),
+        )
     )
-    mode_row = mode_result.scalar_one_or_none()
-    withdrawal_mode = mode_row.value if mode_row else "both"
+    method = method_result.scalar_one_or_none()
+    if not method:
+        raise HTTPException(status_code=400, detail="Selected withdrawal method is not active or not found")
 
-    if withdrawal_mode == "banking_only" and not data.use_bank_info:
-        raise HTTPException(
-            status_code=403,
-            detail="Only bank transfer withdrawals are allowed at this time."
-        )
-    if withdrawal_mode == "network_only" and data.use_bank_info:
-        raise HTTPException(
-            status_code=403,
-            detail="Bank transfer withdrawals are currently disabled. Please use network withdrawal."
-        )
+    # Validate amount against method limits
+    amount = _to_wallet_precision(Decimal(str(data.amount)))
+    min_amt = method.min_amount if method.min_amount else Decimal("10")
+    max_amt = method.max_amount if method.max_amount else Decimal("700")
+    if amount < min_amt:
+        raise HTTPException(status_code=400, detail=f"Minimum withdrawal amount is {min_amt} USDT")
+    if amount > max_amt:
+        raise HTTPException(status_code=400, detail=f"Maximum withdrawal amount is {max_amt} USDT")
 
     bank_info = None
     destination_address: str | None = None
-    if data.use_bank_info:
+    account_type: str | None = None
+    method_type = method.method_type
+
+    if method_type == "bank":
         bank_result = await db.execute(
             select(BankInfo).where(
                 BankInfo.user_id == current_user.id,
@@ -118,37 +124,22 @@ async def create_withdrawal_request(
                 detail="No approved banking information found. Please register your bank details first."
             )
         destination_address = f"Bank Transfer — {bank_info.bank_name} ({bank_info.account_number})"
-    else:
-        network_name = (data.network_name or "").strip()
-        if not network_name:
-            raise HTTPException(status_code=400, detail="Please select a network")
-
-        active_network_result = await db.execute(
-            select(DepositNetwork).where(
-                DepositNetwork.network_name == network_name,
-                DepositNetwork.status.is_(True),
-            )
-        )
-        active_network = active_network_result.scalar_one_or_none()
-        if not active_network:
-            raise HTTPException(
-                status_code=400, detail="Selected network is not active")
-
-        destination_address = (data.destination_address or "").strip()
-        if not destination_address or len(destination_address) < 5:
+    elif method_type == "network":
+        dest = (data.destination_address or "").strip()
+        if not dest or len(dest) < 5:
             raise HTTPException(status_code=400, detail="Invalid destination address")
-
-    amount = _to_wallet_precision(Decimal(str(data.amount)))
-    if amount < MIN_WITHDRAW_AMOUNT:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Minimum withdrawal amount is {MIN_WITHDRAW_AMOUNT} USDT",
-        )
-    if amount > MAX_WITHDRAW_AMOUNT:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Maximum withdrawal amount is {MAX_WITHDRAW_AMOUNT} USDT",
-        )
+        destination_address = dest
+    elif method_type == "mobile":
+        dest = (data.destination_address or "").strip()
+        if not dest or len(dest) < 5:
+            raise HTTPException(status_code=400, detail="Invalid mobile number")
+        acc_type = (data.account_type or "").strip().lower()
+        if acc_type not in ("agent", "personal"):
+            raise HTTPException(status_code=400, detail="Account type must be 'agent' or 'personal'")
+        account_type = acc_type
+        destination_address = f"{method.display_name} — {dest} ({acc_type})"
+    else:
+        raise HTTPException(status_code=400, detail="Invalid withdrawal method type")
 
     source_balance = Decimal(
         str(getattr(current_user, data.source_wallet, Decimal("0")) or 0)
@@ -190,10 +181,13 @@ async def create_withdrawal_request(
     withdrawal = Withdrawal(
         user_id=current_user.id,
         source_wallet=data.source_wallet,
-        network_name=network_name if not bank_info else "Bank Transfer",
+        withdrawal_method_id=method.id,
+        method_type=method_type,
+        network_name=method.name,
         amount=amount,
         charge=charge_amount,
         destination_address=destination_address,
+        account_type=account_type,
         bank_info_id=bank_info.id if bank_info else None,
         note=(data.note or "").strip() or None,
         status="pending",

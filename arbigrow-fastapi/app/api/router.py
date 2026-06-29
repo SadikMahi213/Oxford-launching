@@ -28,6 +28,7 @@ from app.api.v1 import (
     ranks,
     admin_ranks,
     bank_info,
+    withdrawal_method,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -60,3 +61,4 @@ api_router.include_router(admin_security.router)
 api_router.include_router(ranks.router)
 api_router.include_router(admin_ranks.router)
 api_router.include_router(bank_info.router)
+api_router.include_router(withdrawal_method.router)

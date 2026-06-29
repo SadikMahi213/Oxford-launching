@@ -28,6 +28,7 @@ import {
   DollarSign,
   IdCard,
   Building2,
+  ArrowDownFromLine,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -115,6 +116,12 @@ export default function AdminLayout({
       label: "Deposit Networks",
       icon: Network,
       description: "Manage networks",
+    },
+    {
+      id: "withdrawal-methods",
+      label: "Withdrawal Methods",
+      icon: ArrowDownFromLine,
+      description: "Manage withdrawal methods",
     },
     {
       id: "packages",

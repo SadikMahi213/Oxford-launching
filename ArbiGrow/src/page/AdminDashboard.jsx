@@ -27,6 +27,7 @@ import BlockedAccounts from "../component/admin/security/BlockedAccounts.jsx";
 import RankManagement from "../component/admin/RankManagement.jsx";
 import RankHistoryPage from "../component/admin/RankHistory.jsx";
 import BonusHistory from "../component/admin/BonusHistory.jsx";
+import WithdrawalMethodManager from "../component/admin/WithdrawalMethodManager.jsx";
 import { Camera, Check, X } from "lucide-react";
 import api from "../api/axiosInstance.js";
 
@@ -131,6 +132,8 @@ export default function AdminDashboard() {
         return <WithdrawalRequests />;
       case "networks":
         return <DepositNetworks />;
+      case "withdrawal-methods":
+        return <WithdrawalMethodManager />;
       case "packages":
         return <PackageManagement />;
       case "investments":

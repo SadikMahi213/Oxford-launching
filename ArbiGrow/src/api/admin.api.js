@@ -107,6 +107,26 @@ export const deleteDepositNetwork = async (token, networkId) => {
   return res.data || {};
 };
 
+export const getWithdrawalMethods = async (token) => {
+  const res = await api.get("v1/withdrawal-methods/", authHeaders(token));
+  return res.data || {};
+};
+
+export const createWithdrawalMethod = async (token, payload) => {
+  const res = await api.post("v1/withdrawal-methods/", payload, authHeaders(token));
+  return res.data || {};
+};
+
+export const updateWithdrawalMethod = async (token, methodId, payload) => {
+  const res = await api.put(`v1/withdrawal-methods/${methodId}`, payload, authHeaders(token));
+  return res.data || {};
+};
+
+export const deleteWithdrawalMethod = async (token, methodId) => {
+  const res = await api.delete(`v1/withdrawal-methods/${methodId}`, authHeaders(token));
+  return res.data || {};
+};
+
 export const getAdminDeposits = async (
   token,
   { page = 1, limit = 50, status = "" } = {},
