@@ -353,8 +353,10 @@ async def update_withdrawal_status(
                 withdrawal=withdrawal,
                 tx_data={"network": withdrawal.network_name, "destination": withdrawal.destination_address},
             )
+            await db.commit()
         except Exception as inv_error:
             print(f"[warn] Failed to generate withdrawal invoice: {inv_error}")
+            await db.rollback()
 
     return {
         "message": f"Withdrawal {withdrawal.status}",

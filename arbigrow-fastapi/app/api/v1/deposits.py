@@ -330,8 +330,10 @@ async def update_deposit_status(
                 deposit=deposit,
                 tx_data={"network": deposit.network_name, "transaction_hash": deposit.txid},
             )
+            await db.commit()
         except Exception as inv_error:
             print(f"[warn] Failed to generate deposit invoice: {inv_error}")
+            await db.rollback()
 
     return {
         "message": f"Deposit {data.status}",
