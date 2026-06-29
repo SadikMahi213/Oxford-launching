@@ -297,11 +297,14 @@ export function UserDashboard() {
         transactionId: _genTransactionId("DEP", d.id, d.created_at, d.txid),
         date: _fmtDate(d.created_at),
         type: "Deposit",
+        typeLabel: t("dashboard.type_deposit"),
         wallet: "Deposit Wallet",
+        walletLabel: t("dashboard.wallet_deposit"),
         amount: _fmtAmount(d.amount),
         amountDirection: "credit",
         currency: "USDT",
         status: _mapStatus(d.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(d.status).toLowerCase()),
         _ts: new Date(d.created_at).getTime(),
       }),
     );
@@ -316,11 +319,14 @@ export function UserDashboard() {
         ),
         date: _fmtDate(w.created_at),
         type: "Withdrawal",
+        typeLabel: t("dashboard.type_withdrawal"),
         wallet: _fmtWallet(w.source_wallet),
+        walletLabel: t("dashboard.wallet_" + (w.source_wallet || "main").split("_")[0]),
         amount: _fmtAmount(w.amount),
         amountDirection: "debit",
         currency: "USDT",
         status: _mapStatus(w.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(w.status).toLowerCase()),
         _ts: new Date(w.created_at).getTime(),
       }),
     );
@@ -331,10 +337,14 @@ export function UserDashboard() {
         date: _fmtDate(e.created_at),
         type:
           e.wallet_type === "referral" ? "Referral Bonus" : "Generation Bonus",
+        typeLabel:
+          e.wallet_type === "referral" ? t("dashboard.type_referral_bonus") : t("dashboard.type_generation_bonus"),
         wallet:
           e.wallet_type === "referral"
             ? "Referral Wallet"
             : "Generation Wallet",
+        walletLabel:
+          e.wallet_type === "referral" ? t("dashboard.wallet_referral") : t("dashboard.wallet_generation"),
         amount: _fmtAmount(e.amount, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 14,
@@ -342,6 +352,7 @@ export function UserDashboard() {
         amountDirection: "credit",
         currency: "USDT",
         status: "Completed",
+        statusLabel: t("dashboard.status_completed"),
         _ts: new Date(e.created_at).getTime(),
       }),
     );
@@ -356,7 +367,9 @@ export function UserDashboard() {
         ),
         date: _fmtDate(p.created_at),
         type: "Profit Credit",
+        typeLabel: t("dashboard.type_profit_credit"),
         wallet: "Main Wallet",
+        walletLabel: t("dashboard.wallet_main"),
         amount: _fmtAmount(p.amount, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 14,
@@ -364,6 +377,7 @@ export function UserDashboard() {
         amountDirection: "credit",
         currency: "USDT",
         status: "Completed",
+        statusLabel: t("dashboard.status_completed"),
         _ts: new Date(p.created_at).getTime(),
       }),
     );
@@ -373,11 +387,14 @@ export function UserDashboard() {
         transactionId: _genTransactionId("TRF", t.id, t.created_at, "sent"),
         date: _fmtDate(t.created_at),
         type: `Transfer to @${t.receiver_name || "user"}`,
+        typeLabel: t("transactions.filter_transfer"),
         wallet: "Main Wallet",
+        walletLabel: t("dashboard.wallet_main"),
         amount: _fmtAmount(t.amount),
         amountDirection: "debit",
         currency: "USDT",
         status: _mapStatus(t.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(t.status).toLowerCase()),
         _ts: new Date(t.created_at).getTime(),
       }),
     );
@@ -387,11 +404,14 @@ export function UserDashboard() {
         transactionId: _genTransactionId("TRF", t.id, t.created_at, "recv"),
         date: _fmtDate(t.created_at),
         type: `Transfer from @${t.sender_name || "user"}`,
+        typeLabel: t("transactions.filter_transfer"),
         wallet: "Main Wallet",
+        walletLabel: t("dashboard.wallet_main"),
         amount: _fmtAmount(t.amount),
         amountDirection: "credit",
         currency: "USDT",
         status: _mapStatus(t.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(t.status).toLowerCase()),
         _ts: new Date(t.created_at).getTime(),
       }),
     );

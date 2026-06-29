@@ -143,9 +143,9 @@ const TransactionHistoryPage = ({
                   <td className="p-4 text-gray-300 text-xs font-mono">
                     {transaction.transactionId || "-"}
                   </td>
-                  <td className="p-4 text-white text-sm">{transaction.type}</td>
+                  <td className="p-4 text-white text-sm">{transaction.typeLabel || transaction.type}</td>
                   <td className="p-4 text-gray-400 text-sm">
-                    {transaction.wallet}
+                    {transaction.walletLabel || transaction.wallet}
                   </td>
                   <td className="p-4">
                     {renderAmount(transaction, true)}
@@ -158,14 +158,14 @@ const TransactionHistoryPage = ({
                           : "bg-green-500/10 text-green-400 border border-green-500/30"
                       }`}
                     >
-                      {transaction.currency === "ARBX" ? "OFA token" : transaction.currency}
+                      {transaction.currency === "ARBX" ? t("dashboard.ofa_token") : transaction.currency}
                     </span>
                   </td>
                   <td className="p-4">
                     <span
                       className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border ${getStatusColor(transaction.status)}`}
                     >
-                      {transaction.status}
+                      {transaction.statusLabel || transaction.status}
                     </span>
                   </td>
                 </tr>
@@ -194,7 +194,7 @@ const TransactionHistoryPage = ({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white truncate">
-                      {transaction.type}
+                      {transaction.typeLabel || transaction.type}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {transaction.date}
@@ -203,7 +203,7 @@ const TransactionHistoryPage = ({
                   <span
                     className={`inline-block px-2 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${getStatusColor(transaction.status)}`}
                   >
-                    {transaction.status}
+                    {transaction.statusLabel || transaction.status}
                   </span>
                 </div>
 
@@ -216,7 +216,7 @@ const TransactionHistoryPage = ({
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">{t('transactions.wallet')}</p>
-                    <p className="text-sm text-gray-300">{transaction.wallet}</p>
+                    <p className="text-sm text-gray-300">{transaction.walletLabel || transaction.wallet}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-500 mb-1">{t('transactions.amount')}</p>
@@ -231,7 +231,7 @@ const TransactionHistoryPage = ({
                           : "bg-green-500/10 text-green-400 border border-green-500/30"
                       }`}
                     >
-                      {transaction.currency === "ARBX" ? "OFA token" : transaction.currency}
+                      {transaction.currency === "ARBX" ? t("dashboard.ofa_token") : transaction.currency}
                     </span>
                   </div>
                 </div>

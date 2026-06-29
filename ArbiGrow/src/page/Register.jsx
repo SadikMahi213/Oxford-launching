@@ -176,9 +176,9 @@ export default function RegisterForm() {
       const regRes = await registerUser(payload);
       const isPaid = regRes?.data?.account_status === "pending_payment";
       if (isPaid) {
-        setMessage("Registration submitted! Please complete payment to activate your account.");
+        setMessage(t("auth.register.success_paid"));
       } else {
-        setMessage("Registration successful!");
+        setMessage(t("auth.register.success"));
       }
       setIsSuccess(true);
       setTimeout(() => navigate(isPaid ? "/login" : "/login"), 800);
@@ -186,7 +186,7 @@ export default function RegisterForm() {
       const res = error.response;
       setIsSuccess(false);
       if (!res) {
-        setMessage("Network error or server not reachable");
+        setMessage(t("auth.register.networkError"));
         setLoading(false);
         return;
       }
@@ -200,7 +200,7 @@ export default function RegisterForm() {
         setLoading(false);
         return;
       }
-      const msg = res.data?.message || res.data?.detail || "Something went wrong";
+      const msg = res.data?.message || res.data?.detail || t("auth.register.error");
       setMessage(msg);
     } finally {
       setLoading(false);
@@ -299,7 +299,7 @@ export default function RegisterForm() {
                     <label className={labelClass}>{t("auth.register.gender")}</label>
                     <select name="gender" value={formData.gender} onChange={handleChange} className={fieldClass}>
                       <option value="">{t("auth.register.selectGender")}</option>
-                      {GENDERS.map((g) => <option key={g} value={g}>{g}</option>)}
+                      {GENDERS.map((g) => <option key={g} value={g}>{t("auth.register." + g.toLowerCase())}</option>)}
                     </select>
                     {errorMsg("gender")}
                   </div>
@@ -315,14 +315,14 @@ export default function RegisterForm() {
                     <label className={labelClass}>{t("auth.register.religion")}</label>
                     <select name="religion" value={formData.religion} onChange={handleChange} className={fieldClass}>
                       <option value="">{t("auth.register.selectReligion")}</option>
-                      {RELIGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      {RELIGIONS.map((r) => <option key={r} value={r}>{t("auth.register.religion_" + r.toLowerCase())}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className={labelClass}>{t("auth.register.maritalStatus")}</label>
                     <select name="marital_status" value={formData.marital_status} onChange={handleChange} className={fieldClass}>
                       <option value="">{t("auth.register.selectMarital")}</option>
-                      {MARITAL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {MARITAL_STATUSES.map((s) => <option key={s} value={s}>{t("auth.register." + s.toLowerCase())}</option>)}
                     </select>
                   </div>
                 </div>

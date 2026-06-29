@@ -155,6 +155,7 @@
       "err_passwordMatch": "Passwords do not match",
       "err_agree": "You must agree to terms & conditions",
       "success": "Registration successful!",
+      "success_paid": "Registration submitted! Please complete payment to activate your account.",
       "networkError": "Network error or server not reachable",
       "error": "Something went wrong"
     },
@@ -1886,6 +1887,22 @@
     "perCaptcha": "{{seconds}}s per Captcha",
     "ads": "Ads",
     "tasks": "Tasks"
+  },
+  "dashboard": {
+    "type_deposit": "Deposit",
+    "type_withdrawal": "Withdrawal",
+    "type_referral_bonus": "Referral Bonus",
+    "type_generation_bonus": "Generation Bonus",
+    "type_profit_credit": "Profit Credit",
+    "wallet_deposit": "Deposit Wallet",
+    "wallet_main": "Main Wallet",
+    "wallet_referral": "Referral Wallet",
+    "wallet_generation": "Generation Wallet",
+    "status_completed": "Completed",
+    "status_pending": "Pending",
+    "status_processing": "Processing",
+    "status_rejected": "Rejected",
+    "ofa_token": "OFA token"
   },
   "statusFeedbackModal": {
     "success": "Success",
