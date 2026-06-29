@@ -17,7 +17,7 @@ from app.models.system_config import SystemConfig
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.utils.email import send_deposit_success_email
-from app.services.invoice_service import generate_user_invoice
+from app.services.invoice_service import generate_deposit_invoice
 from app.utils.notifications import notify_admin
 
 router = APIRouter(prefix="/deposits", tags=["Deposits"])
@@ -324,16 +324,11 @@ async def update_deposit_status(
 
         # Auto-generate deposit invoice
         try:
-            await generate_user_invoice(
+            await generate_deposit_invoice(
                 db=db,
                 user=user,
-                invoice_type="deposit",
-                amount=deposit.amount,
-                currency="USDT",
-                description=f"Deposit Confirmation — {deposit.txid[:16]}...",
-                reference_id=deposit.id,
-                reference_type="deposit",
-                items=[{"description": f"Deposit via {deposit.network_name}", "amount": f"${float(deposit.amount):.2f}", "status": "approved"}],
+                deposit=deposit,
+                tx_data={"network": deposit.network_name, "transaction_hash": deposit.txid},
             )
         except Exception as inv_error:
             print(f"[warn] Failed to generate deposit invoice: {inv_error}")

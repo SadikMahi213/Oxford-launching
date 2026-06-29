@@ -1,71 +1,99 @@
 """
 Invoice Service — generates PDF invoices using Playwright (Chromium).
-Invoices are rendered from HTML templates and saved as PDFs.
+Professional A4 format per-transaction invoices for deposits and withdrawals.
 """
 import os
 import logging
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
 from app.models.user import User
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
 from app.models.invoice import Invoice
-from app.models.investments import Investment
-from app.models.investment_profit_history import InvestmentProfitHistory
-from app.models.referral_profit_history import ReferralProfitHistory
 
 logger = logging.getLogger(__name__)
 
-# ── HTML Templates ──────────────────────────────────────────────────────────
-
 INVOICE_CSS = """
 <style>
-    @page { margin: 20mm 15mm; }
+    @page { margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1e293b; font-size: 11px; line-height: 1.5; background: #f8fafc; }
-    .invoice-wrapper { max-width: 210mm; margin: 0 auto; background: #fff; min-height: 297mm; padding: 30px 35px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #2563eb; }
-    .header-left h1 { font-size: 26px; color: #0f172a; margin-bottom: 4px; }
-    .header-left .subtitle { font-size: 11px; color: #64748b; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #4F4F4F; font-size: 11px; line-height: 1.5; background: #fff; }
+    .page { width: 210mm; min-height: 297mm; margin: 0 auto; display: flex; flex-direction: column; }
+    .content { flex: 1; padding: 30px 35px 0; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-crest { width: 44px; height: 44px; flex-shrink: 0; }
+    .company-name { font-size: 17px; font-weight: 700; color: #032F61; line-height: 1.2; }
+    .company-sub { font-size: 10px; color: #7A7A7A; margin-top: 1px; }
     .header-right { text-align: right; }
-    .header-right .badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .badge-generated { background: #dbeafe; color: #1d4ed8; }
-    .badge-paid { background: #d1fae5; color: #059669; }
-    .badge-pending { background: #fef3c7; color: #d97706; }
-    .invoice-meta { display: flex; justify-content: space-between; margin-bottom: 25px; padding: 16px 20px; background: #f1f5f9; border-radius: 8px; }
-    .meta-item label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
-    .meta-item .value { font-size: 13px; font-weight: 600; color: #0f172a; margin-top: 2px; }
-    .user-details { margin-bottom: 25px; }
-    .user-details h3 { font-size: 13px; color: #2563eb; margin-bottom: 4px; }
-    .user-details p { font-size: 11px; color: #475569; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    thead th { background: #2563eb; color: #fff; padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
-    tbody td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
-    tbody tr:nth-child(even) { background: #f8fafc; }
-    .amount-col { text-align: right; font-family: 'Courier New', monospace; }
-    .totals { margin-left: auto; width: 280px; }
-    .totals table { margin-bottom: 0; }
-    .totals td { padding: 6px 12px; border: none; font-size: 11px; }
-    .totals .grand-total td { font-weight: 700; font-size: 14px; color: #2563eb; border-top: 2px solid #2563eb; padding-top: 8px; }
-    .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #94a3b8; }
-    .footer p { margin-bottom: 3px; }
-    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 80px; color: rgba(37, 99, 235, 0.04); font-weight: 900; pointer-events: none; z-index: -1; }
-    .balance-summary { margin-bottom: 20px; }
-    .balance-summary h3 { font-size: 12px; color: #2563eb; margin-bottom: 8px; }
-    .balance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .balance-item { background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
-    .balance-item label { font-size: 9px; color: #64748b; text-transform: uppercase; }
-    .balance-item .value { font-size: 12px; font-weight: 600; color: #0f172a; margin-top: 2px; }
+    .invoice-title { font-size: 30px; font-weight: 800; color: #032F61; letter-spacing: 1px; line-height: 1; }
+    .invoice-subtitle { font-size: 11px; color: #7A7A7A; margin-top: 4px; }
+    .divider-line { border: none; border-top: 1px solid #E0E0E0; margin: 14px 0; }
+    .contact-row { display: flex; gap: 36px; margin-bottom: 16px; font-size: 10px; color: #4F4F4F; flex-wrap: wrap; }
+    .contact-row .col { display: flex; align-items: flex-start; gap: 5px; min-width: 180px; }
+    .details-grid { display: flex; border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+    .details-grid .side { flex: 1; padding: 10px 14px; }
+    .details-grid .vdivider { width: 1px; background: #E0E0E0; }
+    .detail-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 10px; }
+    .detail-row .label { color: #7A7A7A; min-width: 85px; }
+    .detail-row .value { color: #4F4F4F; font-weight: 600; text-align: right; }
+    .box { border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
+    .box-header { background: #032F61; color: #fff; padding: 9px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+    .status-box { display: flex; border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
+    .status-box .col { flex: 1; padding: 14px 16px; }
+    .status-box .vdivider { width: 1px; background: #E0E0E0; }
+    .status-label { font-size: 10px; color: #7A7A7A; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-row { display: flex; align-items: center; gap: 8px; }
+    .icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .icon-circle.green { background: #0B8B41; }
+    .icon-circle.red { background: #DC2626; }
+    .icon-circle.yellow { background: #D97706; }
+    .tx-type { font-size: 15px; font-weight: 700; }
+    .tx-type.green { color: #0B8B41; }
+    .tx-type.red { color: #DC2626; }
+    .tx-type.yellow { color: #D97706; }
+    .tx-sub { font-size: 10px; color: #7A7A7A; margin-top: 2px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
+    .status-badge.green { background: #0B8B41; }
+    .status-badge.red { background: #DC2626; }
+    .status-badge.yellow { background: #D97706; }
+    .status-sub { font-size: 10px; color: #7A7A7A; margin-top: 4px; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .tx-table td { padding: 7px 14px; border-bottom: 1px solid #E0E0E0; }
+    .tx-table tr:last-child td { border-bottom: none; }
+    .tx-table .label { color: #7A7A7A; width: 140px; background: #FAFAFA; font-weight: 600; }
+    .tx-table .value { color: #4F4F4F; font-weight: 600; }
+    .tx-table .val-green { color: #0B8B41; font-weight: 700; }
+    .tx-table .val-blue { color: #032F61; font-weight: 700; }
+    .summary-grid { display: flex; }
+    .summary-grid .scol { flex: 1; padding: 14px 10px; text-align: center; }
+    .summary-grid .sdivider { width: 1px; background: #E0E0E0; }
+    .summary-label { font-size: 9px; color: #7A7A7A; text-transform: uppercase; letter-spacing: 0.3px; }
+    .summary-value { font-size: 14px; font-weight: 700; color: #4F4F4F; margin-top: 4px; }
+    .summary-value.green { color: #0B8B41; }
+    .summary-value.large { font-size: 16px; }
+    .notice { background: #E3F2FD; border: 1px solid #BBDEFB; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
+    .notice-title { font-size: 11px; font-weight: 700; color: #032F61; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .notice ul { list-style: none; padding: 0; margin: 0; }
+    .notice li { font-size: 10px; color: #4F4F4F; padding: 2px 0 2px 14px; position: relative; }
+    .notice li::before { content: "\\2022"; position: absolute; left: 2px; color: #032F61; }
+    .footer-info { display: flex; border-top: 1px solid #E0E0E0; padding: 14px 35px; background: #FAFAFA; }
+    .footer-info .fcol { flex: 1; text-align: center; padding: 0 6px; }
+    .footer-info .fcol .ftitle { font-size: 10px; font-weight: 700; color: #032F61; margin-bottom: 3px; }
+    .footer-info .fcol .ftext { font-size: 9px; color: #7A7A7A; line-height: 1.4; }
+    .footer-band { background: #032F61; padding: 14px 35px; text-align: center; }
+    .footer-band p { color: #B78A32; font-size: 11px; line-height: 1.5; }
 </style>
 """
 
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-def _format_date(dt) -> str:
+
+def _fmt_date(dt) -> str:
     if not dt:
         return "-"
     if isinstance(dt, str):
@@ -73,13 +101,15 @@ def _format_date(dt) -> str:
     return dt.strftime("%b %d, %Y %H:%M")
 
 
-def _format_currency(val, decimals=2) -> str:
+def _fmt_currency(val, decimals=2) -> str:
     try:
         v = float(val or 0)
         return f"${v:,.{decimals}f}"
     except (ValueError, TypeError):
         return "$0.00"
 
+
+# ── HTML Template ───────────────────────────────────────────────────────────
 
 def _build_invoice_html(
     invoice_number: str,
@@ -90,129 +120,186 @@ def _build_invoice_html(
     currency: str,
     status: str,
     description: str,
-    period_start: Optional[str],
-    period_end: Optional[str],
     created_at: str,
-    items: list,
-    balance_summary: Optional[dict] = None,
+    tx_data: Optional[dict] = None,
 ) -> str:
-    period_html = ""
-    if period_start and period_end:
-        period_html = f"""
-        <div class="meta-item">
-            <label>Period</label>
-            <div class="value">{period_start} — {period_end}</div>
-        </div>
-        """
+    """Build professional A4 invoice HTML matching the reference design."""
+    is_deposit = invoice_type == "deposit"
+    is_withdrawal = invoice_type == "withdrawal"
+    sl = status.lower()
+    is_ok = sl in ("completed", "approved", "paid", "success")
+    is_pending = sl in ("pending", "processing")
+    badge_cls = "green" if is_ok else "yellow" if is_pending else "red"
+    badge_text = "Completed" if is_ok else "Pending" if is_pending else status.title()
+    tx_cls = "green" if is_deposit else "red"
+    tx_icon_cls = "green" if is_deposit else "red"
+    tx_label = "Deposit" if is_deposit else "Withdrawal"
+    tx_arrow = "↓" if is_deposit else "↑"
 
-    items_rows = ""
-    if items:
-        for item in items:
-            items_rows += f"""
-            <tr>
-                <td>{item.get('description', '')}</td>
-                <td class="amount-col">{item.get('amount', '')}</td>
-                <td class="amount-col">{item.get('status', '')}</td>
-            </tr>
-            """
-    else:
-        items_rows = f"""
-        <tr>
-            <td>{description or invoice_type.replace('_', ' ').title()}</td>
-            <td class="amount-col">{_format_currency(amount)}</td>
-            <td class="amount-col">{status.title()}</td>
-        </tr>
-        """
+    fee = float(tx_data.get("fee", 0)) if tx_data else 0
+    net_amount = float(amount or 0)
+    total_amount = net_amount + fee
 
-    balance_html = ""
-    if balance_summary:
-        balance_html = '<div class="balance-summary"><h3>Account Balance Summary</h3><div class="balance-grid">'
-        for label, val in balance_summary.items():
-            balance_html += f'<div class="balance-item"><label>{label.replace("_", " ").title()}</label><div class="value">{_format_currency(val, 2)}</div></div>'
-        balance_html += "</div></div>"
+    crest_svg = """<svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#B78A32"/><stop offset="100%" stop-color="#8B6914"/>
+  </linearGradient></defs>
+  <path d="M50 5L90 20v30Q90 85 50 98 10 85 10 50V20Z" fill="url(#g)" stroke="#8B6914" stroke-width="1.5"/>
+  <path d="M30 22L35 12L45 18L50 8L55 18L65 12L70 22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="50" cy="45" r="14" fill="none" stroke="#fff" stroke-width="2.5"/>
+  <circle cx="50" cy="45" r="8" fill="none" stroke="#fff" stroke-width="2"/>
+  <text x="50" y="49" text-anchor="middle" fill="#fff" font-size="12" font-weight="900" font-family="serif">OF</text>
+</svg>"""
 
-    badge_class = "badge-generated"
-    if status.lower() in ("completed", "approved", "paid"):
-        badge_class = "badge-paid"
-    elif status.lower() in ("pending", "processing"):
-        badge_class = "badge-pending"
+    tx_hash = tx_data.get("transaction_hash", "") if tx_data else ""
+    tx_hash_display = tx_hash[:16] + "..." if len(tx_hash) > 16 else tx_hash
+    bank_info = tx_data.get("bank_info", {}) if tx_data else {}
+    network = tx_data.get("network", "") or bank_info.get("network", "")
 
-    date_str = _format_date(datetime.now(timezone.utc))
+    ref_col = ""
+    ref_col += f'<div class="detail-row"><span class="label">Reference</span><span class="value">{invoice_number}</span></div>'
+    if tx_hash:
+        ref_col += f'<div class="detail-row"><span class="label">Tx Hash</span><span class="value">{tx_hash_display}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">Customer</span><span class="value">{user_name}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">Email</span><span class="value">{user_email}</span></div>'
+
+    period_col = f'<div class="detail-row"><span class="label">Date</span><span class="value">{created_at}</span></div>'
+    if bank_info:
+        period_col += f'<div class="detail-row"><span class="label">Bank</span><span class="value">{bank_info.get("bank_name", "-")}</span></div>'
+        period_col += f'<div class="detail-row"><span class="label">Account</span><span class="value">{bank_info.get("account_number", "-")[-4:].rjust(4, "*")}</span></div>'
+    if network:
+        period_col += f'<div class="detail-row"><span class="label">Network</span><span class="value">{network}</span></div>'
+
+    amt_fmt = _fmt_currency(amount)
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Invoice {invoice_number}</title>{INVOICE_CSS}</head>
 <body>
-<div class="invoice-wrapper">
-    <div class="watermark">Oxford Financial Ads</div>
-    <div class="header">
-        <div class="header-left">
-            <h1>INVOICE</h1>
-            <div class="subtitle">Oxford Financial Ads — Professional Financial Services</div>
-        </div>
-        <div class="header-right">
-            <div class="badge {badge_class}">{status.title()}</div>
-            <div style="margin-top:8px; font-size:10px; color:#64748b;">{date_str}</div>
-        </div>
-    </div>
+<div class="page">
+<div class="content">
 
-    <div class="invoice-meta">
-        <div class="meta-item">
-            <label>Invoice #</label>
-            <div class="value">{invoice_number}</div>
-        </div>
-        <div class="meta-item">
-            <label>Type</label>
-            <div class="value">{invoice_type.replace('_', ' ').title()}</div>
-        </div>
-        <div class="meta-item">
-            <label>Date</label>
-            <div class="value">{created_at}</div>
-        </div>
-        <div class="meta-item">
-            <label>Currency</label>
-            <div class="value">{currency}</div>
-        </div>
-        {period_html}
+  <div class="header">
+    <div class="header-left">
+      {crest_svg}
+      <div>
+        <div class="company-name">OXFORD FINANCIAL</div>
+        <div class="company-sub">ArbiGrow &mdash; Professional Trading Solutions</div>
+      </div>
     </div>
-
-    <div class="user-details">
-        <h3>Customer Details</h3>
-        <p><strong>{user_name}</strong><br>{user_email}</p>
+    <div class="header-right">
+      <div class="invoice-title">INVOICE</div>
+      <div class="invoice-subtitle">{invoice_number}</div>
     </div>
+  </div>
 
-    <table>
-        <thead>
-            <tr><th style="width:55%;">Description</th><th style="width:25%;" class="amount-col">Amount</th><th style="width:20%;" class="amount-col">Status</th></tr>
-        </thead>
-        <tbody>
-            {items_rows}
-        </tbody>
+  <hr class="divider-line">
+
+  <div class="contact-row">
+    <div class="col"><strong style="color:#032F61;">Email:</strong> support@oxfordfinancialads.com</div>
+    <div class="col"><strong style="color:#032F61;">Phone:</strong> +44 20 7946 0958</div>
+    <div class="col"><strong style="color:#032F61;">Web:</strong> www.oxfordfinancialads.com</div>
+  </div>
+
+  <div class="details-grid">
+    <div class="side">{ref_col}</div>
+    <div class="vdivider"></div>
+    <div class="side">{period_col}</div>
+  </div>
+
+  <div class="status-box">
+    <div class="col">
+      <div class="status-label">Transaction Type</div>
+      <div class="status-row">
+        <div class="icon-circle {tx_icon_cls}"><span style="color:#fff;font-size:16px;font-weight:700;">{tx_arrow}</span></div>
+        <div>
+          <div class="tx-type {tx_cls}">{tx_label}</div>
+          <div class="tx-sub">{description}</div>
+        </div>
+      </div>
+    </div>
+    <div class="vdivider"></div>
+    <div class="col">
+      <div class="status-label">Status</div>
+      <div>
+        <div class="status-badge {badge_cls}">{badge_text}</div>
+        <div class="status-sub">{created_at}</div>
+      </div>
+    </div>
+    <div class="vdivider"></div>
+    <div class="col">
+      <div class="status-label">Currency &amp; Amount</div>
+      <div>
+        <div class="tx-type" style="color:#032F61;">{amt_fmt}</div>
+        <div class="tx-sub">{currency}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-header">{tx_label} Transaction Details</div>
+    <table class="tx-table">
+      <tr><td class="label">{tx_label} Amount</td><td class="value val-green">{amt_fmt}</td></tr>
+      <tr><td class="label">Transaction Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
+      <tr><td class="label">Total Amount</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
+      <tr><td class="label">Currency</td><td class="value">{currency}</td></tr>"""
+
+    if network:
+        html_mid = f'<tr><td class="label">Network</td><td class="value">{network}</td></tr>'
+    else:
+        html_mid = ""
+
+    if bank_info:
+        html_mid += f'<tr><td class="label">Bank Name</td><td class="value">{bank_info.get("bank_name", "-")}</td></tr>'
+        html_mid += f'<tr><td class="label">Account Holder</td><td class="value">{bank_info.get("account_holder", "-")}</td></tr>'
+        html_mid += f'<tr><td class="label">Account Number</td><td class="value">****{bank_info.get("account_number", "")[-4:]}</td></tr>'
+
+    html_mid += f"""      <tr><td class="label">Reference</td><td class="value">{invoice_number}</td></tr>
+      <tr><td class="label">Date</td><td class="value">{created_at}</td></tr>
     </table>
+  </div>
 
-    <div class="totals">
-        <table>
-            <tr><td>Subtotal</td><td class="amount-col">{_format_currency(amount)}</td></tr>
-            <tr><td>Fee</td><td class="amount-col">$0.00</td></tr>
-            <tr class="grand-total"><td>Total</td><td class="amount-col">{_format_currency(amount)} {currency}</td></tr>
-        </table>
+  <div class="box">
+    <div class="box-header">Amount Summary</div>
+    <div class="summary-grid">
+      <div class="scol"><div class="summary-label">Subtotal</div><div class="summary-value">{amt_fmt}</div></div>
+      <div class="sdivider"></div>
+      <div class="scol"><div class="summary-label">Fee</div><div class="summary-value">{_fmt_currency(fee)}</div></div>
+      <div class="sdivider"></div>
+      <div class="scol"><div class="summary-label">Total Amount</div><div class="summary-value green large">{_fmt_currency(total_amount)}</div></div>
     </div>
+  </div>
 
-    {balance_html}
+  <div class="notice">
+    <div class="notice-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#032F61" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Important Notice</div>
+    <ul>
+      <li>This invoice is computer-generated and does not require a physical signature.</li>
+      <li>For any discrepancies, please contact support within 48 hours.</li>
+      <li>Keep this invoice for your records. Do not share sensitive details publicly.</li>
+    </ul>
+  </div>
 
-    <div class="footer">
-        <p><strong>Oxford Financial Ads</strong> — Professional Financial Services</p>
-        <p>If you have any questions, please contact support@oxfordfinancialads.com</p>
-        <p>This invoice was generated automatically. Thank you for your business.</p>
-    </div>
+</div>
+
+  <div class="footer-info">
+    <div class="fcol"><div class="ftitle">Oxford Financial</div><div class="ftext">Regulated Financial<br>Services Provider</div></div>
+    <div class="fcol"><div class="ftitle">Contact</div><div class="ftext">support@oxfordfinancialads.com<br>+44 20 7946 0958</div></div>
+    <div class="fcol"><div class="ftitle">Office</div><div class="ftext">71 Queen Victoria Street<br>London EC4V 4AY, UK</div></div>
+  </div>
+
+  <div class="footer-band">
+    <p>OXFORD FINANCIAL &mdash; Professional Trading Solutions &bull; www.oxfordfinancialads.com</p>
+    <p style="font-size:9px;color:#B78A32;opacity:0.8;">This invoice is a confidential document. Unauthorised distribution is prohibited.</p>
+  </div>
+
 </div>
 </body></html>"""
 
 
+# ── PDF Generation ──────────────────────────────────────────────────────────
+
+
 async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
-    """
-    Generate a PDF from HTML using Playwright (Chromium).
-    Falls back to a placeholder if Playwright is not available.
-    """
+    """Generate a PDF from HTML using Playwright (Chromium)."""
     try:
         from playwright.async_api import async_playwright
         async with async_playwright() as p:
@@ -259,64 +346,46 @@ def _create_placeholder_pdf(output_path: str, html_content: str):
             f.write("PDF generation unavailable. Install Playwright.\n")
 
 
-async def generate_user_invoice(
+# ── Invoice Generators ──────────────────────────────────────────────────────
+
+
+async def generate_transaction_invoice(
     db: AsyncSession,
     user: User,
     invoice_type: str,
     amount: Optional[Decimal] = None,
     currency: str = "USDT",
+    status: str = "generated",
     description: Optional[str] = None,
     reference_id: Optional[int] = None,
     reference_type: Optional[str] = None,
-    period_start: Optional[datetime] = None,
-    period_end: Optional[datetime] = None,
-    items: Optional[list] = None,
+    tx_data: Optional[dict] = None,
 ) -> Optional[Invoice]:
-    """
-    Generate a full invoice: create DB record, render HTML, produce PDF, store reference.
-    """
+    """Generate a per-transaction invoice: DB record, HTML, PDF."""
     timestamp = datetime.now(timezone.utc)
     ts_str = timestamp.strftime("%Y%m%d%H%M%S")
     inv_number = f"INV-{invoice_type.upper()[:4]}-{user.id}-{ts_str}"
 
     if not description:
         type_labels = {
-            "daily": f"Daily Transaction Summary",
-            "weekly": f"Weekly Transaction Summary",
-            "monthly": f"Monthly Transaction Summary",
-            "deposit": f"Deposit Confirmation",
-            "withdrawal": f"Withdrawal Confirmation",
-            "statement": f"Full Account Statement",
+            "deposit": "Deposit Confirmation",
+            "withdrawal": "Withdrawal Confirmation",
         }
         description = type_labels.get(invoice_type, f"{invoice_type.replace('_', ' ').title()} Invoice")
-
-    # Prepare balance summary
-    balance_summary = {
-        "main_wallet": float(user.main_wallet or 0),
-        "deposit_wallet": float(user.deposit_wallet or 0),
-        "withdraw_wallet": float(user.withdraw_wallet or 0),
-        "referral_wallet": float(user.referral_wallet or 0),
-        "generation_wallet": float(user.generation_wallet or 0),
-        "arbx_wallet": float(user.arbx_wallet or 0),
-    }
 
     html = _build_invoice_html(
         invoice_number=inv_number,
         invoice_type=invoice_type,
-        user_name=user.full_name,
+        user_name=user.full_name or user.email,
         user_email=user.email,
         amount=amount,
         currency=currency,
-        status="generated",
-        description=description or "",
-        period_start=_format_date(period_start) if period_start else None,
-        period_end=_format_date(period_end) if period_end else None,
-        created_at=_format_date(timestamp),
-        items=items or [],
-        balance_summary=balance_summary,
+        status=status,
+        description=description,
+        created_at=_fmt_date(timestamp),
+        tx_data=tx_data,
     )
 
-    # Save PDF
     pdf_dir = os.path.join(os.path.dirname(__file__), "..", "..", "storage", "invoices")
     os.makedirs(pdf_dir, exist_ok=True)
     pdf_filename = f"{inv_number}.pdf"
@@ -326,21 +395,18 @@ async def generate_user_invoice(
     if not success:
         logger.warning(f"PDF generation failed for invoice {inv_number}")
 
-    # Create DB record
     invoice = Invoice(
         user_id=user.id,
         invoice_type=invoice_type,
         invoice_number=inv_number,
         amount=amount,
         currency=currency,
-        status="generated" if success else "failed",
+        status=status if success else "failed",
         description=description,
         pdf_url=f"/storage/invoices/{pdf_filename}" if success else None,
         pdf_storage_key=pdf_filename if success else None,
         reference_id=reference_id,
         reference_type=reference_type,
-        period_start=period_start,
-        period_end=period_end,
     )
     db.add(invoice)
     await db.flush()
@@ -348,7 +414,53 @@ async def generate_user_invoice(
     return invoice
 
 
-def _serialize_invoice(invoice: Invoice) -> dict:
+async def generate_deposit_invoice(
+    db: AsyncSession,
+    user: User,
+    deposit: Deposit,
+    status: str = "completed",
+    tx_data: Optional[dict] = None,
+) -> Optional[Invoice]:
+    """Generate an invoice for a deposit transaction."""
+    data = tx_data or {}
+    return await generate_transaction_invoice(
+        db=db,
+        user=user,
+        invoice_type="deposit",
+        amount=deposit.amount,
+        currency=deposit.currency or "USDT",
+        status=status,
+        description=f"Deposit of {_fmt_currency(deposit.amount)} via {data.get('network', 'bank')}",
+        reference_id=deposit.id,
+        reference_type="deposit",
+        tx_data=data,
+    )
+
+
+async def generate_withdrawal_invoice(
+    db: AsyncSession,
+    user: User,
+    withdrawal: Withdrawal,
+    status: str = "completed",
+    tx_data: Optional[dict] = None,
+) -> Optional[Invoice]:
+    """Generate an invoice for a withdrawal transaction."""
+    data = tx_data or {}
+    return await generate_transaction_invoice(
+        db=db,
+        user=user,
+        invoice_type="withdrawal",
+        amount=withdrawal.amount,
+        currency=withdrawal.currency or "USDT",
+        status=status,
+        description=f"Withdrawal of {_fmt_currency(withdrawal.amount)} via {data.get('network', 'bank')}",
+        reference_id=withdrawal.id,
+        reference_type="withdrawal",
+        tx_data=data,
+    )
+
+
+def serialize_invoice(invoice: Invoice) -> dict:
     return {
         "id": invoice.id,
         "invoice_number": invoice.invoice_number,
@@ -360,8 +472,5 @@ def _serialize_invoice(invoice: Invoice) -> dict:
         "pdf_url": invoice.pdf_url,
         "reference_id": invoice.reference_id,
         "reference_type": invoice.reference_type,
-        "period_start": invoice.period_start.isoformat() if invoice.period_start else None,
-        "period_end": invoice.period_end.isoformat() if invoice.period_end else None,
-        "emailed": invoice.emailed,
         "created_at": invoice.created_at.isoformat() if invoice.created_at else None,
     }
