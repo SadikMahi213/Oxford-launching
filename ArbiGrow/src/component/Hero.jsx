@@ -72,7 +72,7 @@ export const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 leading-snug sm:leading-tight text-white px-4 text-center"
         >
-          Digital Advertising &amp; Online
+          {t("hero.title")}
           <br className="hidden sm:block" />
           <span className="block bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
             {t("hero.subtitle")}

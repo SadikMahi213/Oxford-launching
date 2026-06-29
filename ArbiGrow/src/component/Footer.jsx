@@ -35,7 +35,7 @@ export default function Footer() {
             {/* Brand Column */}
             <div className="md:col-span-2">
               <div className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Oxford Financial Ads
+                {t("footer.brandName")}
               </div>
               <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
                 {t("footer.description")}
@@ -140,7 +140,7 @@ export default function Footer() {
                     href="mailto:support.oxfordfinancialads@gmail.com"
                     className="text-cyan-400 hover:text-cyan-300 text-sm"
                   >
-                    support.oxfordfinancialads@gmail.com
+                    {t("footer.supportEmail")}
                   </a>
                 </li>
                 <li className="text-gray-400 text-xs">

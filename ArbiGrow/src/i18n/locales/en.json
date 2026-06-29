@@ -19,12 +19,19 @@
     "online": "We are online!",
     "followUs": "Follow us on social media to find out the latest updates on our progress.",
     "comingSoon": "Coming Soon",
+    "brandName": "Oxford Financial Ads",
+    "tagline": "Professional Financial Services",
+    "taglineMobile": "AI Trading",
+    "logoAlt": "My Logo",
+    "logoAltMobile": "Oxford Financial Ads Logo",
+    "copyright": "© {{year}} Oxford Financial Ads. All rights reserved.",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "legal": "Legal Information"
   },
   "footer": {
     "description": "Elevate Your Brand Globally. Oxford Financial Ads is a fully international advertising agency dedicated to helping businesses establish their brands in the global marketplace.",
+    "brandName": "Oxford Financial Ads",
     "legal": "Legal",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
@@ -35,6 +42,7 @@
     "officialEmail": "Official Email",
     "serving": "Serving Members Worldwide",
     "support247": "24/7 Online Operations & Support",
+    "supportEmail": "support.oxfordfinancialads@gmail.com",
     "copyright": "© 2026 Oxford Financial Ads. All rights reserved."
   },
   "hero": {
@@ -879,7 +887,19 @@
       "badge": "Our Founders",
       "title": "Founding Leadership",
       "description": "Oxford Financial Ads is led by a team of experienced professionals dedicated to innovation, transparency, and global financial growth. Their vision is to create a secure, modern, and trusted digital platform that empowers individuals and communities worldwide.",
-      "bottomText": "Our founding team brings decades of combined experience in blockchain technology, artificial intelligence, and financial markets. Together, they've built Oxford Financial Ads to revolutionize decentralized trading."
+      "bottomText": "Our founding team brings decades of combined experience in blockchain technology, artificial intelligence, and financial markets. Together, they've built Oxford Financial Ads to revolutionize decentralized trading.",
+      "member1": {
+        "name": "David Smith",
+        "title": "Co-Founder & Chief Scientist"
+      },
+      "member2": {
+        "name": "Michael Brown",
+        "title": "Co-Founder & CEO"
+      },
+      "member3": {
+        "name": "James Wilson",
+        "title": "Co-Founder & Chief Technology Officer (CTO)"
+      }
     },
     "securityCompliance": {
       "badge": "Our Commitment",
@@ -1924,7 +1944,14 @@
     "pausedAdmin": "Activity paused by admin"
   },
   "homePage": {
-    "imageAlt": "Financial Services"
+    "imageAlt": "Financial Services",
+    "altOurCommitment": "Our Commitment"
+  },
+  "language": {
+    "switch": "Switch Language"
+  },
+  "founder": {
+    "ariaTwitter": "Twitter"
   },
   "richTextEditor": {
     "bold": "Bold (Ctrl+B)",

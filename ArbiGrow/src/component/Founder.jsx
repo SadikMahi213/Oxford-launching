@@ -6,20 +6,20 @@ export default function Founders() {
   const { t } = useTranslation();
   const founders = [
     {
-      name: 'David Smith',
-      title: 'Co-Founder & Chief Scientist',
+      name: t("home.founders.member1.name"),
+      title: t("home.founders.member1.title"),
       image: '/8ae45317-c786-4aca-b281-be4f860c6871.jpeg',
       twitter: '#',
     },
     {
-      name: 'Michael Brown',
-      title: 'Co-Founder & CEO',
+      name: t("home.founders.member2.name"),
+      title: t("home.founders.member2.title"),
       image: '/17c0e002-95c2-4ebc-bd21-80193d797d41.jpeg',
       twitter: '#',
     },
     {
-      name: 'James Wilson',
-      title: 'Co-Founder & Chief Technology Officer (CTO)',
+      name: t("home.founders.member3.name"),
+      title: t("home.founders.member3.title"),
       image: '/f230f445-1eb8-412a-b620-377c79bccefd.jpeg',
       twitter: '#',
     },
@@ -93,7 +93,7 @@ export default function Founders() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all duration-300 mt-4 group/icon"
-                      aria-label="Twitter"
+                      aria-label={t("founder.ariaTwitter")}
                     >
                       <Twitter className="w-5 h-5 text-cyan-400 group-hover/icon:scale-110 transition-transform duration-300" />
                     </a>

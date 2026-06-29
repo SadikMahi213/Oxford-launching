@@ -115,7 +115,7 @@ export default function Navbar() {
               >
                 <img
                   src={logo}
-                  alt="My Logo"
+                  alt={t("nav.logoAlt")}
                   className="w-12 h-12 object-contain"
                 />
                 <div>
@@ -124,11 +124,11 @@ export default function Navbar() {
                     onClick={() => navigate("/")}
                   >
                     <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
-                      Oxford Financial Ads
+                      {t("nav.brandName")}
                     </span>
                   </div>
                   <div className="text-[9px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-1">
-                    Professional Financial Services
+                    {t("nav.tagline")}
                   </div>
                 </div>
               </a>
@@ -263,16 +263,16 @@ export default function Navbar() {
                     <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-blue-500/50">
                       <img
                         src={logo}
-                        alt="Oxford Financial Ads Logo"
+                        alt={t("nav.logoAltMobile")}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div>
                       <div className="text-lg font-bold text-white">
-                        Oxford Financial Ads
+                        {t("nav.brandName")}
                       </div>
                       <div className="text-[8px] text-cyan-400/80 uppercase tracking-wider">
-                        AI Trading
+                        {t("nav.taglineMobile")}
                       </div>
                     </div>
                   </div>
@@ -443,7 +443,7 @@ export default function Navbar() {
                flex items-center justify-center 
                text-white opacity-50 cursor-not-allowed
                group relative"
-    title="Coming Soon"
+    title={t("nav.comingSoon")}
   >
     <Twitter className="w-5 h-5" />
     <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">{t("nav.comingSoon")}</span>
@@ -466,7 +466,7 @@ export default function Navbar() {
 
   {/* Copyright */}
   <div className="text-[11px] text-gray-100 mb-4">
-    © {new Date().getFullYear()} Oxford Financial Ads. All rights reserved.
+    {t("nav.copyright", { year: new Date().getFullYear() })}
   </div>
 
   {/* Footer Links */}
