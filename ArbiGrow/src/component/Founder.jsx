@@ -1,10 +1,11 @@
 import { motion } from 'motion/react';
 import { Twitter, Linkedin } from 'lucide-react';
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
 export default function Founders() {
   const { t } = useTranslation();
-  const founders = [
+  const founders = useMemo(() => [
     {
       name: t("home.founders.member1.name"),
       title: t("home.founders.member1.title"),
@@ -23,7 +24,7 @@ export default function Founders() {
       image: '/f230f445-1eb8-412a-b620-377c79bccefd.jpeg',
       twitter: '#',
     },
-  ];
+  ], [t]);
 
   return (
     <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
