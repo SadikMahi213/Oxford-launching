@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Globe } from "lucide-react";
 
 const LanguageSwitcher = ({ position = "bottom" }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
