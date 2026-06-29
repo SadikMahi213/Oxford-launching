@@ -118,7 +118,7 @@ def _get_logo_data_uri() -> str:
     global _logo_cache
     if _logo_cache:
         return _logo_cache
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "oxford.png")
+    logo_path = os.path.join(os.path.dirname(__file__), "..", "assets", "oxford.png")
     try:
         with open(logo_path, "rb") as f:
             b64 = base64.b64encode(f.read()).decode("ascii")
