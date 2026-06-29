@@ -1,30 +1,15 @@
 import { motion } from 'motion/react';
 import { Twitter, Linkedin } from 'lucide-react';
 import { useTranslation } from "react-i18next";
-import { useMemo } from "react";
+
+const FOUNDER_DATA = [
+  { nameKey: "home.founders.member1.name", titleKey: "home.founders.member1.title", image: '/8ae45317-c786-4aca-b281-be4f860c6871.jpeg', twitter: '#' },
+  { nameKey: "home.founders.member2.name", titleKey: "home.founders.member2.title", image: '/17c0e002-95c2-4ebc-bd21-80193d797d41.jpeg', twitter: '#' },
+  { nameKey: "home.founders.member3.name", titleKey: "home.founders.member3.title", image: '/f230f445-1eb8-412a-b620-377c79bccefd.jpeg', twitter: '#' },
+];
 
 export default function Founders() {
   const { t } = useTranslation();
-  const founders = useMemo(() => [
-    {
-      name: t("home.founders.member1.name"),
-      title: t("home.founders.member1.title"),
-      image: '/8ae45317-c786-4aca-b281-be4f860c6871.jpeg',
-      twitter: '#',
-    },
-    {
-      name: t("home.founders.member2.name"),
-      title: t("home.founders.member2.title"),
-      image: '/17c0e002-95c2-4ebc-bd21-80193d797d41.jpeg',
-      twitter: '#',
-    },
-    {
-      name: t("home.founders.member3.name"),
-      title: t("home.founders.member3.title"),
-      image: '/f230f445-1eb8-412a-b620-377c79bccefd.jpeg',
-      twitter: '#',
-    },
-  ], [t]);
 
   return (
     <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
@@ -55,7 +40,7 @@ export default function Founders() {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-4 md:gap-8 max-w-5xl mx-auto mt-14">
-          {founders.map((founder, index) => (
+          {FOUNDER_DATA.map((founder, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -73,20 +58,20 @@ export default function Founders() {
 
                     <img
                       src={founder.image}
-                      alt={founder.name}
+                      alt={t(founder.nameKey)}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
 
                     <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 w-[90%]">
                       <div className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold shadow-lg text-center leading-tight">
-                        {founder.title}
+                        {t(founder.titleKey)}
                       </div>
                     </div>
                   </div>
 
                   <div className="p-6 text-center">
                     <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors duration-300">
-                      {founder.name}
+                      {t(founder.nameKey)}
                     </h3>
 
                     <a
