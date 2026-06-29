@@ -741,6 +741,7 @@ async def get_user_details(
             "arbx_mining_wallet": format_decimal(user.arbx_mining_wallet),
         },
         "kyc": {
+            "full_name": kyc.full_name if kyc else None,
             "country": kyc.country if kyc else None,
             "phone_number": kyc.phone_number if kyc else None,
             "document_type": kyc.document_type.value if kyc else None,

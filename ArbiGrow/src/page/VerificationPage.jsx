@@ -28,6 +28,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
   const [idNumber, setIdNumber] = useState("");
   const [idType, setIdType] = useState("nid");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [fullName, setFullName] = useState(user?.full_name || "");
 
   const [country, setCountry] = useState(countries[0]);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -186,6 +187,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
     e.preventDefault();
     setError("");
 
+    if (!fullName.trim()) {
+      setError(t("kycVerification.errors.enterFullName"));
+      return;
+    }
+
     if (!idNumber.trim()) {
       setError(t("kycVerification.errors.enterIdNumber"));
       return;
@@ -224,6 +230,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
     }
 
     const formData = new FormData();
+    formData.append("full_name", fullName.trim());
     formData.append("country", country.name);
     formData.append("phone_number", `${country.dialCode}${phoneNumber}`);
 
@@ -379,6 +386,23 @@ export default function VerificationPage({ embedded, onSuccess }) {
                     {profileImageMsg}
                   </p>
                 )}
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {t("kycVerification.fullName")} <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    setError("");
+                  }}
+                  placeholder={t("kycVerification.enterFullName")}
+                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
+                />
               </div>
 
               {/* Country Selection */}

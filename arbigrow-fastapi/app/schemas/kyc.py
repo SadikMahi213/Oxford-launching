@@ -10,6 +10,7 @@ class DocumentType(str, Enum):
 
 class KYCResponse(BaseModel):
     id: int
+    full_name: str
     country: str
     document_type: DocumentType
     document_number: str

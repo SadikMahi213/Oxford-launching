@@ -50,6 +50,11 @@ class KYC(Base):
         nullable=False
     )
 
+    full_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
     country: Mapped[str] = mapped_column(String(100), nullable=False)
 
     phone_number: Mapped[str] = mapped_column(

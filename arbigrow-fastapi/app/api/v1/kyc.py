@@ -40,6 +40,7 @@ async def get_active_kyc_package(
 @router.post("/submit")
 async def submit_kyc(
     request: Request,
+    full_name: str = Form(...),
     country: str = Form(...),
     phone_number: str = Form(...),
     document_type: DocumentType = Form(...),
@@ -56,6 +57,10 @@ async def submit_kyc(
         raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
     if back_image and back_image.content_type not in ALLOWED_KYC_TYPES:
         raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
+
+    # Validate full_name
+    if not full_name or not full_name.strip():
+        raise HTTPException(status_code=400, detail="Full name is required")
 
     # Check if KYC already exists
     result = await db.execute(
@@ -134,6 +139,7 @@ async def submit_kyc(
 
     new_kyc = KYC(
         user_id=user_id,
+        full_name=full_name.strip(),
         country=country,
         phone_number=phone_number,
         document_type=document_type,

@@ -87,6 +87,14 @@ export default function AdminKycDetailDrawer({ kyc, user, onClose, onRefresh }) 
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
 
+            {/* KYC Full Name */}
+            {kyc?.full_name && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10">
+                <p className="text-sm text-gray-400">{t("admin.kycReview.kycFullName")}</p>
+                <p className="text-white font-semibold">{kyc.full_name}</p>
+              </div>
+            )}
+
             {/* Status Badge */}
             <div className="flex items-center gap-2">
               {statusIcon[kyc?.status] || <Clock className="w-5 h-5 text-gray-400" />}

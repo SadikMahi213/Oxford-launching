@@ -603,6 +603,8 @@
     "searchCountries": "Search countries...",
     "phoneNumber": "Phone Number",
     "enterPhone": "Enter phone number",
+    "fullName": "Full Name",
+    "enterFullName": "Enter your full name",
     "nationalId": "National ID",
     "passport": "Passport",
     "drivingLicence": "Driving Licence",
@@ -632,6 +634,7 @@
     "infoBox": "This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.",
     "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.",
     "errors": {
+      "enterFullName": "Please enter your full name",
       "enterIdNumber": "Please enter your ID number",
       "enterPhone": "Please enter your phone number",
       "validPhone": "Please enter a valid phone number",
@@ -796,6 +799,7 @@
     "kycReview": {
       "title": "KYC Review",
       "user": "User",
+      "kycFullName": "KYC Full Name",
       "status": "Status",
       "price": "Price",
       "transactionId": "Transaction ID",
