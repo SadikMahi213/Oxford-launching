@@ -18,6 +18,19 @@ from app.models.invoice import Invoice
 
 logger = logging.getLogger(__name__)
 
+COMPANY_INFO = {
+    "name": "Oxford Financial Ads",
+    "description": "Professional Financial Services",
+    "address": "71 Queen Victoria Street, London EC4V 4AY, UK",
+    "email": "support@oxfordfinancialads.com",
+    "website": "www.oxfordfinancialads.com",
+    "phone": "+44 20 7946 0958",
+}
+
+BUSINESS_HOURS = "Mon–Fri 9:00 AM – 6:00 PM GMT"
+SUPPORT_CONTACT = "support@oxfordfinancialads.com / +44 20 7946 0958"
+FOOTER_NOTES = "This invoice is a confidential document. Unauthorised distribution is prohibited."
+
 INVOICE_CSS = """
 <style>
     @page { margin: 0; }
@@ -138,8 +151,25 @@ def _build_invoice_html(
     description: str,
     created_at: str,
     tx_data: Optional[dict] = None,
+    *,
+    user_id: Optional[str] = None,
+    user_phone: Optional[str] = None,
+    payment_method: Optional[str] = None,
+    remarks: Optional[str] = None,
+    prev_balance: Optional[float] = None,
+    current_balance: Optional[float] = None,
+    account_holder_name: Optional[str] = None,
+    company_info: Optional[dict] = None,
+    business_hours: Optional[str] = None,
+    support_contact: Optional[str] = None,
+    footer_notes: Optional[str] = None,
 ) -> str:
     """Build professional A4 invoice HTML matching the reference design."""
+    ci = company_info or COMPANY_INFO
+    bhours = business_hours or BUSINESS_HOURS
+    scontact = support_contact or SUPPORT_CONTACT
+    fnotes = footer_notes or FOOTER_NOTES
+
     is_deposit = invoice_type == "deposit"
     is_withdrawal = invoice_type == "withdrawal"
     sl = status.lower()
@@ -162,22 +192,44 @@ def _build_invoice_html(
     tx_hash_display = tx_hash[:16] + "..." if len(tx_hash) > 16 else tx_hash
     bank_info = tx_data.get("bank_info", {}) if tx_data else {}
     network = tx_data.get("network", "") or bank_info.get("network", "")
+    tx_id_val = tx_data.get("transaction_id", "") if tx_data else ""
+    pm = payment_method or network or (bank_info.get("bank_name", "") if bank_info else "") or "-"
+
+    amt_fmt = _fmt_currency(amount)
+    amt_sign = "+" if is_deposit else "-"
+    prev_bal_fmt = _fmt_currency(prev_balance) if prev_balance is not None else "-"
+    curr_bal_fmt = _fmt_currency(current_balance) if current_balance is not None else "-"
 
     ref_col = ""
-    ref_col += f'<div class="detail-row"><span class="label">Reference</span><span class="value">{invoice_number}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">Invoice No</span><span class="value">{invoice_number}</span></div>'
     if tx_hash:
         ref_col += f'<div class="detail-row"><span class="label">Tx Hash</span><span class="value">{tx_hash_display}</span></div>'
+    if tx_id_val:
+        ref_col += f'<div class="detail-row"><span class="label">Transaction ID</span><span class="value">{tx_id_val}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">User ID</span><span class="value">{user_id or "-"}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Customer</span><span class="value">{user_name}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Email</span><span class="value">{user_email}</span></div>'
+    if user_phone:
+        ref_col += f'<div class="detail-row"><span class="label">Phone</span><span class="value">{user_phone}</span></div>'
 
     period_col = f'<div class="detail-row"><span class="label">Date</span><span class="value">{created_at}</span></div>'
+    if account_holder_name:
+        period_col += f'<div class="detail-row"><span class="label">Account Holder</span><span class="value">{account_holder_name}</span></div>'
     if bank_info:
         period_col += f'<div class="detail-row"><span class="label">Bank</span><span class="value">{bank_info.get("bank_name", "-")}</span></div>'
         period_col += f'<div class="detail-row"><span class="label">Account</span><span class="value">{bank_info.get("account_number", "-")[-4:].rjust(4, "*")}</span></div>'
     if network:
         period_col += f'<div class="detail-row"><span class="label">Network</span><span class="value">{network}</span></div>'
 
-    amt_fmt = _fmt_currency(amount)
+    html_mid_rows = ""
+    if remarks:
+        html_mid_rows += f'<tr><td class="label">Remarks / Notes</td><td class="value">{remarks}</td></tr>'
+    if network:
+        html_mid_rows += f'<tr><td class="label">Network</td><td class="value">{network}</td></tr>'
+    if bank_info:
+        html_mid_rows += f'<tr><td class="label">Bank Name</td><td class="value">{bank_info.get("bank_name", "-")}</td></tr>'
+        html_mid_rows += f'<tr><td class="label">Account Holder</td><td class="value">{bank_info.get("account_holder", "-")}</td></tr>'
+        html_mid_rows += f'<tr><td class="label">Account Number</td><td class="value">****{bank_info.get("account_number", "")[-4:]}</td></tr>'
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Invoice {invoice_number}</title>{INVOICE_CSS}</head>
@@ -189,8 +241,8 @@ def _build_invoice_html(
     <div class="header-left">
       {logo_img}
       <div>
-        <div class="company-name">Oxford Financial Ads</div>
-        <div class="company-sub">Professional Financial Services</div>
+        <div class="company-name">{ci["name"]}</div>
+        <div class="company-sub">{ci.get("description", "")}</div>
       </div>
     </div>
     <div class="header-right">
@@ -202,9 +254,9 @@ def _build_invoice_html(
   <hr class="divider-line">
 
   <div class="contact-row">
-    <div class="col"><strong style="color:#032F61;">Email:</strong> support@oxfordfinancialads.com</div>
-    <div class="col"><strong style="color:#032F61;">Phone:</strong> +44 20 7946 0958</div>
-    <div class="col"><strong style="color:#032F61;">Web:</strong> www.oxfordfinancialads.com</div>
+    <div class="col"><strong style="color:#032F61;">Email:</strong> {ci["email"]}</div>
+    <div class="col"><strong style="color:#032F61;">Phone:</strong> {ci["phone"]}</div>
+    <div class="col"><strong style="color:#032F61;">Web:</strong> {ci["website"]}</div>
   </div>
 
   <div class="details-grid">
@@ -226,7 +278,7 @@ def _build_invoice_html(
     </div>
     <div class="vdivider"></div>
     <div class="col">
-      <div class="status-label">Status</div>
+      <div class="status-label">Current Status</div>
       <div>
         <div class="status-badge {badge_cls}">{badge_text}</div>
         <div class="status-sub">{created_at}</div>
@@ -245,23 +297,16 @@ def _build_invoice_html(
   <div class="box">
     <div class="box-header">{tx_label} Transaction Details</div>
     <table class="tx-table">
+      <tr><td class="label">Transaction Type</td><td class="value">{tx_label}</td></tr>
+      <tr><td class="label">Current Status</td><td class="value">{badge_text}</td></tr>
+      <tr><td class="label">Transaction ID</td><td class="value">{tx_id_val or invoice_number}</td></tr>
+      <tr><td class="label">Payment Method</td><td class="value">{pm}</td></tr>
       <tr><td class="label">{tx_label} Amount</td><td class="value val-green">{amt_fmt}</td></tr>
-      <tr><td class="label">Transaction Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
+      <tr><td class="label">Processing Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
       <tr><td class="label">Total Amount</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
-      <tr><td class="label">Currency</td><td class="value">{currency}</td></tr>"""
-
-    if network:
-        html_mid = f'<tr><td class="label">Network</td><td class="value">{network}</td></tr>'
-    else:
-        html_mid = ""
-
-    if bank_info:
-        html_mid += f'<tr><td class="label">Bank Name</td><td class="value">{bank_info.get("bank_name", "-")}</td></tr>'
-        html_mid += f'<tr><td class="label">Account Holder</td><td class="value">{bank_info.get("account_holder", "-")}</td></tr>'
-        html_mid += f'<tr><td class="label">Account Number</td><td class="value">****{bank_info.get("account_number", "")[-4:]}</td></tr>'
-
-    html_mid += f"""      <tr><td class="label">Reference</td><td class="value">{invoice_number}</td></tr>
-      <tr><td class="label">Date</td><td class="value">{created_at}</td></tr>
+      <tr><td class="label">Transaction Date &amp; Time</td><td class="value">{created_at}</td></tr>
+      {html_mid_rows}
+      <tr><td class="label">Reference</td><td class="value">{invoice_number}</td></tr>
     </table>
   </div>
 
@@ -276,6 +321,15 @@ def _build_invoice_html(
     </div>
   </div>
 
+  <div class="box">
+    <div class="box-header">Account Summary</div>
+    <table class="tx-table">
+      <tr><td class="label">Previous Balance</td><td class="value">{prev_bal_fmt}</td></tr>
+      <tr><td class="label">Transaction Amount</td><td class="value val-green">{amt_sign} {amt_fmt}</td></tr>
+      <tr><td class="label">Current Balance</td><td class="value val-blue">{curr_bal_fmt}</td></tr>
+    </table>
+  </div>
+
   <div class="notice">
     <div class="notice-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#032F61" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Important Notice</div>
     <ul>
@@ -288,14 +342,14 @@ def _build_invoice_html(
 </div>
 
   <div class="footer-info">
-    <div class="fcol"><div class="ftitle">Oxford Financial</div><div class="ftext">Regulated Financial<br>Services Provider</div></div>
-    <div class="fcol"><div class="ftitle">Contact</div><div class="ftext">support@oxfordfinancialads.com<br>+44 20 7946 0958</div></div>
-    <div class="fcol"><div class="ftitle">Office</div><div class="ftext">71 Queen Victoria Street<br>London EC4V 4AY, UK</div></div>
+    <div class="fcol"><div class="ftitle">{ci["name"]}</div><div class="ftext">{ci.get("description", "")}</div></div>
+    <div class="fcol"><div class="ftitle">Business Hours</div><div class="ftext">{bhours}</div></div>
+    <div class="fcol"><div class="ftitle">Support</div><div class="ftext">{scontact}</div></div>
   </div>
 
   <div class="footer-band">
-    <p>Oxford Financial Ads &mdash; Professional Financial Services &bull; www.oxfordfinancialads.com</p>
-    <p style="font-size:9px;color:#B78A32;opacity:0.8;">This invoice is a confidential document. Unauthorised distribution is prohibited.</p>
+    <p>{ci["name"]} &mdash; {ci.get("description", "")} &bull; {ci["website"]}</p>
+    <p style="font-size:9px;color:#B78A32;opacity:0.8;">{fnotes}</p>
   </div>
 
 </div>
@@ -380,6 +434,16 @@ async def generate_transaction_invoice(
         }
         description = type_labels.get(invoice_type, f"{invoice_type.replace('_', ' ').title()} Invoice")
 
+    user_phone = getattr(user, "mobile_number", None)
+    user_id_str = str(user.id) if hasattr(user, "id") else None
+    account_holder_name = user.full_name or None
+    raw_prev = tx_data.get("previous_balance") if tx_data else None
+    raw_curr = tx_data.get("current_balance") if tx_data else None
+    prev_balance = float(raw_prev) if raw_prev is not None else None
+    current_balance = float(raw_curr) if raw_curr is not None else None
+    payment_method = tx_data.get("payment_method") if tx_data else None
+    remarks = tx_data.get("remarks") if tx_data else None
+
     html = _build_invoice_html(
         invoice_number=inv_number,
         invoice_type=invoice_type,
@@ -391,6 +455,13 @@ async def generate_transaction_invoice(
         description=description,
         created_at=_fmt_date(timestamp),
         tx_data=tx_data,
+        user_id=user_id_str,
+        user_phone=user_phone,
+        payment_method=payment_method,
+        remarks=remarks,
+        prev_balance=prev_balance,
+        current_balance=current_balance,
+        account_holder_name=account_holder_name,
     )
 
     pdf_dir = os.path.join(os.path.dirname(__file__), "..", "..", "storage", "invoices")
@@ -429,7 +500,9 @@ async def generate_deposit_invoice(
     tx_data: Optional[dict] = None,
 ) -> Optional[Invoice]:
     """Generate an invoice for a deposit transaction."""
-    data = tx_data or {}
+    data = dict(tx_data or {})
+    if "fee" not in data:
+        data.setdefault("fee", 0)
     return await generate_transaction_invoice(
         db=db,
         user=user,
@@ -452,7 +525,19 @@ async def generate_withdrawal_invoice(
     tx_data: Optional[dict] = None,
 ) -> Optional[Invoice]:
     """Generate an invoice for a withdrawal transaction."""
-    data = tx_data or {}
+    data = dict(tx_data or {})
+    if "fee" not in data and withdrawal.charge is not None:
+        data["fee"] = float(withdrawal.charge)
+    if "remarks" not in data and withdrawal.note:
+        data["remarks"] = withdrawal.note
+    if "bank_info" not in data and withdrawal.bank_info:
+        bi = withdrawal.bank_info
+        data["bank_info"] = {
+            "bank_name": getattr(bi, "bank_name", ""),
+            "account_holder": getattr(bi, "account_holder", ""),
+            "account_number": getattr(bi, "account_number", ""),
+            "network": getattr(bi, "network", withdrawal.network_name or ""),
+        }
     return await generate_transaction_invoice(
         db=db,
         user=user,

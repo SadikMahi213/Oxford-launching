@@ -328,7 +328,12 @@ async def update_deposit_status(
                 db=db,
                 user=user,
                 deposit=deposit,
-                tx_data={"network": deposit.network_name, "transaction_hash": deposit.txid},
+                tx_data={
+                    "network": deposit.network_name,
+                    "transaction_hash": deposit.txid,
+                    "previous_balance": float(user.deposit_wallet) - float(deposit.amount),
+                    "current_balance": float(user.deposit_wallet),
+                },
             )
             await db.commit()
         except Exception as inv_error:
