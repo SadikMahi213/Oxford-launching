@@ -157,16 +157,11 @@ export default function ProfileIdentityCard() {
                     {initials}
                   </span>
                 </div>
-                <button
-                  onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url") }}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-cyan-500 border-2 border-black/60 flex items-center justify-center hover:bg-cyan-400 transition-colors"
-                  title={t("profileIdentity.setPhoto")}
-                >
-                  <Camera className="w-4 h-4 text-white" />
-                </button>
-                <div className="absolute -top-1 -left-1 w-7 h-7 rounded-full bg-emerald-500 border-2 border-black/60 flex items-center justify-center">
-                  <BadgeCheck className="w-4 h-4 text-white" />
-                </div>
+                {hasKYC && (
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 border-2 border-black/60 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <BadgeCheck className="w-4 h-4 text-white" />
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 min-w-0 w-full">
@@ -179,6 +174,14 @@ export default function ProfileIdentityCard() {
                       @{user?.username || "username"}
                     </p>
                   </div>
+                  <button
+                    onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url") }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 hover:text-white hover:border-cyan-500/50 transition-all flex-shrink-0"
+                    title={t("profileIdentity.setPhoto")}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{t("profileIdentity.setPhoto")}</span>
+                  </button>
                 </div>
 
                 {showPhotoInput && (

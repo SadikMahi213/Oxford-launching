@@ -191,13 +191,11 @@ export default function ProfileCard({ setActivePage }) {
                   {initials}
                 </span>
               </div>
-              <button
-                onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url"); }}
-                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-cyan-500 border-2 border-[#0a0e27] flex items-center justify-center hover:bg-cyan-400 transition-colors"
-                title={t("profileCard.setPhoto")}
-              >
-                <Camera className="w-3.5 h-3.5 text-white" />
-              </button>
+              {hasKYC && (
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 border-2 border-[#0a0e27] flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                  <BadgeCheck className="w-4 h-4 text-white" />
+                </div>
+              )}
             </div>
             {badges.length > 0 && (
               <div className="flex flex-wrap gap-1.5 md:hidden">
@@ -318,6 +316,14 @@ export default function ProfileCard({ setActivePage }) {
               </div>
 
               <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url"); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 hover:text-white hover:border-cyan-500/50 transition-all"
+                  title={t("profileCard.setPhoto")}
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t("profileCard.setPhoto")}</span>
+                </button>
                 <button
                   onClick={() => setActivePage?.("profile")}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 hover:text-white hover:border-cyan-500/50 transition-all"
