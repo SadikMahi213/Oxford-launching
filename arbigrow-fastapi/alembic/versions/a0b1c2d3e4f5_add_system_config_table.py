@@ -1,7 +1,7 @@
 """Add system_config table for admin overrides
 
 Revision ID: a0b1c2d3e4f5
-Revises: f1a2b3c4d5e6
+Revises: b0c1d2e3f4a5
 Create Date: 2026-06-09 12:00:00.000000
 
 """
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 
 revision: str = "a0b1c2d3e4f5"
-down_revision: str | None = "f1a2b3c4d5e6"
+down_revision: str | None = "b0c1d2e3f4a5"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

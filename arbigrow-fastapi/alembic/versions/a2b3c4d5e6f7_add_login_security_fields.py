@@ -1,7 +1,7 @@
 """add login security fields and security_logs table
 
 Revision ID: a2b3c4d5e6f7
-Revises: 1f9e6f1b92ab, 53da0533bbb2, 7a8b9c0d1e2f, 8b21f5c4aa11, 8b9c0d1e2f3a, 8d2574785b6c, 9f41de0d71c2, a0b1c2d3e4f5, a1b2c3d4e5f6, a74e0a1d14bd, b2c3d4e5f6a7, b3c4d5e6f7a8, b6f06d66cf56, b9f7c1e4a2d3, c3d8e8b1a1f4, c4d5e6f7a8b9, ce6d9a2b5f01, cf35e1d6bba7, d0e1f2a3b4c5, d5e6f7a8b9c0, d5f6a7b8c9d0, d6e7f8a9b0c1, e1f2a3b4c5d6, e2f3a4b5c6d7, e7f8a9b0c1d2, f0e1d2c3b4a5, f1a2b3c4d5e6, f2a1c9e6d5b7, f4a5b6c7d8e9, f5a6b7c8d9e0, f6a7b8c9d0e1, f7a8b9c0d1e2, f8a9b0c1d2e3, f9b0c1d2e3f4
+Revises: 1f9e6f1b92ab, 53da0533bbb2, 7a8b9c0d1e2f, 8b21f5c4aa11, 8b9c0d1e2f3a, 8d2574785b6c, 9f41de0d71c2, a0b1c2d3e4f5, a1b2c3d4e5f6, a74e0a1d14bd, b2c3d4e5f6a7, b3c4d5e6f7a8, b6f06d66cf56, b9f7c1e4a2d3, c3d8e8b1a1f4, c4d5e6f7a8b9, ce6d9a2b5f01, cf35e1d6bba7, d0e1f2a3b4c5, d5e6f7a8b9c0, d5f6a7b8c9d0, d6e7f8a9b0c1, e1f2a3b4c5d6, e2f3a4b5c6d7, e7f8a9b0c1d2, f0e1d2c3b4a5, b0c1d2e3f4a5, f2a1c9e6d5b7, f4a5b6c7d8e9, f5a6b7c8d9e0, f6a7b8c9d0e1, f7a8b9c0d1e2, f8a9b0c1d2e3, f9b0c1d2e3f4
 Create Date: 2026-06-19 12:00:00.000000
 
 """
@@ -39,7 +39,7 @@ down_revision: Union[str, Sequence[str], None] = (
     "e2f3a4b5c6d7",
     "e7f8a9b0c1d2",
     "f0e1d2c3b4a5",
-    "f1a2b3c4d5e6",
+    "b0c1d2e3f4a5",
     "f2a1c9e6d5b7",
     "f4a5b6c7d8e9",
     "f5a6b7c8d9e0",
