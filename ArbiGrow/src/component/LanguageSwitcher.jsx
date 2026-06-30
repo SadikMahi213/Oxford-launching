@@ -32,8 +32,9 @@ const LanguageSwitcher = ({ position = "bottom" }) => {
         title={t("language.switch")}
       >
         <Globe className="w-3.5 h-3.5" />
+        <span className="text-[11px] uppercase tracking-wider text-gray-400 mr-0.5">Language</span>
         <span>{current.flag}</span>
-        <span className="hidden sm:inline">{current.label}</span>
+        <span className="inline">{current.label}</span>
       </button>
       {open && (
         <div
