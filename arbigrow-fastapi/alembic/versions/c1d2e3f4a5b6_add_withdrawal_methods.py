@@ -1,8 +1,8 @@
 """add withdrawal_methods table and columns to withdrawals
 
-Revision ID: a5b6c7d8e9f0
-Revises: d9e8f7c6b5a4, f1a2b3c4d5e6
-Create Date: 2026-06-29
+Revision ID: c1d2e3f4a5b6
+Revises: d9e8f7c6b5a4
+Create Date: 2026-06-30
 
 """
 from typing import Sequence, Union
@@ -11,8 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = "a5b6c7d8e9f0"
-down_revision: Union[str, Sequence[str], None] = ("d9e8f7c6b5a4", "f1a2b3c4d5e6")
+revision: str = "c1d2e3f4a5b6"
+down_revision: Union[str, Sequence[str], None] = "d9e8f7c6b5a4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
