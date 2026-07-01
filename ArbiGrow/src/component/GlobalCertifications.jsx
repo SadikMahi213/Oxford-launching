@@ -236,7 +236,7 @@ export function GlobalCertifications() {
               <X className="w-5 h-5" />
             </button>
             <img
-              src="/certificate-with-sign.jpeg"
+              src="/certificate.jpeg"
               alt="Certificate"
               className="w-full h-full object-contain"
             />
