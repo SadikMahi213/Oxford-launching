@@ -12,6 +12,7 @@ import Founders from "../component/Founder";
 import { PrivacySecurity } from "../component/PrivacySecurity";
 import { WhyChooseUs } from "../component/WhyChooseUs";
 import { MemberBenefits } from "../component/MemberBenefits";
+import { EcommercePromo } from "../component/EcommercePromo";
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { getPlatformStats } from "../api/admin.api.js";
 
@@ -49,6 +50,7 @@ const Home = () => {
         <WhyChooseUs />
       </div>
       <MemberBenefits />
+      <EcommercePromo />
       {stats && <PlatformStatistics stats={stats} />}
       <div id="founders">
         <Founders />
