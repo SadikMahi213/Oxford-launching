@@ -6,7 +6,6 @@ from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
-import random
 
 
 from app.core.database import get_db
