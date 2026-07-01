@@ -435,7 +435,7 @@ async def generate_transaction_invoice(
         description = type_labels.get(invoice_type, f"{invoice_type.replace('_', ' ').title()} Invoice")
 
     user_phone = getattr(user, "mobile_number", None)
-    user_id_str = str(user.id) if hasattr(user, "id") else None
+    user_id_str = user.user_no or str(user.id)
     account_holder_name = user.full_name or None
     raw_prev = tx_data.get("previous_balance") if tx_data else None
     raw_curr = tx_data.get("current_balance") if tx_data else None
