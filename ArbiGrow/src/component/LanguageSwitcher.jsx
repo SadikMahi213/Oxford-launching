@@ -16,8 +16,6 @@ const LanguageSwitcher = ({ position = "bottom" }) => {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
-  const current = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) || SUPPORTED_LANGUAGES[0];
-
   const switchLang = (code) => {
     i18n.changeLanguage(code);
     if (typeof window !== "undefined") localStorage.setItem("i18nextLng", code);
@@ -32,9 +30,7 @@ const LanguageSwitcher = ({ position = "bottom" }) => {
         title={t("language.switch")}
       >
         <Globe className="w-3.5 h-3.5" />
-        <span className="text-[11px] uppercase tracking-wider text-gray-400 mr-0.5">Language</span>
-        <span>{current.flag}</span>
-        <span className="inline">{current.label}</span>
+        <span className="text-[11px] uppercase tracking-wider text-gray-400">Language</span>
       </button>
       {open && (
         <div
