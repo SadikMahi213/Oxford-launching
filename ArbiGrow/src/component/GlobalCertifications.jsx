@@ -9,11 +9,14 @@ import {
   Award,
   Download,
   ExternalLink,
+  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 
 export function GlobalCertifications() {
   const { t } = useTranslation();
+  const [showCertModal, setShowCertModal] = useState(false);
   const certifications = [
     {
       icon: BadgeCheck,
@@ -176,6 +179,7 @@ export function GlobalCertifications() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={() => setShowCertModal(true)}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
               >
                 <Download className="w-4 h-4" />
@@ -213,5 +217,30 @@ export function GlobalCertifications() {
         </motion.div>
       </div>
     </section>
+
+      {/* Certificate Modal */}
+      {showCertModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setShowCertModal(false)}
+        >
+          <div
+            className="relative max-w-4xl w-full max-h-[90vh] rounded-2xl overflow-hidden bg-gray-900 border border-white/10 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowCertModal(false)}
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white hover:bg-black/80 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src="/certificate-with-sign.jpeg"
+              alt="Certificate"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </div>
+      )}
   );
 }
