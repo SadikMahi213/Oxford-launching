@@ -35,72 +35,72 @@ INVOICE_CSS = """
 <style>
     @page { margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #4F4F4F; font-size: 11px; line-height: 1.5; background: #fff; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #4F4F4F; font-size: 9px; line-height: 1.3; background: #fff; }
     .page { width: 210mm; min-height: 297mm; margin: 0 auto; display: flex; flex-direction: column; }
-    .content { flex: 1; padding: 30px 35px 0; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
-    .header-left { display: flex; align-items: center; gap: 12px; }
-    .logo-crest { width: 44px; height: 44px; flex-shrink: 0; }
-    .company-name { font-size: 17px; font-weight: 700; color: #032F61; line-height: 1.2; }
-    .company-sub { font-size: 10px; color: #7A7A7A; margin-top: 1px; }
+    .content { flex: 1; padding: 18px 28px 0; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .logo-crest { width: 36px; height: 36px; flex-shrink: 0; }
+    .company-name { font-size: 14px; font-weight: 700; color: #032F61; line-height: 1.2; }
+    .company-sub { font-size: 8px; color: #7A7A7A; margin-top: 1px; }
     .header-right { text-align: right; }
-    .invoice-title { font-size: 30px; font-weight: 800; color: #032F61; letter-spacing: 1px; line-height: 1; }
-    .invoice-subtitle { font-size: 11px; color: #7A7A7A; margin-top: 4px; }
-    .divider-line { border: none; border-top: 1px solid #E0E0E0; margin: 14px 0; }
-    .contact-row { display: flex; gap: 36px; margin-bottom: 16px; font-size: 10px; color: #4F4F4F; flex-wrap: wrap; }
-    .contact-row .col { display: flex; align-items: flex-start; gap: 5px; min-width: 180px; }
-    .details-grid { display: flex; border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
-    .details-grid .side { flex: 1; padding: 10px 14px; }
+    .invoice-title { font-size: 22px; font-weight: 800; color: #032F61; letter-spacing: 1px; line-height: 1; }
+    .invoice-subtitle { font-size: 9px; color: #7A7A7A; margin-top: 2px; }
+    .divider-line { border: none; border-top: 1px solid #E0E0E0; margin: 6px 0; }
+    .contact-row { display: flex; gap: 24px; margin-bottom: 8px; font-size: 8px; color: #4F4F4F; flex-wrap: wrap; }
+    .contact-row .col { display: flex; align-items: flex-start; gap: 3px; min-width: 160px; }
+    .details-grid { display: flex; border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+    .details-grid .side { flex: 1; padding: 6px 10px; }
     .details-grid .vdivider { width: 1px; background: #E0E0E0; }
-    .detail-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 10px; }
-    .detail-row .label { color: #7A7A7A; min-width: 85px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 1px 0; font-size: 8px; }
+    .detail-row .label { color: #7A7A7A; min-width: 70px; }
     .detail-row .value { color: #4F4F4F; font-weight: 600; text-align: right; }
-    .box { border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
-    .box-header { background: #032F61; color: #fff; padding: 9px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
-    .status-box { display: flex; border: 1px solid #E0E0E0; border-radius: 8px; margin-bottom: 14px; overflow: hidden; }
-    .status-box .col { flex: 1; padding: 14px 16px; }
+    .box { border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; }
+    .box-header { background: #032F61; color: #fff; padding: 5px 12px; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
+    .status-box { display: flex; border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; }
+    .status-box .col { flex: 1; padding: 8px 12px; }
     .status-box .vdivider { width: 1px; background: #E0E0E0; }
-    .status-label { font-size: 10px; color: #7A7A7A; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-    .status-row { display: flex; align-items: center; gap: 8px; }
-    .icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .status-label { font-size: 8px; color: #7A7A7A; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-row { display: flex; align-items: center; gap: 6px; }
+    .icon-circle { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .icon-circle.green { background: #0B8B41; }
     .icon-circle.red { background: #DC2626; }
     .icon-circle.yellow { background: #D97706; }
-    .tx-type { font-size: 15px; font-weight: 700; }
+    .tx-type { font-size: 12px; font-weight: 700; }
     .tx-type.green { color: #0B8B41; }
     .tx-type.red { color: #DC2626; }
     .tx-type.yellow { color: #D97706; }
-    .tx-sub { font-size: 10px; color: #7A7A7A; margin-top: 2px; }
-    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
+    .tx-sub { font-size: 8px; color: #7A7A7A; margin-top: 1px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 16px; font-size: 9px; font-weight: 700; color: #fff; }
     .status-badge.green { background: #0B8B41; }
     .status-badge.red { background: #DC2626; }
     .status-badge.yellow { background: #D97706; }
-    .status-sub { font-size: 10px; color: #7A7A7A; margin-top: 4px; }
-    .tx-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-    .tx-table td { padding: 7px 14px; border-bottom: 1px solid #E0E0E0; }
+    .status-sub { font-size: 8px; color: #7A7A7A; margin-top: 2px; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 8px; }
+    .tx-table td { padding: 3px 10px; border-bottom: 1px solid #E0E0E0; }
     .tx-table tr:last-child td { border-bottom: none; }
-    .tx-table .label { color: #7A7A7A; width: 140px; background: #FAFAFA; font-weight: 600; }
+    .tx-table .label { color: #7A7A7A; width: 120px; background: #FAFAFA; font-weight: 600; }
     .tx-table .value { color: #4F4F4F; font-weight: 600; }
     .tx-table .val-green { color: #0B8B41; font-weight: 700; }
     .tx-table .val-blue { color: #032F61; font-weight: 700; }
     .summary-grid { display: flex; }
-    .summary-grid .scol { flex: 1; padding: 14px 10px; text-align: center; }
+    .summary-grid .scol { flex: 1; padding: 6px 6px; text-align: center; }
     .summary-grid .sdivider { width: 1px; background: #E0E0E0; }
-    .summary-label { font-size: 9px; color: #7A7A7A; text-transform: uppercase; letter-spacing: 0.3px; }
-    .summary-value { font-size: 14px; font-weight: 700; color: #4F4F4F; margin-top: 4px; }
+    .summary-label { font-size: 7px; color: #7A7A7A; text-transform: uppercase; letter-spacing: 0.3px; }
+    .summary-value { font-size: 11px; font-weight: 700; color: #4F4F4F; margin-top: 2px; }
     .summary-value.green { color: #0B8B41; }
-    .summary-value.large { font-size: 16px; }
-    .notice { background: #E3F2FD; border: 1px solid #BBDEFB; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
-    .notice-title { font-size: 11px; font-weight: 700; color: #032F61; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .summary-value.large { font-size: 13px; }
+    .notice { background: #E3F2FD; border: 1px solid #BBDEFB; border-radius: 6px; padding: 6px 12px; margin-bottom: 6px; }
+    .notice-title { font-size: 9px; font-weight: 700; color: #032F61; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
     .notice ul { list-style: none; padding: 0; margin: 0; }
-    .notice li { font-size: 10px; color: #4F4F4F; padding: 2px 0 2px 14px; position: relative; }
+    .notice li { font-size: 8px; color: #4F4F4F; padding: 1px 0 1px 12px; position: relative; }
     .notice li::before { content: "\\2022"; position: absolute; left: 2px; color: #032F61; }
-    .footer-info { display: flex; border-top: 1px solid #E0E0E0; padding: 14px 35px; background: #FAFAFA; }
-    .footer-info .fcol { flex: 1; text-align: center; padding: 0 6px; }
-    .footer-info .fcol .ftitle { font-size: 10px; font-weight: 700; color: #032F61; margin-bottom: 3px; }
-    .footer-info .fcol .ftext { font-size: 9px; color: #7A7A7A; line-height: 1.4; }
-    .footer-band { background: #032F61; padding: 14px 35px; text-align: center; }
-    .footer-band p { color: #B78A32; font-size: 11px; line-height: 1.5; }
+    .footer-info { display: flex; border-top: 1px solid #E0E0E0; padding: 8px 28px; background: #FAFAFA; }
+    .footer-info .fcol { flex: 1; text-align: center; padding: 0 4px; }
+    .footer-info .fcol .ftitle { font-size: 8px; font-weight: 700; color: #032F61; margin-bottom: 2px; }
+    .footer-info .fcol .ftext { font-size: 7px; color: #7A7A7A; line-height: 1.3; }
+    .footer-band { background: #032F61; padding: 8px 28px; text-align: center; }
+    .footer-band p { color: #B78A32; font-size: 9px; line-height: 1.3; }
 </style>
 """
 
@@ -135,7 +135,7 @@ def _get_logo_data_uri() -> str:
     try:
         with open(logo_path, "rb") as f:
             b64 = base64.b64encode(f.read()).decode("ascii")
-        _logo_cache = f'<img src="data:image/png;base64,{b64}" alt="Oxford Financial Ads" style="width:44px;height:44px;object-fit:contain;border-radius:3px;" />'
+        _logo_cache = f'<img src="data:image/png;base64,{b64}" alt="Oxford Financial Ads" style="width:36px;height:36px;object-fit:contain;border-radius:3px;" />'
     except FileNotFoundError:
         _logo_cache = '<div style="width:44px;height:44px;background:#032F61;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#B78A32;font-weight:700;font-size:14px;">OF</div>'
     return _logo_cache
