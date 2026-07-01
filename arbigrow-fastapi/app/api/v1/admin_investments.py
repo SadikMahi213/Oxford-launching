@@ -343,7 +343,6 @@ async def get_admin_investment_details(
 
     return {
         "user": {
-            "id": user.id,
             "user_no": user.user_no,
             "username": user.username,
             "email": user.email

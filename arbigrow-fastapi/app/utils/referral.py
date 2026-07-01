@@ -81,6 +81,7 @@ async def apply_cascading_referral_commissions(
             {
                 "level": level_index + 1,
                 "user_id": parent_user.id,
+                "user_no": parent_user.user_no,
                 "wallet": wallet_type,
                 "amount": amount,
             }

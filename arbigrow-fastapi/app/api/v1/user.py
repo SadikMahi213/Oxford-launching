@@ -195,6 +195,7 @@ async def get_referral_network(
 
         member_data = {
             "id": member.id,
+            "user_no": member.user_no,
             "name": member.full_name,
             "username": member.username,
             "level": depth,
@@ -1075,6 +1076,7 @@ async def get_user_list(
         "users": [
             {
                 "id": u.id,
+                "user_no": u.user_no,
                 "full_name": u.full_name,
                 "email": u.email,
                 "username": u.username,

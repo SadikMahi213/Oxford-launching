@@ -149,7 +149,7 @@ async def get_level_analytics(
     for u in users:
         member_earnings = (u.referral_wallet or Decimal("0")) + (u.generation_wallet or Decimal("0"))
         members.append({
-            "id": u.id,
+            "user_no": u.user_no,
             "name": u.full_name,
             "username": u.username,
             "join_date": u.created_at.strftime("%b %d, %Y") if u.created_at else "",

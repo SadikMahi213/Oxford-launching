@@ -370,6 +370,7 @@ async def get_admin_users(
     for user, kyc_status, kyc_txn_id, kyc_created_at, kyc_package_id, admin_kyc_status in rows:
         users.append({
             "id": user.id,
+            "user_no": user.user_no,
             "full_name": user.full_name,
             "username": user.username,
             "email": user.email,
@@ -538,6 +539,7 @@ async def get_user_details(
                 referrers.append({
                     "level": level,
                     "id": ref_user.id,
+                    "user_no": ref_user.user_no,
                     "username": ref_user.username,
                     "email": ref_user.email,
                 })
@@ -642,6 +644,7 @@ async def get_user_details(
             level_map[level].append(
                 {
                     "id": member.id,
+                    "user_no": member.user_no,
                     "name": member.full_name,
                     "username": member.username,
                     "level": level,
@@ -703,6 +706,7 @@ async def get_user_details(
 
     return {
         "id": user.id,
+        "user_no": user.user_no,
         "full_name": user.full_name,
         "first_name": user.first_name,
         "last_name": user.last_name,
@@ -1092,7 +1096,7 @@ async def credit_user_profit(
 
     return {
         "message": "Profit credited and cascading referral distribution applied",
-        "user_id": user.id,
+        "user_no": user.user_no,
         "profit_amount": format_decimal(profit_amount),
         "updated_wallets": {
             "main_wallet": format_decimal(user.main_wallet),
@@ -1103,6 +1107,7 @@ async def credit_user_profit(
             {
                 "level": item["level"],
                 "user_id": item["user_id"],
+                "user_no": item.get("user_no"),
                 "wallet": item["wallet"],
                 "amount": format_decimal(item["amount"]),
             }
@@ -1499,7 +1504,7 @@ async def get_mining_stats(
         "limit": limit,
         "data": [
             {
-                "user_id": u.id,
+                "user_no": u.user_no,
                 "full_name": u.full_name,
                 "email": u.email,
                 "mining_active": u.mining_active,
@@ -1661,7 +1666,7 @@ async def admin_package_subscribers(
         "subscribers": [
             {
                 "investment_id": inv.id,
-                "user_id": user.id,
+                "user_no": user.user_no,
                 "username": user.username,
                 "email": user.email,
                 "invested_amount": float(inv.invested_amount),

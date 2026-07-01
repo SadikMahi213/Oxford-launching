@@ -71,7 +71,7 @@ async def get_my_rank(
     next_target = next_rank.target_volume if next_rank else Decimal("0")
 
     return {
-        "user_id": current_user.id,
+        "user_no": current_user.user_no,
         "current_rank": RankResponse.model_validate(current_rank) if current_rank else None,
         "next_rank": RankResponse.model_validate(next_rank) if next_rank else None,
         "personal_volume": str(personal_volume),

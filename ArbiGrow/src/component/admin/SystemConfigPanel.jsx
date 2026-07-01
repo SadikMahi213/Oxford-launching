@@ -327,7 +327,7 @@ const SystemConfigPanel = () => {
             ) : (
               <div className="space-y-2">
                 {miningStats.data.map((m) => (
-                  <div key={m.user_id} className="flex items-center justify-between text-sm border-b border-white/5 pb-2 last:border-0">
+                  <div key={m.user_no} className="flex items-center justify-between text-sm border-b border-white/5 pb-2 last:border-0">
                     <div>
                       <span className="text-white font-medium">{m.full_name}</span>
                       <span className="text-gray-500 ml-2">{m.email}</span>
