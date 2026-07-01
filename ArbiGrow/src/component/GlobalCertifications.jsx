@@ -68,6 +68,7 @@ export function GlobalCertifications() {
   ];
 
   return (
+    <>
     <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
@@ -242,5 +243,6 @@ export function GlobalCertifications() {
           </div>
         </div>
       )}
+    </>
   );
 }
