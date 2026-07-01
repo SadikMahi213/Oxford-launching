@@ -863,19 +863,6 @@
       "totalInvestmentsMade": "کل سرمایہ کاری کی گئی۔",
       "totalProfitsGenerated": "کل منافع پیدا ہوا۔",
       "successfulWithdrawals": "کامیاب واپسی"
-    },
-    "ecommerce": {
-      "badge": "E-Commerce",
-      "title": "Launch Your Own Professional E-commerce Store for Free",
-      "description": "Register with our company completely free and create your own Professional E-commerce Store under your own name, with no setup fees.",
-      "longDescription": "Build your personal brand, showcase your products or services, receive customer orders, and manage every aspect of your online business from a single, easy-to-use platform. You remain in full control of your store at all times.",
-      "freeRegistration": "✅ Free Registration",
-      "freeStore": "✅ Free Personal E-commerce Store",
-      "yourBrand": "✅ Your Brand, Your Identity",
-      "fullControl": "✅ Full Control of Your Store",
-      "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
-      "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
-      "ctaButton": "Create Your Free Store"
     }
   },
   "securityStandards": {
