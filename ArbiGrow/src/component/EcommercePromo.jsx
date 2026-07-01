@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
 
 export function EcommercePromo() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useUserStore();
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ export function EcommercePromo() {
   ];
 
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
+    <section key={i18n.language} className="py-16 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-blue-900/10 via-transparent to-cyan-900/10 pointer-events-none" />
 
       <div className="max-w-5xl mx-auto px-4">
