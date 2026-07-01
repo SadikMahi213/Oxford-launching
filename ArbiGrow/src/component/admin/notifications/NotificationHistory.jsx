@@ -226,7 +226,7 @@ export default function NotificationHistory() {
                     <p className="text-sm text-gray-400 mt-1">{n.message}</p>
                     {(n.ip_address || n.device || n.user_id) && (
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] text-gray-500">
-                        {n.user_id && <span>User #{n.user_id}</span>}
+                        {n.user_id && <span>{n.user_no || `User #${n.user_id}`}</span>}
                         {n.ip_address && <span>IP: {n.ip_address}</span>}
                         {n.device && <span className="truncate max-w-[200px]">{n.device.slice(0, 80)}</span>}
                       </div>

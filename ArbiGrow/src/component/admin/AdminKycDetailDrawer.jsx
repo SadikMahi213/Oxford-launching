@@ -83,7 +83,7 @@ export default function AdminKycDetailDrawer({ kyc, user, onClose, onRefresh }) 
             {/* User Info */}
             <div className="p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10">
               <p className="text-sm text-gray-400">{t("admin.kycReview.user")}</p>
-              <p className="text-white font-semibold">{user?.full_name || `#${user?.id}`}</p>
+              <p className="text-white font-semibold">{user?.full_name || user?.user_no || `#${user?.id}`}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
 

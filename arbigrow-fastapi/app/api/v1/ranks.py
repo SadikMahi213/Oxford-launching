@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user
@@ -93,6 +94,7 @@ async def get_my_rank_history(
 ):
     result = await db.execute(
         select(RankHistory)
+        .options(joinedload(RankHistory.user))
         .where(RankHistory.user_id == current_user.id)
         .order_by(RankHistory.created_at.desc())
     )
@@ -108,6 +110,7 @@ async def get_my_matching_bonuses(
 ):
     result = await db.execute(
         select(MatchingBonus)
+        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))
         .where(MatchingBonus.user_id == current_user.id)
         .order_by(MatchingBonus.created_at.desc())
         .offset((page - 1) * limit)

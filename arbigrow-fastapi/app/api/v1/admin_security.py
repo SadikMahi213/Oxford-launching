@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -34,6 +35,7 @@ async def get_blocked_accounts(
     result = await db.execute(
         select(
             User.id,
+            User.user_no,
             User.full_name,
             User.email,
             User.username,
@@ -58,6 +60,7 @@ async def get_blocked_accounts(
         "users": [
             {
                 "id": row.id,
+                "user_no": row.user_no,
                 "full_name": row.full_name,
                 "email": row.email,
                 "username": row.username,
@@ -153,6 +156,15 @@ async def get_security_logs(
     result = await db.execute(stmt)
     logs = result.scalars().all()
 
+    # Map user_ids to user_nos
+    user_ids = {log.user_id for log in logs if log.user_id}
+    user_no_map = {}
+    if user_ids:
+        user_result = await db.execute(
+            select(User.id, User.user_no).where(User.id.in_(user_ids))
+        )
+        user_no_map = {uid: uno for uid, uno in user_result.all()}
+
     total_pages = max(1, (total + limit - 1) // limit)
 
     return {
@@ -164,6 +176,7 @@ async def get_security_logs(
             {
                 "id": log.id,
                 "user_id": log.user_id,
+                "user_no": user_no_map.get(log.user_id),
                 "event_type": log.event_type,
                 "email": log.email,
                 "ip_address": log.ip_address,

@@ -23,6 +23,7 @@ def _notif_to_dict(n):
         "message": n.message,
         "priority": n.priority,
         "user_id": n.user_id,
+        "user_no": getattr(n, "user_no", None),
         "ip_address": n.ip_address,
         "device": n.device,
         "is_read": n.is_read,

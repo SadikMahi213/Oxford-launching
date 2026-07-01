@@ -43,7 +43,7 @@ export default function ProfileIdentityCard() {
   const [currentRank, setCurrentRank] = useState(null)
   const initials = getInitials(user?.full_name)
   const joinDate = formatDate(user?.created_at)
-  const userId = user?.id ? `financial@${user.id}` : "-"
+  const userId = user?.user_no || "-"
   const memberId = user?.referral_code ? `#MEM-${user.referral_code}` : userId
   const kycRaw = user?.kyc_status
   const hasKYC = kycRaw === "approved"

@@ -6,6 +6,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 import hashlib
 import secrets
+import random
 
 
 from app.core.database import get_db
@@ -38,6 +39,11 @@ def _generate_otp_code() -> str:
 
 def _hash_otp_code(otp_code: str) -> str:
     return hashlib.sha256(otp_code.encode("utf-8")).hexdigest()
+
+
+def _generate_user_no(user_id: int) -> str:
+    year = datetime.now(timezone.utc).year
+    return f"{year}{str(user_id).zfill(6)}"
 
 
 @router.post("/signup", response_model=UserResponse)
@@ -111,6 +117,9 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
 
     # Generate referral code from ID
     new_user.referral_code = str(new_user.id).zfill(8)
+
+    # Generate user_no
+    new_user.user_no = _generate_user_no(new_user.id)
 
     # Generate username
     new_user.username = generate_username(

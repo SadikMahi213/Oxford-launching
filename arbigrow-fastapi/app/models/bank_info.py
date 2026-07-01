@@ -29,3 +29,7 @@ class BankInfo(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     user = relationship("User", backref="bank_info", lazy="select")
+
+    @property
+    def user_no(self) -> str | None:
+        return self.user.user_no if self.user else None

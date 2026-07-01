@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import select, func, or_, and_
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.notification import AdminNotification
@@ -118,7 +119,7 @@ class NotificationService:
                 )
             )
 
-        base = select(AdminNotification)
+        base = select(AdminNotification).options(joinedload(AdminNotification.user))
         if conditions:
             base = base.where(and_(*conditions))
 
@@ -167,6 +168,7 @@ class NotificationService:
     async def get_recent(self, limit: int = 5) -> list[AdminNotification]:
         stmt = (
             select(AdminNotification)
+            .options(joinedload(AdminNotification.user))
             .order_by(AdminNotification.created_at.desc())
             .limit(limit)
         )

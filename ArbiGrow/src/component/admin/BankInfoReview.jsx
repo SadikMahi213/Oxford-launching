@@ -49,7 +49,7 @@ export default function BankInfoReview() {
     if (filter !== "all" && item.status !== filter) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!item.account_holder_name?.toLowerCase().includes(q) && !item.bank_name?.toLowerCase().includes(q) && !item.user_id?.toString().includes(q)) return false;
+      if (!item.account_holder_name?.toLowerCase().includes(q) && !item.bank_name?.toLowerCase().includes(q) && !item.user_id?.toString().includes(q) && !item.user_no?.includes(q)) return false;
     }
     return true;
   });
@@ -99,7 +99,7 @@ export default function BankInfoReview() {
                   <Building2 className="w-6 h-6 text-cyan-400" />
                   <div>
                     <p className="text-white font-semibold">{item.account_holder_name}</p>
-                    <p className="text-xs text-gray-500">User #{item.user_id} — {item.bank_name}</p>
+                    <p className="text-xs text-gray-500">{item.user_no || `User #${item.user_id}`} — {item.bank_name}</p>
                   </div>
                 </div>
                 <span className={`rounded-full border px-3 py-1 text-xs ${statusColors[item.status] || "text-gray-400"}`}>{item.status}</span>

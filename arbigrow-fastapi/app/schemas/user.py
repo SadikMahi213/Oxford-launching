@@ -29,6 +29,7 @@ class UserCreate(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
+    user_no: Optional[str] = None
     full_name: str
     email: EmailStr
     referral_code: str

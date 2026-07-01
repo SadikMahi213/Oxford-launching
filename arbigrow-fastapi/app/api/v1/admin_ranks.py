@@ -3,6 +3,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
@@ -171,7 +172,7 @@ async def list_all_rank_history(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
-    query = select(RankHistory).order_by(RankHistory.created_at.desc())
+    query = select(RankHistory).options(joinedload(RankHistory.user)).order_by(RankHistory.created_at.desc())
     if user_id:
         query = query.where(RankHistory.user_id == user_id)
     offset = (page - 1) * limit
@@ -190,7 +191,7 @@ async def list_all_matching_bonuses(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
-    query = select(MatchingBonus).order_by(MatchingBonus.created_at.desc())
+    query = select(MatchingBonus).options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user)).order_by(MatchingBonus.created_at.desc())
     if user_id:
         query = query.where(MatchingBonus.user_id == user_id)
     if rank_id:

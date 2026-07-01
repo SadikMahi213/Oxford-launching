@@ -12,6 +12,10 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
+    user_no: Mapped[str | None] = mapped_column(
+        String(20), unique=True, nullable=True, index=True
+    )
+
     full_name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,

@@ -25,6 +25,7 @@ class BankInfoUpdate(BaseModel):
 class BankInfoResponse(BaseModel):
     id: int
     user_id: int
+    user_no: Optional[str] = None
     account_holder_name: str
     bank_name: str
     account_number: str

@@ -158,9 +158,9 @@ async def get_all_invoices_admin(
     users_map = {}
     if user_ids:
         user_result = await db.execute(
-            select(User.id, User.full_name, User.email).where(User.id.in_(user_ids))
+            select(User.id, User.full_name, User.email, User.user_no).where(User.id.in_(user_ids))
         )
-        users_map = {uid: {"name": name, "email": email} for uid, name, email in user_result.all()}
+        users_map = {uid: {"name": name, "email": email, "user_no": user_no} for uid, name, email, user_no in user_result.all()}
 
     data = []
     for inv in invoices:

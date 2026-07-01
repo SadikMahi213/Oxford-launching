@@ -286,6 +286,7 @@ async def get_all_investments(
         "items": [
             {
                 "investment_id": inv.id,
+                "user_no": user.user_no,
                 "username": user.username,
                 "email": user.email,
                 "package_name": inv.package_name,
@@ -343,6 +344,7 @@ async def get_admin_investment_details(
     return {
         "user": {
             "id": user.id,
+            "user_no": user.user_no,
             "username": user.username,
             "email": user.email
         },

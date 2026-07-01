@@ -22,6 +22,10 @@ class AdminNotification(Base):
 
     user = relationship("User", backref="admin_notifications", lazy="select")
 
+    @property
+    def user_no(self) -> str | None:
+        return self.user.user_no if self.user else None
+
     __table_args__ = (
         Index("ix_notifications_unread_created", "is_read", "created_at"),
     )

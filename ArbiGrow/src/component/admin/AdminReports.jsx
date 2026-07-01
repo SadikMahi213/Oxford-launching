@@ -132,7 +132,7 @@ export default function AdminReports() {
                   <tr key={inv.id || i} className="border-b border-white/5 hover:bg-white/[0.02]">
                     <td className="px-5 py-3 text-white font-mono text-xs">{inv.invoice_number}</td>
                     <td className="px-5 py-3 text-gray-300 text-xs">
-                      {inv.user?.name || inv.user?.email || `User #${inv.user_id}`}
+                      {inv.user?.name || inv.user?.email || inv.user?.user_no || `User #${inv.user_id}`}
                     </td>
                     <td className="px-5 py-3">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${

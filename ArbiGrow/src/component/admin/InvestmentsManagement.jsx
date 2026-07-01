@@ -49,6 +49,7 @@ const mapListItem = (item) => ({
 const mapDetails = (response) => ({
   id: response?.investment?.id,
   userId: response?.user?.id,
+  userNo: response?.user?.user_no,
   userName: response?.user?.username || "-",
   userEmail: response?.user?.email || "-",
   packageName: response?.investment?.package_name || "-",

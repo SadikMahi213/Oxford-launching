@@ -53,3 +53,7 @@ class RankHistory(Base):
     user = relationship("User", foreign_keys=[user_id])
     rank = relationship("Rank", foreign_keys=[rank_id])
     previous_rank = relationship("Rank", foreign_keys=[previous_rank_id])
+
+    @property
+    def user_no(self) -> str | None:
+        return self.user.user_no if self.user else None

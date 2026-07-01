@@ -54,7 +54,7 @@ export function InvestmentDetailsModal({ investment, onClose, onAddProfit }) {
 
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <div className="text-xs text-gray-400 mb-1">User ID</div>
-                  <div className="text-white font-semibold font-mono">{investment.userId}</div>
+                  <div className="text-white font-semibold font-mono">{investment.userNo || investment.userId}</div>
                 </div>
               </div>
             </div>

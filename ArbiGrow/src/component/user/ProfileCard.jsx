@@ -84,7 +84,7 @@ export default function ProfileCard({ setActivePage }) {
   const showInitials = !displayUrl || !photoLoaded;
   const joinDate = formatJoinDate(user?.created_at);
   const lastLogin = getTimeAgo(user?.updated_at, t);
-  const userId = user?.id ? `OFA-${String(user.id).padStart(5, "0")}` : null;
+  const userId = user?.user_no || null;
   const memberId = user?.referral_code ? `MEM-${user.referral_code}` : userId;
   const kycRaw = user?.kyc_status;
   const getKycStatus = () => {

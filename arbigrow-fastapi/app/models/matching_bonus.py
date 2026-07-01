@@ -62,3 +62,11 @@ class MatchingBonus(Base):
     user = relationship("User", foreign_keys=[user_id])
     source_user = relationship("User", foreign_keys=[source_user_id])
     rank = relationship("Rank", foreign_keys=[rank_id])
+
+    @property
+    def user_no(self) -> str | None:
+        return self.user.user_no if self.user else None
+
+    @property
+    def source_user_no(self) -> str | None:
+        return self.source_user.user_no if self.source_user else None

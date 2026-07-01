@@ -55,6 +55,7 @@ class RankResponse(RankBase):
 class RankHistoryResponse(BaseModel):
     id: int
     user_id: int
+    user_no: Optional[str] = None
     rank_id: int
     previous_rank_id: Optional[int] = None
     team_volume: Decimal
@@ -69,7 +70,9 @@ class RankHistoryResponse(BaseModel):
 class MatchingBonusResponse(BaseModel):
     id: int
     user_id: int
+    user_no: Optional[str] = None
     source_user_id: Optional[int] = None
+    source_user_no: Optional[str] = None
     rank_id: int
     bonus_type: str
     eligible_amount: Decimal

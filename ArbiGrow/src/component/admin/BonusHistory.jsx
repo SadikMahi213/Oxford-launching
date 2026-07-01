@@ -124,8 +124,8 @@ export default function BonusHistory() {
                   bonuses.map((b) => (
                     <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-gray-400">{b.id}</td>
-                      <td className="px-4 py-3 text-white">#{b.user_id}</td>
-                      <td className="px-4 py-3 text-gray-400">{b.source_user_id ? `#${b.source_user_id}` : "—"}</td>
+                      <td className="px-4 py-3 text-white">{b.user_no || `#${b.user_id}`}</td>
+                      <td className="px-4 py-3 text-gray-400">{b.source_user_no || (b.source_user_id ? `#${b.source_user_id}` : "—")}</td>
                       <td className="px-4 py-3 text-gray-300">#{b.rank_id}</td>
                       <td className="px-4 py-3">
                         <span className="inline-flex rounded-full bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-300">

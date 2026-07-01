@@ -154,7 +154,7 @@ export default function BlockedAccounts() {
                             {log.event_type.replace(/_/g, " ")}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm">{log.email || log.user_id || "-"}</td>
+                        <td className="px-4 py-3 text-sm">{log.email || log.user_no || log.user_id || "-"}</td>
                         <td className="px-4 py-3 text-sm font-mono">{log.ip_address || "-"}</td>
                         <td className="px-4 py-3 text-xs text-gray-400 max-w-[200px] truncate">{log.device || "-"}</td>
                         <td className="px-4 py-3 text-xs text-gray-400">

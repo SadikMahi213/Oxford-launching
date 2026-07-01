@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
 from app.models.bank_info import BankInfo
@@ -17,6 +18,7 @@ def _serialize_bank_info(info: BankInfo) -> dict:
     return {
         "id": info.id,
         "user_id": info.user_id,
+        "user_no": getattr(info, "user_no", None),
         "account_holder_name": info.account_holder_name,
         "bank_name": info.bank_name,
         "account_number": info.account_number,
@@ -109,7 +111,7 @@ async def get_all_bank_info(
 ):
     del admin
     result = await db.execute(
-        select(BankInfo).order_by(BankInfo.created_at.desc())
+        select(BankInfo).options(joinedload(BankInfo.user)).order_by(BankInfo.created_at.desc())
     )
     items = result.scalars().all()
     return {"data": [_serialize_bank_info(item) for item in items]}
