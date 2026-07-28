@@ -1,0 +1,97 @@
+# ── Python ───────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+.env
+.venv
+venv/
+env/
+*.so
+
+# ── Node / Frontend ─────────────────────────────────────────
+node_modules/
+.next/
+dist/
+build/
+*.tsbuildinfo
+.vite/
+.cache/
+
+# ── IDE / Editor ────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-workspace
+
+# ── OS ──────────────────────────────────────────────────────
+$RECYCLE.BIN/
+System Volume Information/
+
+# ── Docker ───────────────────────────────────────────────────
+.docker/
+docker-compose.override.yml
+
+# ── Database ────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+
+# ── Secrets / Credentials ───────────────────────────────────
+.env*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+credential*.json
+service-account*.json
+config.yml
+docker-compose.prod.yml
+
+# ── Logs ────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Test / Coverage ─────────────────────────────────────────
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ── Backups / Archives ──────────────────────────────────────
+*.tar.gz
+*.zip
+*.rar
+*.7z
+backups/
+
+# ── Uploads / Storage ───────────────────────────────────────
+storage/
+uploads/
+media/
+
+# ── Project-specific ────────────────────────────────────────
+server-full-deployment.zip
+*.b64
+
+# ── System files at G: root (not project) ───────────────────
+/clang*
+/msys2*
+/mingw*
+/ucrt64*
