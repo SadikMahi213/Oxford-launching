@@ -23,6 +23,7 @@ import OFACryptocurrency from "./overview/OFACryptocurrency.jsx";
 import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
 
 import ProfileIdentityCard from "./ProfileIdentityCard.jsx";
+import { LiveStats } from "./overview/LiveStats.jsx";
 
 const OverviewPage = ({ setActivePage }) => {
   const { t } = useTranslation();
@@ -309,6 +310,7 @@ const OverviewPage = ({ setActivePage }) => {
         </div>
       )}
       <ProfileIdentityCard />
+      <LiveStats />
       <QuickShortcuts setActivePage={setActivePage} />
       <MarketsCrawl />
 
