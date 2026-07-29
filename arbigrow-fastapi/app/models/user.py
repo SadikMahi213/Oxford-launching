@@ -206,8 +206,6 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    reset_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Pending package for registration (paid packages require payment before activation)
@@ -249,6 +247,13 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False
+    )
+
+    kyc_hold: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
     )
 
     kyc = relationship("KYC", back_populates="user", uselist=False)

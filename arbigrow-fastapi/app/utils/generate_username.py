@@ -1,12 +1,17 @@
-import random
-import string
+import re
 
 
 def generate_username(full_name: str, user_id: int) -> str:
-    parts = full_name.strip().lower().split()
-    if parts:
-        base = parts[0] if len(parts) == 1 else f"{parts[0]}_{parts[-1]}"
-    else:
-        base = "user"
-    suffix = f"{user_id % 10000:04d}"
-    return f"{base}_{suffix}"
+    # lowercase
+    name = full_name.lower()
+
+    # remove non-alphanumeric characters
+    name = re.sub(r'[^a-z0-9]', '', name)
+
+    # take first 12 chars
+    name = name[:12]
+
+    # zero padded id
+    padded_id = str(user_id).zfill(3)
+
+    return f"{name}{padded_id}"

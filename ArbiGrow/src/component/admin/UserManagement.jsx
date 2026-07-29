@@ -550,7 +550,7 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
 
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -610,7 +610,7 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
         </div>
 
         {/* Status Filters */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 overflow-x-auto flex-nowrap pb-1 touch-scroll">
           {["all", "approved", "pending", "rejected", "not_submitted", "issue", "inactive", "blocked"].map((status) => (
             <button
               key={status}
@@ -686,7 +686,7 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
 
       {/* Users Table */}
       <div className="rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="responsive-table-wrapper">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
@@ -729,12 +729,12 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
                     onClick={() => handleUserClick(user)}
                     className="border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors"
                   >
-                    <td className="p-4 text-white font-medium">
+                    <td data-label="Name" className="p-4 text-white font-medium">
                       {user.full_name}
                     </td>
-                    <td className="p-4 text-gray-400">{user.username}</td>
-                    <td className="p-4 text-gray-400">{user.email}</td>
-                    <td className="p-4">
+                    <td data-label="Username" className="p-4 text-gray-400">{user.username}</td>
+                    <td data-label="Email" className="p-4 text-gray-400">{user.email}</td>
+                    <td data-label="Status" className="p-4">
                       <div className="flex items-center gap-2">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(normalizedStatus)}`}
@@ -759,7 +759,7 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
                         )}
                       </div>
                     </td>
-                    <td className="p-4 text-center">
+                    <td data-label="Action" className="p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                       <button
                         type="button"

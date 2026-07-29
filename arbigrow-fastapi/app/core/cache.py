@@ -1,65 +1,48 @@
-"""Cache abstraction layer.
+import hashlib
+import json
+from typing import Any, Callable
 
-Currently provides an in-memory fallback. When Redis is deployed (Phase 4),
-swap get_backend() to return a Redis-backed implementation.
-"""
+from cachetools import TTLCache
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable, Optional
-
-
-class MemoryCache:
-    """Simple in-memory cache (TTL-based). Replace with Redis for production."""
-
-    def __init__(self) -> None:
-        self._store: dict[str, tuple[Any, datetime]] = {}
-
-    async def get(self, key: str) -> Any | None:
-        entry = self._store.get(key)
-        if entry is None:
-            return None
-        value, expires_at = entry
-        if datetime.now(timezone.utc) > expires_at:
-            del self._store[key]
-            return None
-        return value
-
-    async def set(self, key: str, value: Any, ttl_seconds: int = 300) -> None:
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
-        self._store[key] = (value, expires_at)
-
-    async def delete(self, key: str) -> None:
-        self._store.pop(key, None)
-
-    async def clear(self) -> None:
-        self._store.clear()
+from app.core.redis import get_redis
 
 
-_cache = MemoryCache()
+config_cache = TTLCache(maxsize=1000, ttl=30)
+user_cache = TTLCache(maxsize=5000, ttl=10)
 
 
-async def get_cached(key: str) -> Any | None:
-    return await _cache.get(key)
+def _make_key(fn_name: str, kwargs: dict) -> str:
+    raw = json.dumps(kwargs, sort_keys=True, default=str)
+    return f"cache:{fn_name}:{hashlib.md5(raw.encode()).hexdigest()}"
 
 
-async def set_cached(key: str, value: Any, ttl_seconds: int = 300) -> None:
-    await _cache.set(key, value, ttl_seconds)
+def cached(ttl: int = 30):
+    def decorator(fn: Callable):
+        from functools import wraps
+        from sqlalchemy.ext.asyncio import AsyncSession
 
-
-async def invalidate_cache(key: str) -> None:
-    await _cache.delete(key)
-
-
-async def cached(ttl_seconds: int = 300):
-    """Decorator: caches the return value of an async callable."""
-    def decorator(func: Callable) -> Callable:
-        async def wrapper(*args, **kwargs) -> Any:
-            cache_key = f"{func.__module__}:{func.__name__}:{hash(frozenset(kwargs.items()))}"
-            result = await get_cached(cache_key)
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            clean = {k: v for k, v in kwargs.items() if not isinstance(v, AsyncSession)}
+            cache_key = _make_key(fn.__name__, clean)
+            r = get_redis()
+            if r is not None:
+                try:
+                    val = await r.get(cache_key)
+                    if val is not None:
+                        return json.loads(val)
+                except Exception:
+                    pass
+            result = config_cache.get(cache_key)
             if result is not None:
                 return result
-            result = await func(*args, **kwargs)
-            await set_cached(cache_key, result, ttl_seconds)
+            result = await fn(*args, **kwargs)
+            config_cache[cache_key] = result
+            if r is not None:
+                try:
+                    await r.setex(cache_key, ttl, json.dumps(result, default=str))
+                except Exception:
+                    pass
             return result
         return wrapper
     return decorator

@@ -17,10 +17,19 @@ from app.models.package import TaskType
 from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
+from app.services.b2_service import generate_presigned_url
 
 router = APIRouter(prefix="/ads", tags=["Ads"])
 
 WALLET_PRECISION = Decimal("0.00000000000001")
+
+
+def _resolve_thumbnail_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http://") or stored.startswith("https://"):
+        return stored
+    return generate_presigned_url(stored, expires_in=604800)
 
 
 def _get_ad_investment(investments: list[Investment]) -> Investment | None:
@@ -93,7 +102,7 @@ async def start_ad(
             "ad_id": active_session.ad_id,
             "video_id": ad_info.video_id if ad_info else None,
             "title": ad_info.title if ad_info else None,
-            "thumbnail": ad_info.thumbnail if ad_info else None,
+            "thumbnail": _resolve_thumbnail_url(ad_info.thumbnail) if ad_info else None,
             "duration_seconds": package.ad_duration_seconds,
             "required_watch_seconds": ad_info.required_watch_seconds if ad_info else package.ad_duration_seconds,
             "started_at": active_session.started_at.isoformat(),
@@ -128,7 +137,7 @@ async def start_ad(
         "ad_id": selected_ad.id,
         "video_id": selected_ad.video_id,
         "title": selected_ad.title,
-        "thumbnail": selected_ad.thumbnail,
+        "thumbnail": _resolve_thumbnail_url(selected_ad.thumbnail),
         "duration_seconds": package.ad_duration_seconds,
         "required_watch_seconds": selected_ad.required_watch_seconds,
         "started_at": ad_view.started_at.isoformat(),
@@ -144,28 +153,19 @@ async def complete_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
-
-    # Lock the ad view row to prevent concurrent duplicate processing
     result = await db.execute(
         select(AdView).where(
             and_(
                 AdView.id == ad_view_id,
                 AdView.user_id == user_id,
             )
-        ).with_for_update()
+        )
     )
     ad_view = result.scalars().first()
     if not ad_view:
         raise HTTPException(404, detail="Ad view session not found")
-
-    # Idempotency check — under row lock this is definitive
     if ad_view.is_completed:
-        return {
-            "success": True,
-            "earned": ad_view.amount_earned,
-            "remaining_today": 0,
-            "new_balance": Decimal("0"),
-        }
+        raise HTTPException(400, detail="Ad already completed")
 
     now = datetime.now(timezone.utc)
     elapsed = (now - ad_view.started_at).total_seconds()
@@ -192,7 +192,7 @@ async def complete_ad(
                 Investment.user_id == user_id,
                 Investment.status == "active",
             )
-        ).order_by(Investment.id.desc()).with_for_update()
+        ).order_by(Investment.id.desc())
     )
     all_investments = inv_result.scalars().all()
     if not all_investments:

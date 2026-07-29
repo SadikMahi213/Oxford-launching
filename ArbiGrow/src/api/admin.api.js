@@ -364,7 +364,7 @@ export const getSystemConfig = async (token) => {
 
 export const updateSystemConfig = async (token, key, value) => {
   const res = await api.put(
-    "v1/admin/system-config/${key}",
+    `v1/admin/system-config/${key}`,
     null,
     { params: { value }, ...authHeaders(token) },
   );
@@ -378,7 +378,7 @@ export const getMiningConfig = async (token) => {
 
 export const updateMiningConfig = async (token, key, value) => {
   const res = await api.put(
-    "v1/admin/mining/config/${key}",
+    `v1/admin/mining/config/${key}`,
     null,
     { params: { value }, ...authHeaders(token) },
   );
@@ -513,31 +513,6 @@ export const deleteAdminAd = async (token, adId) => {
   return res.data || {};
 };
 
-export const getAnalyticsOverview = async (token) => {
-  const res = await api.get("v1/admin/analytics/overview", authHeaders(token));
-  return res.data || {};
-};
-
-export const getAnalyticsRealtime = async (token) => {
-  const res = await api.get("v1/admin/analytics/realtime", authHeaders(token));
-  return res.data || {};
-};
-
-export const getAnalyticsCountries = async (token) => {
-  const res = await api.get("v1/admin/analytics/countries", authHeaders(token));
-  return res.data || {};
-};
-
-export const getAnalyticsDevices = async (token) => {
-  const res = await api.get("v1/admin/analytics/devices", authHeaders(token));
-  return res.data || {};
-};
-
-export const getAnalyticsTrafficSources = async (token) => {
-  const res = await api.get("v1/admin/analytics/traffic-sources", authHeaders(token));
-  return res.data || {};
-};
-
 export const getSelfAnalyticsSummary = async (token) => {
   const res = await api.get("v1/admin/self-analytics/summary", authHeaders(token));
   return res.data || {};
@@ -607,6 +582,16 @@ export const getSecurityLogs = async (token, { page = 1, limit = 50, event_type 
 export const getSecurityEventTypes = async (token) => {
   const res = await api.get("v1/admin/security/event-types", authHeaders(token));
   return res.data || { event_types: [] };
+};
+
+export const getSecuritySettings = async (token) => {
+  const res = await api.get("v1/admin/security/settings", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateSecuritySettings = async (token, payload) => {
+  const res = await api.put("v1/admin/security/settings", payload, authHeaders(token));
+  return res.data || {};
 };
 
 export const getAdminRanks = async (token) => {

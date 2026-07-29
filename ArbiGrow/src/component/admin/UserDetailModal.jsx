@@ -204,7 +204,7 @@ export default function UserDetailModal({
             className="bg-gradient-to-br from-[#0d1137] to-[#0a0e27] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-br from-[#0d1137] to-[#0a0e27] border-b border-white/10 p-6 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-gradient-to-br from-[#0d1137] to-[#0a0e27] border-b border-white/10 p-4 sm:p-6 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold text-white">User Details</h2>
               <button
                 onClick={onClose}
@@ -215,7 +215,7 @@ export default function UserDetailModal({
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               {/* Basic Info */}
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <InfoCard icon={User} label="Full Name" value={selectedUser?.full_name || "N/A"} />

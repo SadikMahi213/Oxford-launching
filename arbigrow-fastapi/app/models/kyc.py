@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, ForeignKey, Enum, DateTime, func, Text, Integer, Numeric, text
+from sqlalchemy import String, ForeignKey, Enum, DateTime, func, Text, Integer, Numeric, text, Boolean
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,6 +21,7 @@ class KYCStatus(str, enum.Enum):
 class PaymentStatus(str, enum.Enum):
     pending = "pending"
     paid = "paid"
+    refunded = "refunded"
 
 
 class KycPackage(Base):
@@ -101,7 +102,7 @@ class KYC(Base):
         nullable=False,
     )
     admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    fee_refunded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default=text("false"))
+    fee_refunded: Mapped[bool] = mapped_column(default=False, nullable=False)
     fee_refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(

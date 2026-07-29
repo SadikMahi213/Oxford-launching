@@ -1,6 +1,16 @@
-from pydantic import BaseModel, Field
-from typing import Optional
 from decimal import Decimal
+from typing import Literal, Optional
+
+from pydantic import BaseModel, Field
+
+
+AllowedAdminUserStatus = Literal["pending", "approved", "rejected", "issue"]
+
+
+class UpdateKYCStatusRequest(BaseModel):
+    status: AllowedAdminUserStatus
+    issue_note: Optional[str] = Field(default=None, max_length=1000)
+    admin_note: Optional[str] = Field(default=None, max_length=2000)
 
 
 class CreditProfitRequest(BaseModel):
@@ -8,19 +18,22 @@ class CreditProfitRequest(BaseModel):
 
 
 class UpdateWalletBalancesRequest(BaseModel):
-    main_wallet: Optional[Decimal] = None
-    deposit_wallet: Optional[Decimal] = None
-    withdraw_wallet: Optional[Decimal] = None
-    referral_wallet: Optional[Decimal] = None
-    generation_wallet: Optional[Decimal] = None
-    arbx_wallet: Optional[Decimal] = None
-    arbx_mining_wallet: Optional[Decimal] = None
-    captcha_wallet: Optional[Decimal] = None
-    ad_view_wallet: Optional[Decimal] = None
-    ecommerce_wallet: Optional[Decimal] = None
+    main_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    deposit_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    withdraw_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    referral_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    generation_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    arbx_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    arbx_mining_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    captcha_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    ad_view_wallet: Optional[Decimal] = Field(default=None, ge=0)
+    ecommerce_wallet: Optional[Decimal] = Field(default=None, ge=0)
 
 
-class UpdateKYCStatusRequest(BaseModel):
-    status: str
-    admin_note: Optional[str] = None
-    issue_note: Optional[str] = None
+class BulkTogglePackagesRequest(BaseModel):
+    package_ids: list[int] = Field(..., min_length=1)
+    is_active: bool
+
+
+class ConfigUpdate(BaseModel):
+    value: str

@@ -10,7 +10,7 @@ from app.models.user import User
 from app.models.investments import Investment
 from app.models.package import Package
 from app.schemas.investment import BuyInvestmentRequest, BuyInvestmentResponse
-from app.api.v1.deps import get_current_user
+from app.api.v1.deps import get_current_user, check_earning_access
 from app.core.rate_limiter import limiter
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.utils.notifications import notify_admin
@@ -44,12 +44,9 @@ async def buy_investment(
 ):
     amount = Decimal(str(payload.amount))
 
-    # Only block users with an unpaid pending package
-    if (current_user.account_status or "").lower() == "pending_payment":
-        raise HTTPException(
-            status_code=403,
-            detail="You have a pending package payment. Please complete it before purchasing another package."
-        )
+    # Free package activation does not require an active account
+    if amount > 0:
+        check_earning_access(current_user)
 
     # Look up the package by name
     pkg_result = await db.execute(
@@ -155,7 +152,7 @@ async def buy_investment(
     await db.refresh(investment)
     await db.refresh(user)
 
-    # Trigger rank evaluation for paid purchases
+    # Trigger rank evaluation for the purchaser
     if amount > 0:
         from app.services.rank_service import evaluate_and_process_rank
         await evaluate_and_process_rank(
@@ -176,6 +173,7 @@ async def buy_investment(
                 reference_id=investment.id,
                 reference_type="investment",
             )
+            # Walk up the chain
             par = await db.get(User, next_id)
             next_id = par.parent_lvl_1_id if par else None
 

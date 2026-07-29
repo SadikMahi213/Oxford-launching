@@ -10,17 +10,26 @@ import secrets
 
 from app.core.database import get_db
 from app.core.config import settings
+from app.services.b2_service import generate_presigned_url
 from app.models.user import User
 from app.models.kyc import KYC
 from app.models.package import Package
 from app.models.investments import Investment
 from app.models.system_config import SystemConfig
-from app.models.transfer_log import TransferLog
-from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, VerifyEmailOTPRequest
-from app.core.security import hash_password, verify_password, create_access_token, get_current_user_id, verify_password_reset_token
+from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
+from app.schemas.user import (
+    UserCreate, UserResponse, UserLogin, LoginResponse,
+    ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest,
+    VerifyEmailOTPRequest,
+)
+from app.core.security import (
+    hash_password, verify_password, create_access_token,
+    get_current_user_id, verify_password_reset_token,
+    generate_refresh_token, blacklist_access_token,
+)
 from app.core.rate_limiter import limiter
 from app.core.config import settings
-from app.utils.email import send_password_reset_email, send_email_verification
+from app.tasks.email_tasks import send_password_reset_email_task, send_email_verification_task
 from app.utils.generate_username import generate_username
 from app.utils.notifications import notify_admin
 from app.services.security_logger import SecurityLogger
@@ -48,7 +57,7 @@ def _generate_user_no() -> str:
 
 
 @router.post("/signup", response_model=UserResponse)
-@limiter.limit("5/minute")
+@limiter.limit("60/minute")
 async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     normalized_email = _normalize_email(user_data.email)
 
@@ -94,7 +103,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         email=normalized_email,
         hashed_password=hash_password(user_data.password),
         is_admin=False,
-        email_verified=False,
+        email_verified=True,
         main_wallet=Decimal("0.00000000000000"),
         deposit_wallet=Decimal("0.00000000000000"),
         withdraw_wallet=Decimal("0.00000000000000"),
@@ -128,14 +137,21 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         new_user.id
     )
 
-    #  Give 10 ARBX to referrer (lock referrer row)
+    #  Give 10 ARBX to referrer
     if ref_user:
-        await db.execute(
-            select(User).where(User.id == ref_user.id).with_for_update()
-        )
-        ref_user.arbx_wallet = (
-            ref_user.arbx_wallet + Decimal("10.00000000000000")
-        )
+        ref_before = ref_user.arbx_wallet or Decimal("0")
+        ref_user.arbx_wallet = ref_before + Decimal("10.00000000000000")
+        db.add(OFACoinTransaction(
+            user_id=ref_user.id,
+            tx_type=OFATransactionType.referral_bonus,
+            amount=Decimal("10.00000000000000"),
+            wallet_balance_before=ref_before,
+            wallet_balance_after=ref_user.arbx_wallet,
+            target_wallet="arbx_wallet",
+            reference_type="signup",
+            reference_id=new_user.id,
+            description="Referral bonus for referring new user",
+        ))
 
     # Handle package selection
     if user_data.package_id:
@@ -152,7 +168,21 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
             else:
                 # Free package — activate immediately, give signup bonus and create auto-investment
                 new_user.account_status = "active"
-                new_user.arbx_wallet = (new_user.arbx_wallet or 0) + (selected_pkg.signup_arbx_bonus or 0)
+                pkg_bonus = selected_pkg.signup_arbx_bonus or Decimal("0")
+                pkg_before = new_user.arbx_wallet or Decimal("0")
+                new_user.arbx_wallet = pkg_before + pkg_bonus
+                if pkg_bonus > 0:
+                    db.add(OFACoinTransaction(
+                        user_id=new_user.id,
+                        tx_type=OFATransactionType.package_signup_bonus,
+                        amount=pkg_bonus,
+                        wallet_balance_before=pkg_before,
+                        wallet_balance_after=new_user.arbx_wallet,
+                        target_wallet="arbx_wallet",
+                        reference_type="package",
+                        reference_id=selected_pkg.id,
+                        description=f"Package signup bonus for {selected_pkg.name}",
+                    ))
                 now = datetime.now(timezone.utc)
                 investment = Investment(
                     user_id=new_user.id,
@@ -178,14 +208,18 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
     bonus_row = bonus_result.scalar_one_or_none()
     signup_bonus = Decimal(bonus_row.value) if bonus_row and bonus_row.value else Decimal("0")
     if signup_bonus > 0:
-        new_user.arbx_wallet = (new_user.arbx_wallet or 0) + signup_bonus
-        db.add(TransferLog(
-            sender_id=1,
-            receiver_id=new_user.id,
+        sb_before = new_user.arbx_wallet or Decimal("0")
+        new_user.arbx_wallet = sb_before + signup_bonus
+        db.add(OFACoinTransaction(
+            user_id=new_user.id,
+            tx_type=OFATransactionType.signup_bonus,
             amount=signup_bonus,
-            fee=Decimal("0"),
-            note="OFA welcome bonus",
-            status="completed",
+            wallet_balance_before=sb_before,
+            wallet_balance_after=new_user.arbx_wallet,
+            target_wallet="arbx_wallet",
+            reference_type="signup",
+            reference_id=new_user.id,
+            description="OFA signup bonus",
         ))
 
     await db.commit()
@@ -223,19 +257,13 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    # Check if account is blocked (with auto-unlock after 15 minutes)
+    # Check if account is blocked
     if user.blocked_at:
-        if datetime.now(timezone.utc) - user.blocked_at < timedelta(minutes=15):
-            reason = user.blocked_reason or "No reason provided"
-            raise HTTPException(
-                status_code=423,
-                detail=f"Your account has been temporarily blocked by the administrator.\nReason: {reason}\nPlease contact support for further assistance.",
-            )
-        # Auto-unlock after 15 minutes
-        user.failed_attempts = 0
-        user.blocked_at = None
-        user.blocked_reason = None
-        await db.commit()
+        blocked_msg = (
+            "Your account has been temporarily blocked due to multiple failed login attempts. "
+            "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
+        )
+        raise HTTPException(status_code=423, detail=blocked_msg)
 
     # pending_payment users are allowed to login (they will see the payment page)
     is_pending_payment = (user.account_status or "").lower() == "pending_payment"
@@ -302,12 +330,13 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         data={"sub": str(user.id)}
     )
 
-    # Session cookie (no max_age — deleted on browser close)
+    cookie_max_age = 86400 * settings.REMEMBER_ME_DAYS if user_data.remember_me else None
     response.set_cookie(
         key="access_token",
         value=access_token,
+        max_age=cookie_max_age,
         httponly=True,
-        secure=True,
+        secure=settings.APP_ENV != "development",
         samesite="lax",
     )
 
@@ -326,9 +355,20 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         device=device,
     )
 
+    profile_image_url = user.profile_image_url
+    if profile_image_url and not profile_image_url.startswith("http"):
+        profile_image_url = generate_presigned_url(profile_image_url, expires_in=604800)
+
+    user_resp = UserResponse(
+        **user.__dict__,
+        phone_number=kyc.phone_number if kyc else None,
+        country=kyc.country if kyc else None,
+    )
+    user_resp.profile_image_url = profile_image_url
+
     return {
         "access_token": access_token,
-        "user": UserResponse(**user.__dict__,  phone_number=kyc.phone_number if kyc else None, country=kyc.country if kyc else None),
+        "user": user_resp,
         "doc_submitted": doc_submitted,
         "kyc_status": kyc_status,
         "payment_required": is_pending_payment,
@@ -346,10 +386,19 @@ async def logout(
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=True,
+        secure=settings.APP_ENV != "development",
         samesite="lax",
         path="/",
     )
+
+    raw_token = None
+    auth = request.headers.get("Authorization")
+    if auth and auth.startswith("Bearer "):
+        raw_token = auth.split(" ", 1)[1]
+    if not raw_token:
+        raw_token = request.cookies.get("access_token")
+    if raw_token:
+        await blacklist_access_token(raw_token, db)
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
@@ -391,7 +440,7 @@ async def forgot_password(
     if not user:
         return {"message": "If this email exists, a reset link has been sent."}
 
-    # short-lived token (15 minutes) — one-time use enforced by reset_token_hash
+    # short-lived token (15 minutes)
     reset_token = create_access_token(
         data={
             "sub": str(user.id),
@@ -400,15 +449,12 @@ async def forgot_password(
         expires_minutes=15
     )
 
-    user.reset_token_hash = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
-    await db.commit()
-
     reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password"
 
     # NOTE: Token is sent in email body, NOT in URL query string.
     # This prevents exposure in browser history, server logs, and Referer headers.
 
-    await send_password_reset_email(user.email, f"Your reset link: {reset_link}\n\nYour reset token: {reset_token}")
+    send_password_reset_email_task.delay(user.email, f"Your reset link: {reset_link}\n\nYour reset token: {reset_token}")
 
     return {"message": "If this email exists, a reset link has been sent."}
 
@@ -430,19 +476,11 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # One-time token enforcement
-    token_hash = hashlib.sha256(data.token.encode("utf-8")).hexdigest()
-    if not user.reset_token_hash:
-        raise HTTPException(status_code=400, detail="Token already used")
-    if user.reset_token_hash != token_hash:
-        raise HTTPException(status_code=400, detail="Token already used or invalid")
-
     user.hashed_password = hash_password(data.new_password)
     # Reset security fields on password change
     user.failed_attempts = 0
     user.blocked_at = None
     user.blocked_reason = None
-    user.reset_token_hash = None  # Invalidate token (one-time use)
 
     await db.commit()
 
@@ -537,6 +575,6 @@ async def resend_verification(
     user.otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
     await db.commit()
 
-    await send_email_verification(user.email, otp_code, user.full_name)
+    send_email_verification_task.delay(user.email, otp_code, user.full_name)
 
     return {"message": "If this email exists, a verification OTP has been sent."}
