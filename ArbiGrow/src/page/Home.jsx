@@ -13,7 +13,12 @@ import { PrivacySecurity } from "../component/PrivacySecurity";
 import { WhyChooseUs } from "../component/WhyChooseUs";
 import { MemberBenefits } from "../component/MemberBenefits";
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
+import { ShowcaseSection } from "../component/ShowcaseSection";
 import { getPlatformStats } from "../api/admin.api.js";
+import eventsImg from "../assets/events.jpg";
+import communityImg from "../assets/community.jpg";
+import trainingImg from "../assets/training.jpg";
+import lifeImg from "../assets/life.jpg";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -68,6 +73,36 @@ const Home = () => {
       <div id="privacy">
         <PrivacySecurity />
       </div>
+      <ShowcaseSection
+        badge={t("showcase.events.badge")}
+        title={t("showcase.events.title")}
+        description={t("showcase.events.description")}
+        image={eventsImg}
+        imageAlt={t("homePage.imageAlt")}
+      />
+      <ShowcaseSection
+        badge={t("showcase.community.badge")}
+        title={t("showcase.community.title")}
+        description={t("showcase.community.description")}
+        image={communityImg}
+        imageAlt={t("homePage.imageAlt")}
+        reversed
+      />
+      <ShowcaseSection
+        badge={t("showcase.training.badge")}
+        title={t("showcase.training.title")}
+        description={t("showcase.training.description")}
+        image={trainingImg}
+        imageAlt={t("homePage.imageAlt")}
+      />
+      <ShowcaseSection
+        badge={t("showcase.life.badge")}
+        title={t("showcase.life.title")}
+        description={t("showcase.life.description")}
+        image={lifeImg}
+        imageAlt={t("homePage.imageAlt")}
+        reversed
+      />
       <Footer />
     </div>
   );

@@ -2013,5 +2013,27 @@
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Shift+Z)",
     "footerText": "Supports bold, italic, lists, headings, links, images & more"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Events & Celebrations",
+      "title": "Events & Celebrations",
+      "description": "Celebrating milestones, achievements, and memorable moments together. Every event reflects our teamwork, growth, and commitment to building a stronger future."
+    },
+    "community": {
+      "badge": "Community & Team",
+      "title": "Community & Team",
+      "description": "Built on unity, collaboration, and mutual respect, our community and team create new opportunities every day. Working together, learning together, and achieving success together are the driving forces behind our continued growth and progress."
+    },
+    "training": {
+      "badge": "Training & Development",
+      "title": "Training & Development",
+      "description": "We believe that knowledge is the foundation of sustainable success. Through continuous training, skill development, and practical learning, we empower every member to confidently meet the challenges of the future. By fostering continuous learning, professional excellence, and leadership development, we are building a capable and confident team committed to driving innovation, achieving success, and creating long-term growth."
+    },
+    "life": {
+      "badge": "Life at Oxford Financial Ads",
+      "title": "Life at Oxford Financial Ads",
+      "description": "Our workplace is vibrant, collaborative, and positive. Every team member supports one another with a smile, learns together, works together, and shares the joy of every achievement. This spirit of sincerity, mutual respect, and teamwork makes our organization stronger every day."
+    }
   }
 }

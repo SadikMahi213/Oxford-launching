@@ -5,6 +5,7 @@ import Button from "./Button";
 import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore";
 import heroImg from "../assets/hero.jpeg";
+import heroBg from "../assets/hero-bg.jpg";
 
 export const Hero = () => {
   const { t } = useTranslation();
@@ -14,18 +15,24 @@ export const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-dark-bg">
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-dark-bg via-blue-950/30 to-dark-bg" />
+        <div className="absolute inset-0 bg-gradient-to-br from-dark-bg/70 via-blue-950/40 to-dark-bg/80 z-[1]" />
+        <img
+          src={heroBg}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+        />
         <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
+          className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl z-[2]"
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl z-[2]"
           animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] z-[2]" />
       </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
