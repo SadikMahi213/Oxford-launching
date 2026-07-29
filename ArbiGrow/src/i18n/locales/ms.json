@@ -959,31 +959,5 @@
   },
   "language": {
     "switch": "Tukar Bahasa"
-  },
-  "showcase": {
-    "events": {
-      "badge": "events",
-      "title": "Oxford Financial Ads: Leading the Future of Digital Advertising & Online Engagement",
-      "subtitle": "Global Events",
-      "description": "From industry conferences to community meetups, explore the key events shaping the Oxford Financial Ads ecosystem."
-    },
-    "community": {
-      "badge": "community",
-      "title": "Global Community. Local Impact.",
-      "subtitle": "Our Community",
-      "description": "Join a worldwide network of professionals and enthusiasts dedicated to digital innovation and financial growth."
-    },
-    "training": {
-      "badge": "training",
-      "title": "Oxford Financial Ads: Leading the Future of Digital Advertising & Online Engagement",
-      "subtitle": "Training & Development",
-      "description": "Access comprehensive training programs designed to enhance your skills in digital advertising, blockchain technology, and financial markets."
-    },
-    "life": {
-      "badge": "life",
-      "title": "Oxford Financial Ads: Leading the Future of Digital Advertising & Online Engagement",
-      "subtitle": "Life at Oxford",
-      "description": "Discover the culture, values, and people that make Oxford Financial Ads a great place to grow and succeed."
-    }
   }
 }
