@@ -58,8 +58,8 @@ function fmtEarnings(v) {
   return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const POLL_INTERVAL_MIN = 40000;
-const POLL_INTERVAL_MAX = 50000;
+const POLL_INTERVAL_MIN = 6000;
+const POLL_INTERVAL_MAX = 10000;
 
 const cards = [
   {
