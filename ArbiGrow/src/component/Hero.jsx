@@ -38,7 +38,7 @@ export const Hero = () => {
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-sm border border-blue-500/20 text-xs text-blue-300 mb-6 sm:mb-8"
             >
               <Shield className="w-3.5 h-3.5" />
-              Smart Contract Secured
+              {t("hero.badge")}
             </motion.div>
 
             <motion.h1
@@ -90,7 +90,7 @@ export const Hero = () => {
                       if (el) el.scrollIntoView({ behavior: "smooth" });
                     }}
                   >
-                    Learn More
+                    {t("learnMore")}
                   </Button>
                 </>
               )}
@@ -104,15 +104,15 @@ export const Hero = () => {
             >
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-xs">Secure Platform</span>
+                <span className="text-xs">{t("hero.securePlatform")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-xs">24/7 Support</span>
+                <span className="text-xs">{t("hero.support247")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-xs">Global Access</span>
+                <span className="text-xs">{t("hero.globalAccess")}</span>
               </div>
             </motion.div>
           </div>
@@ -158,7 +158,7 @@ export const Hero = () => {
           transition={{ duration: 2, repeat: Infinity }}
           className="flex flex-col items-center gap-2"
         >
-          <span className="text-xs text-gray-500">Scroll to explore</span>
+          <span className="text-xs text-gray-500">{t("hero.scrollToExplore")}</span>
           <div className="w-6 h-10 border-2 border-gray-700 rounded-full flex items-start justify-center p-1.5">
             <div className="w-1.5 h-3 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full" />
           </div>

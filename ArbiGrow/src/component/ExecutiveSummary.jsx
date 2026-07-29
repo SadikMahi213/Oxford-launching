@@ -27,7 +27,7 @@ export default function ExecutiveSummary() {
             </div>
             
             <p className="text-[20px] leading-relaxed text-gray-300">
-              <span className="text-2xl font-semibold text-white">{t("nav.brandName")}</span> {t("home.executiveSummary.paragraph")}
+              {t("home.executiveSummary.paragraph")}
             </p>
 
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

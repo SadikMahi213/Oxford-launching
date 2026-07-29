@@ -53,7 +53,12 @@
     "subtitle": "Earning Platform",
     "description": "Oxford Financial Ads is a modern digital advertising and online engagement platform where members can participate in various digital earning activities.",
     "cta": "Pre-Register Now",
-    "whitepaper": "Read Technical Whitepaper"
+    "whitepaper": "Read Technical Whitepaper",
+    "badge": "Smart Contract Secured",
+    "securePlatform": "Secure Platform",
+    "support247": "24/7 Support",
+    "globalAccess": "Global Access",
+    "scrollToExplore": "Scroll to explore"
   },
   "auth": {
     "login": {
