@@ -163,7 +163,17 @@ export default function ProfileIdentityCard() {
           <h2 className="text-base font-bold text-white">{user?.full_name || t("profileIdentity.user")}</h2>
           {kycRaw === "approved" && <img src={verifiedBadge} alt="Verified" className="w-5 h-5 md:w-4 md:h-4 object-contain shrink-0 rounded-full bg-white self-center" />}
         </div>
-        <p className="text-xs text-gray-500 mb-4">@{user?.username || "username"}</p>
+        <p className={`text-xs mb-4 font-medium ${
+          kycRaw === "approved"
+            ? "text-emerald-400"
+            : kycRaw === "pending"
+            ? "text-yellow-400"
+            : kycRaw === "rejected"
+            ? "text-red-400"
+            : "text-gray-400"
+        }`}>
+          {kycRaw === "approved" ? "✅" : kycRaw === "pending" ? "⏳" : "❌"} {getKycStatus()}
+        </p>
 
         {kycRaw === "rejected" && user?.kyc_note && (
           <div className="w-full mb-4 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
