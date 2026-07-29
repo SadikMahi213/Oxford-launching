@@ -1,9 +1,10 @@
+import { useState } from "react"
 import { motion } from "motion/react"
 import { useTranslation } from "react-i18next"
 import {
   Package, TrendingUp, Users, User, Headset, ShoppingCart, Store,
   Send, ArrowLeftRight, ShieldCheck, Trophy,
-  Activity, Download, Upload,
+  Activity, Download, Upload, Globe, Repeat, Rocket, X,
 } from "lucide-react"
 
 const items = [
@@ -27,6 +28,8 @@ const items = [
   ],
   [
     { id: "send-funds", label: "Send Funds", icon: Send, color: "text-blue-400", border: "border-blue-500/30", page: "send-funds" },
+    { id: "p2p", label: "P2P", icon: Repeat, color: "text-violet-400", border: "border-violet-500/30", soon: true },
+    { id: "international-currency", label: "International Currency", icon: Globe, color: "text-sky-400", border: "border-sky-500/30", soon: true },
   ],
   [
     { id: "kyc", label: "KYC", icon: ShieldCheck, color: "text-green-400", border: "border-green-500/30", page: "kyc" },
@@ -37,9 +40,10 @@ const items = [
 
 export function QuickShortcuts({ setActivePage }) {
   const { t } = useTranslation()
+  const [comingSoonModal, setComingSoonModal] = useState(null)
 
   const handleClick = (item) => {
-    if (item.soon) return
+    if (item.soon) { setComingSoonModal(item.label); return }
     if (item.external) { window.open(item.external, "_blank"); return }
     if (item.page) setActivePage(item.page)
   }
@@ -65,12 +69,37 @@ export function QuickShortcuts({ setActivePage }) {
             <span className="text-[9px] text-gray-400 font-medium leading-tight text-center">{item.label}</span>
             {item.soon && (
               <span className="text-[7px] px-1 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 absolute -top-1 -right-1">
-                Soon
+                {t("quickShortcuts.soon")}
               </span>
             )}
           </motion.button>
         ))}
       </div>
+
+      {comingSoonModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setComingSoonModal(null)}>
+          <div className="bg-gray-900 border border-white/[0.06] rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 flex items-center justify-center">
+                  <Rocket className="w-5 h-5 text-amber-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Coming Soon</h3>
+              </div>
+              <button onClick={() => setComingSoonModal(null)} className="text-gray-500 hover:text-white transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm mb-6">This feature is coming soon. Stay tuned for future updates!</p>
+            <button
+              onClick={() => setComingSoonModal(null)}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-medium hover:brightness-110 transition-all"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

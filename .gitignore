@@ -79,6 +79,7 @@ htmlcov/
 *.zip
 *.rar
 *.7z
+*.pdf
 backups/
 
 # ── Uploads / Storage ───────────────────────────────────────
