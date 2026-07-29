@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.api.v1.deps import get_current_admin_user, get_current_user
+from app.api.v1.deps import get_current_admin_user, get_current_user, check_earning_access
 from app.core.database import get_db
 from app.models.bank_info import BankInfo
 from app.models.withdrawal_method import WithdrawalMethod
@@ -14,7 +14,7 @@ from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.withdrawal import Withdrawal
 from app.schemas.withdrawal import WithdrawalCreate, WithdrawalStatusUpdate
-from app.utils.email import send_withdraw_success_email
+from app.tasks.email_tasks import send_withdraw_success_email_task
 from app.utils.is_system_active import is_system_active
 from app.services.invoice_service import generate_withdrawal_invoice
 from app.utils.notifications import notify_admin
@@ -75,12 +75,7 @@ async def create_withdrawal_request(
     if not await is_system_active("withdrawal", db):
         raise HTTPException(status_code=403, detail="Withdrawals are currently paused (weekend/system maintenance)")
     await check_kyc_approved(current_user, db)
-    if (current_user.account_status or "").lower() == "on_hold":
-        issue_note = (current_user.account_issue or "").strip()
-        detail = "Your account is on hold. Withdrawals are currently disabled."
-        if issue_note:
-            detail = f"{detail} Issue: {issue_note}"
-        raise HTTPException(status_code=403, detail=detail)
+    check_earning_access(current_user)
 
     if data.source_wallet not in ALLOWED_SOURCE_WALLETS:
         raise HTTPException(status_code=400, detail="Invalid wallet selected")
@@ -309,19 +304,6 @@ async def update_withdrawal_status(
             raise HTTPException(status_code=404, detail="User not found")
 
         amount = Decimal(str(withdrawal.amount))
-        charge = Decimal(str(withdrawal.charge or 0))
-        total_deduction = amount + charge
-
-        source_wallet_name = withdrawal.source_wallet
-        source_balance = Decimal(str(getattr(user, source_wallet_name, 0)))
-        if source_balance < total_deduction:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Insufficient {source_wallet_name} balance. Required: {total_deduction}, Available: {source_balance}"
-            )
-        setattr(user, source_wallet_name, _to_wallet_precision(source_balance - total_deduction))
-
-        balance_before = float(user.withdraw_wallet or 0)
         user.withdraw_wallet = _to_wallet_precision(
             Decimal(str(user.withdraw_wallet or 0)) + amount
         )
@@ -342,7 +324,7 @@ async def update_withdrawal_status(
 
     if data.status == "approved":
         try:
-            await send_withdraw_success_email(
+            send_withdraw_success_email_task.delay(
                 userid=withdrawal.user_id,
                 amount=f"{Decimal(str(withdrawal.amount)):.2f}",
                 currency="USDT",
@@ -360,10 +342,9 @@ async def update_withdrawal_status(
                 withdrawal=withdrawal,
                 tx_data={
                     "network": withdrawal.network_name,
-                    "transaction_hash": withdrawal.txid or "",
                     "destination": withdrawal.destination_address,
                     "transaction_id": str(withdrawal.id),
-                    "previous_balance": balance_before,
+                    "previous_balance": max(0, float(user.withdraw_wallet) - float(withdrawal.amount)),
                     "current_balance": float(user.withdraw_wallet),
                     "main_wallet_balance": float(user.main_wallet or 0),
                     "wallet_name": "Withdraw Wallet",
@@ -373,6 +354,7 @@ async def update_withdrawal_status(
             await db.commit()
         except Exception as inv_error:
             print(f"[warn] Failed to generate withdrawal invoice: {inv_error}")
+            await db.rollback()
 
     return {
         "message": f"Withdrawal {withdrawal.status}",

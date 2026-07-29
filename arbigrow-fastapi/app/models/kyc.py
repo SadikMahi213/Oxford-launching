@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, ForeignKey, Enum, DateTime, func, Text, Integer, Numeric, text
+from sqlalchemy import String, ForeignKey, Enum, DateTime, func, Text, Integer, Numeric, text
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -101,8 +101,6 @@ class KYC(Base):
         nullable=False,
     )
     admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    fee_refunded: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default=text("false"))
-    fee_refunded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

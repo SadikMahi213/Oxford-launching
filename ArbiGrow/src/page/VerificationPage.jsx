@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
@@ -664,7 +665,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
                           </p>
                           <p className="mt-1"
                             dangerouslySetInnerHTML={{
-                              __html: t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee })
+                              __html: DOMPurify.sanitize(t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee }))
                             }}
                           />
                           {parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee) && (

@@ -144,28 +144,19 @@ async def complete_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
-
-    # Lock the ad view row to prevent concurrent duplicate processing
     result = await db.execute(
         select(AdView).where(
             and_(
                 AdView.id == ad_view_id,
                 AdView.user_id == user_id,
             )
-        ).with_for_update()
+        )
     )
     ad_view = result.scalars().first()
     if not ad_view:
         raise HTTPException(404, detail="Ad view session not found")
-
-    # Idempotency check — under row lock this is definitive
     if ad_view.is_completed:
-        return {
-            "success": True,
-            "earned": ad_view.amount_earned,
-            "remaining_today": 0,
-            "new_balance": Decimal("0"),
-        }
+        raise HTTPException(400, detail="Ad already completed")
 
     now = datetime.now(timezone.utc)
     elapsed = (now - ad_view.started_at).total_seconds()
@@ -192,7 +183,7 @@ async def complete_ad(
                 Investment.user_id == user_id,
                 Investment.status == "active",
             )
-        ).order_by(Investment.id.desc()).with_for_update()
+        ).order_by(Investment.id.desc())
     )
     all_investments = inv_result.scalars().all()
     if not all_investments:

@@ -18,7 +18,9 @@ import {
   getNetworkAnalytics, getReferralNetwork,
 } from "../../api/user.api.js";
 import { MarketsCrawl } from "./overview/MarketsCrawl.jsx";
-import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
+import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
+import OFACryptocurrency from "./overview/OFACryptocurrency.jsx";
+import LiveActivityFeed from "../live-feed/LiveActivityFeed.jsx";
 
 import ProfileIdentityCard from "./ProfileIdentityCard.jsx";
 
@@ -713,27 +715,32 @@ const OverviewPage = ({ setActivePage }) => {
           </div>
         </div>
 
-        {/* --- How Mining Works --- */}
-        <div className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.08)] mb-4">
-          <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-            <Pickaxe className="w-4 h-4 text-yellow-400" />
-            How Mining Works
-          </h3>
-          <div className="space-y-3">
-            {[
-              { num: "01", text: "Start mining session — OFA tokens begin accumulating every second over a 24-hour cycle.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
-              { num: "02", text: "Mining rate is calculated based on your current network volume and staking tier.", icon: <PieChart className="w-4 h-4 text-yellow-400" /> },
-              { num: "03", text: "Accumulated tokens are deposited directly into your Mining Wallet in real-time.", icon: <Wallet className="w-4 h-4 text-yellow-400" /> },
-              { num: "04", text: "Cycle auto-resets after 24 hours — claim or let it restart for continuous mining.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
-            ].map((step) => (
-              <div key={step.num} className="flex items-start gap-3">
-                <span className="text-[11px] font-bold text-yellow-500 w-5 flex-shrink-0 mt-0.5">{step.num}</span>
-                <p className="flex-1 text-xs text-gray-300 leading-relaxed">{step.text}</p>
-                <div className="w-7 h-7 rounded-lg bg-yellow-500/15 flex items-center justify-center flex-shrink-0">
-                  {step.icon}
+        {/* --- How Mining Works + OFA Cryptocurrency row --- */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-4">
+          <div className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.08)] lg:w-[62%]">
+            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <Pickaxe className="w-4 h-4 text-yellow-400" />
+              How Mining Works
+            </h3>
+            <div className="space-y-3">
+              {[
+                { num: "01", text: "Start mining session — OFA tokens begin accumulating every second over a 24-hour cycle.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
+                { num: "02", text: "Mining rate is calculated based on your current network volume and staking tier.", icon: <PieChart className="w-4 h-4 text-yellow-400" /> },
+                { num: "03", text: "Accumulated tokens are deposited directly into your Mining Wallet in real-time.", icon: <Wallet className="w-4 h-4 text-yellow-400" /> },
+                { num: "04", text: "Cycle auto-resets after 24 hours — claim or let it restart for continuous mining.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
+              ].map((step) => (
+                <div key={step.num} className="flex items-start gap-3">
+                  <span className="text-[11px] font-bold text-yellow-500 w-5 flex-shrink-0 mt-0.5">{step.num}</span>
+                  <p className="flex-1 text-xs text-gray-300 leading-relaxed">{step.text}</p>
+                  <div className="w-7 h-7 rounded-lg bg-yellow-500/15 flex items-center justify-center flex-shrink-0">
+                    {step.icon}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          <div className="lg:w-[38%]">
+            <OFACryptocurrency />
           </div>
         </div>
       </motion.div>

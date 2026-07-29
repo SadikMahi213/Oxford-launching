@@ -50,7 +50,9 @@ async def get_my_rank(
     current_user.team_volume = team_volume
     await db.commit()
 
-    current_rank = await _get_highest_qualified_rank(team_volume, db)
+    current_rank = None
+    if current_user.admin_kyc_status == "approved":
+        current_rank = await _get_highest_qualified_rank(team_volume, db)
     if not current_rank:
         current_rank = await db.get(Rank, current_user.current_rank_id)
 

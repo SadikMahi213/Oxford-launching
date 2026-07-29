@@ -1,97 +1,66 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, startTransition } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  DollarSign,
-  Package,
-  FileText,
-  ShieldCheck,
-  Users,
-  UserCircle,
-  Download,
-  Upload,
-  Home,
-  X,
-  Menu,
-  Keyboard,
-  Eye,
-  Lock,
-  Copy,
-  Check,
-  Link as LinkIcon,
-  GitBranch,
-  Trophy,
-  Star,
-  Award,
-  MessageCircle,
-  ShoppingCart,
-  Store,
-  ArrowLeftRight,
-  Repeat,
-  LogOut,
-  Building2,
+  Wallet, TrendingUp, TrendingDown, Search, Filter,
+  ChevronLeft, ChevronRight, ChevronDown, DollarSign,
+  Package, FileText, ShieldCheck, Users, UserCircle,
+  Download, Upload, Home, X, Menu, Keyboard, Eye, Lock,
+  Copy, Check, Link as LinkIcon, GitBranch, Trophy, Star,
+  Award, MessageCircle, ShoppingCart, Store, ArrowLeftRight,
+  Repeat, LogOut, Building2,
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
 import arbxCoinImg from "../assets/Coin.png";
 import Logo from "../assets/oxford.png";
 import { mockMarketPrices, mockUserData } from "../constants/mockdata.js";
 import { useNavigate } from "react-router";
-import ReferralPage from "../component/user/ReferralPage.jsx";
-import ProfilePage from "../component/user/ProfilePage.jsx";
-import OverviewPage from "../component/user/OverviewPage.jsx";
 import useUserStore from "../store/userStore.js";
-import TransactionHistoryPage from "../component/user/TransactionHistoryPage.jsx";
 import {
-  getReferralNetwork,
-  getMyDeposits,
-  getMyWithdrawals,
-  getMyEarningsHistory,
-  getMyProfitHistory,
-  getActiveAnnouncement,
-  getTransferHistory,
-  getMyInvestments,
-  getMyMatchingBonuses,
-  getMyCaptchaEarnings,
-  getMyMiningHistory,
-  getMyAdViewHistory,
-  getMyInvoiceHistory,
-  getVendorWithdraws,
-  getEcommerceWalletTransactions,
+  getReferralNetwork, getMyDeposits, getMyWithdrawals,
+  getMyEarningsHistory, getMyProfitHistory, getActiveAnnouncement,
+  getTransferHistory, getMyInvestments, getMyMatchingBonuses,
+  getMyCaptchaEarnings, getMyMiningHistory, getMyAdViewHistory,
+  getMyInvoiceHistory, getVendorWithdraws, getEcommerceWalletTransactions,
   refreshUserStore,
 } from "../api/user.api.js";
-import DepositPage from "../component/user/DepositUSDT.jsx";
-import WithdrawPage from "../component/user/WithdrawUSDT.jsx";
-import BankingSetup from "../component/user/BankingSetup.jsx";
-import TierSection from "../component/package/TierSection.jsx";
-import PackageModal from "../component/package/PackageModal.jsx";
-import { MyInvestments } from "../component/user/MyInvestments.jsx";
-import { Market } from "../component/user/Market.jsx";
-import { AnnouncementModal } from "../component/user/AnnouncementModal.jsx";
-import MarketplacePage from "../component/user/MarketplacePage.jsx";
-import SellerDashboard from "../component/user/SellerDashboard.jsx";
-import WalletTransfer from "../component/user/WalletTransfer.jsx";
-import DailyTasks from "../component/user/DailyTasks.jsx";
-import AdsView from "../component/user/AdsView.jsx";
-import ConvertOFA from "../component/user/ConvertOFA.jsx";
-import InvoicePage from "../component/user/InvoicePage.jsx";
-import SendFunds from "../component/user/SendFunds.jsx";
-import MatchingBonusTransfer from "../component/user/MatchingBonusTransfer.jsx";
-import TransferHistory from "../component/user/TransferHistory.jsx";
-import ReferralBonusHistory from "../component/user/ReferralBonusHistory.jsx";
-import GenerationBonusHistory from "../component/user/GenerationBonusHistory.jsx";
-import MatchingBonusInfo from "../component/user/MatchingBonusInfo.jsx";
-import VerificationPage from "./VerificationPage.jsx";
-import VerificationPending from "./VerificationPending.jsx";
-import WhatsAppFloatingButton from "../component/user/WhatsAppButton.jsx";
-import ShareReferralButton from "../component/user/ShareReferralButton.jsx";
+
+const LazyReferralPage = React.lazy(() => import("../component/user/ReferralPage.jsx"));
+const LazyReferralBonusHistory = React.lazy(() => import("../component/user/ReferralBonusHistory.jsx"));
+const LazyGenerationBonusHistory = React.lazy(() => import("../component/user/GenerationBonusHistory.jsx"));
+const LazyMatchingBonusInfo = React.lazy(() => import("../component/user/MatchingBonusInfo.jsx"));
+const LazyBankingSetup = React.lazy(() => import("../component/user/BankingSetup.jsx"));
+const LazyVerificationPage = React.lazy(() => import("./VerificationPage.jsx"));
+const LazyVerificationPending = React.lazy(() => import("./VerificationPending.jsx"));
+const LazyProfilePage = React.lazy(() => import("../component/user/ProfilePage.jsx"));
+const LazyTransactionHistoryPage = React.lazy(() => import("../component/user/TransactionHistoryPage.jsx"));
+const LazyDepositPage = React.lazy(() => import("../component/user/DepositUSDT.jsx"));
+const LazyWithdrawPage = React.lazy(() => import("../component/user/WithdrawUSDT.jsx"));
+const LazyMyInvestments = React.lazy(() => import("../component/user/MyInvestments.jsx").then(m => ({ default: m.MyInvestments })));
+const LazyDailyTasks = React.lazy(() => import("../component/user/DailyTasks.jsx"));
+const LazyAdsView = React.lazy(() => import("../component/user/AdsView.jsx"));
+const LazyTierSection = React.lazy(() => import("../component/package/TierSection.jsx"));
+const LazyPackageModal = React.lazy(() => import("../component/package/PackageModal.jsx"));
+const LazyMarket = React.lazy(() => import("../component/user/Market.jsx").then(m => ({ default: m.Market })));
+const LazyMarketplacePage = React.lazy(() => import("../component/user/MarketplacePage.jsx"));
+const LazySellerDashboard = React.lazy(() => import("../component/user/SellerDashboard.jsx"));
+const LazyInvoicePage = React.lazy(() => import("../component/user/InvoicePage.jsx"));
+const LazyWalletTransfer = React.lazy(() => import("../component/user/WalletTransfer.jsx"));
+const LazyConvertOFA = React.lazy(() => import("../component/user/ConvertOFA.jsx"));
+const LazySendFunds = React.lazy(() => import("../component/user/SendFunds.jsx"));
+const LazyMatchingBonusTransfer = React.lazy(() => import("../component/user/MatchingBonusTransfer.jsx"));
+const LazyTransferHistory = React.lazy(() => import("../component/user/TransferHistory.jsx"));
+const LazyOverviewPage = React.lazy(() => import("../component/user/OverviewPage.jsx"));
+const LazyAnnouncementModal = React.lazy(() => import("../component/user/AnnouncementModal.jsx").then(m => ({ default: m.AnnouncementModal })));
+const LazyWhatsAppButton = React.lazy(() => import("../component/user/WhatsAppButton.jsx"));
+const LazyShareReferralButton = React.lazy(() => import("../component/user/ShareReferralButton.jsx"));
+
+const UserLoading = () => (
+  <div className="flex items-center justify-center p-8 min-h-[400px]">
+    <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 // Mock data for market prices
 
 const EMPTY_REFERRAL_LEVELS = [
@@ -200,7 +169,9 @@ export function UserDashboard() {
     if (isAccountOnHold && !HOLD_ALLOWED_PAGES.has(pageId)) {
       return;
     }
-    setActivePage(pageId);
+    startTransition(() => {
+      setActivePage(pageId);
+    });
   };
 
   useEffect(() => {
@@ -574,46 +545,44 @@ export function UserDashboard() {
     return rows.sort((a, b) => b._ts - a._ts);
   };
 
+  const _safeFetch = (fn, fallback) =>
+    fn().then((r) => r).catch(() => ({ data: fallback }));
+
   useEffect(() => {
     if (activePage !== "transactions" || transactionsLoaded) return;
     const load = async () => {
       setTransactionsLoading(true);
-      try {
-        const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes] = await Promise.all([
-          getMyDeposits(),
-          getMyWithdrawals(),
-          getMyEarningsHistory(),
-          getMyProfitHistory(),
-          getTransferHistory(),
-          getMyInvestments(),
-          getMyMatchingBonuses(),
-          getMyCaptchaEarnings(),
-          getMyMiningHistory(),
-          getMyAdViewHistory(),
-          getMyInvoiceHistory(),
-          getVendorWithdraws(),
-          getEcommerceWalletTransactions(),
-        ]);
-        const deps = depRes?.data?.data || [];
-        const wdws = wdwRes?.data?.data || [];
-        const ears = earRes?.data?.data || [];
-        const pfts = pftRes?.data?.data || [];
-        const transfers = trfRes?.data || {};
-        const investments = invRes?.data || [];
-        const matching_bonuses = bonusRes?.data || [];
-        const captcha_earnings = captchaRes?.data?.data || [];
-        const mining_logs = mineRes?.data?.data || [];
-        const ad_views = adRes?.data?.data || [];
-        const invoices = invoiceRes?.data?.invoices || [];
-        const vendor_withdraws = vendorRes?.data?.withdraws || [];
-        const ecom_txs = ecomRes?.data?.data || [];
-        setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs));
-        setTransactionsLoaded(true);
-      } catch (err) {
-        console.error("Failed to load transactions:", err);
-      } finally {
-        setTransactionsLoading(false);
-      }
+      const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes] = await Promise.all([
+        _safeFetch(getMyDeposits, { data: [] }),
+        _safeFetch(getMyWithdrawals, { data: [] }),
+        _safeFetch(getMyEarningsHistory, { data: [] }),
+        _safeFetch(getMyProfitHistory, { data: [] }),
+        _safeFetch(getTransferHistory, {}),
+        _safeFetch(getMyInvestments, []),
+        _safeFetch(getMyMatchingBonuses, []),
+        _safeFetch(getMyCaptchaEarnings, { data: [] }),
+        _safeFetch(getMyMiningHistory, { data: [] }),
+        _safeFetch(getMyAdViewHistory, { data: [] }),
+        _safeFetch(getMyInvoiceHistory, { data: { invoices: [] } }),
+        _safeFetch(getVendorWithdraws, { data: { withdraws: [] } }),
+        _safeFetch(getEcommerceWalletTransactions, { data: [] }),
+      ]);
+      const deps = depRes?.data?.data || [];
+      const wdws = wdwRes?.data?.data || [];
+      const ears = earRes?.data?.data || [];
+      const pfts = pftRes?.data?.data || [];
+      const transfers = trfRes?.data || {};
+      const investments = invRes?.data || [];
+      const matching_bonuses = bonusRes?.data || [];
+      const captcha_earnings = captchaRes?.data?.data || [];
+      const mining_logs = mineRes?.data?.data || [];
+      const ad_views = adRes?.data?.data || [];
+      const invoices = invoiceRes?.data?.invoices || [];
+      const vendor_withdraws = vendorRes?.data?.withdraws || [];
+      const ecom_txs = ecomRes?.data?.data || [];
+      setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs));
+      setTransactionsLoaded(true);
+      setTransactionsLoading(false);
     };
     load();
   }, [activePage, transactionsLoaded]);
@@ -790,7 +759,7 @@ export function UserDashboard() {
   };
 
   const handleCopyLink = () => {
-    const copiedLink = `${import.meta.env.VITE_FRONTNED_URL}/register?ref_code=${user.username}`;
+    const copiedLink = `${import.meta.env.VITE_FRONTEND_URL}/register?ref_code=${user.username}`;
     navigator.clipboard.writeText(copiedLink);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -844,7 +813,7 @@ export function UserDashboard() {
       const lc = levelColors[selectedReferralLevel];
 
       return (
-        <ReferralPage
+        <LazyReferralPage
           totalReferrals={totalReferrals}
           fixedReferralData={referralLevels}
           levelColors={levelColors}
@@ -862,40 +831,40 @@ export function UserDashboard() {
     }
 
     if (activePage === "referral-bonuses") {
-      return <ReferralBonusHistory setActivePage={safeSetActivePage} />;
+      return <LazyReferralBonusHistory setActivePage={safeSetActivePage} />;
     }
 
     if (activePage === "generation-bonuses") {
-      return <GenerationBonusHistory setActivePage={safeSetActivePage} />;
+      return <LazyGenerationBonusHistory setActivePage={safeSetActivePage} />;
     }
 
     if (activePage === "matching-bonus") {
-      return <MatchingBonusInfo setActivePage={safeSetActivePage} />;
+      return <LazyMatchingBonusInfo setActivePage={safeSetActivePage} />;
     }
 
     if (activePage === "banking") {
-      return <BankingSetup />;
+      return <LazyBankingSetup />;
     }
 
     if (activePage === "kyc") {
-      return <VerificationPage embedded onSuccess={() => safeSetActivePage("kyc-pending")} />;
+      return <LazyVerificationPage embedded onSuccess={() => safeSetActivePage("kyc-pending")} />;
     }
 
     if (activePage === "kyc-pending") {
       return (
         <div className="p-4 md:p-6">
-          <VerificationPending embedded onEdit={() => safeSetActivePage("kyc")} />
+          <LazyVerificationPending embedded onEdit={() => safeSetActivePage("kyc")} />
         </div>
       );
     }
 
     // Profile Page
     if (activePage === "profile") {
-      return <ProfilePage mockUserData={mockUserData} />;
+      return <LazyProfilePage mockUserData={mockUserData} />;
     }
     if (activePage === "transactions") {
       return (
-        <TransactionHistoryPage
+        <LazyTransactionHistoryPage
           currentTransactions={currentTransactions}
           transactionFilter={transactionFilter}
           setTransactionFilter={setTransactionFilter}
@@ -911,15 +880,15 @@ export function UserDashboard() {
       );
     }
     if (activePage === "deposit") {
-      return <DepositPage />;
+      return <LazyDepositPage />;
     }
     if (activePage === "withdraw") {
-      return <WithdrawPage />;
+      return <LazyWithdrawPage />;
     }
     //investment
     if (activePage === "investments") {
       return (
-        <MyInvestments
+        <LazyMyInvestments
           refreshKey={investmentsRefreshKey}
           onNavigateToPackages={() => safeSetActivePage("packages")}
         />
@@ -927,18 +896,18 @@ export function UserDashboard() {
     }
     //tasks
     if (activePage === "tasks") {
-      return <DailyTasks />;
+      return <LazyDailyTasks />;
     }
     if (activePage === "ads") {
-      return <AdsView />;
+      return <LazyAdsView />;
     }
     //packege moddal
     if (activePage === "packages") {
       return (
         <>
-          <TierSection onSelect={setSelectedPackage} />
+          <LazyTierSection onSelect={setSelectedPackage} />
 
-          <PackageModal
+          <LazyPackageModal
             selectedPackage={selectedPackage}
             setSelectedPackage={setSelectedPackage}
             onPurchased={() => {
@@ -951,39 +920,39 @@ export function UserDashboard() {
     }
     // market page
     if (activePage === "market") {
-      return <Market />;
+      return <LazyMarket />;
     }
 
     if (activePage === "marketplace") {
-      return <MarketplacePage />;
+      return <LazyMarketplacePage />;
     }
 
     if (activePage === "seller") {
-      return <SellerDashboard />;
+      return <LazySellerDashboard />;
     }
 
     if (activePage === "invoices") {
-      return <InvoicePage />;
+      return <LazyInvoicePage />;
     }
 
     if (activePage === "transfer") {
-      return <WalletTransfer />;
+      return <LazyWalletTransfer />;
     }
 
     if (activePage === "convert") {
-      return <ConvertOFA />;
+      return <LazyConvertOFA />;
     }
 
     if (activePage === "send-funds") {
-      return <SendFunds setActivePage={setActivePage} />;
+      return <LazySendFunds setActivePage={setActivePage} />;
     }
 
     if (activePage === "matching-bonus-transfer") {
-      return <MatchingBonusTransfer setActivePage={setActivePage} />;
+      return <LazyMatchingBonusTransfer setActivePage={setActivePage} />;
     }
 
     if (activePage === "transfer-history") {
-      return <TransferHistory setActivePage={setActivePage} />;
+      return <LazyTransferHistory setActivePage={setActivePage} />;
     }
 
     if (activePage !== "overview") {
@@ -1002,7 +971,7 @@ export function UserDashboard() {
 
     if (activePage === "overview") {
       return (
-        <OverviewPage
+        <Suspense fallback={<UserLoading />}><LazyOverviewPage
           mockUserData={mockUserData}
           mockMarketPrices={mockMarketPrices}
           arbxCardImg={arbxCardImg}
@@ -1018,7 +987,7 @@ export function UserDashboard() {
           filteredTransactions={filteredTransactions}
           getStatusColor={getStatusColor}
           setActivePage={safeSetActivePage}
-        />
+        /></Suspense>
       );
     }
   };
@@ -1282,16 +1251,21 @@ export function UserDashboard() {
             {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
           </div>
         )}
-        {renderPageContent()}
+        <Suspense fallback={<UserLoading />}>{renderPageContent()}</Suspense>
       </div>
 
-      <AnnouncementModal
-        open={isAnnouncementOpen}
-        announcement={activeAnnouncement}
-        onClose={handleCloseAnnouncement}
-      />
+      <Suspense fallback={null}>
+        <LazyAnnouncementModal
+          open={isAnnouncementOpen}
+          announcement={activeAnnouncement}
+          onClose={handleCloseAnnouncement}
+        />
+      </Suspense>
 
-      <WhatsAppFloatingButton />
+      <Suspense fallback={null}>
+        <LazyWhatsAppButton />
+      </Suspense>
     </div>
   );
 }
+export default UserDashboard;

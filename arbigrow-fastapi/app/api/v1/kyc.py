@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
@@ -12,6 +12,8 @@ from app.services.b2_service import upload_to_b2
 from app.utils.notifications import notify_admin
 
 router = APIRouter(prefix="/kyc", tags=["KYC"])
+
+WALLET_PRECISION = Decimal("0.00000000000001")
 
 
 @router.get("/active-package")
@@ -55,11 +57,6 @@ async def submit_kyc(
         raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
     if back_image and back_image.content_type not in ALLOWED_KYC_TYPES:
         raise HTTPException(400, "Only JPEG, PNG, WebP images and PDF files are allowed for KYC documents")
-
-    # Validate file magic bytes
-    await _validate_file_magic(front_image)
-    if back_image:
-        await _validate_file_magic(back_image)
 
     # Validate full_name
     if not full_name or not full_name.strip():
@@ -156,6 +153,17 @@ async def submit_kyc(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    deposit_balance = user.deposit_wallet or Decimal("0")
+    if total_fee > 0:
+        if deposit_balance < total_fee:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient balance. KYC verification requires {total_fee} USDT. Your deposit wallet balance is {deposit_balance} USDT.",
+            )
+        user.deposit_wallet = (deposit_balance - total_fee).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
+
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
         raise HTTPException(
@@ -188,7 +196,7 @@ async def submit_kyc(
         back_image_key=back_key,
         kyc_package_id=kyc_package_id,
         transaction_id=transaction_id,
-        payment_status=PaymentStatus.pending,
+        payment_status=PaymentStatus.paid,
     )
 
     db.add(new_kyc)
@@ -204,22 +212,6 @@ async def submit_kyc(
     return {
         "message": "KYC submitted successfully",
         "status": new_kyc.status,
-        "fee_deducted": "0",
+        "fee_deducted": str(total_fee) if total_fee > 0 else "0",
         "deposit_wallet_balance": str(user.deposit_wallet or Decimal("0")),
     }
-
-
-_MAGIC_BYTES: dict[bytes, str] = {
-    b"\xff\xd8\xff": "image/jpeg",
-    b"\x89PNG\r\n\x1a\n": "image/png",
-    b"RIFF": "image/webp",
-    b"%PDF": "application/pdf",
-}
-
-
-async def _validate_file_magic(file: UploadFile) -> None:
-    header = await file.read(8)
-    await file.seek(0)
-    matched = any(header.startswith(sig) for sig in _MAGIC_BYTES)
-    if not matched:
-        raise HTTPException(400, "File content does not match the declared type")

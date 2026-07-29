@@ -1,29 +1,35 @@
 import { motion } from "motion/react"
-import { ShieldCheck, Crown, Star, Lock, BadgeCheck, Shield, Gem } from "lucide-react"
+import { ShieldCheck, Crown, Star } from "lucide-react"
 
-const confettiPieces = Array.from({ length: 30 }, (_, i) => ({
-  id: i,
-  left: Math.random() * 100,
-  delay: Math.random() * 3,
-  duration: 2 + Math.random() * 3,
-  size: 4 + Math.random() * 6,
-  color: ["#fbbf24", "#f59e0b", "#eab308", "#fef08a", "#fde047"][Math.floor(Math.random() * 5)],
-}))
-
-function Confetti() {
+function PadlockIcon() {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {confettiPieces.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute top-0 rounded-sm"
-          style={{ left: `${p.left}%`, width: p.size, height: p.size * 0.6, backgroundColor: p.color }}
-          initial={{ y: -20, rotate: 0, opacity: 0 }}
-          animate={{ y: "100vh", rotate: 720, opacity: [0, 1, 1, 0] }}
-          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "linear" }}
-        />
-      ))}
-    </div>
+    <svg viewBox="0 0 24 24" className="w-3.5 sm:w-[17px] h-3.5 sm:h-[17px]" fill="#a855f7">
+      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+    </svg>
+  )
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-3.5 sm:w-[17px] h-3.5 sm:h-[17px]" fill="#38bdf8">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+    </svg>
+  )
+}
+
+function DiamondIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-3.5 sm:w-[17px] h-3.5 sm:h-[17px]" fill="#a855f7">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+    </svg>
+  )
+}
+
+function ShieldCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-4 sm:w-[22px] h-4 sm:h-[22px]" fill="#00e1ff">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+    </svg>
   )
 }
 
@@ -31,154 +37,137 @@ export default function KycSuccessCard({ user }) {
   const userName = user?.full_name || user?.name || "User"
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      {/* Background ambient glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-pink-500/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 left-20 w-[300px] h-[300px] bg-purple-500/8 rounded-full blur-[80px]" />
-      </div>
-
-      <Confetti />
-
+    <div className="relative w-full max-w-[410px] mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative p-6 md:p-10 rounded-3xl bg-gradient-to-br from-white/[0.06] to-white/[0.02] backdrop-blur-xl border border-white/[0.08] overflow-hidden"
+        className="relative p-4 sm:p-6 rounded-[32px] border border-[rgba(0,162,255,0.35)] shadow-[0_0_50px_rgba(0,110,255,0.25),inset_0_0_20px_rgba(112,0,255,0.15)] overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #070921, #020308)" }}
       >
-        <div className="absolute -inset-[1px] bg-gradient-to-br from-blue-500/15 to-pink-500/15 rounded-3xl blur-xl opacity-50" />
+        {/* Ambient glow */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-[320px] h-[320px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(217,0,255,0.4) 0%, rgba(0,149,255,0.25) 50%, transparent 75%)" }} />
 
-        {/* ===== Avatar Section ===== */}
-        <div className="relative text-center mb-8">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, type: "spring", stiffness: 120 }}
-            className="relative inline-flex mx-auto mb-4"
-          >
+        <div className="relative z-10">
+          {/* ===== Avatar + Verified Badge ===== */}
+          <div className="relative flex justify-center items-center mb-3 sm:mb-[18px] mt-1 sm:mt-[5px]">
             {/* Neon ring */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 p-[3px] animate-pulse">
-              <div className="w-full h-full rounded-full bg-[#0a0e27]" />
-            </div>
-            <div className="absolute -inset-2 rounded-full bg-blue-500/20 blur-xl" />
-            <div className="absolute -inset-1 rounded-full bg-purple-500/20 blur-lg" />
-
-            {/* Avatar */}
-            <div className="relative w-20 h-20 rounded-full border-2 border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.3)] overflow-hidden">
-              {user?.profile_image_url ? (
-                <img src={user.profile_image_url} alt={userName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-400/30 to-purple-500/30 flex items-center justify-center">
-                  <span className="text-lg font-bold text-blue-300">{userName.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
+            <div className="w-[120px] h-[120px] sm:w-[165px] sm:h-[165px] rounded-full p-[3px] shadow-[0_0_30px_rgba(217,0,255,0.5),inset_0_0_15px_rgba(0,136,255,0.5)]" style={{ background: "linear-gradient(135deg, #e000ff, #0088ff)" }}>
+              <div className="w-full h-full rounded-full overflow-hidden bg-[#0b112c]">
+                {user?.profile_image_url ? (
+                  <img src={user.profile_image_url} alt={userName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400/30 to-purple-500/30">
+                    <span className="text-2xl sm:text-3xl font-bold text-blue-300">{userName.charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Verified Badge top-right */}
-            <div className="absolute -top-1 -right-1 w-9 h-9 rounded-full bg-cyan-500 flex items-center justify-center border-2 border-[#0a0e27] shadow-[0_0_12px_rgba(6,182,212,0.6)]">
-              <BadgeCheck className="w-4 h-4 text-white" />
-              <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[7px] text-cyan-400 font-semibold whitespace-nowrap">VERIFIED</span>
+            {/* Verified Member Badge top-right */}
+            <div className="absolute top-0 right-0 flex flex-col items-center px-3 py-1.5 rounded-full border border-[#00e1ff] shadow-[0_0_15px_rgba(0,225,255,0.4)]" style={{ background: "rgba(10,18,48,0.85)" }}>
+              <span className="text-sm font-bold text-[#00e1ff]">✓</span>
+              <span className="text-[8.5px] font-extrabold text-[#00e1ff] tracking-widest">VERIFIED MEMBER</span>
             </div>
-          </motion.div>
+          </div>
 
-          {/* ===== Congratulatory Typography ===== */}
+          {/* ===== Congratulatory Section ===== */}
+          <div className="text-center mb-3 sm:mb-[18px]">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-[22px] sm:text-[26px] font-extrabold text-[#ffd700] mb-[2px]" style={{ textShadow: "0 0 12px rgba(255,215,0,0.5)" }}
+            >
+              Congratulations!
+            </motion.h1>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="text-base sm:text-[20px] font-bold text-white my-[2px] sm:my-[3px] tracking-[0.4px]"
+            >
+              {userName}
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-[13px] sm:text-[15px] font-medium text-[#e2e8f0] mb-1 sm:mb-2"
+            >
+              You're Officially Verified
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.45 }}
+              className="text-sm sm:text-[16px] tracking-[4px] text-[#ffd700]" style={{ textShadow: "0 0 8px rgba(255,215,0,0.7)" }}
+            >
+              ★ ★ ★
+            </motion.div>
+          </div>
+
+          {/* ===== KYC Status Notification ===== */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="flex items-center gap-3 sm:gap-[14px] p-3 sm:p-[14px_16px] mb-2 sm:mb-3 rounded-2xl border border-[rgba(0,149,255,0.3)] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]" style={{ background: "rgba(13,23,53,0.5)", backdropFilter: "blur(14px)" }}
           >
-            {/* Laurel wreaths + title */}
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-500 shrink-0">
-                <path d="M12 2C12 2 8 6 8 10C8 13.3 10 16 12 18C14 16 16 13.3 16 10C16 6 12 2 12 2Z" fill="currentColor" opacity="0.6"/>
-                <path d="M12 2C12 2 16 6 16 10C16 13.3 14 16 12 18" fill="currentColor" opacity="0.4"/>
-                <path d="M8 10C6 9 4 8 2 9C0 10 0 14 2 15C4 16 6 15 8 14" fill="currentColor" opacity="0.5"/>
-                <path d="M16 10C18 9 20 8 22 9C24 10 24 14 22 15C20 16 18 15 16 14" fill="currentColor" opacity="0.5"/>
-              </svg>
-              <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 bg-clip-text text-transparent">
-                Congratulations!
-              </h1>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-yellow-500 shrink-0 scale-x-[-1]">
-                <path d="M12 2C12 2 8 6 8 10C8 13.3 10 16 12 18C14 16 16 13.3 16 10C16 6 12 2 12 2Z" fill="currentColor" opacity="0.6"/>
-                <path d="M12 2C12 2 16 6 16 10C16 13.3 14 16 12 18" fill="currentColor" opacity="0.4"/>
-                <path d="M8 10C6 9 4 8 2 9C0 10 0 14 2 15C4 16 6 15 8 14" fill="currentColor" opacity="0.5"/>
-                <path d="M16 10C18 9 20 8 22 9C24 10 24 14 22 15C20 16 18 15 16 14" fill="currentColor" opacity="0.5"/>
-              </svg>
+            <div className="w-8 sm:w-[42px] h-8 sm:h-[42px] rounded-xl border border-[#0088ff] flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,136,255,0.4)]" style={{ background: "rgba(0,123,255,0.2)" }}>
+              <ShieldCheckIcon />
             </div>
-            <p className="text-lg text-yellow-400 font-semibold">{userName}</p>
-            <p className="text-white text-lg font-bold mt-1">You're Officially Verified</p>
-            <div className="flex items-center justify-center gap-1.5 mt-2">
-              {[0, 1, 2].map((i) => (
-                <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-              ))}
+            <p className="text-xs sm:text-[13px] text-[#f1f5f9] leading-snug sm:leading-relaxed">
+              Your <span className="text-[#00ffcc] font-bold">$10</span> KYC Verification has been successfully approved.
+            </p>
+          </motion.div>
+
+          {/* ===== Three Trust Cards ===== */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="grid grid-cols-3 gap-1.5 sm:gap-[10px] mb-2 sm:mb-3"
+          >
+            {[
+              { icon: <PadlockIcon />, color: "rgba(139,92,246,0.4)", title: "Trusted", desc: "Stronger trust for a secure experience" },
+              { icon: <ShieldIcon />, color: "rgba(56,189,248,0.4)", title: "Secure", desc: "Your account is now more protected" },
+              { icon: <DiamondIcon />, color: "rgba(139,92,246,0.4)", title: "Exclusive", desc: "Access premium features and benefits" },
+            ].map((card) => (
+              <div key={card.title} className="p-2 sm:p-3 rounded-xl text-center flex flex-col items-center border" style={{ background: "rgba(13,23,53,0.4)", backdropFilter: "blur(10px)", borderColor: card.color }}>
+                <div className="w-6 sm:w-[34px] h-6 sm:h-[34px] rounded-xl flex items-center justify-center mb-1 sm:mb-[6px]" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)" }}>
+                  {card.icon}
+                </div>
+                <h4 className="text-[10px] sm:text-[11.5px] font-semibold text-[#38bdf8] mb-[2px] sm:mb-[3px]">{card.title}</h4>
+                <p className="text-[8px] sm:text-[9px] text-[#94a3b8] leading-tight">{card.desc}</p>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* ===== Club Banner ===== */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="flex items-center gap-3 sm:gap-[14px] p-3 sm:p-[14px_16px] mb-2 sm:mb-[14px] rounded-2xl border border-[rgba(255,215,0,0.35)] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]" style={{ background: "linear-gradient(135deg, rgba(13,23,53,0.75), rgba(30,20,70,0.65))", backdropFilter: "blur(14px)" }}
+          >
+            <span className="text-xl sm:text-[26px] shrink-0" style={{ filter: "drop-shadow(0 0 8px rgba(255,215,0,0.6))" }}>👑</span>
+            <div>
+              <h3 className="text-xs sm:text-[13.5px] font-bold text-[#ffd700] mb-[2px]">Welcome to the Verified Members Club.</h3>
+              <p className="text-[9px] sm:text-[10px] text-[#cbd5e1]">Thank you for being a part of our trusted community.</p>
             </div>
           </motion.div>
+
+          {/* ===== Bottom Security Note ===== */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.65 }}
+            className="text-center text-[10px] text-[#64748b] tracking-[0.2px]"
+          >
+            🔒 Your security is our priority. Thank you for verifying your account.
+          </motion.div>
         </div>
-
-        {/* ===== KYC Status Notification Card ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.55 }}
-          className="p-4 rounded-2xl bg-white/[0.05] backdrop-blur-md border border-blue-400/30 mb-5 flex items-center gap-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-5 h-5 text-blue-400" />
-          </div>
-          <p className="text-sm text-gray-200">
-            Your <span className="text-cyan-400 font-bold">$10</span> KYC Verification has been successfully approved.
-          </p>
-        </motion.div>
-
-        {/* ===== Three Trust Cards ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.65 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5"
-        >
-          {[
-            { icon: Lock, color: "text-purple-400", bg: "bg-purple-500/15", title: "Trusted", desc: "Stronger trust for a secure experience" },
-            { icon: Shield, color: "text-blue-400", bg: "bg-blue-500/15", title: "Secure", desc: "Your account is now more protected" },
-            { icon: Gem, color: "text-purple-400", bg: "bg-purple-500/15", title: "Exclusive", desc: "Access premium features and exclusive benefits" },
-          ].map((card) => (
-            <div key={card.title} className="p-4 rounded-xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] text-center">
-              <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mx-auto mb-2`}>
-                <card.icon className={`w-5 h-5 ${card.color}`} />
-              </div>
-              <h4 className="text-sm font-bold text-cyan-300 mb-0.5">{card.title}</h4>
-              <p className="text-[11px] text-gray-400 leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* ===== Verified Members Club Footer ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.75 }}
-          className="p-5 rounded-2xl bg-gradient-to-r from-blue-900/30 via-indigo-900/30 to-blue-900/30 border border-blue-500/30 flex items-center gap-4 mb-5"
-        >
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-            <Crown className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-yellow-400">Welcome to the Verified Members Club.</h3>
-            <p className="text-xs text-gray-300 mt-0.5">Thank you for being a part of our trusted community.</p>
-          </div>
-        </motion.div>
-
-        {/* ===== Bottom Footer ===== */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.85 }}
-          className="flex items-center justify-center gap-2 text-xs text-gray-500"
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>Your security is our priority. Thank you for verifying your account.</span>
-        </motion.div>
       </motion.div>
     </div>
   )

@@ -7,7 +7,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy import select
 
 from app.core.config import settings
-from app.core.database import async_session
+from app.core.database import AsyncSessionLocal
 from app.core.referral import get_referral_level_rates
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
@@ -22,7 +22,6 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 PERCENT_PRECISION = Decimal("0.0001")
 
 _auto_roi_task: asyncio.Task | None = None
-_ROI_SEMAPHORE = asyncio.Semaphore(20)
 
 
 def _to_wallet_precision(amount: Decimal) -> Decimal:
@@ -101,6 +100,7 @@ async def _apply_referral_cascade(
     if not parents_map:
         return
 
+    # Only credit parents who have at least one active package
     active_result = await db.execute(
         select(Investment.user_id)
         .where(Investment.user_id.in_([p for p in parent_ids if p]), Investment.status == "active")
@@ -145,11 +145,11 @@ async def _apply_referral_cascade(
                     type="daily_roi",
                     created_at=now_utc,
                 )
-            )
+                            )
 
 
 async def _process_investment(investment_id: int, now_utc: datetime) -> bool:
-    async with async_session() as db:
+    async with AsyncSessionLocal() as db:
         try:
             result = await db.execute(
                 select(Investment)
@@ -224,7 +224,8 @@ async def _process_investment(investment_id: int, now_utc: datetime) -> bool:
 
 
 async def _process_investment_scheduled(investment_id: int, daily_payment: Decimal, now_utc: datetime) -> bool:
-    async with async_session() as db:
+    """Apply a fixed daily payment amount to one investment (scheduled mode)."""
+    async with AsyncSessionLocal() as db:
         try:
             result = await db.execute(
                 select(Investment)
@@ -237,6 +238,7 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 await db.rollback()
                 return False
 
+            # Skip if ROI was already credited today (UTC)
             today_start = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
             tomorrow_start = today_start + timedelta(days=1)
             already_result = await db.execute(
@@ -252,6 +254,7 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 await db.rollback()
                 return False
 
+            # Check if investment is already completed
             remaining_profit = _to_wallet_precision(
                 investment.expected_profit - investment.profit_earned
             )
@@ -263,11 +266,13 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                     await db.rollback()
                 return False
 
+            # Use the fixed daily payment, capped by remaining profit
             profit_amount = _to_wallet_precision(min(daily_payment, remaining_profit))
             if profit_amount <= 0:
                 await db.rollback()
                 return False
 
+            # Calculate the percentage equivalent for history tracking
             applied_percentage = _to_percent_precision(
                 (profit_amount / investment.invested_amount) * Decimal("100")
             )
@@ -303,6 +308,7 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 now_utc=now_utc,
             )
 
+            # Complete if total profit earned meets or exceeds expected profit
             if investment.profit_earned >= investment.expected_profit:
                 investment.status = "completed"
 
@@ -314,41 +320,38 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
             return False
 
 
-async def _process_one(investment_id: int, daily_payment: Decimal, now_utc: datetime) -> bool:
-    async with _ROI_SEMAPHORE:
-        return await _process_investment_scheduled(investment_id, daily_payment, now_utc)
-
-
 async def run_auto_roi_cycle() -> dict:
+    """Credit each active investment with its fixed daily payment once per day."""
     now_utc = datetime.now(timezone.utc)
 
-    async with async_session() as db:
+    # Check UK weekend / admin override for daily_earning
+    async with AsyncSessionLocal() as db:
         from app.utils.is_system_active import is_system_active
         if not await is_system_active("daily_earning", db):
-            logger.info("Auto ROI: daily earning is paused, skipping cycle")
+            logger.info("Auto ROI: daily earning is paused (weekend/system maintenance), skipping cycle")
             return {"processed": 0, "credited": 0}
 
-    async with async_session() as db:
+    # Fetch all active investment IDs and their daily payments
+    async with AsyncSessionLocal() as db:
         ids_result = await db.execute(
             select(Investment.id, Investment.daily_payment, Investment.invested_amount)
             .where(Investment.status == "active")
         )
         investment_rows = list(ids_result.all())
 
-    tasks = []
+    processed = 0
+    credited = 0
+
     for investment_id, daily_payment, invested_amount in investment_rows:
         if not daily_payment or daily_payment <= 0:
             continue
-        if invested_amount <= 0:
+        if invested_amount <= 0:  # Free package - no ROI to process, keep active
             continue
-        tasks.append(_process_one(investment_id, daily_payment, now_utc))
+        processed += 1
+        if await _process_investment_scheduled(investment_id, daily_payment, now_utc):
+            credited += 1
 
-    if not tasks:
-        return {"processed": 0, "credited": 0}
-
-    results = await asyncio.gather(*tasks)
-    credited = sum(1 for r in results if r)
-    return {"processed": len(tasks), "credited": credited}
+    return {"processed": processed, "credited": credited}
 
 
 async def _auto_roi_loop() -> None:
@@ -356,6 +359,7 @@ async def _auto_roi_loop() -> None:
 
     while True:
         now = datetime.now(timezone.utc)
+        # Sleep until next midnight UTC
         tomorrow_midnight = (now + timedelta(days=1)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )

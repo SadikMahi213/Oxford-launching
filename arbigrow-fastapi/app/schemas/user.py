@@ -7,7 +7,7 @@ from decimal import Decimal
 class UserCreate(BaseModel):
     full_name: str
     email: EmailStr
-    password: str = Field(min_length=8, max_length=60)
+    password: str = Field(min_length=6, max_length=60)
     referral_code: str | None = None
     package_id: int | None = None
     first_name: str | None = None
@@ -100,6 +100,7 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    remember_me: Optional[bool] = False
 
 
 class LoginResponse(BaseModel):

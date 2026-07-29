@@ -398,9 +398,6 @@ async def get_admin_users(
                 user.email_verified,
             ),
             "account_status": user.account_status,
-            "blocked_at": user.blocked_at.isoformat() if user.blocked_at else None,
-            "blocked_reason": user.blocked_reason,
-            "blocked_by": user.blocked_by,
         })
 
     # Status counters are calculated across the current search set (ignoring status tab).
@@ -852,23 +849,18 @@ async def update_kyc_status(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
+    del current_admin
+
     requested_status = (payload.status or "").strip().lower()
     if requested_status not in {"pending", "approved", "rejected", "issue"}:
         raise HTTPException(status_code=400, detail="Invalid KYC status")
 
-    admin = current_admin
-
-    # Lock user row before modifying balance
-    user_result = await db.execute(
-        select(User).where(User.id == user_id).with_for_update()
-    )
+    user_result = await db.execute(select(User).where(User.id == user_id))
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    result = await db.execute(
-        select(KYC).where(KYC.user_id == user_id).with_for_update()
-    )
+    result = await db.execute(select(KYC).where(KYC.user_id == user_id))
     kyc = result.scalar_one_or_none()
     previous_status = kyc.status if kyc else None
 
@@ -897,32 +889,6 @@ async def update_kyc_status(
             "account_status": user.account_status,
         }
 
-    was_approved = requested_status == "approved"
-
-    # KYC Fee Deduction: charge fee only on admin approval, before status changes
-    if was_approved and kyc and kyc.payment_status != PaymentStatus.paid:
-        total_fee = kyc.fee_paid or Decimal("0")
-        if total_fee > 0:
-            deposit_balance = user.deposit_wallet or Decimal("0")
-            if deposit_balance < total_fee:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Insufficient balance. KYC approval requires {total_fee} USDT fee. User's deposit wallet balance is {deposit_balance} USDT.",
-                )
-            user.deposit_wallet = (deposit_balance - total_fee).quantize(
-                WALLET_PRECISION, rounding=ROUND_HALF_UP
-            )
-            fee_log = TransferLog(
-                sender_id=user.id,
-                receiver_id=admin.id,
-                amount=total_fee,
-                fee=Decimal("0"),
-                note="KYC fee",
-                status="completed",
-            )
-            db.add(fee_log)
-            kyc.payment_status = PaymentStatus.paid
-
     new_kyc_status = KYCStatus(requested_status)
 
     if kyc:
@@ -934,6 +900,7 @@ async def update_kyc_status(
     user.admin_kyc_status = new_kyc_status.value
     user.account_status = "active" if new_kyc_status == KYCStatus.approved else "inactive"
     user.account_issue = None
+    was_approved = new_kyc_status == KYCStatus.approved
 
     # KYC Snapshot: capture lifetime team volume on first approval
     if was_approved and not user.kyc_approved_team_volume:
@@ -943,24 +910,6 @@ async def update_kyc_status(
 
     if was_approved and not user.kyc_approved_at:
         user.kyc_approved_at = datetime.now(timezone.utc)
-
-    # KYC Fee Refund: only for legacy records that were charged at submission
-    if kyc and requested_status == "rejected" and kyc.payment_status == PaymentStatus.paid and not kyc.fee_refunded:
-        fee_paid = kyc.fee_paid or Decimal("0")
-        if fee_paid > 0:
-            user.deposit_wallet = (user.deposit_wallet or Decimal("0")) + fee_paid
-            refund_log = TransferLog(
-                sender_id=admin.id,
-                receiver_id=user.id,
-                amount=fee_paid,
-                fee=Decimal("0"),
-                note="KYC fee refunded after rejection",
-                status="completed",
-            )
-            db.add(refund_log)
-            kyc.fee_refunded = True
-            kyc.fee_refunded_at = datetime.now(timezone.utc)
-
     await db.commit()
     await db.refresh(user)
     if kyc:
@@ -974,7 +923,7 @@ async def update_kyc_status(
                 user_id=user.id,
                 db=db,
                 source_user_id=user.id,
-                skip_bonus=True,
+                skip_bonus=False,
                 use_snapshot_volume=True,
                 snapshot_volume=user.kyc_approved_team_volume,
             )
@@ -990,8 +939,10 @@ async def update_kyc_status(
                 par = await db.get(User, next_id)
                 next_id = par.parent_lvl_1_id if par else None
             await db.commit()
-        except Exception as e:
-            logger.exception("Rank evaluation failed for KYC approval: user_id=%s error=%s", user.id, str(e))
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Rank evaluation failed for KYC-approved user_id=%s", user_id
+            )
 
     notif_type = "kyc_approved" if was_approved else "kyc_rejected"
     await notify_admin(
@@ -1017,10 +968,10 @@ async def update_user_wallets(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    from app.models.wallet_audit_log import WalletAuditLog
+    del current_admin
 
     result = await db.execute(
-        select(User).where(User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
 
@@ -1042,19 +993,11 @@ async def update_user_wallets(
     for field, raw_value in update_fields.items():
         if field not in ALLOWED_WALLET_FIELDS:
             raise HTTPException(status_code=400, detail=f"Field '{field}' is not a valid wallet field")
-        old_value = getattr(user, field)
-        new_value = Decimal(str(raw_value)).quantize(
+        value = Decimal(str(raw_value)).quantize(
             WALLET_PRECISION,
             rounding=ROUND_HALF_UP,
         )
-        setattr(user, field, new_value)
-        db.add(WalletAuditLog(
-            user_id=user_id,
-            admin_id=current_admin.id,
-            field_name=field,
-            old_value=old_value,
-            new_value=new_value,
-        ))
+        setattr(user, field, value)
 
     await db.commit()
     await db.refresh(user)
@@ -1078,76 +1021,6 @@ async def update_user_wallets(
             "captcha_wallet": format_decimal(user.captcha_wallet),
             "ad_view_wallet": format_decimal(user.ad_view_wallet),
         },
-    }
-
-
-@router.post("/users/{user_id}/block")
-async def block_user(
-    user_id: int,
-    reason: str = "",
-    request: Request = None,
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(get_current_admin_user),
-):
-    if len(reason) > 1000:
-        raise HTTPException(status_code=400, detail="Block reason must be 1000 characters or less")
-
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if user.is_admin:
-        raise HTTPException(status_code=400, detail="Cannot block an admin user")
-    if user.blocked_at:
-        raise HTTPException(status_code=400, detail="User is already blocked")
-
-    user.blocked_at = datetime.now(timezone.utc)
-    user.blocked_reason = reason or None
-    user.blocked_by = current_admin.id
-    await db.commit()
-
-    await notify_admin(
-        db=db, type="account_blocked",
-        message=f"User {user.full_name} ({user.email}) was blocked by admin #{current_admin.id}. Reason: {reason}",
-        user_id=user.id, request=request,
-    )
-
-    return {
-        "message": "User blocked successfully",
-        "blocked_at": user.blocked_at.isoformat(),
-        "blocked_reason": user.blocked_reason,
-        "blocked_by": user.blocked_by,
-    }
-
-
-@router.post("/users/{user_id}/unblock")
-async def unblock_user(
-    user_id: int,
-    request: Request = None,
-    db: AsyncSession = Depends(get_db),
-    current_admin: User = Depends(get_current_admin_user),
-):
-    user_result = await db.execute(select(User).where(User.id == user_id))
-    user = user_result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    if not user.blocked_at:
-        raise HTTPException(status_code=400, detail="User is not blocked")
-
-    user.blocked_at = None
-    user.blocked_reason = None
-    user.blocked_by = None
-    user.failed_attempts = 0
-    await db.commit()
-
-    await notify_admin(
-        db=db, type="account_blocked",
-        message=f"User {user.full_name} ({user.email}) was unblocked by admin #{current_admin.id}.",
-        user_id=user.id, request=request,
-    )
-
-    return {
-        "message": "User unblocked successfully",
     }
 
 
@@ -1269,9 +1142,8 @@ async def credit_user_profit(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    # Lock main user row with FOR UPDATE
     result = await db.execute(
-        select(User).where(User.id == user_id).with_for_update()
+        select(User).where(User.id == user_id)
     )
     user = result.scalar_one_or_none()
 
@@ -1287,19 +1159,6 @@ async def credit_user_profit(
         WALLET_PRECISION,
         rounding=ROUND_HALF_UP,
     )
-
-    # Pre-lock parent rows (sorted to prevent deadlocks)
-    parent_ids = sorted(pid for pid in [
-        user.parent_lvl_1_id,
-        user.parent_lvl_2_id,
-        user.parent_lvl_3_id,
-        user.parent_lvl_4_id,
-        user.parent_lvl_5_id,
-    ] if pid is not None)
-    for pid in parent_ids:
-        await db.execute(
-            select(User).where(User.id == pid).with_for_update()
-        )
 
     distributions = await apply_cascading_referral_commissions(
         db=db,
@@ -1491,8 +1350,6 @@ async def update_commission_config(
         config = SystemConfig(key=key, value=data.value)
         db.add(config)
     await db.commit()
-    from app.utils.cached_config import invalidate_config
-    invalidate_config("ref_rates")
     return {"message": f"Commission {key} updated to {data.value}%"}
 
 
@@ -2129,46 +1986,10 @@ async def get_realtime_stats(
     )
     total_profit_shared = Decimal(str(total_profit_result.scalar() or 0))
 
-    # ── OFA Total Distributed (all sources) ────────────
-    # Mining claims (arbx_mining_wallet)
-    mining_result = await db.execute(
+    total_mining_result = await db.execute(
         select(func.coalesce(func.sum(MiningLog.amount), 0))
     )
-    total_mining_ofa = Decimal(str(mining_result.scalar() or 0))
-
-    # Captcha earnings (captcha_wallet)
-    captcha_ofa_result = await db.execute(
-        select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
-    )
-    total_captcha_ofa = Decimal(str(captcha_ofa_result.scalar() or 0))
-
-    # Ad view earnings (ad_view_wallet)
-    ad_ofa_result = await db.execute(
-        select(func.coalesce(func.sum(AdView.amount_earned), 0))
-    )
-    total_ad_ofa = Decimal(str(ad_ofa_result.scalar() or 0))
-
-    # Welcome bonus (arbx_wallet via TransferLog)
-    welcome_ofa_result = await db.execute(
-        select(func.coalesce(func.sum(TransferLog.amount), 0))
-        .where(TransferLog.note == "OFA welcome bonus")
-    )
-    total_welcome_ofa = Decimal(str(welcome_ofa_result.scalar() or 0))
-
-    total_ofa_distributed = total_mining_ofa + total_captcha_ofa + total_ad_ofa + total_welcome_ofa
-
-    # ── OFA Welcome Bonus Detail ────────────────────────
-    ofa_bonus_count_result = await db.execute(
-        select(func.count(TransferLog.id))
-        .where(TransferLog.note == "OFA welcome bonus")
-    )
-    total_ofa_bonus_transactions = ofa_bonus_count_result.scalar() or 0
-
-    ofa_recipients_result = await db.execute(
-        select(func.count(func.distinct(TransferLog.receiver_id)))
-        .where(TransferLog.note == "OFA welcome bonus")
-    )
-    total_ofa_recipients = ofa_recipients_result.scalar() or 0
+    total_mining = Decimal(str(total_mining_result.scalar() or 0))
 
     total_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -2321,9 +2142,6 @@ async def get_realtime_stats(
         "total_profit_distribution": format_decimal(total_profit_distribution),
         "company_running_profit": format_decimal(company_running_profit),
         "total_distribution": format_decimal(total_distributed),
-        "total_mining_ofa": format_decimal(total_ofa_distributed),
-        "total_ofa_bonus_distributed": format_decimal(total_welcome_ofa),
-        "total_ofa_bonus_transactions": total_ofa_bonus_transactions,
-        "total_ofa_recipients": total_ofa_recipients,
+        "total_mining_ofa": format_decimal(total_mining),
     }
 

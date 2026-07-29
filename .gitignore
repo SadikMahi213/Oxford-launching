@@ -1,97 +1,69 @@
-# ── Python ───────────────────────────────────────────────────
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-*.egg
-*.whl
+# Environment
 .env
-.venv
-venv/
-env/
-*.so
+.env.local
+.env.production
 
-# ── Node / Frontend ─────────────────────────────────────────
-node_modules/
-.next/
+# Credentials
+login*.json
+
+# Build
 dist/
-build/
-*.tsbuildinfo
-.vite/
-.cache/
+arbigrow-fastapi/storage/
+*.egg-info/
+fresh-dist/
+running-dist/
+frontend-dist-new/
 
-# ── IDE / Editor ────────────────────────────────────────────
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-*.sublime-workspace
-
-# ── OS ──────────────────────────────────────────────────────
-$RECYCLE.BIN/
-System Volume Information/
-
-# ── Docker ───────────────────────────────────────────────────
-.docker/
-docker-compose.override.yml
-
-# ── Database ────────────────────────────────────────────────
-*.sqlite
-*.sqlite3
-*.db
+# Backups and dumps
 *.bak
-
-# ── Secrets / Credentials ───────────────────────────────────
-.env*
-!.env.example
-*.key
-*.pem
-*.p12
-*.pfx
-credential*.json
-service-account*.json
-config.yml
-docker-compose.prod.yml
-
-# ── Logs ────────────────────────────────────────────────────
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ── Test / Coverage ─────────────────────────────────────────
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.tox/
-.mypy_cache/
-.ruff_cache/
-
-# ── Backups / Archives ──────────────────────────────────────
+*.bak2/
+*.sql
+*.sql.gz
 *.tar.gz
 *.zip
-*.rar
-*.7z
 backups/
 
-# ── Uploads / Storage ───────────────────────────────────────
-storage/
-uploads/
-media/
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
 
-# ── Project-specific ────────────────────────────────────────
-server-full-deployment.zip
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docke
+generated_avatars/
+
+# Deployment artifacts
+*.pem
+*.key
+id_*
+known_hosts
+
+# Node
+node_modules/
+
+# Server config
+postgresql.conf
+
+# Generated files
+*built.js
 *.b64
 
-# ── System files at G: root (not project) ───────────────────
-/clang*
-/msys2*
-/mingw*
-/ucrt64*
+# Storage uploads
+storage/
+
+# Google service account
+oxford-498705-*.json
+
+# Backup archives at root
+arbigrow-pre-sync-*.tar.gz
+dist*.tar.gz
+frontend*.tar.gz
+running-dist.tar.gz

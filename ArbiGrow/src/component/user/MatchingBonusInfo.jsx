@@ -74,15 +74,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
   const nextRank = rankInfo?.next_rank;
   const currentRank = rankInfo?.current_rank;
   const personalVolume = parseFloat(rankInfo?.personal_volume || 0);
-  const networkVolume = parseFloat(rankInfo?.network_volume || 0);
   const teamVolume = parseFloat(rankInfo?.team_volume || 0);
-  const kycSnapshotVolume = rankInfo?.kyc_approved_team_volume != null ? parseFloat(rankInfo.kyc_approved_team_volume) : null;
-  const postKycVolume = rankInfo?.post_kyc_team_volume != null ? parseFloat(rankInfo.post_kyc_team_volume) : null;
   const totalMatchingBonus = parseFloat(rankInfo?.total_matching_bonus_earned || 0);
-  const rankVolume = postKycVolume != null ? postKycVolume : teamVolume;
+  const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
   const nextTargetVolume = parseFloat(rankInfo?.next_target_volume || 0);
-  const pendingVolume = Math.max(0, nextTargetVolume - rankVolume);
-  const progress = nextTargetVolume > 0 ? (rankVolume / nextTargetVolume) * 100 : 100;
+  const progress = rankInfo?.progress ?? 100;
 
   const getBonusPercent = (rank, type) => {
     if (!rank?.bonus_configs) return 0;
@@ -221,50 +217,6 @@ export default function MatchingBonusInfo({ setActivePage }) {
               </div>
             </div>
 
-            {/* ── KYC Volume Breakdown ── */}
-            {kycSnapshotVolume != null && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 p-5">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                    <Info className="w-4 h-4 text-purple-400" />
-                    {t("matchingBonusInfo.lifetimeVolume")}
-                  </div>
-                  <div className="text-xl font-bold text-white">
-                    {teamVolume.toFixed(2)} USDT
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("matchingBonusInfo.lifetimeVolumeDesc")}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 p-5">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                    <Layers className="w-4 h-4 text-amber-400" />
-                    {t("matchingBonusInfo.snapshotVolume")}
-                  </div>
-                  <div className="text-xl font-bold text-amber-400">
-                    {kycSnapshotVolume.toFixed(2)} USDT
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("matchingBonusInfo.snapshotVolumeDesc")}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/30 p-5">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    {t("matchingBonusInfo.postKycVolume")}
-                  </div>
-                  <div className="text-xl font-bold text-emerald-400">
-                    {postKycVolume != null ? postKycVolume.toFixed(2) : "0.00"} USDT
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {t("matchingBonusInfo.postKycVolumeDesc")}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* ── Progress Bar ── */}
             {nextRank && (
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
@@ -279,7 +231,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                     </span>
                   </div>
                   <span className="text-sm text-gray-400">
-                    {rankVolume.toFixed(2)} / {nextTargetVolume.toFixed(2)} USDT
+                    {teamVolume.toFixed(2)} / {nextTargetVolume.toFixed(2)} USDT
                   </span>
                 </div>
                 <div className="w-full h-3 rounded-full bg-white/5 overflow-hidden">
@@ -298,7 +250,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   <span className="text-xs text-gray-500">
                     {progress >= 100
                       ? t("matchingBonusInfo.targetReached")
-                      : t("matchingBonusInfo.remaining", { amount: pendingVolume.toFixed(2) })}
+                      : t("matchingBonusInfo.remaining", { amount: remainingVolume.toFixed(2) })}
                   </span>
                   <span className="text-xs text-gray-500">
                     {Math.min(progress, 100).toFixed(1)}%
@@ -331,7 +283,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {t("matchingBonusInfo.allRanksDesc")}
                 </p>
               </div>
-              <div className="overflow-x-auto">
+              <div className="responsive-table-wrapper">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-white/5 border-b border-white/10">
@@ -356,7 +308,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                       const isCurrent =
                         currentRank?.id === r.id;
                       const isAchieved =
-                        parseFloat(r.target_volume) <= rankVolume;
+                        parseFloat(r.target_volume) <= teamVolume;
                       const isNext = nextRank?.id === r.id;
                       const bonusMap = {};
                       (r.bonus_configs || []).forEach((bc) => {
@@ -526,7 +478,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                 </div>
               ) : (
                 <>
-                  <div className="overflow-x-auto">
+                  <div className="responsive-table-wrapper">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-white/5 border-b border-white/10">
@@ -624,7 +576,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                 </div>
               ) : (
                 <>
-                  <div className="overflow-x-auto">
+                  <div className="responsive-table-wrapper">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-white/5 border-b border-white/10">

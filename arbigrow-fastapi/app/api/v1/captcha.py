@@ -9,8 +9,6 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from sqlalchemy import select
-from app.models.system_config import SystemConfig
 from app.core.security import get_current_user_id
 from app.models.user import User
 from app.models.investments import Investment
@@ -22,24 +20,14 @@ from app.schemas.captcha import (
     CaptchaStatsResponse,
 )
 from app.core.rate_limiter import limiter
-from app.api.v1.deps import check_basic_earning_access_by_id as check_captcha_access
+from app.api.v1.deps import check_earning_access_by_id
 from app.services.captcha_generator import generate_captcha_image
 from app.models.package import Package, TaskType
 
 router = APIRouter(prefix="/captcha", tags=["Captcha"])
 
+CAPTCHA_EXPIRY_MINUTES = 2
 CAPTCHA_RATE_LIMIT_SECONDS = 5
-async def _get_captcha_timer_seconds(db) -> int:
-    result = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "captcha_timer_seconds")
-    )
-    row = result.scalar_one_or_none()
-    if row and row.value:
-        try:
-            return max(5, min(300, int(row.value)))
-        except (ValueError, TypeError):
-            pass
-    return 25
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
@@ -65,7 +53,7 @@ async def get_next_captcha(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    await check_captcha_access(user_id, db)
+    await check_earning_access_by_id(user_id, db)
     inv_result = await db.execute(
         select(Investment).where(
             and_(
@@ -99,8 +87,7 @@ async def get_next_captcha(
     captcha_text = _generate_captcha_text()
     salt = secrets.token_hex(8)
     text_hash = _hash_captcha(captcha_text, salt)
-    timer_secs = await _get_captcha_timer_seconds(db)
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=timer_secs)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=CAPTCHA_EXPIRY_MINUTES)
 
     challenge = CaptchaChallenge(
         user_id=user_id,
@@ -118,7 +105,6 @@ async def get_next_captcha(
         captcha_id=challenge.id,
         captcha_image=captcha_image,
         expires_at=expires_at,
-        timer_seconds=timer_secs,
     )
 
 
@@ -130,38 +116,24 @@ async def submit_captcha(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    await check_captcha_access(user_id, db)
-
-    # Lock the captcha row to prevent concurrent duplicate processing
+    await check_earning_access_by_id(user_id, db)
     result = await db.execute(
         select(CaptchaChallenge).where(
             and_(
                 CaptchaChallenge.id == body.captcha_id,
                 CaptchaChallenge.user_id == user_id,
             )
-        ).with_for_update()
+        )
     )
     challenge = result.scalars().first()
     if not challenge:
         raise HTTPException(404, detail="Captcha not found")
-
-    # Idempotency check — under row lock this is definitive
     if challenge.is_used:
-        return CaptchaSubmitResponse(
-            success=False,
-            earned=Decimal("0"),
-            remaining_today=0,
-            new_balance=Decimal("0"),
-        )
+        raise HTTPException(400, detail="Captcha already used")
     if datetime.now(timezone.utc) > challenge.expires_at:
         challenge.is_used = True
         await db.commit()
-        return CaptchaSubmitResponse(
-            success=False,
-            earned=Decimal("0"),
-            remaining_today=0,
-            new_balance=Decimal("0"),
-        )
+        raise HTTPException(400, detail="Captcha expired")
 
     user_result = await db.execute(
         select(User).where(User.id == user_id).with_for_update()
@@ -176,7 +148,7 @@ async def submit_captcha(
                 Investment.user_id == user_id,
                 Investment.status == "active",
             )
-        ).order_by(Investment.id.desc()).with_for_update()
+        ).order_by(Investment.id.desc())
     )
     all_investments = inv_result.scalars().all()
     if not all_investments:
@@ -232,57 +204,6 @@ async def submit_captcha(
         remaining_today=remaining_today,
         new_balance=user.captcha_wallet,
     )
-
-
-@router.post("/expire")
-@limiter.limit("30/minute")
-async def expire_captcha(
-    request: Request,
-    user_id: int = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-):
-    await check_captcha_access(user_id, db)
-    inv_result = await db.execute(
-        select(Investment).where(
-            and_(
-                Investment.user_id == user_id,
-                Investment.status == "active",
-            )
-        ).order_by(Investment.id.desc())
-    )
-    all_investments = inv_result.scalars().all()
-    if not all_investments:
-        return {"success": False, "detail": "No active investment"}
-
-    investment = None
-    for inv in all_investments:
-        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
-        pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.captcha:
-            investment = inv
-            break
-    if not investment:
-        return {"success": False, "detail": "No captcha package"}
-
-    today = date.today()
-    _reset_daily_counter_if_needed(investment, today)
-
-    if investment.captchas_expired_today < (investment.daily_captcha_limit or 0):
-        investment.captchas_expired_today += 1
-
-    await db.commit()
-
-    daily_limit = investment.daily_captcha_limit or 0
-    typed_today = investment.captchas_typed_today or 0
-    expired_today = investment.captchas_expired_today or 0
-    remaining = max(0, daily_limit - typed_today - expired_today)
-
-    return {
-        "success": True,
-        "remaining_today": remaining,
-        "typed_today": typed_today,
-        "expired_today": expired_today,
-    }
 
 
 @router.get("/stats", response_model=CaptchaStatsResponse)
@@ -350,14 +271,12 @@ async def get_captcha_stats(
 
     daily_limit = investment.daily_captcha_limit or 0
     typed_today = investment.captchas_typed_today or 0
-    expired_today = investment.captchas_expired_today or 0
-    remaining = max(0, daily_limit - typed_today - expired_today)
+    remaining = max(0, daily_limit - typed_today)
 
     return CaptchaStatsResponse(
         earn_per_captcha=investment.earn_per_captcha or Decimal("0"),
         daily_limit=daily_limit,
         typed_today=typed_today,
-        expired_today=expired_today,
         remaining=remaining,
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,

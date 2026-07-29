@@ -112,7 +112,7 @@ export default function ProfileIdentityCard() {
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-2xl border border-purple-500/25 shadow-[0_0_30px_-5px_rgba(139,92,246,0.15)]"
       style={{
-        backgroundImage: `linear-gradient(rgba(10,14,34,0.88), rgba(10,14,34,0.88)), url(${profilePlaceholder})`,
+        backgroundImage: `linear-gradient(rgba(10,14,34,0.65), rgba(10,14,34,0.65)), url(${profilePlaceholder})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -145,9 +145,11 @@ export default function ProfileIdentityCard() {
             ) : null}
             <span className={`text-xl font-bold text-white ${showInitials ? "" : "hidden"}`}>{initials}</span>
           </div>
-          <div className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.6)]">
-            <Check className="w-3 h-3 text-white" strokeWidth={3} />
-          </div>
+          {kycRaw === "approved" && (
+            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.6)]">
+              <Check className="w-3 h-3 text-white" strokeWidth={3} />
+            </div>
+          )}
           <button
             type="button"
             onClick={() => { setShowPhotoInput(!showPhotoInput); setPhotoUrl(""); setPhotoMsg(""); setPhotoFile(null); setPhotoMode("url") }}

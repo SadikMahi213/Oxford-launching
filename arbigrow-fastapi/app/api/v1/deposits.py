@@ -16,7 +16,7 @@ from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.system_config import SystemConfig
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
-from app.utils.email import send_deposit_success_email
+from app.tasks.email_tasks import send_deposit_success_email_task
 from app.services.invoice_service import generate_deposit_invoice
 from app.utils.notifications import notify_admin
 
@@ -169,9 +169,8 @@ async def update_deposit_status(
     admin: User = Depends(get_current_admin_user)
 ):
 
-    # Lock the deposit row to prevent concurrent approvals
     result = await db.execute(
-        select(Deposit).where(Deposit.id == deposit_id).with_for_update()
+        select(Deposit).where(Deposit.id == deposit_id)
     )
 
     deposit = result.scalar_one_or_none()
@@ -179,19 +178,21 @@ async def update_deposit_status(
     if not deposit:
         raise HTTPException(status_code=404, detail="Deposit not found")
 
-    # Idempotency check — under row lock this is definitive
+    # Prevent double approval
     if deposit.status != "pending":
-        return {
-            "message": f"Deposit already {deposit.status}",
-            "data": {"deposit_id": deposit.id, "status": deposit.status}
-        }
+        raise HTTPException(
+            status_code=400,
+            detail="Deposit already processed"
+        )
 
+    # Update deposit status
     deposit.status = data.status
 
+    # If approved → credit wallets
     if data.status == "approved":
 
         user_result = await db.execute(
-            select(User).where(User.id == deposit.user_id).with_for_update()
+            select(User).where(User.id == deposit.user_id)
         )
 
         user = user_result.scalar_one()
@@ -202,6 +203,7 @@ async def update_deposit_status(
 
         user.deposit_wallet += amount
 
+        # Distribute direct referral and generation bonuses on deposit (flat rates)
         wprec = Decimal("0.00000000000001")
         parent_ids = [
             user.parent_lvl_1_id,
@@ -227,8 +229,10 @@ async def update_deposit_status(
                 continue
             if level_idx == 0:
                 parent.referral_wallet += bonus
-            else:
+            elif parent.admin_kyc_status == "approved":
                 parent.generation_wallet += bonus
+            else:
+                continue  # generation bonus requires ancestor KYC approval
             db.add(ReferralProfitHistory(
                 source_user_id=deposit.user_id,
                 receiver_user_id=pid,
@@ -239,36 +243,40 @@ async def update_deposit_status(
                 type="deposit_referral" if level_idx == 0 else "deposit_generation",
             ))
 
-        # Rank evaluation — two-phase: read all data first (no FOR UPDATE),
-        # then apply updates (FOR UPDATE held briefly).  Auto-flush makes the
-        # pending deposit visible to get_team_volume CTE queries.
-        from app.services.rank_service import get_rank_evaluation_data, apply_rank_updates
+        # Commit deposit + wallet + referral bonuses first so rank evaluation
+        # can read the committed deposit in get_team_volume().
+        await db.commit()
+        await db.refresh(deposit)
+        await db.refresh(user)
 
-        ancestor_ids = []
+        # Trigger rank evaluation for the deposit user
+        from app.services.rank_service import evaluate_and_process_rank
+        await evaluate_and_process_rank(
+            user_id=deposit.user_id,
+            db=db,
+            source_user_id=deposit.user_id,
+            reference_id=deposit.id,
+            reference_type="deposit",
+        )
+
+        # Also trigger rank evaluation for ALL ancestors up the parent_lvl_1_id chain
         next_id = user.parent_lvl_1_id
         while next_id:
-            ancestor_ids.append(next_id)
+            await evaluate_and_process_rank(
+                user_id=next_id,
+                db=db,
+                source_user_id=deposit.user_id,
+                reference_id=deposit.id,
+                reference_type="deposit",
+            )
+            # Walk up the chain
             par = await db.get(User, next_id)
             next_id = par.parent_lvl_1_id if par else None
 
-        rank_data_map = {}
-        for uid in [deposit.user_id, *ancestor_ids]:
-            data = await get_rank_evaluation_data(user_id=uid, db=db)
-            if data:
-                rank_data_map[uid] = data
+        await db.commit()
+        await db.refresh(user)
 
-        for uid in [deposit.user_id, *ancestor_ids]:
-            data = rank_data_map.get(uid)
-            if data:
-                await apply_rank_updates(
-                    user_id=uid,
-                    db=db,
-                    data=data,
-                    source_user_id=deposit.user_id,
-                    reference_id=deposit.id,
-                    reference_type="deposit",
-                )
-
+        # If user has a pending package, activate them
         if user.pending_package_id:
             pkg = await db.get(Package, user.pending_package_id)
             if pkg and user.deposit_wallet >= pkg.investment_amount:
@@ -292,10 +300,7 @@ async def update_deposit_status(
                 db.add(investment)
                 user.account_status = "active"
                 user.pending_package_id = None
-
-    # Single atomic commit — everything or nothing
-    await db.commit()
-    await db.refresh(deposit)
+                await db.commit()
 
     notif_type = "deposit_approved" if data.status == "approved" else "deposit_rejected"
     await notify_admin(
@@ -304,20 +309,22 @@ async def update_deposit_status(
         user_id=deposit.user_id, request=request,
     )
 
-    _deposit_id = deposit.id
-    _deposit_status = deposit.status
-
     if data.status == "approved":
         try:
-            await send_deposit_success_email(
+            send_deposit_success_email_task.delay(
                 userid=deposit.user_id,
                 amount=f"{Decimal(str(deposit.amount)):.2f}",
                 currency="USDT",
                 tx_hash=deposit.txid,
             )
         except Exception as mail_error:
-            print(f"[warn] Failed to send deposit approval email: {mail_error}")
+            print(f"[warn] Failed to enqueue deposit approval email: {mail_error}")
 
+        # Save values before invoice generation to avoid lazy-load after commit/rollback
+        _deposit_id = deposit.id
+        _deposit_status = deposit.status
+
+        # Auto-generate deposit invoice (in a savepoint so failure doesn't expire the session)
         try:
             await generate_deposit_invoice(
                 db=db,
@@ -337,6 +344,8 @@ async def update_deposit_status(
             await db.commit()
         except Exception as inv_error:
             print(f"[warn] Failed to generate deposit invoice: {inv_error}")
+            # No rollback here — the deposit approval is already committed above.
+            # Rolling back would expire ORM objects and cause MissingGreenlet on return.
 
     return {
         "message": f"Deposit {_deposit_status}",

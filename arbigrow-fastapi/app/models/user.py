@@ -206,8 +206,6 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    reset_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Pending package for registration (paid packages require payment before activation)

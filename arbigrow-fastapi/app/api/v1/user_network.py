@@ -23,37 +23,52 @@ async def get_network_analytics(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Count ALL descendants without generation limit (unlike team volume which
-    # uses 40 generations).
-    count_sql = sa_text("""
+    # Get all descendants via recursive CTE
+    team_stmt = sa_text("""
         WITH RECURSIVE team_tree AS (
-            SELECT id FROM users WHERE parent_lvl_1_id = :uid
+            SELECT id, 1 AS depth FROM users WHERE parent_lvl_1_id = :uid
             UNION ALL
-            SELECT u.id FROM users u
-            INNER JOIN team_tree ON u.parent_lvl_1_id = team_tree.id
+            SELECT u.id, tt.depth + 1 FROM users u
+            INNER JOIN team_tree tt ON u.parent_lvl_1_id = tt.id
+            WHERE tt.depth < :max_depth
         )
-        SELECT count(*) FROM team_tree
+        SELECT id FROM team_tree
     """)
-    total = (await db.execute(count_sql, {"uid": current_user.id})).scalar() or 0
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 40})
+    team_ids = [row[0] for row in team_rows.fetchall()]
 
-    # Active = KYC approved + email verified
-    active_sql = sa_text("""
-        WITH RECURSIVE team_tree AS (
-            SELECT id FROM users WHERE parent_lvl_1_id = :uid
-            UNION ALL
-            SELECT u.id FROM users u
-            INNER JOIN team_tree ON u.parent_lvl_1_id = team_tree.id
+    total_network_members = len(team_ids)
+
+    if not team_ids:
+        return {
+            "total_network_members": 0,
+            "active_members": 0,
+            "inactive_members": 0,
+        }
+
+    # Active = KYC status approved + email verified
+    kyc_result = await db.execute(
+        select(KYC.user_id).where(
+            KYC.user_id.in_(team_ids),
+            KYC.status == "approved",
         )
-        SELECT count(*) FROM team_tree tt
-        INNER JOIN kyc_verifications k ON k.user_id = tt.id AND k.status = 'approved'
-        INNER JOIN users u ON u.id = tt.id AND u.email_verified = true
-    """)
-    active = (await db.execute(active_sql, {"uid": current_user.id})).scalar() or 0
+    )
+    kyc_approved_ids = {row[0] for row in kyc_result.all()}
+
+    user_result = await db.execute(
+        select(User.id, User.email_verified).where(User.id.in_(team_ids))
+    )
+    active_ids = 0
+    for uid, email_verified in user_result.all():
+        if email_verified and uid in kyc_approved_ids:
+            active_ids += 1
+
+    inactive = total_network_members - active_ids
 
     return {
-        "total_network_members": total,
-        "active_members": active,
-        "inactive_members": total - active,
+        "total_network_members": total_network_members,
+        "active_members": active_ids,
+        "inactive_members": inactive,
     }
 
 

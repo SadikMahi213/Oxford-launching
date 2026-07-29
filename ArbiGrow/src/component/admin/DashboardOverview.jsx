@@ -17,13 +17,13 @@ const StatCard = ({ icon: Icon, label, value, delay = 0, iconColor = "text-cyan-
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
+    className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
   >
     <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
       <Icon className={`w-4 h-4 ${iconColor}`} />
-      <span className="truncate">{label}</span>
+      <span className="truncate text-[11px] xs:text-xs sm:text-sm">{label}</span>
     </div>
-    <div className="text-2xl font-bold text-white">{value}</div>
+    <div className="text-base xs:text-lg md:text-2xl font-bold text-white">{value}</div>
   </motion.div>
 );
 
@@ -69,7 +69,7 @@ export default function DashboardOverview() {
           </span>
         </h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {cards}
       </div>
     </div>
@@ -81,7 +81,7 @@ export default function DashboardOverview() {
       : "text-red-400";
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-4 md:p-6">
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold mb-2">
           Admin{" "}
@@ -158,18 +158,18 @@ export default function DashboardOverview() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 backdrop-blur-xl border border-amber-500/30 col-span-1 md:col-span-3"
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 backdrop-blur-xl border border-amber-500/30 col-span-1 xs:col-span-2 md:col-span-3"
               >
                 <div className="flex items-center gap-2 text-sm text-amber-300 mb-2">
                   <DollarSign className="w-5 h-5 text-amber-400" />
                   <span className="font-semibold text-base">Total Distribution (USD)</span>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold text-amber-300">
+                <div className="text-2xl xs:text-3xl md:text-4xl font-bold text-amber-300">
                   ${toAmount(realtime.total_distribution ?? 0).toLocaleString()}
                 </div>
                 <div className="text-xs text-amber-500/70 mt-1">
@@ -181,35 +181,17 @@ export default function DashboardOverview() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 backdrop-blur-xl border border-emerald-500/30 col-span-1 md:col-span-3"
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/10 backdrop-blur-xl border border-emerald-500/30 col-span-1 xs:col-span-2 md:col-span-3"
               >
                 <div className="flex items-center gap-2 text-sm text-emerald-300 mb-2">
                   <Gem className="w-5 h-5 text-emerald-400" />
-                  <span className="font-semibold text-base">Total OFA Coin Distributed</span>
+                  <span className="font-semibold text-base">Total Mining OFA Coin by Users</span>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold text-emerald-300">
+                <div className="text-2xl xs:text-3xl md:text-4xl font-bold text-emerald-300">
                   {toAmount(realtime.total_mining_ofa ?? 0).toLocaleString()} <span className="text-lg text-emerald-400/70">OFA</span>
                 </div>
                 <div className="text-xs text-emerald-500/70 mt-1">
-                  Total OFA coins mined, earned &amp; welcomed across all users
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 backdrop-blur-xl border border-purple-500/30 col-span-1 md:col-span-3"
-              >
-                <div className="flex items-center gap-2 text-sm text-purple-300 mb-2">
-                  <Gift className="w-5 h-5 text-purple-400" />
-                  <span className="font-semibold text-base">Total OFA Welcome Bonus</span>
-                </div>
-                <div className="text-3xl md:text-4xl font-bold text-purple-300">
-                  {toAmount(realtime.total_ofa_bonus_distributed ?? 0).toLocaleString()} <span className="text-lg text-purple-400/70">OFA</span>
-                </div>
-                <div className="text-xs text-purple-500/70 mt-1">
-                  {realtime.total_ofa_recipients ?? 0} recipients &middot; {realtime.total_ofa_bonus_transactions ?? 0} transactions
+                  Total OFA coins mined across all users
                 </div>
               </motion.div>
 
@@ -217,7 +199,7 @@ export default function DashboardOverview() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                   <Wifi className="w-4 h-4 text-cyan-400" />
@@ -230,7 +212,7 @@ export default function DashboardOverview() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                   <CircleDollarSign className="w-4 h-4 text-emerald-400" />
@@ -245,7 +227,7 @@ export default function DashboardOverview() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                   <TrendingUp className="w-4 h-4 text-emerald-400" />

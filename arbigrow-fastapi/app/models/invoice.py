@@ -1,37 +1,42 @@
-from sqlalchemy import String, Integer, DateTime, func, Numeric, ForeignKey, Text
-from datetime import datetime
-from decimal import Decimal
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Text
+from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
+
 from app.core.base import Base
 
 
 class Invoice(Base):
     __tablename__ = "invoices"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
-    invoice_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    invoice_type = Column(String(50), nullable=False)
+    # daily | weekly | monthly | deposit | withdrawal | statement
 
-    invoice_number: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    invoice_number = Column(String(64), unique=True, nullable=False, index=True)
 
-    amount: Mapped[Decimal | None] = mapped_column(Numeric(24, 14), nullable=True)
-    currency: Mapped[str] = mapped_column(String(10), default="USDT")
-    status: Mapped[str] = mapped_column(String(20), default="generated")
+    amount = Column(Numeric(24, 14), nullable=True)
+    currency = Column(String(10), default="USDT")
+    status = Column(String(20), default="generated")
 
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    pdf_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    pdf_url = Column(String(500), nullable=True)
+    pdf_storage_key = Column(String(255), nullable=True)
 
-    reference_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    reference_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # For linking to specific transactions
+    reference_id = Column(Integer, nullable=True)
+    reference_type = Column(String(50), nullable=True)
+    # deposit | withdrawal | investment
 
-    period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Period covered (for date-range invoices)
+    period_start = Column(DateTime(timezone=True), nullable=True)
+    period_end = Column(DateTime(timezone=True), nullable=True)
 
-    emailed: Mapped[str] = mapped_column(String(20), default="no")
+    emailed = Column(String(20), default="no")
+    # no | sent | failed
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    user = relationship("User", lazy="selectin")
+    user = relationship("User")

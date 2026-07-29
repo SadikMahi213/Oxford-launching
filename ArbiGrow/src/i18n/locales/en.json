@@ -634,7 +634,6 @@
     "processing": "Processing...",
     "purchaseSubmit": "Purchase & Submit ({{fee}} USDT)",
     "submitForVerification": "Submit for Verification",
-    "resubmit": "Resubmit KYC",
     "infoBox": "This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.",
     "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.",
     "errors": {
@@ -1075,8 +1074,8 @@
     "noPackageTitle": "No Active Package",
     "noPackageDesc": "Purchase a package to start earning by typing captchas.",
     "resetsIn": "Resets in {{time}}",
+    "timeRemaining": "Time Remaining",
     "today": "Today:",
-    "captchaId": "Captcha ID: #{{id}} · Expires in 2 min",
     "captchaPlaceholder": "Type the captcha text above...",
     "verifying": "Verifying...",
     "submitAnswer": "Submit Answer",
@@ -1315,8 +1314,8 @@
     "next": "Next",
     "locked": "Locked",
     "howItWorksTitle": "How Matching Bonus Works",
-    "howItWorksDesc1": "Matching Bonus is calculated based on your Post-KYC Team Volume and current rank. Team volume accumulated before KYC approval is captured as a Snapshot and used only for your initial rank — it never generates matching bonuses.",
-    "howItWorksDesc2": "After KYC approval, a new Post-KYC Team Volume counter starts from zero. All future rank promotions and matching bonuses are calculated exclusively from Post-KYC volume.",
+    "howItWorksDesc1": "Matching Bonus is calculated based on your total team volume and current rank. As your team volume increases, you become eligible for higher ranks and higher matching bonus percentages.",
+    "howItWorksDesc2": "All calculations follow the Progressive Matching Bonus System.",
     "howItWorksDesc3": "Only the additional volume between ranks is calculated at the higher percentage. The same volume is never rewarded twice.",
     "bonusVolumeTiers": "Bonus Volume Tiers",
     "rankHistory": "Rank Achievement History",
@@ -1332,13 +1331,7 @@
     "bonusAmount": "Bonus Amount",
     "date": "Date",
     "page": "Page {{page}} of {{totalPages}}",
-    "unknown": "Unknown",
-    "lifetimeVolume": "Lifetime Team Volume",
-    "lifetimeVolumeDesc": "Total team volume from all generations",
-    "snapshotVolume": "Snapshot Volume (Pre-KYC)",
-    "snapshotVolumeDesc": "Team volume captured at KYC approval",
-    "postKycVolume": "Post-KYC Team Volume",
-    "postKycVolumeDesc": "Team volume accumulated after KYC approval"
+    "unknown": "Unknown"
   },
   "invoice": {
     "title": "Invoices",
@@ -1732,9 +1725,7 @@
     "rejectionReason": "Reason for Rejection",
     "estimatedTime": "Estimated Processing Time",
     "timeValue": "2-3 Business Days",
-    "timeDesc": "We'll notify you via email once your verification is complete",
-    "resubmitButton": "Resubmit KYC",
-    "editButton": "Edit Submission"
+    "timeDesc": "We'll notify you via email once your verification is complete"
   },
   "emailVerification": {
     "title": "Email Verification",

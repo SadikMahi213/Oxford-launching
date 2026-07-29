@@ -1,0 +1,200 @@
+# ─────────────────────────────────────────────────────
+# Oxford Financial Ads — Docker Compose
+# ─────────────────────────────────────────────────────
+# Start all services:
+#   docker compose up -d
+#
+# Rebuild after code changes:
+#   docker compose up -d --build
+#
+# Stop everything:
+#   docker compose down
+# ─────────────────────────────────────────────────────
+
+name: arbigrow
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: arbigrow-postgres
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: arbigrow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend (FastAPI) ───────────────────────────────
+  backend:
+    build:
+      context: ./arbigrow-fastapi
+      target: prod
+    container_name: arbigrow-backend
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    mem_limit: 1g
+    env_file: /root/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/arbigrow
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "true"
+      AUTO_ROI_POLL_SECONDS: 21600
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./storage/invoices:/app/storage/invoices
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ── Database Migration + Seed ──────────────────────
+  migrate:
+    build:
+      context: ./arbigrow-fastapi
+      target: base
+    container_name: arbigrow-migrate
+    command: >
+      sh -c "
+        echo 'Running migrations...' &&
+        alembic upgrade heads &&
+        echo 'Seeding database...' &&
+        python seed.py &&
+        echo 'Done!'
+      "
+    env_file: /root/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/arbigrow
+      ALGORITHM: HS256
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Redis (Caching + Rate Limiting) ──────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: arbigrow-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # ── Frontend (React + Vite) ────────────────────────
+  frontend:
+    build:
+      context: ./ArbiGrow
+      target: ${FRONTEND_TARGET:-prod}
+      args:
+        VITE_BACKEND_URL: http://backend:8000
+    container_name: arbigrow-frontend
+    restart: unless-stopped
+    mem_limit: 512m
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      VITE_BACKEND_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ── Celery Worker (Background Tasks) ─────────────────
+  celery-worker:
+    build:
+      context: ./arbigrow-fastapi
+      target: celery
+    container_name: arbigrow-celery-worker
+    restart: unless-stopped
+    mem_limit: 512m
+    env_file: /root/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/arbigrow
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "true"
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./storage/invoices:/app/storage/invoices
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Celery Beat (Periodic Tasks) ──────────────────
+  celery-beat:
+    build:
+      context: ./arbigrow-fastapi
+      target: celery
+    container_name: arbigrow-celery-beat
+    restart: unless-stopped
+    mem_limit: 256m
+    env_file: /root/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/arbigrow
+      ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com"]'
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      FRONTEND_DOMAIN: https://oxfordfinancialads.com
+      DB_SSL_REQUIRED: "false"
+      AUTO_ROI_ENABLED: "true"
+      REDIS_URL: redis://redis:6379/0
+    command: celery -A app.core.celery_app beat -l info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Monitoring (Uptime Kuma) ─────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.17
+    container_name: arbigrow-uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+
+volumes:
+  postgres_data:
+  uptime_kuma_data:
