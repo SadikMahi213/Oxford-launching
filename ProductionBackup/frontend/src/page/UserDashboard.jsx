@@ -494,7 +494,7 @@ export function UserDashboard() {
     invoices.forEach((inv) =>
       rows.push({
         id: `inv_${inv.id}`,
-        transactionId: _genTransactionId("INV", inv.id, inv.created_at, inv.invoice_number),
+        transactionId: inv.transaction_id || _genTransactionId("INV", inv.id, inv.created_at, inv.invoice_number),
         date: _fmtDate(inv.created_at),
         type: `Invoice (${inv.invoice_type})`,
         typeLabel: t("dashboard.type_invoice"),

@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Text
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.base import Base
 
@@ -15,6 +15,8 @@ class Invoice(Base):
     # daily | weekly | monthly | deposit | withdrawal | statement
 
     invoice_number = Column(String(64), unique=True, nullable=False, index=True)
+
+    transaction_id = Column(String(16), unique=True, nullable=False, index=True)
 
     amount = Column(Numeric(24, 14), nullable=True)
     currency = Column(String(10), default="USDT")

@@ -15,6 +15,7 @@ from app.models.user import User
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
 from app.models.invoice import Invoice
+from app.utils.transaction_id import generate_unique_transaction_id
 
 logger = logging.getLogger(__name__)
 
@@ -513,10 +514,24 @@ async def generate_transaction_invoice(
     if not success:
         logger.warning(f"PDF generation failed for invoice {inv_number}")
 
+    # Resolve or generate transaction_id
+    raw_txid = (tx_data or {}).get("transaction_id", "") or ""
+    if raw_txid:
+        transaction_id = raw_txid
+    else:
+        transaction_id = await generate_unique_transaction_id(db, Invoice)
+
+    # Ensure tx_data has the transaction_id for the HTML template
+    if tx_data is not None:
+        tx_data["transaction_id"] = transaction_id
+    else:
+        tx_data = {"transaction_id": transaction_id}
+
     invoice = Invoice(
         user_id=user.id,
         invoice_type=invoice_type,
         invoice_number=inv_number,
+        transaction_id=transaction_id,
         amount=amount,
         currency=currency,
         status=status if success else "failed",
@@ -596,6 +611,7 @@ def serialize_invoice(invoice: Invoice) -> dict:
     return {
         "id": invoice.id,
         "invoice_number": invoice.invoice_number,
+        "transaction_id": invoice.transaction_id,
         "invoice_type": invoice.invoice_type,
         "amount": float(invoice.amount) if invoice.amount else None,
         "currency": invoice.currency,

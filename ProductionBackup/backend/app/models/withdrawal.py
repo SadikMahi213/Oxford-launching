@@ -1,14 +1,14 @@
 from sqlalchemy import (
     Column,
-    Integer,
-    String,
     DateTime,
     ForeignKey,
+    Integer,
     Numeric,
+    String,
     Text,
 )
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.core.base import Base
 
@@ -19,6 +19,8 @@ class Withdrawal(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    transaction_id = Column(String(16), unique=True, nullable=True, index=True)
 
     source_wallet = Column(String(50), nullable=False)
     withdrawal_method_id = Column(Integer, ForeignKey("withdrawal_methods.id"), nullable=True)

@@ -363,7 +363,6 @@ async def update_withdrawal_status(
                 tx_data={
                     "network": withdrawal.network_name,
                     "destination": withdrawal.destination_address,
-                    "transaction_id": str(withdrawal.id),
                     "previous_balance": max(0, float(user.withdraw_wallet) - float(withdrawal.amount)),
                     "current_balance": float(user.withdraw_wallet),
                     "main_wallet_balance": float(user.main_wallet or 0),
