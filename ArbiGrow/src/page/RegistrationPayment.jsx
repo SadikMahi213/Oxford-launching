@@ -56,7 +56,7 @@ export default function RegistrationPayment() {
         setPkg(found || null);
         setNetworks(netRes.data?.data || []);
       } catch {
-        setError("Failed to load package details");
+        setError(t("registrationPayment.err_loadPkg"));
       } finally {
         setLoadingPkg(false);
       }
@@ -80,7 +80,7 @@ export default function RegistrationPayment() {
     e.preventDefault();
     setError("");
     if (!network || !amount.trim() || !txid.trim()) {
-      setError("Please fill all fields");
+      setError(t("registrationPayment.err_fillFields"));
       return;
     }
     try {
@@ -92,7 +92,7 @@ export default function RegistrationPayment() {
       });
       setSubmitted(true);
     } catch (err) {
-      setError(getErrorMessage(err) || "Submission failed");
+      setError(getErrorMessage(err) || t("registrationPayment.err_submission"));
     } finally {
       setSubmitting(false);
     }
@@ -112,11 +112,10 @@ export default function RegistrationPayment() {
               <div className="text-center py-8">
                 <Check className="mx-auto h-16 w-16 text-green-400 mb-4" />
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Deposit Submitted
+                  {t("registrationPayment.depositSubmitted")}
                 </h2>
                 <p className="text-gray-400">
-                  Your deposit is pending admin approval. Once approved, your
-                  account will be activated and you can access the dashboard.
+                  {t("registrationPayment.pendingApproval")}
                 </p>
               </div>
             ) : (
@@ -125,10 +124,10 @@ export default function RegistrationPayment() {
                   <Clock className="h-8 w-8 text-yellow-400" />
                   <div>
                     <h1 className="text-2xl font-bold text-white">
-                      Complete Your Payment
+                      {t("registrationPayment.completePayment")}
                     </h1>
                     <p className="text-sm text-gray-400">
-                      Your account is pending payment activation
+                      {t("registrationPayment.pendingActivation")}
                     </p>
                   </div>
                 </div>
@@ -139,33 +138,33 @@ export default function RegistrationPayment() {
                   </div>
                 ) : pkg ? (
                   <div className="mb-6 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
-                    <p className="text-sm text-gray-400">Selected Package</p>
+                    <p className="text-sm text-gray-400">{t("registrationPayment.selectedPackage")}</p>
                     <p className="text-lg font-bold text-white">{pkg.name}</p>
                     <p className="mt-1 text-sm text-gray-400">
-                      Investment Amount:{" "}
+                      {t("registrationPayment.investmentAmount")}{" "}
                       <span className="font-semibold text-cyan-300">
                         ${Number(pkg.investment_amount).toLocaleString()}
                       </span>
                     </p>
                     <p className="text-sm text-gray-400">
-                      Daily:{" "}
+                      {t("registrationPayment.daily")}{" "}
                       <span className="font-semibold text-green-300">
                         ${Number(pkg.daily_payment).toFixed(2)}
                       </span>
-                      {" | "}Duration:{" "}
-                      <span className="font-semibold">{pkg.duration_days} days</span>
+                      {" | "}{t("registrationPayment.duration")}{" "}
+                      <span className="font-semibold">{pkg.duration_days} {t("registrationPayment.days")}</span>
                     </p>
                   </div>
                 ) : (
                   <div className="mb-6 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-200">
-                    Package details not found. Please contact support.
+                    {t("registrationPayment.pkgNotFound")}
                   </div>
                 )}
 
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-400">
-                      Select Network
+                      {t("registrationPayment.selectNetwork")}
                     </label>
                     <div className="relative mt-1">
                       <select
@@ -174,7 +173,7 @@ export default function RegistrationPayment() {
                         className="w-full appearance-none rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                       >
                         <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
-                          Select a network
+                          {t("registrationPayment.selectNetwork_plh")}
                         </option>
                         {networks.map((n) => (
                           <option
@@ -193,7 +192,7 @@ export default function RegistrationPayment() {
                   {network && (
                     <div>
                       <label className="text-sm text-gray-400">
-                        Deposit Address
+                        {t("registrationPayment.depositAddress")}
                       </label>
                       <div className="mt-1 flex gap-2">
                         <div className="flex-1 break-all rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm">
@@ -209,12 +208,7 @@ export default function RegistrationPayment() {
                       </div>
                       <div className="mt-2 flex gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3">
                         <AlertTriangle className="h-5 w-5 shrink-0 text-yellow-400" />
-                        <p className="text-sm text-yellow-200">
-                          Send exactly{" "}
-                          <strong>${Number(pkg?.investment_amount || 0).toLocaleString()} USDT</strong>{" "}
-                          to the address above. Only send USDT on the{" "}
-                          {network.display_name} network.
-                        </p>
+                        <p className="text-sm text-yellow-200" dangerouslySetInnerHTML={{ __html: t("registrationPayment.sendExact", { amount: `$${Number(pkg?.investment_amount || 0).toLocaleString()}`, network: network.display_name }) }} />
                       </div>
                     </div>
                   )}
@@ -226,13 +220,13 @@ export default function RegistrationPayment() {
                       min="0"
                       value={amount}
                       onChange={(e) => { setAmount(e.target.value); setError(""); }}
-                      placeholder="Amount (USDT)"
+                      placeholder={t("registrationPayment.amount_plh")}
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"
                     />
                     <input
                       value={txid}
                       onChange={(e) => { setTxid(e.target.value); setError(""); }}
-                      placeholder="Transaction ID (TXID)"
+                      placeholder={t("registrationPayment.txid_plh")}
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"
                     />
 
@@ -246,7 +240,7 @@ export default function RegistrationPayment() {
                       variant="gradient"
                       fullWidth
                     >
-                      {submitting ? "Submitting..." : "Submit Payment"}
+                      {submitting ? t("registrationPayment.submitting") : t("registrationPayment.submitPayment")}
                     </Button>
                   </form>
                 </div>

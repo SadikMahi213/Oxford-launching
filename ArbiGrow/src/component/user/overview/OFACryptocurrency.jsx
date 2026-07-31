@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 const SPIN_KEYFRAMES = `
 @keyframes ofa-float {
@@ -16,6 +17,7 @@ const SPIN_KEYFRAMES = `
 `
 
 const OFACryptocurrency = () => {
+  const { t } = useTranslation()
   const cardRef = useRef(null)
   const coinRef = useRef(null)
   const [mounted, setMounted] = useState(false)
@@ -65,9 +67,9 @@ const OFACryptocurrency = () => {
         {/* Title */}
         <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-          OFA Cryptocurrency
+          {t("overview.ofaCoin.title")}
         </h3>
-        <p className="text-[11px] text-blue-300/70 mb-3 tracking-wide">The Native Digital Asset Powering Our Ecosystem</p>
+        <p className="text-[11px] text-blue-300/70 mb-3 tracking-wide">{t("overview.ofaCoin.subtitle")}</p>
 
         {/* 3D Coin Container */}
         <div className="relative flex items-center justify-center py-4">
@@ -91,7 +93,7 @@ const OFACryptocurrency = () => {
                 <div className="text-xl font-black bg-gradient-to-br from-blue-300 via-cyan-300 to-blue-400 bg-clip-text text-transparent" style={{ filter: "drop-shadow(0 0 12px rgba(59,130,246,0.5))" }}>
                   OFA
                 </div>
-                <div className="text-[8px] text-yellow-400/80 mt-0.5 font-mono tracking-widest">TOKEN</div>
+                <div className="text-[8px] text-yellow-400/80 mt-0.5 font-mono tracking-widest">{t("overview.ofaCoin.token")}</div>
               </div>
 
               {/* Decorative rings */}
@@ -110,15 +112,15 @@ const OFACryptocurrency = () => {
 
         {/* Description */}
         <p className="text-[11px] text-gray-400 leading-relaxed text-center mt-1">
-          Experience a next-generation blockchain-powered digital asset designed for secure transactions, rewards, and long-term ecosystem growth.
+          {t("overview.ofaCoin.description")}
         </p>
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mt-4">
           {[
-            { label: "Symbol", value: "OFA" },
-            { label: "Network", value: "BSC" },
-            { label: "Supply", value: "10M" },
+            { label: t("overview.ofaCoin.symbol"), value: "OFA" },
+            { label: t("overview.ofaCoin.network"), value: "BSC" },
+            { label: t("overview.ofaCoin.supply"), value: "10M" },
           ].map((s) => (
             <div key={s.label} className="text-center p-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">
               <div className="text-[9px] text-gray-500 uppercase tracking-wider">{s.label}</div>

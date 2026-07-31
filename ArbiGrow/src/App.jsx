@@ -25,14 +25,14 @@ import ProtectedRoute from "./component/ProtectedRoute";
 const RTL_LANGS = ["ur"];
 
 const App = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dir = RTL_LANGS.includes(i18n.language) ? "rtl" : "ltr";
 
   return (
     <div dir={dir}>
       <BrowserRouter>
         <ScrollToTop />
-        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0a0e27] text-white">Loading...</div>}>
+        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0a0e27] text-white">{t("common.loading")}</div>}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginForm />} />

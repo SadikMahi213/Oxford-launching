@@ -65,7 +65,7 @@ export const Hero = () => {
                   if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                {t("learnMore")}
+                {t("common.learnMore")}
               </Button>
             </div>
           )}

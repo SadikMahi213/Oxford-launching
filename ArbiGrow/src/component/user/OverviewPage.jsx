@@ -306,7 +306,7 @@ const OverviewPage = ({ setActivePage }) => {
     <div className="min-h-screen bg-[#0a0b1e] px-4 pb-28 space-y-4">
       {String(user?.account_status || "").toLowerCase() === "pending_payment" && (
         <div className="mx-4 rounded-xl border border-red-500/40 bg-red-500/10 px-5 py-4 text-sm text-red-200">
-          Your package payment has not been completed yet. Please complete your payment. Once your payment has been approved by the administrator, all earning features will be activated automatically.
+          {t("overview.pendingPayment")}
         </div>
       )}
       <ProfileIdentityCard />
@@ -317,7 +317,7 @@ const OverviewPage = ({ setActivePage }) => {
       <div className="grid grid-cols-2 gap-3">
         {[
           { label: t("overview.wallets.main"), balance: Number(user?.main_wallet ?? 0), icon: Wallet, currency: "USDT", gradient: "from-blue-600/50 via-blue-600/15 to-transparent", border: "border-blue-500/30", iconBg: "from-blue-500 to-cyan-300", iconBorder: "border-blue-400/40", shadowColor: "shadow-blue-600/25", accentColor: "text-blue-400", footerColor: "text-blue-400" },
-          { label: t("overview.wallets.ofa"), balance: Number(user?.arbx_wallet ?? 0), icon: Coins, currency: "OFA token", gradient: "from-amber-600/50 via-amber-600/15 to-transparent", border: "border-amber-500/30", iconBg: "from-amber-500 to-yellow-300", iconBorder: "border-amber-400/40", shadowColor: "shadow-amber-600/25", accentColor: "text-amber-400", footerColor: "text-amber-400" },
+          { label: t("overview.wallets.ofa"), balance: Number(user?.arbx_wallet ?? 0), icon: Coins, currency: t("overview.wallets.ofaToken"), gradient: "from-amber-600/50 via-amber-600/15 to-transparent", border: "border-amber-500/30", iconBg: "from-amber-500 to-yellow-300", iconBorder: "border-amber-400/40", shadowColor: "shadow-amber-600/25", accentColor: "text-amber-400", footerColor: "text-amber-400" },
           { label: t("overview.wallets.deposit"), balance: Number(user?.deposit_wallet ?? 0), icon: Download, currency: "USDT", gradient: "from-emerald-600/50 via-emerald-600/15 to-transparent", border: "border-emerald-500/30", iconBg: "from-emerald-500 to-teal-300", iconBorder: "border-emerald-400/40", shadowColor: "shadow-emerald-600/25", accentColor: "text-emerald-400", footerColor: "text-emerald-400", historyType: "deposit" },
           { label: t("overview.wallets.withdraw"), balance: Number(user?.withdraw_wallet ?? 0), icon: Upload, currency: "USDT", gradient: "from-purple-600/50 via-purple-600/15 to-transparent", border: "border-purple-500/30", iconBg: "from-purple-500 to-pink-300", iconBorder: "border-purple-400/40", shadowColor: "shadow-purple-600/25", accentColor: "text-purple-400", footerColor: "text-purple-400", historyType: "withdrawal" },
           { label: t("overview.wallets.referral"), balance: Number(user?.referral_wallet ?? 0), icon: Users, currency: "USDT", gradient: "from-cyan-600/50 via-cyan-600/15 to-transparent", border: "border-cyan-500/30", iconBg: "from-cyan-500 to-blue-300", iconBorder: "border-cyan-400/40", shadowColor: "shadow-cyan-600/25", accentColor: "text-cyan-400", footerColor: "text-cyan-400", historyType: "referral" },
@@ -342,7 +342,7 @@ const OverviewPage = ({ setActivePage }) => {
               <div className="text-xl font-bold text-white mb-1">
                 {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)}</> : <>{wallet.balance.toFixed(7)}</>}
               </div>
-              <div className="text-[11px] text-gray-500 mb-3">Usable Balance</div>
+              <div className="text-[11px] text-gray-500 mb-3">{t("overview.wallets.usable")}</div>
               <div className="mt-auto">
                 <span className={`text-[10px] ${wallet.footerColor} font-semibold`}>{t("overview.wallets.clickHistory")}</span>
               </div>
@@ -499,7 +499,7 @@ const OverviewPage = ({ setActivePage }) => {
             <Users className="w-5 h-5 text-cyan-400" />
             <h2 className="text-sm md:text-base font-bold text-white">{t("overview.networkAnalytics.title")}</h2>
           </div>
-          <button className="text-xs text-gray-400 hover:text-white transition-colors font-medium">View All &gt;</button>
+          <button className="text-xs text-gray-400 hover:text-white transition-colors font-medium">{t("overview.viewAll")} &gt;</button>
         </div>
         {networkAnalyticsLoading ? (
           <div className="p-4 text-gray-400 text-sm">{t("overview.networkAnalytics.loading")}</div>
@@ -534,7 +534,7 @@ const OverviewPage = ({ setActivePage }) => {
             <h2 className="text-sm md:text-base font-bold text-white">{t("overview.teamPerformance.title")}</h2>
           </div>
           <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors font-medium">
-            All Levels <ChevronDown className="w-3.5 h-3.5" />
+            {t("overview.allLevels")} <ChevronDown className="w-3.5 h-3.5" />
           </button>
         </div>
         <div className="p-4 md:p-6 space-y-4">
@@ -545,7 +545,7 @@ const OverviewPage = ({ setActivePage }) => {
                 <div className="text-xl md:text-2xl font-bold text-white">${referralLevels.reduce((sum, lvl) => sum + (lvl.totalEarnings || 0), 0).toFixed(2)}</div>
                 <div className="flex items-center gap-1 mt-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-green-400" />
-                  <span className="text-xs text-green-400">15.7% vs last 30 days</span>
+                  <span className="text-xs text-green-400">{t("overview.teamPerformance.growth")}</span>
                 </div>
               </div>
               <div className="flex items-end gap-[3px] h-16">
@@ -628,14 +628,14 @@ const OverviewPage = ({ setActivePage }) => {
 
             {/* Title & Balance */}
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-white">OFA Token Mining Wallet</h3>
-              <div className="text-[11px] text-gray-500 tracking-widest uppercase mt-0.5">TOTAL BALANCE</div>
+              <h3 className="text-lg font-bold text-white">{t("overview.mining.title")}</h3>
+              <div className="text-[11px] text-gray-500 tracking-widest uppercase mt-0.5">{t("overview.mining.totalBalance")}</div>
               <div className="text-2xl font-bold text-yellow-400 font-mono tracking-wider mt-1.5">
                 {isMiningActive && simulatedMiningBalance !== null
                   ? (() => { const s = simulatedMiningBalance.toFixed(8); return <>{s.slice(0, -3)}<span className="text-yellow-300/70 animate-pulse">{s.slice(-3)}</span></>; })()
-                  : Number(user.arbx_mining_wallet || 0).toFixed(8)} <span className="text-xs font-sans text-yellow-400/80">OFA token</span>
+                  : Number(user.arbx_mining_wallet || 0).toFixed(8)} <span className="text-xs font-sans text-yellow-400/80">{t("overview.wallets.ofaToken")}</span>
               </div>
-              <div className="text-xs text-gray-400 mt-1">Mined continuously over a 24-hour cycle</div>
+              <div className="text-xs text-gray-400 mt-1">{t("overview.mining.continuous")}</div>
 
               {/* Buttons Row */}
               <div className="flex items-center gap-2.5 mt-4">
@@ -649,9 +649,9 @@ const OverviewPage = ({ setActivePage }) => {
                   }`}
                 >
                   <Pickaxe className="w-4 h-4" />
-                  {!isMiningActive && (isMiningActionLoading ? "Starting..." : "Start Mining")}
+                  {!isMiningActive && (isMiningActionLoading ? t("overview.mining.starting") : t("overview.mining.start"))}
                   {isTimerRunning && formatTime(remainingTime)}
-                  {canClaim && (isMiningActionLoading ? "Claiming..." : "Claim Reward")}
+                  {canClaim && (isMiningActionLoading ? t("overview.mining.claiming") : t("overview.mining.claim"))}
                 </button>
                 <div className="w-9 h-9 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center">
                   <Activity className="w-4 h-4 text-white/60" />
@@ -672,11 +672,11 @@ const OverviewPage = ({ setActivePage }) => {
                 <Clock className="w-4 h-4 text-purple-400" />
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 tracking-widest">CURRENT CYCLE</div>
+                <div className="text-[10px] text-gray-500 tracking-widest">{t("overview.mining.currentCycle")}</div>
                 <div className="text-sm font-bold text-white font-mono">
                   {isTimerRunning && remainingTime !== null ? formatTime(remainingTime) : "24:00:00"}
                 </div>
-                <div className="text-[10px] text-purple-300">Remaining</div>
+                <div className="text-[10px] text-purple-300">{t("overview.mining.remainingLabel")}</div>
               </div>
             </div>
             {/* Mined Today */}
@@ -685,7 +685,7 @@ const OverviewPage = ({ setActivePage }) => {
                 <PieChart className="w-4 h-4 text-blue-400" />
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 tracking-widest">MINED (TODAY)</div>
+                <div className="text-[10px] text-gray-500 tracking-widest">{t("overview.mining.minedToday")}</div>
                 <div className="text-sm font-bold text-white font-mono">
                   {isMiningActive && simulatedMiningBalance !== null ? simulatedMiningBalance.toFixed(8) : "0.00000000"}
                 </div>
@@ -698,7 +698,7 @@ const OverviewPage = ({ setActivePage }) => {
                 <TrendingUp className="w-4 h-4 text-green-400" />
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 tracking-widest">DAILY CAP</div>
+                <div className="text-[10px] text-gray-500 tracking-widest">{t("overview.mining.dailyCap")}</div>
                 <div className="text-sm font-bold text-white font-mono">100.00000000</div>
                 <div className="text-[10px] text-green-300">OFA</div>
               </div>
@@ -709,9 +709,9 @@ const OverviewPage = ({ setActivePage }) => {
                 <CalendarDays className="w-4 h-4 text-orange-400" />
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 tracking-widest">LAST CLAIM</div>
+                <div className="text-[10px] text-gray-500 tracking-widest">{t("overview.mining.lastClaim")}</div>
                 <div className="text-sm font-bold text-white font-mono">--:--:--</div>
-                <div className="text-[10px] text-orange-300">Not claimed yet</div>
+                <div className="text-[10px] text-orange-300">{t("overview.mining.notClaimed")}</div>
               </div>
             </div>
           </div>
@@ -722,14 +722,14 @@ const OverviewPage = ({ setActivePage }) => {
           <div className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.08)] lg:w-[62%]">
             <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
               <Pickaxe className="w-4 h-4 text-yellow-400" />
-              How Mining Works
+              {t("overview.mining.howTitle")}
             </h3>
             <div className="space-y-3">
               {[
-                { num: "01", text: "Start mining session — OFA tokens begin accumulating every second over a 24-hour cycle.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
-                { num: "02", text: "Mining rate is calculated based on your current network volume and staking tier.", icon: <PieChart className="w-4 h-4 text-yellow-400" /> },
-                { num: "03", text: "Accumulated tokens are deposited directly into your Mining Wallet in real-time.", icon: <Wallet className="w-4 h-4 text-yellow-400" /> },
-                { num: "04", text: "Cycle auto-resets after 24 hours — claim or let it restart for continuous mining.", icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
+                { num: "01", text: t("overview.mining.step1"), icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
+                { num: "02", text: t("overview.mining.step2"), icon: <PieChart className="w-4 h-4 text-yellow-400" /> },
+                { num: "03", text: t("overview.mining.step3"), icon: <Wallet className="w-4 h-4 text-yellow-400" /> },
+                { num: "04", text: t("overview.mining.step4"), icon: <RefreshCw className="w-4 h-4 text-yellow-400" /> },
               ].map((step) => (
                 <div key={step.num} className="flex items-start gap-3">
                   <span className="text-[11px] font-bold text-yellow-500 w-5 flex-shrink-0 mt-0.5">{step.num}</span>

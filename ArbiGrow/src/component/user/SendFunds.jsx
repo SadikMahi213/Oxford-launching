@@ -49,7 +49,7 @@ export default function SendFunds({ setActivePage }) {
     if (!searchedUser) return;
     const kycStatus = user?.kyc_status;
     if (!kycStatus || kycStatus !== "approved") {
-      setMsg("KYC verification required. Please complete KYC verification before sending funds.");
+      setMsg(t('sendFunds.err_kyc'));
       return;
     }
     setLoading(true);

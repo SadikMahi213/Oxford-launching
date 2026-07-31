@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { getLiveStats } from "../../../api/user.api.js";
 import { Users, CheckCircle2, DollarSign } from "lucide-react";
 
@@ -64,7 +65,7 @@ const POLL_INTERVAL_MAX = 10000;
 const cards = [
   {
     key: "live_online",
-    label: "Live Online",
+    labelKey: "liveStats.liveOnline",
     icon: Users,
     color: "emerald",
     format: fmtLiveOnline,
@@ -72,7 +73,7 @@ const cards = [
   },
   {
     key: "tasks_completed_today",
-    label: "Tasks Completed Today",
+    labelKey: "liveStats.tasksCompletedToday",
     icon: CheckCircle2,
     color: "blue",
     format: fmtTasks,
@@ -80,7 +81,7 @@ const cards = [
   },
   {
     key: "earnings_paid_today",
-    label: "Today's Earnings Paid",
+    labelKey: "liveStats.earningsPaidToday",
     icon: DollarSign,
     color: "amber",
     format: fmtEarnings,
@@ -106,17 +107,19 @@ function LoadingSkeleton() {
 }
 
 function ErrorFallback({ onRetry }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-2xl bg-red-500/5 backdrop-blur-xl border border-red-500/20 p-5 text-center">
-      <p className="text-red-300 text-sm mb-2">Unable to load live statistics</p>
+      <p className="text-red-300 text-sm mb-2">{t("liveStats.error")}</p>
       <button onClick={onRetry} className="text-xs text-red-400 hover:text-red-300 underline transition-colors">
-        Tap to retry
+        {t("liveStats.retry")}
       </button>
     </div>
   );
 }
 
 export function LiveStats() {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -166,7 +169,7 @@ export function LiveStats() {
   if (!data) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="region" aria-label="Live platform statistics">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="region" aria-label={t("liveStats.ariaLabel")}>
       {cards.map((card, idx) => {
         const value = data[card.key];
         const Icon = card.icon;
@@ -188,7 +191,7 @@ export function LiveStats() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: card.color === "emerald" ? "#34d399" : card.color === "blue" ? "#60a5fa" : "#fbbf24" }} />
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: card.color === "emerald" ? "#34d399" : card.color === "blue" ? "#60a5fa" : "#fbbf24" }} />
                 </span>
-                <span className="text-[11px] font-medium text-gray-400 tracking-wide">{card.label}</span>
+                <span className="text-[11px] font-medium text-gray-400 tracking-wide">{t(card.labelKey)}</span>
               </div>
               <div className="text-2xl sm:text-3xl font-bold text-white mb-1 tracking-tight tabular-nums">
                 <AnimatedNumber value={value} format={card.format} />
@@ -198,9 +201,9 @@ export function LiveStats() {
                   <Icon className={`w-3.5 h-3.5 ${card.color === "emerald" ? "text-emerald-400" : card.color === "blue" ? "text-blue-400" : "text-amber-400"}`} />
                 </div>
                 <span className="text-[10px] text-gray-500">
-                  {card.key === "live_online" && "users online now"}
-                  {card.key === "tasks_completed_today" && "completed today"}
-                  {card.key === "earnings_paid_today" && "paid to users today"}
+                  {card.key === "live_online" && t("liveStats.usersOnlineNow")}
+                  {card.key === "tasks_completed_today" && t("liveStats.completedToday")}
+                  {card.key === "earnings_paid_today" && t("liveStats.paidToday")}
                 </span>
               </div>
             </div>

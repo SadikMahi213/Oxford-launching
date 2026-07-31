@@ -138,7 +138,7 @@ const [vendorDash, setVendorDash] = useState(null);
       }
       setMsg(t('seller.storeDeleted'));
     } catch (err) {
-      setMsg(err?.response?.data?.detail || 'Failed to delete store');
+      setMsg(err?.response?.data?.detail || t('seller.deleteStoreFailed'));
     }
   };
 
@@ -164,7 +164,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setRegisterDesc("");
       loadData();
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -175,7 +175,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.profileSaved', { percent: res.data.profile_completion }));
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -185,7 +185,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.submittedForReview'));
       setSeller(prev => ({ ...prev, status: "pending_review" }));
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -207,7 +207,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.productAdded'));
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -240,7 +240,7 @@ const [vendorDash, setVendorDash] = useState(null);
       const url = res.data?.image_url || res.data?.data?.image_url || res.data?.data?.url;
       if (url) updateProfileField(field, url);
     } catch (err) {
-      setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.uploadError') + (err.response?.data?.detail || err.message));
     } finally {
       setUploadingField(null);
     }
@@ -255,7 +255,7 @@ const [vendorDash, setVendorDash] = useState(null);
       const url = res.data?.url || res.data?.image_url || res.data?.data?.url;
       if (url) setNewProduct({ ...newProduct, image_urls: [...newProduct.image_urls, url] });
     } catch (err) {
-      setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.uploadError') + (err.response?.data?.detail || err.message));
     } finally {
       setProductUploading(false);
     }
@@ -269,17 +269,17 @@ const [vendorDash, setVendorDash] = useState(null);
       setTransferAmount("");
       setMsg(t('seller.transferred', { amount: transferAmount }));
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
   const handleVendorWithdraw = async () => {
     try {
       await requestVendorWithdraw(parseFloat(vendorDash.pending_payout || 0));
-      setMsg("Withdraw requested successfully");
+      setMsg(t('seller.withdrawRequested'));
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -288,7 +288,7 @@ const [vendorDash, setVendorDash] = useState(null);
       await updateProduct(p.id, { is_active: !p.is_active, seller_id: activeStoreId });
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -298,7 +298,7 @@ const [vendorDash, setVendorDash] = useState(null);
       await deleteProduct(p.id, activeStoreId);
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -340,7 +340,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.productUpdated'));
       loadData(activeStoreId);
     } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
+      setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
 
@@ -791,12 +791,12 @@ const [vendorDash, setVendorDash] = useState(null);
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <TrendingUp className="w-5 h-5 text-emerald-400 mb-2" />
-            <p className="text-sm text-gray-400">Revenue</p>
+            <p className="text-sm text-gray-400">{t('seller.revenue')}</p>
             <p className="text-2xl font-bold text-white">${vendorDash?.revenue ? Number(vendorDash.revenue).toFixed(2) : "0.00"}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
             <Clock className="w-5 h-5 text-amber-400 mb-2" />
-            <p className="text-sm text-gray-400">Pending Orders</p>
+            <p className="text-sm text-gray-400">{t('seller.pendingOrders')}</p>
             <p className="text-2xl font-bold text-white">{vendorDash ? vendorDash.pending_orders : 0}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
@@ -825,13 +825,13 @@ const [vendorDash, setVendorDash] = useState(null);
               <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder={t('seller.productName')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder={t('seller.price')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder={t('seller.category')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.sku} onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })} placeholder="SKU" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.stock_quantity} onChange={(e) => setNewProduct({ ...newProduct, stock_quantity: e.target.value })} placeholder="Stock Quantity" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-              <input value={newProduct.discount_price} onChange={(e) => setNewProduct({ ...newProduct, discount_price: e.target.value })} placeholder="Discount Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.sku} onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })} placeholder={t('seller.sku')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.stock_quantity} onChange={(e) => setNewProduct({ ...newProduct, stock_quantity: e.target.value })} placeholder={t('seller.stockQuantity')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+              <input value={newProduct.discount_price} onChange={(e) => setNewProduct({ ...newProduct, discount_price: e.target.value })} placeholder={t('seller.discountPrice')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder={t('seller.ofaAllocated')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs text-gray-400">
-              <span>Category</span><span>SKU</span><span>Stock</span><span>Discount Price</span>
+              <span>{t('seller.category')}</span><span>{t('seller.sku')}</span><span>{t('seller.stock')}</span><span>{t('seller.discountPrice')}</span>
             </div>
 
             <div>
@@ -886,7 +886,7 @@ const [vendorDash, setVendorDash] = useState(null);
                 <div key={p.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium">{p.name}</p>
-                    <p className="text-xs text-gray-400">${Number(p.price || 0).toFixed(2)} | SKU: {p.sku || "—"} | Stock: {p.stock_quantity ?? "—"} | {p.is_active ? t('seller.active') : t('seller.inactive')}</p>
+                    <p className="text-xs text-gray-400">${Number(p.price || 0).toFixed(2)} | {t('seller.sku')}: {p.sku || "—"} | {t('seller.stock')}: {p.stock_quantity ?? "—"} | {p.is_active ? t('seller.active') : t('seller.inactive')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleEditProductOpen(p)} className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
@@ -909,19 +909,19 @@ const [vendorDash, setVendorDash] = useState(null);
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleEditProductClose}>
           <div className="rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border border-white/10 p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-white font-semibold flex items-center gap-2 mb-4">
-              <Package className="w-4 h-4 text-cyan-400" /> Edit: {editProduct.name}
+              <Package className="w-4 h-4 text-cyan-400" /> {t('seller.edit')}: {editProduct.name}
             </h3>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <input value={editProductData.name} onChange={(e) => setEditProductData({ ...editProductData, name: e.target.value })} placeholder="Product Name" className="col-span-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-                <input value={editProductData.price} onChange={(e) => setEditProductData({ ...editProductData, price: e.target.value })} placeholder="Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-                <input value={editProductData.category} onChange={(e) => setEditProductData({ ...editProductData, category: e.target.value })} placeholder="Category" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-                <input value={editProductData.sku} onChange={(e) => setEditProductData({ ...editProductData, sku: e.target.value })} placeholder="SKU" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-                <input value={editProductData.stock_quantity} onChange={(e) => setEditProductData({ ...editProductData, stock_quantity: e.target.value })} placeholder="Stock Qty" type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
-                <input value={editProductData.discount_price} onChange={(e) => setEditProductData({ ...editProductData, discount_price: e.target.value })} placeholder="Discount Price" type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.name} onChange={(e) => setEditProductData({ ...editProductData, name: e.target.value })} placeholder={t('seller.productName')} className="col-span-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.price} onChange={(e) => setEditProductData({ ...editProductData, price: e.target.value })} placeholder={t('seller.price')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.category} onChange={(e) => setEditProductData({ ...editProductData, category: e.target.value })} placeholder={t('seller.category')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.sku} onChange={(e) => setEditProductData({ ...editProductData, sku: e.target.value })} placeholder={t('seller.sku')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.stock_quantity} onChange={(e) => setEditProductData({ ...editProductData, stock_quantity: e.target.value })} placeholder={t('seller.stockQty')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+                <input value={editProductData.discount_price} onChange={(e) => setEditProductData({ ...editProductData, discount_price: e.target.value })} placeholder={t('seller.discountPrice')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Product Images</label>
+                <label className="text-xs text-gray-400 mb-1 block">{t('seller.productImages')}</label>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {editProductData.image_urls.map((url, idx) => (
                     <div key={idx} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-white/10">
@@ -932,11 +932,11 @@ const [vendorDash, setVendorDash] = useState(null);
                 </div>
                 <div className="flex gap-2">
                   <input value={productImageUrlInput} onChange={(e) => setProductImageUrlInput(e.target.value)}
-                    placeholder="Paste image URL" className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm"
+                    placeholder={t('seller.pasteImageUrl')} className="flex-1 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm"
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const url = productImageUrlInput.trim(); if (url) { setEditProductData({ ...editProductData, image_urls: [...editProductData.image_urls, url] }); setProductImageUrlInput(""); } } }} />
                   <button onClick={() => { const url = productImageUrlInput.trim(); if (url) { setEditProductData({ ...editProductData, image_urls: [...editProductData.image_urls, url] }); setProductImageUrlInput(""); } }} className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"><Plus className="w-3.5 h-3.5" /></button>
                   <label className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs text-white cursor-pointer flex items-center gap-1">
-                    {productUploading ? <span className="animate-pulse">...</span> : <><Image className="w-3.5 h-3.5" /> Upload</>}
+                    {productUploading ? <span className="animate-pulse">...</span> : <><Image className="w-3.5 h-3.5" /> {t('seller.upload')}</>}
                     <input type="file" accept="image/*" onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
@@ -946,7 +946,7 @@ const [vendorDash, setVendorDash] = useState(null);
                         const url = res.data?.url || res.data?.image_url || res.data?.data?.url;
                         if (url) setEditProductData({ ...editProductData, image_urls: [...editProductData.image_urls, url] });
                       } catch (err) {
-                        setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+                        setMsg(t('seller.uploadError') + (err.response?.data?.detail || err.message));
                       } finally {
                         setProductUploading(false);
                       }
@@ -955,17 +955,17 @@ const [vendorDash, setVendorDash] = useState(null);
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1.5 block">Description</label>
+                <label className="text-xs text-gray-400 mb-1.5 block">{t('seller.productDesc')}</label>
                 <RichTextEditor
                   content={editProductData.description}
                   onChange={(html) => setEditProductData({ ...editProductData, description: html })}
-                  placeholder="Product description"
+                  placeholder={t('seller.productDescPlaceholder')}
                   minHeight="100px"
                 />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={handleEditProductClose} className="flex-1 px-4 py-2 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">Cancel</button>
-                <button onClick={handleSaveProduct} className="flex-[2] px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"><Check className="w-4 h-4 inline mr-1" /> Save Changes</button>
+                <button onClick={handleEditProductClose} className="flex-1 px-4 py-2 rounded-xl bg-white/10 text-gray-300 hover:bg-white/20 transition-all text-sm">{t('seller.cancel')}</button>
+                <button onClick={handleSaveProduct} className="flex-[2] px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all"><Check className="w-4 h-4 inline mr-1" /> {t('seller.saveChanges')}</button>
               </div>
             </div>
           </div>
@@ -977,100 +977,100 @@ const [vendorDash, setVendorDash] = useState(null);
       {tab === "settings" && (
         <div className="space-y-4 max-w-3xl">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-6 space-y-4">
-            <h3 className="text-white font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-purple-400" /> Store Settings</h3>
+            <h3 className="text-white font-semibold flex items-center gap-2"><FileText className="w-4 h-4 text-purple-400" /> {t('seller.storeSettings')}</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-gray-400">Store Name</label>
+                <label className="text-xs text-gray-400">{t('seller.storeName')}</label>
                 <input value={profile.store_name} onChange={(e) => updateProfileField("store_name", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
               </div>
               <div>
-                <label className="text-xs text-gray-400">Phone</label>
+                <label className="text-xs text-gray-400">{t('seller.phone')}</label>
                 <input value={profile.phone} onChange={(e) => updateProfileField("phone", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
               </div>
               <div>
-                <label className="text-xs text-gray-400">WhatsApp Number</label>
+                <label className="text-xs text-gray-400">{t('seller.whatsappNumber')}</label>
                 <input value={profile.whatsapp_number} onChange={(e) => updateProfileField("whatsapp_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="+1234567890" />
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs text-gray-400">Description</label>
+                <label className="text-xs text-gray-400">{t('seller.description')}</label>
                 <RichTextEditor
                   content={profile.description}
                   onChange={(html) => updateProfileField("description", html)}
-                  placeholder="Store description"
+                  placeholder={t('seller.storeDescPlaceholder')}
                   minHeight="100px"
                 />
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm text-gray-400 font-medium mb-3">Identity</h4>
+              <h4 className="text-sm text-gray-400 font-medium mb-3">{t('seller.identity')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-400">NID / Passport</label>
+                  <label className="text-xs text-gray-400">{t('seller.nidPassport')}</label>
                   <input value={profile.nid_number} onChange={(e) => updateProfileField("nid_number", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">NID Front Image</label>
+                  <label className="text-xs text-gray-400">{t('seller.nidFront')}</label>
                   <input value={profile.nid_front_image_key} onChange={(e) => updateProfileField("nid_front_image_key", e.target.value)} className="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">NID Back Image</label>
+                  <label className="text-xs text-gray-400">{t('seller.nidBack')}</label>
                   <input value={profile.nid_back_image_key} onChange={(e) => updateProfileField("nid_back_image_key", e.target.value)} className="w-full mt-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-purple-500/50" />
                 </div>
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm text-gray-400 font-medium mb-3">Address</h4>
+              <h4 className="text-sm text-gray-400 font-medium mb-3">{t('seller.address')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-xs text-gray-400">Country</label>
+                  <label className="text-xs text-gray-400">{t('seller.country')}</label>
                   <input value={profile.country} onChange={(e) => updateProfileField("country", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Division / State</label>
+                  <label className="text-xs text-gray-400">{t('seller.divisionState')}</label>
                   <input value={profile.division_state} onChange={(e) => updateProfileField("division_state", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">District / City</label>
+                  <label className="text-xs text-gray-400">{t('seller.districtCity')}</label>
                   <input value={profile.district_city} onChange={(e) => updateProfileField("district_city", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" />
                 </div>
                 <div className="md:col-span-3">
-                  <label className="text-xs text-gray-400">Full Address</label>
+                  <label className="text-xs text-gray-400">{t('seller.fullAddress')}</label>
                   <textarea value={profile.full_address} onChange={(e) => updateProfileField("full_address", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" rows={2} />
                 </div>
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm text-gray-400 font-medium mb-3">Delivery</h4>
+              <h4 className="text-sm text-gray-400 font-medium mb-3">{t('seller.delivery')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-400">Default Delivery Charge ($)</label>
+                  <label className="text-xs text-gray-400">{t('seller.defaultDeliveryCharge')}</label>
                   <input value={profile.default_delivery_charge ?? ""} onChange={(e) => updateProfileField("default_delivery_charge", e.target.value === "" ? null : parseFloat(e.target.value) || 0)} type="number" step="0.01" className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="0.00" />
-                  <p className="text-[10px] text-gray-500 mt-1">Applied when no specific delivery zone matches.</p>
+                  <p className="text-[10px] text-gray-500 mt-1">{t('seller.deliveryHint')}</p>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm text-gray-400 font-medium mb-3">Social Links</h4>
+              <h4 className="text-sm text-gray-400 font-medium mb-3">{t('seller.socialLinks')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-400">Facebook</label>
+                  <label className="text-xs text-gray-400">{t('seller.facebook')}</label>
                   <input value={profile.facebook_url} onChange={(e) => updateProfileField("facebook_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://facebook.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">YouTube</label>
+                  <label className="text-xs text-gray-400">{t('seller.youtube')}</label>
                   <input value={profile.youtube_url} onChange={(e) => updateProfileField("youtube_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://youtube.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">TikTok</label>
+                  <label className="text-xs text-gray-400">{t('seller.tiktok')}</label>
                   <input value={profile.tiktok_url} onChange={(e) => updateProfileField("tiktok_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://tiktok.com/..." />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400">Website</label>
+                  <label className="text-xs text-gray-400">{t('seller.website')}</label>
                   <input value={profile.website_url} onChange={(e) => updateProfileField("website_url", e.target.value)} className="w-full mt-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-purple-500/50" placeholder="https://..." />
                 </div>
               </div>
@@ -1078,7 +1078,7 @@ const [vendorDash, setVendorDash] = useState(null);
 
             <div className="pt-3 flex items-center gap-3">
               <button onClick={handleProfileUpdate} className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all">
-                <Check className="w-4 h-4 inline mr-1" /> Save Settings
+                <Check className="w-4 h-4 inline mr-1" /> {t('seller.saveSettings')}
               </button>
               {msg && <p className="text-sm text-green-400">{msg}</p>}
             </div>
@@ -1102,19 +1102,19 @@ const [vendorDash, setVendorDash] = useState(null);
           </div>
           {vendorDash && (
             <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-3">
-              <h3 className="text-white font-semibold flex items-center gap-2"><TrendingUp className="w-4 h-4" /> Vendor Earnings</h3>
+              <h3 className="text-white font-semibold flex items-center gap-2"><TrendingUp className="w-4 h-4" /> {t('seller.vendorEarnings')}</h3>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="bg-white/[0.03] rounded-lg p-3">
-                  <p className="text-gray-400">Pending Payout</p>
+                  <p className="text-gray-400">{t('seller.pendingPayout')}</p>
                   <p className="text-xl font-bold text-yellow-400">${parseFloat(vendorDash.pending_payout || 0).toFixed(2)}</p>
                 </div>
                 <div className="bg-white/[0.03] rounded-lg p-3">
-                  <p className="text-gray-400">Total Revenue</p>
+                  <p className="text-gray-400">{t('seller.totalRevenue')}</p>
                   <p className="text-xl font-bold text-green-400">${parseFloat(vendorDash.revenue || 0).toFixed(2)}</p>
                 </div>
               </div>
               <button onClick={handleVendorWithdraw} className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:from-purple-500 hover:to-pink-500 transition-all flex items-center justify-center gap-2">
-                <Send className="w-4 h-4" /> Request Withdraw
+                <Send className="w-4 h-4" /> {t('seller.requestWithdraw')}
               </button>
             </div>
           )}
@@ -1125,12 +1125,12 @@ const [vendorDash, setVendorDash] = useState(null);
           <div className="rounded-2xl bg-[#0f0b2e] border border-white/10 p-6 max-w-sm w-full mx-4 space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3">
               <AlertCircle className="w-6 h-6 text-red-400" />
-              <h3 className="text-lg font-bold text-white">Delete Store</h3>
+              <h3 className="text-lg font-bold text-white">{t('seller.deleteStore')}</h3>
             </div>
-            <p className="text-sm text-gray-400">Are you sure? All products, orders, and store data will be permanently deleted.</p>
+            <p className="text-sm text-gray-400">{t('seller.deleteStoreConfirm')}</p>
             <div className="flex gap-3">
-              <button onClick={() => setStoreToDelete(null)} className="flex-1 py-2.5 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-all">Cancel</button>
-              <button onClick={() => handleDeleteStore(storeToDelete)} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-medium hover:from-red-500 hover:to-rose-500 transition-all">Delete</button>
+              <button onClick={() => setStoreToDelete(null)} className="flex-1 py-2.5 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20 transition-all">{t('seller.cancel')}</button>
+              <button onClick={() => handleDeleteStore(storeToDelete)} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-medium hover:from-red-500 hover:to-rose-500 transition-all">{t('seller.delete')}</button>
             </div>
           </div>
         </div>

@@ -310,7 +310,7 @@ const ProfilePage = () => {
           </p>
           {user?.kyc_status === "rejected" && user?.kyc_note && (
             <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-              <p className="text-xs font-semibold text-red-300 mb-1">Rejection Reason:</p>
+              <p className="text-xs font-semibold text-red-300 mb-1">{t('profile.rejectionReason')}</p>
               <p className="text-sm text-red-200">{user.kyc_note}</p>
             </div>
           )}
