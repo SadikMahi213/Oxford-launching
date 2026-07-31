@@ -57,7 +57,7 @@ export default function LoginForm() {
       } else {
         navigate("/dashboard");
       }
-      setMessage(res.data.message || "Login successful");
+      setMessage(res.data.message || t("auth.login.success"));
       setIsSuccess(true);
       setLoading(false);
     } catch (err) {
@@ -71,11 +71,11 @@ export default function LoginForm() {
         setErrors(fieldErrors);
         setMessage("");
       } else if (err.response?.status === 423) {
-        setMessage(err.response.data?.detail || "Your account has been temporarily blocked. Please contact support.");
+        setMessage(err.response.data?.detail || t("auth.login.blocked"));
       } else if (err.response?.status === 400) {
-        setMessage(err.response.data?.detail || err.response.data?.message || "Invalid login");
+        setMessage(err.response.data?.detail || err.response.data?.message || t("auth.login.invalid"));
       } else {
-        setMessage(err.response?.data?.detail || err.response?.data?.message || "Login failed");
+        setMessage(err.response?.data?.detail || err.response?.data?.message || t("auth.login.failed"));
       }
       setLoading(false);
     }
@@ -95,7 +95,7 @@ export default function LoginForm() {
           <div className="w-full h-52 lg:h-auto lg:w-1/2 relative flex-shrink-0">
             <img
               src={loginImg}
-              alt="Oxford Financial Ads"
+              alt={t("app.name")}
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
             {/* Dark gradient overlay */}
@@ -103,13 +103,13 @@ export default function LoginForm() {
             {/* Branding text — bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
               <p className="text-xs font-semibold tracking-[0.25em] text-cyan-400 uppercase mb-1">
-                Oxford Financial Ads
+                {t("app.name")}
               </p>
               <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-1">
-                Welcome Back
+                {t("auth.login.welcomeBack")}
               </h2>
               <p className="text-xs lg:text-sm text-gray-300 leading-relaxed hidden lg:block">
-                Sign in to access your dashboard and grow your portfolio.
+                {t("auth.login.welcomeSubtitle")}
               </p>
             </div>
           </div>

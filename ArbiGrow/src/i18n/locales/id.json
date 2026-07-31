@@ -38,7 +38,16 @@
     "address1": "25 Lapangan Bisnis",
     "address2": "Distrik Canary",
     "address3": "London, EC2A 4AB",
-    "address4": "Inggris Raya"
+    "address4": "Inggris Raya",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -73,7 +82,9 @@
       "success": "Berhasil masuk",
       "blocked": "Akun Anda diblokir sementara karena beberapa kali percobaan masuk yang gagal. Harap hubungi tim dukungan perusahaan: support.oxfordfinancialads@gmail.com",
       "invalid": "Masuk tidak valid",
-      "failed": "Masuk gagal"
+      "failed": "Masuk gagal",
+      "welcomeBack": "Selamat Datang Kembali",
+      "welcomeSubtitle": "Masuk untuk mengakses dasbor Anda dan kembangkan portofolio Anda."
     },
     "register": {
       "title": "Buat Akun Anda",
@@ -172,7 +183,10 @@
       "err_agree": "Anda harus menyetujui syarat & ketentuan",
       "success": "Pendaftaran berhasil!",
       "networkError": "Kesalahan jaringan atau server tidak dapat dijangkau",
-      "error": "Terjadi kesalahan"
+      "error": "Terjadi kesalahan",
+      "joinTitle": "Bergabung Hari Ini",
+      "joinSubtitle": "Buat akun untuk mulai menghasilkan dengan platform modern kami untuk iklan digital.",
+      "perDay": "/hari"
     },
     "forgotPassword": {
       "title": "Atur Ulang Kata Sandi Anda",
@@ -707,11 +721,14 @@
     "all": "Semua",
     "none": "Tidak Ada",
     "required": "Wajib",
-    "optional": "Opsional"
+    "optional": "Opsional",
+    "scrollToTop": "Gulir ke atas"
   },
   "homePage": {
     "imageAlt": "Layanan Keuangan",
-    "altOurCommitment": "Komitmen kami"
+    "altOurCommitment": "Komitmen kami",
+    "altGlobalCertifications": "Sertifikasi Global & Komitmen",
+    "altHero": "Tim Oxford Financial Ads"
   },
   "home": {
     "executiveSummary": {
@@ -724,7 +741,8 @@
       "activitiesVal": "Digital & Daring",
       "networkVal": "Komunitas Global",
       "opportunitiesVal": "Berbasis Kinerja",
-      "goalVal": "Keterampilan & Pertumbuhan"
+      "goalVal": "Keterampilan & Pertumbuhan",
+      "aboutTitle": "Tentang"
     },
     "whyChooseUs": {
       "title": "Kita",
@@ -855,7 +873,14 @@
       "totalActiveInvestors": "Jumlah Investor Aktif",
       "totalInvestmentsMade": "Total Investasi yang Dilakukan",
       "totalProfitsGenerated": "Total Keuntungan yang Dihasilkan",
-      "successfulWithdrawals": "Penarikan Berhasil"
+      "successfulWithdrawals": "Penarikan Berhasil",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Statistik Langsung",
+      "subtitle": "Transparansi real-time ke jaringan global kami, keanggotaan aktif, dan keterlibatan keuangan yang sukses.",
+      "totalRegisteredMembers": "Total Anggota Terdaftar",
+      "verifiedFreelancers": "Freelancer Terverifikasi",
+      "packageInvestmentOverview": "Ringkasan Investasi Paket",
+      "countriesConnected": "Negara yang Terhubung"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -917,9 +942,6 @@
     "card4Title": "Kinerja & Tanggung Jawab Kampanye",
     "card4Sub": "Tanggung Jawab Terdesentralisasi",
     "card4Desc": "Iklan Keuangan Oxford: Kampanye periklanan beroperasi berdasarkan dinamika pasar dan algoritma platform. Klien mempunyai tanggung jawab penuh atas keputusan pemasaran, alokasi anggaran, dan hasil bisnis mereka.",
-    "card5Title": "Risiko Layanan & Penafian Pasar",
-    "card5Sub": "Pengakuan Risiko",
-    "card5Desc": "Iklan Keuangan Oxford: Melaksanakan kampanye periklanan digital melibatkan risiko pasar dan fluktuasi dalam keterlibatan audiens. Performa kampanye sebelumnya tidak menjamin hasil yang sama di masa mendatang. Iklan Keuangan Oxford menggunakan model pengoptimalan tingkat lanjut, namun tidak dapat menjamin hasil penjualan atau konversi pasar tertentu dengan kepastian mutlak. Klien harus mengalokasikan anggaran pemasaran berdasarkan tujuan bisnis mereka dan melakukan riset pasar independen sebelum meluncurkan kampanye skala besar.",
     "footer": "Berkomitmen terhadap transparansi, akuntabilitas, dan kepemimpinan etis di seluruh dunia"
   },
   "privacySecurity": {
@@ -952,5 +974,33 @@
   },
   "language": {
     "switch": "Ganti Bahasa"
+  },
+  "hero": {
+    "title": "Mulai",
+    "subtitle": "Perjalanan Freelance",
+    "description": "Terhubung dengan klien, selesaikan proyek profesional, dan kembangkan karier freelance Anda di seluruh dunia.",
+    "cta": "Daftar Gratis Sekarang"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Merayakan Pencapaian & Momen Tim",
+      "title": "Merayakan Pencapaian & Momen Tim",
+      "description": "Merayakan pencapaian, keberhasilan, dan momen berkesan bersama. Setiap acara mencerminkan kerja tim, pertumbuhan, dan komitmen kami untuk membangun masa depan yang lebih kuat."
+    },
+    "community": {
+      "badge": "Komunitas & Tim",
+      "title": "Komunitas & Tim",
+      "description": "Dibangun di atas persatuan, kolaborasi, dan rasa saling menghormati, komunitas dan tim kami menciptakan peluang baru setiap hari. Bekerja bersama, belajar bersama, dan mencapai kesuksesan bersama adalah kekuatan pendorong di balik pertumbuhan dan kemajuan kami yang berkelanjutan."
+    },
+    "training": {
+      "badge": "Pelatihan & Pengembangan",
+      "title": "Pelatihan & Pengembangan",
+      "description": "Kami percaya bahwa pengetahuan adalah fondasi kesuksesan yang berkelanjutan. Melalui pelatihan berkelanjutan, pengembangan keterampilan, dan pembelajaran praktis, kami memberdayakan setiap anggota untuk menghadapi tantangan masa depan dengan percaya diri. Dengan membina pembelajaran berkelanjutan, keunggulan profesional, dan pengembangan kepemimpinan, kami membangun tim yang cakap dan percaya diri yang berkomitmen untuk mendorong inovasi, mencapai kesuksesan, dan menciptakan pertumbuhan jangka panjang."
+    },
+    "life": {
+      "badge": "Kehidupan di Oxford Financial Ads",
+      "title": "Kehidupan di Oxford Financial Ads",
+      "description": "Tempat kerja kami dinamis, kolaboratif, dan positif. Setiap anggota tim saling mendukung dengan senyuman, belajar bersama, bekerja bersama, dan berbagi kebahagiaan setiap pencapaian. Semangat ketulusan, rasa saling menghormati, dan kerja tim ini membuat organisasi kami semakin kuat setiap hari."
+    }
   }
 }

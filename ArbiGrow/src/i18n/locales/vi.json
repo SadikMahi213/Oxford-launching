@@ -38,7 +38,16 @@
     "address1": "Quảng trường thương mại 25",
     "address2": "Quận Canary",
     "address3": "Luân Đôn, EC2A 4AB",
-    "address4": "Vương quốc Anh"
+    "address4": "Vương quốc Anh",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -73,7 +82,9 @@
       "success": "Đăng nhập thành công",
       "blocked": "Tài khoản của bạn đã bị tạm khóa do nhiều lần đăng nhập thất bại. Vui lòng liên hệ đội ngũ hỗ trợ: support.oxfordfinancialads@gmail.com",
       "invalid": "Thông tin đăng nhập không hợp lệ",
-      "failed": "Đăng nhập thất bại"
+      "failed": "Đăng nhập thất bại",
+      "welcomeBack": "Chào Mừng Trở Lại",
+      "welcomeSubtitle": "Đăng nhập để truy cập bảng điều khiển của bạn và phát triển danh mục đầu tư của bạn."
     },
     "register": {
       "title": "Tạo Tài Khoản",
@@ -172,7 +183,10 @@
       "err_agree": "Bạn phải đồng ý với điều khoản & điều kiện",
       "success": "Đăng ký thành công!",
       "networkError": "Lỗi mạng hoặc máy chủ không khả dụng",
-      "error": "Đã xảy ra lỗi"
+      "error": "Đã xảy ra lỗi",
+      "joinTitle": "Tham Gia Ngay Hôm Nay",
+      "joinSubtitle": "Tạo tài khoản để bắt đầu kiếm tiền với nền tảng quảng cáo kỹ thuật số hiện đại của chúng tôi.",
+      "perDay": "/ngày"
     },
     "forgotPassword": {
       "title": "Đặt Lại Mật Khẩu",
@@ -707,11 +721,14 @@
     "all": "Tất Cả",
     "none": "Không",
     "required": "Bắt Buộc",
-    "optional": "Không Bắt Buộc"
+    "optional": "Không Bắt Buộc",
+    "scrollToTop": "Cuộn lên đầu trang"
   },
   "homePage": {
     "imageAlt": "Dịch vụ tài chính",
-    "altOurCommitment": "Cam kết của chúng tôi"
+    "altOurCommitment": "Cam kết của chúng tôi",
+    "altGlobalCertifications": "Chứng Nhận Toàn Cầu & Cam Kết",
+    "altHero": "Đội ngũ Oxford Financial Ads"
   },
   "home": {
     "executiveSummary": {
@@ -724,7 +741,8 @@
       "activitiesVal": "Kỹ thuật số & Trực tuyến",
       "networkVal": "Cộng đồng toàn cầu",
       "opportunitiesVal": "Dựa trên hiệu suất",
-      "goalVal": "Kỹ năng & Tăng trưởng"
+      "goalVal": "Kỹ năng & Tăng trưởng",
+      "aboutTitle": "Giới thiệu"
     },
     "whyChooseUs": {
       "title": "Của chúng tôi",
@@ -855,7 +873,14 @@
       "totalActiveInvestors": "Tổng số nhà đầu tư tích cực",
       "totalInvestmentsMade": "Tổng số tiền đầu tư đã thực hiện",
       "totalProfitsGenerated": "Tổng lợi nhuận được tạo ra",
-      "successfulWithdrawals": "Rút tiền thành công"
+      "successfulWithdrawals": "Rút tiền thành công",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Thống Kê Trực Tiếp",
+      "subtitle": "Minh bạch theo thời gian thực về mạng lưới toàn cầu, tư cách thành viên hoạt động và các giao dịch tài chính thành công của chúng tôi.",
+      "totalRegisteredMembers": "Tổng Thành Viên Đã Đăng Ký",
+      "verifiedFreelancers": "Freelancer Đã Xác Minh",
+      "packageInvestmentOverview": "Tổng Quan Đầu Tư Gói",
+      "countriesConnected": "Quốc Gia Kết Nối"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -917,9 +942,6 @@
     "card4Title": "Hiệu suất và trách nhiệm của chiến dịch",
     "card4Sub": "Trách nhiệm phi tập trung",
     "card4Desc": "Quảng cáo tài chính Oxford: Chiến dịch quảng cáo hoạt động dựa trên động lực thị trường và thuật toán nền tảng. Khách hàng chịu hoàn toàn trách nhiệm về các quyết định tiếp thị, phân bổ ngân sách và kết quả kinh doanh của mình.",
-    "card5Title": "Tuyên bố từ chối trách nhiệm về rủi ro dịch vụ và thị trường",
-    "card5Sub": "Xác nhận rủi ro",
-    "card5Desc": "Quảng cáo tài chính Oxford: Việc thực hiện các chiến dịch quảng cáo kỹ thuật số tiềm ẩn rủi ro thị trường và sự biến động trong mức độ tương tác của khán giả. Hiệu suất chiến dịch trong quá khứ không đảm bảo kết quả tương tự trong tương lai. Quảng cáo tài chính Oxford sử dụng các mô hình tối ưu hóa nâng cao nhưng không thể đảm bảo kết quả bán hàng cụ thể hoặc chuyển đổi thị trường một cách chắc chắn tuyệt đối. Khách hàng nên phân bổ ngân sách tiếp thị dựa trên mục tiêu kinh doanh của mình và tiến hành nghiên cứu thị trường độc lập trước khi tung ra các chiến dịch quy mô lớn.",
     "footer": "Cam kết minh bạch, trách nhiệm giải trình và lãnh đạo có đạo đức trên toàn thế giới"
   },
   "privacySecurity": {
@@ -952,5 +974,33 @@
   },
   "language": {
     "switch": "Chuyển đổi ngôn ngữ"
+  },
+  "hero": {
+    "title": "Bắt Đầu",
+    "subtitle": "Hành Trình Freelance",
+    "description": "Kết nối với khách hàng, hoàn thành các dự án chuyên nghiệp và phát triển sự nghiệp freelance của bạn trên toàn thế giới.",
+    "cta": "Đăng Ký Miễn Phí Ngay"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Chào Mừng Các Cột Mốc & Khoảnh Khắc Đội Nhóm",
+      "title": "Chào Mừng Các Cột Mốc & Khoảnh Khắc Đội Nhóm",
+      "description": "Cùng nhau ăn mừng các cột mốc, thành tựu và những khoảnh khắc đáng nhớ. Mỗi sự kiện phản ánh tinh thần đồng đội, sự phát triển và cam kết của chúng tôi trong việc xây dựng một tương lai vững mạnh hơn."
+    },
+    "community": {
+      "badge": "Cộng Đồng & Đội Nhóm",
+      "title": "Cộng Đồng & Đội Nhóm",
+      "description": "Được xây dựng dựa trên sự đoàn kết, hợp tác và tôn trọng lẫn nhau, cộng đồng và đội nhóm của chúng tôi tạo ra những cơ hội mới mỗi ngày. Làm việc cùng nhau, học hỏi cùng nhau và đạt được thành công cùng nhau là động lực thúc đẩy sự tăng trưởng và tiến bộ liên tục của chúng tôi."
+    },
+    "training": {
+      "badge": "Đào Tạo & Phát Triển",
+      "title": "Đào Tạo & Phát Triển",
+      "description": "Chúng tôi tin rằng kiến thức là nền tảng của sự thành công bền vững. Thông qua đào tạo liên tục, phát triển kỹ năng và học tập thực tế, chúng tôi trao quyền cho mọi thành viên tự tin đối mặt với những thách thức của tương lai. Bằng cách nuôi dưỡng việc học tập liên tục, sự xuất sắc chuyên nghiệp và phát triển khả năng lãnh đạo, chúng tôi đang xây dựng một đội ngũ tài năng và tự tin cam kết thúc đẩy đổi mới, đạt được thành công và tạo ra sự tăng trưởng lâu dài."
+    },
+    "life": {
+      "badge": "Cuộc Sống Tại Oxford Financial Ads",
+      "title": "Cuộc Sống Tại Oxford Financial Ads",
+      "description": "Nơi làm việc của chúng tôi năng động, hợp tác và tích cực. Mọi thành viên trong đội đều hỗ trợ lẫn nhau bằng nụ cười, cùng học hỏi, cùng làm việc và chia sẻ niềm vui của mỗi thành tựu. Tinh thần chân thành, tôn trọng lẫn nhau và tinh thần đồng đội này làm cho tổ chức của chúng tôi vững mạnh hơn mỗi ngày."
+    }
   }
 }

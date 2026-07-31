@@ -38,7 +38,16 @@
     "address1": "25 Plaza de Negocios",
     "address2": "Distrito Canario",
     "address3": "Londres, EC2A 4AB",
-    "address4": "Reino Unido"
+    "address4": "Reino Unido",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -73,7 +82,9 @@
       "success": "Inicio de sesión exitoso",
       "blocked": "Tu cuenta ha sido bloqueada temporalmente por múltiples intentos fallidos. Contacta al soporte: support.oxfordfinancialads@gmail.com",
       "invalid": "Inicio de sesión inválido",
-      "failed": "Inicio de sesión fallido"
+      "failed": "Inicio de sesión fallido",
+      "welcomeBack": "Bienvenido de Nuevo",
+      "welcomeSubtitle": "Inicia sesión para acceder a tu panel y hacer crecer tu portafolio."
     },
     "register": {
       "title": "Crea Tu Cuenta",
@@ -172,7 +183,10 @@
       "err_agree": "Debes aceptar términos y condiciones",
       "success": "¡Registro exitoso!",
       "networkError": "Error de red o servidor no disponible",
-      "error": "Algo salió mal"
+      "error": "Algo salió mal",
+      "joinTitle": "Únete Hoy",
+      "joinSubtitle": "Crea una cuenta para empezar a ganar con nuestra plataforma moderna de publicidad digital.",
+      "perDay": "/día"
     },
     "forgotPassword": {
       "title": "Restablece Tu Contraseña",
@@ -707,11 +721,14 @@
     "all": "Todos",
     "none": "Ninguno",
     "required": "Obligatorio",
-    "optional": "Opcional"
+    "optional": "Opcional",
+    "scrollToTop": "Desplazarse hacia arriba"
   },
   "homePage": {
     "imageAlt": "Servicios financieros",
-    "altOurCommitment": "Nuestro Compromiso"
+    "altOurCommitment": "Nuestro Compromiso",
+    "altGlobalCertifications": "Certificaciones Globales y Compromiso",
+    "altHero": "Equipo de Oxford Financial Ads"
   },
   "home": {
     "executiveSummary": {
@@ -724,7 +741,8 @@
       "activitiesVal": "Digital y en línea",
       "networkVal": "Comunidad global",
       "opportunitiesVal": "Basado en el rendimiento",
-      "goalVal": "Habilidad y crecimiento"
+      "goalVal": "Habilidad y crecimiento",
+      "aboutTitle": "Acerca de"
     },
     "whyChooseUs": {
       "title": "Nuestro",
@@ -855,7 +873,14 @@
       "totalActiveInvestors": "Total de inversores activos",
       "totalInvestmentsMade": "Inversiones totales realizadas",
       "totalProfitsGenerated": "Ganancias totales generadas",
-      "successfulWithdrawals": "Retiros exitosos"
+      "successfulWithdrawals": "Retiros exitosos",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Estadísticas En Vivo",
+      "subtitle": "Transparencia en tiempo real de nuestra red global, membresías activas y transacciones financieras exitosas.",
+      "totalRegisteredMembers": "Total de Miembros Registrados",
+      "verifiedFreelancers": "Freelancers Verificados",
+      "packageInvestmentOverview": "Resumen de Inversión en Paquetes",
+      "countriesConnected": "Países Conectados"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -917,9 +942,6 @@
     "card4Title": "Rendimiento y responsabilidad de la campaña",
     "card4Sub": "Responsabilidad descentralizada",
     "card4Desc": "Oxford Financial Ads: las campañas publicitarias operan en función de la dinámica del mercado y los algoritmos de la plataforma. Los clientes mantienen la responsabilidad total de sus decisiones de marketing, asignaciones presupuestarias y resultados comerciales.",
-    "card5Title": "Riesgo de servicio y descargo de responsabilidad del mercado",
-    "card5Sub": "Reconocimiento de riesgos",
-    "card5Desc": "Oxford Financial Ads: La ejecución de campañas de publicidad digital implica riesgos de mercado y fluctuaciones en la participación de la audiencia. El rendimiento de campañas pasadas no garantiza resultados futuros idénticos. Oxford Financial Ads utiliza modelos de optimización avanzados, pero no puede garantizar ventas específicas o resultados de conversión de mercado con absoluta certeza. Los clientes deben asignar presupuestos de marketing en función de sus objetivos comerciales y realizar investigaciones de mercado independientes antes de lanzar campañas a gran escala.",
     "footer": "Comprometidos con la transparencia, la rendición de cuentas y el liderazgo ético en todo el mundo."
   },
   "privacySecurity": {
@@ -952,5 +974,33 @@
   },
   "language": {
     "switch": "Cambiar idioma"
+  },
+  "hero": {
+    "title": "Comienza Tu",
+    "subtitle": "Viaje Freelance",
+    "description": "Conéctate con clientes, completa proyectos profesionales y haz crecer tu carrera freelance en todo el mundo.",
+    "cta": "Regístrate Gratis Ahora"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Celebrando Hitos y Momentos del Equipo",
+      "title": "Celebrando Hitos y Momentos del Equipo",
+      "description": "Celebrando juntos hitos, logros y momentos memorables. Cada evento refleja nuestro trabajo en equipo, crecimiento y compromiso de construir un futuro más fuerte."
+    },
+    "community": {
+      "badge": "Comunidad y Equipo",
+      "title": "Comunidad y Equipo",
+      "description": "Construida sobre la unidad, la colaboración y el respeto mutuo, nuestra comunidad y equipo crean nuevas oportunidades cada día. Trabajar juntos, aprender juntos y lograr el éxito juntos son las fuerzas que impulsan nuestro crecimiento y progreso continuos."
+    },
+    "training": {
+      "badge": "Capacitación y Desarrollo",
+      "title": "Capacitación y Desarrollo",
+      "description": "Creemos que el conocimiento es la base del éxito sostenible. A través de la capacitación continua, el desarrollo de habilidades y el aprendizaje práctico, empoderamos a cada miembro para afrontar con confianza los desafíos del futuro. Al fomentar el aprendizaje continuo, la excelencia profesional y el desarrollo de liderazgo, estamos construyendo un equipo capaz y seguro, comprometido con impulsar la innovación, lograr el éxito y crear crecimiento a largo plazo."
+    },
+    "life": {
+      "badge": "La Vida en Oxford Financial Ads",
+      "title": "La Vida en Oxford Financial Ads",
+      "description": "Nuestro lugar de trabajo es vibrante, colaborativo y positivo. Cada miembro del equipo se apoya mutuamente con una sonrisa, aprende junto, trabaja junto y comparte la alegría de cada logro. Este espíritu de sinceridad, respeto mutuo y trabajo en equipo hace que nuestra organización sea más fuerte cada día."
+    }
   }
 }

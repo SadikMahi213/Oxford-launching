@@ -109,7 +109,7 @@ const Home = () => {
           
           <img
             src={commitmentHeroImg}
-            alt="Global Certifications & Commitment"
+            alt={t("homePage.altGlobalCertifications")}
             className="relative w-full h-auto object-cover rounded-2xl border border-white/10 shadow-2xl shadow-black/50"
             loading="lazy"
           />

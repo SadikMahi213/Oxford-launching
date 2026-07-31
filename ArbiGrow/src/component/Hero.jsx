@@ -22,7 +22,7 @@ export const Hero = () => {
         <div className="relative w-full">
           <img
             src={heroBg}
-            alt="Oxford Financial Ads team"
+            alt={t("homePage.altHero")}
             className="w-full h-auto block"
             loading="eager"
           />
@@ -76,7 +76,7 @@ export const Hero = () => {
       <section className="hidden lg:flex items-center relative overflow-hidden bg-[#0a0e27] min-h-[85vh]">
         <img
           src={heroBg}
-          alt="Oxford Financial Ads team"
+          alt={t("homePage.altHero")}
           className="absolute inset-0 w-full h-full object-cover object-center"
           loading="eager"
         />

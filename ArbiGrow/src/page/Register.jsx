@@ -226,7 +226,7 @@ export default function RegisterForm() {
           <div className="w-full h-52 lg:h-auto lg:w-5/12 xl:w-2/5 relative flex-shrink-0">
             <img
               src={loginImg}
-              alt="Oxford Financial Ads"
+              alt={t("app.name")}
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
             {/* Dark gradient overlay */}
@@ -234,13 +234,13 @@ export default function RegisterForm() {
             {/* Branding text — bottom */}
             <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
               <p className="text-xs font-semibold tracking-[0.25em] text-cyan-400 uppercase mb-1">
-                Oxford Financial Ads
+                {t("app.name")}
               </p>
               <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
-                Join Us Today
+                {t("auth.register.joinTitle")}
               </h2>
               <p className="text-xs lg:text-sm text-gray-300 leading-relaxed hidden lg:block">
-                Create an account to start earning with our modern platform for digital advertising.
+                {t("auth.register.joinSubtitle")}
               </p>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function RegisterForm() {
                     <option value="">{t("auth.register.choosePlan")}</option>
                     {packages.map((pkg) => (
                       <option key={pkg.id} value={pkg.id}>
-                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}/day)
+                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}{t("auth.register.perDay")})
                       </option>
                     ))}
                   </select>

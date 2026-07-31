@@ -26,7 +26,7 @@ export default function ExecutiveSummary() {
               </div>
               
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                About <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Oxford Financial Ads</span>
+                {t("home.executiveSummary.aboutTitle")}{" "}<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{t("app.name")}</span>
               </h2>
               
               <div className="relative">

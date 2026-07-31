@@ -38,7 +38,16 @@
     "address1": "25 Dataran Perniagaan",
     "address2": "Daerah Canary",
     "address3": "London, EC2A 4AB",
-    "address4": "United Kingdom"
+    "address4": "United Kingdom",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "Soalan Lazim",
@@ -73,7 +82,9 @@
       "success": "Log masuk berjaya",
       "blocked": "Akaun anda telah disekat buat sementara waktu akibat percubaan log masuk gagal yang berulang. Sila hubungi pasukan sokongan: support.oxfordfinancialads@gmail.com",
       "invalid": "Log masuk tidak sah",
-      "failed": "Log masuk gagal"
+      "failed": "Log masuk gagal",
+      "welcomeBack": "Selamat Kembali",
+      "welcomeSubtitle": "Log masuk untuk mengakses papan pemuka anda dan kembangkan portfolio anda."
     },
     "register": {
       "title": "Buat Akaun Anda",
@@ -172,7 +183,10 @@
       "err_agree": "Anda mesti bersetuju dengan terma & syarat",
       "success": "Pendaftaran berjaya!",
       "networkError": "Ralat rangkaian atau pelayan tidak dapat dicapai",
-      "error": "Ada sesuatu yang tidak kena"
+      "error": "Ada sesuatu yang tidak kena",
+      "joinTitle": "Sertai Hari Ini",
+      "joinSubtitle": "Buat akaun untuk mula menjana pendapatan dengan platform iklan digital moden kami.",
+      "perDay": "/hari"
     },
     "forgotPassword": {
       "title": "Set Semula Kata Laluan",
@@ -707,11 +721,14 @@
     "all": "Semua",
     "none": "Tiada",
     "required": "Diperlukan",
-    "optional": "Pilihan"
+    "optional": "Pilihan",
+    "scrollToTop": "Skrol ke atas"
   },
   "homePage": {
     "imageAlt": "Perkhidmatan Kewangan",
-    "altOurCommitment": "Komitmen Kami"
+    "altOurCommitment": "Komitmen Kami",
+    "altGlobalCertifications": "Pensijilan Global & Komitmen",
+    "altHero": "Pasukan Oxford Financial Ads"
   },
   "home": {
     "executiveSummary": {
@@ -724,7 +741,8 @@
       "activitiesVal": "Digital & Dalam Talian",
       "networkVal": "Komuniti Global",
       "opportunitiesVal": "Berasaskan Prestasi",
-      "goalVal": "Kemahiran & Pertumbuhan"
+      "goalVal": "Kemahiran & Pertumbuhan",
+      "aboutTitle": "Mengenai"
     },
     "whyChooseUs": {
       "title": "kami",
@@ -855,7 +873,14 @@
       "totalActiveInvestors": "Jumlah Pelabur Aktif",
       "totalInvestmentsMade": "Jumlah Pelaburan yang Dibuat",
       "totalProfitsGenerated": "Jumlah Keuntungan Dijana",
-      "successfulWithdrawals": "Pengeluaran Berjaya"
+      "successfulWithdrawals": "Pengeluaran Berjaya",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Statistik Langsung",
+      "subtitle": "Ketelusan masa nyata ke dalam rangkaian global, keahlian aktif, dan penglibatan kewangan yang berjaya.",
+      "totalRegisteredMembers": "Jumlah Ahli Berdaftar",
+      "verifiedFreelancers": "Freelancer Disahkan",
+      "packageInvestmentOverview": "Ringkasan Pelaburan Pakej",
+      "countriesConnected": "Negara Bersambung"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -917,9 +942,6 @@
     "card4Title": "Prestasi & Tanggungjawab Kempen",
     "card4Sub": "Tanggungjawab Terdesentralisasi",
     "card4Desc": "Iklan Kewangan Oxford: Kempen pengiklanan beroperasi berdasarkan dinamik pasaran dan algoritma platform. Pelanggan mengekalkan tanggungjawab penuh untuk keputusan pemasaran, peruntukan belanjawan dan hasil perniagaan mereka.",
-    "card5Title": "Risiko Perkhidmatan & Penafian Pasaran",
-    "card5Sub": "Pengakuan Risiko",
-    "card5Desc": "Iklan Kewangan Oxford: Melaksanakan kempen pengiklanan digital melibatkan risiko pasaran dan turun naik dalam penglibatan khalayak. Prestasi kempen lepas tidak menjamin hasil masa depan yang sama. Iklan Kewangan Oxford menggunakan model pengoptimuman lanjutan, tetapi tidak dapat menjamin hasil jualan atau penukaran pasaran tertentu dengan kepastian mutlak. Pelanggan harus memperuntukkan belanjawan pemasaran berdasarkan matlamat perniagaan mereka dan menjalankan penyelidikan pasaran bebas sebelum melancarkan kempen berskala besar.",
     "footer": "Komited terhadap ketelusan, akauntabiliti dan kepimpinan beretika di seluruh dunia"
   },
   "privacySecurity": {
@@ -952,5 +974,33 @@
   },
   "language": {
     "switch": "Tukar Bahasa"
+  },
+  "hero": {
+    "title": "Mulakan",
+    "subtitle": "Perjalanan Bebas",
+    "description": "Berhubung dengan pelanggan, selesaikan projek profesional, dan kembangkan kerjaya bebas anda di seluruh dunia.",
+    "cta": "Daftar Percuma Sekarang"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Meraikan Pencapaian & Detik Pasukan",
+      "title": "Meraikan Pencapaian & Detik Pasukan",
+      "description": "Meraikan pencapaian, kejayaan, dan detik-detik bermakna bersama-sama. Setiap acara mencerminkan kerja berpasukan, pertumbuhan, dan komitmen kami untuk membina masa depan yang lebih kukuh."
+    },
+    "community": {
+      "badge": "Komuniti & Pasukan",
+      "title": "Komuniti & Pasukan",
+      "description": "Dibina atas perpaduan, kerjasama, dan rasa saling menghormati, komuniti dan pasukan kami mencipta peluang baharu setiap hari. Bekerja bersama, belajar bersama, dan mencapai kejayaan bersama adalah daya penggerak di sebalik pertumbuhan dan kemajuan kami yang berterusan."
+    },
+    "training": {
+      "badge": "Latihan & Pembangunan",
+      "title": "Latihan & Pembangunan",
+      "description": "Kami percaya bahawa pengetahuan adalah asas kejayaan yang lestari. Melalui latihan berterusan, pembangunan kemahiran, dan pembelajaran praktikal, kami memperkasakan setiap ahli untuk menghadapi cabaran masa depan dengan yakin. Dengan memupuk pembelajaran berterusan, kecemerlangan profesional, dan pembangunan kepimpinan, kami membina pasukan yang cekap dan yakin yang komited untuk memacu inovasi, mencapai kejayaan, dan mewujudkan pertumbuhan jangka panjang."
+    },
+    "life": {
+      "badge": "Kehidupan di Oxford Financial Ads",
+      "title": "Kehidupan di Oxford Financial Ads",
+      "description": "Tempat kerja kami ceria, kolaboratif, dan positif. Setiap ahli pasukan saling menyokong dengan senyuman, belajar bersama, bekerja bersama, dan berkongsi kegembiraan setiap pencapaian. Semangat keikhlasan, saling menghormati, dan kerja berpasukan ini menjadikan organisasi kami semakin kukuh setiap hari."
+    }
   }
 }

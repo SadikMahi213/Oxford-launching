@@ -38,7 +38,16 @@
     "address1": "25 Business Square",
     "address2": "Distrito ng Canary",
     "address3": "London, EC2A 4AB",
-    "address4": "United Kingdom"
+    "address4": "United Kingdom",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -73,7 +82,9 @@
       "success": "Matagumpay na naka-login",
       "blocked": "Ang iyong account ay pansamantalang na-block dahil sa maraming failed login attempts. Mangyaring makipag-ugnayan sa support team: support.oxfordfinancialads@gmail.com",
       "invalid": "Hindi wastong login",
-      "failed": "Bigo ang login"
+      "failed": "Bigo ang login",
+      "welcomeBack": "Maligayang Pagbabalik",
+      "welcomeSubtitle": "Mag-sign in upang ma-access ang iyong dashboard at palaguin ang iyong portfolio."
     },
     "register": {
       "title": "Gumawa ng Iyong Account",
@@ -172,7 +183,10 @@
       "err_agree": "Dapat kang sumang-ayon sa mga tuntunin at kundisyon",
       "success": "Matagumpay ang pagpaparehistro!",
       "networkError": "Network error o hindi maabot ang server",
-      "error": "May maling nangyari"
+      "error": "May maling nangyari",
+      "joinTitle": "Sumali Ngayon",
+      "joinSubtitle": "Gumawa ng account upang magsimulang kumita gamit ang aming modernong platform para sa digital advertising.",
+      "perDay": "/araw"
     },
     "forgotPassword": {
       "title": "I-reset ang Iyong Password",
@@ -707,11 +721,14 @@
     "all": "Lahat",
     "none": "Wala",
     "required": "Kinakailangan",
-    "optional": "Opsyonal"
+    "optional": "Opsyonal",
+    "scrollToTop": "Mag-scroll sa itaas"
   },
   "homePage": {
     "imageAlt": "Serbisyong Pinansyal",
-    "altOurCommitment": "Ang Aming Pangako"
+    "altOurCommitment": "Ang Aming Pangako",
+    "altGlobalCertifications": "Pandaigdigang Sertipikasyon at Pangako",
+    "altHero": "Team ng Oxford Financial Ads"
   },
   "home": {
     "executiveSummary": {
@@ -724,7 +741,8 @@
       "activitiesVal": "Digital at Online",
       "networkVal": "Pandaigdigang Komunidad",
       "opportunitiesVal": "Batay sa Pagganap",
-      "goalVal": "Kasanayan at Paglago"
+      "goalVal": "Kasanayan at Paglago",
+      "aboutTitle": "Tungkol sa"
     },
     "whyChooseUs": {
       "title": "Ang aming",
@@ -855,7 +873,14 @@
       "totalActiveInvestors": "Kabuuang Aktibong Mamumuhunan",
       "totalInvestmentsMade": "Kabuuang Puhunan na Ginawa",
       "totalProfitsGenerated": "Kabuuang Kita na Nabuo",
-      "successfulWithdrawals": "Matagumpay na Pag-withdraw"
+      "successfulWithdrawals": "Matagumpay na Pag-withdraw",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Live Statistics",
+      "subtitle": "Real-time na transparency sa aming pandaigdigang network, aktibong membership, at matagumpay na pinansyal na pakikipag-ugnayan.",
+      "totalRegisteredMembers": "Kabuuang Rehistradong Miyembro",
+      "verifiedFreelancers": "Na-verify na Freelancer",
+      "packageInvestmentOverview": "Pangkalahatang-ideya sa Investment ng Package",
+      "countriesConnected": "Mga Konektadong Bansa"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -917,9 +942,6 @@
     "card4Title": "Pagganap at Pananagutan ng Kampanya",
     "card4Sub": "Desentralisadong Pananagutan",
     "card4Desc": "Oxford Financial Ad: Gumagana ang mga kampanya sa pag-advertise batay sa dynamics ng merkado at mga algorithm ng platform. Pinapanatili ng mga kliyente ang buong responsibilidad para sa kanilang mga desisyon sa marketing, paglalaan ng badyet, at mga resulta ng negosyo.",
-    "card5Title": "Panganib sa Serbisyo at Disclaimer sa Market",
-    "card5Sub": "Pagkilala sa Panganib",
-    "card5Desc": "Oxford Financial Ad: Ang pagpapatupad ng mga digital na kampanya sa advertising ay nagsasangkot ng mga panganib sa merkado at pagbabagu-bago sa pakikipag-ugnayan ng madla. Hindi ginagarantiyahan ng nakaraang pagganap ng kampanya ang magkatulad na mga resulta sa hinaharap. Gumagamit ang Oxford Financial Ads ng mga advanced na modelo ng pag-optimize, ngunit hindi magagarantiyahan ang mga partikular na resulta ng conversion ng benta o market nang may ganap na katiyakan. Dapat maglaan ang mga kliyente ng mga badyet sa marketing batay sa kanilang mga layunin sa negosyo at magsagawa ng independiyenteng pananaliksik sa merkado bago maglunsad ng mga malakihang kampanya.",
     "footer": "Nakatuon sa transparency, accountability, at etikal na pamumuno sa buong mundo"
   },
   "privacySecurity": {
@@ -952,5 +974,33 @@
   },
   "language": {
     "switch": "Lumipat ng Wika"
+  },
+  "hero": {
+    "title": "Simulan Ang",
+    "subtitle": "Paglalakbay sa Freelance",
+    "description": "Kumonekta sa mga kliyente, kumpletuhin ang mga propesyonal na proyekto, at palaguin ang iyong freelance career sa buong mundo.",
+    "cta": "Magrehistro Nang Libre Ngayon"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Ipinagdiriwang ang Mga Milestone at Mga Sandali ng Team",
+      "title": "Ipinagdiriwang ang Mga Milestone at Mga Sandali ng Team",
+      "description": "Sama-samang ipinagdiriwang ang mga milestone, tagumpay, at di-malilimutang sandali. Ang bawat event ay sumasalamin sa ating teamwork, paglago, at pangako sa pagbuo ng mas matibay na hinaharap."
+    },
+    "community": {
+      "badge": "Komunidad at Team",
+      "title": "Komunidad at Team",
+      "description": "Itinayo sa pagkakaisa, kolaborasyon, at paggalang sa isa't isa, ang ating komunidad at team ay lumilikha ng mga bagong oportunidad araw-araw. Ang pagtutulungan, pagsasama-sama sa pag-aaral, at pagsasama-sama sa tagumpay ay ang mga puwersang nagtutulak sa ating patuloy na paglago at pag-unlad."
+    },
+    "training": {
+      "badge": "Pagsasanay at Pag-unlad",
+      "title": "Pagsasanay at Pag-unlad",
+      "description": "Naniniwala kami na ang kaalaman ay pundasyon ng pangmatagalang tagumpay. Sa pamamagitan ng patuloy na pagsasanay, pagpapaunlad ng kasanayan, at praktikal na pagkatuto, binibigyang-kapangyarihan namin ang bawat miyembro na harapin ang mga hamon ng hinaharap nang may kumpiyansa. Sa paglinang ng patuloy na pagkatuto, propesyonal na kahusayan, at pagpapaunlad ng pamumuno, nagtatayo kami ng isang may kakayahan at tiwala-sa-sariling team na nakatuon sa paghimok ng inobasyon, pagkamit ng tagumpay, at paglikha ng pangmatagalang paglago."
+    },
+    "life": {
+      "badge": "Buhay sa Oxford Financial Ads",
+      "title": "Buhay sa Oxford Financial Ads",
+      "description": "Ang aming lugar ng trabaho ay masigla, kolaboratibo, at positibo. Bawat miyembro ng team ay sumusuporta sa isa't isa nang may ngiti, nag-aaral nang sama-sama, nagtatrabaho nang sama-sama, at nagbabahagi ng kagalakan ng bawat tagumpay. Ang espiritu ng katapatan, paggalang sa isa't isa, at teamwork ay nagpapalakas sa aming organisasyon araw-araw."
+    }
   }
 }

@@ -46,7 +46,16 @@
     "serving": "Serving Members Worldwide",
     "support247": "24/7 Online Operations & Support",
     "supportEmail": "support.oxfordfinancialads@gmail.com",
-    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "hero": {
     "title": "Start Your",
@@ -67,7 +76,9 @@
       "success": "Login successful",
       "blocked": "Your account has been temporarily blocked due to multiple failed login attempts. Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com",
       "invalid": "Invalid login",
-      "failed": "Login failed"
+      "failed": "Login failed",
+      "welcomeBack": "Welcome Back",
+      "welcomeSubtitle": "Sign in to access your dashboard and grow your portfolio."
     },
     "register": {
       "title": "Create Your Account",
@@ -167,7 +178,10 @@
       "success": "Registration successful!",
       "success_paid": "Registration submitted! Please complete payment to activate your account.",
       "networkError": "Network error or server not reachable",
-      "error": "Something went wrong"
+      "error": "Something went wrong",
+      "joinTitle": "Join Us Today",
+      "joinSubtitle": "Create an account to start earning with our modern platform for digital advertising.",
+      "perDay": "/day"
     },
     "forgotPassword": {
       "title": "Reset Your Password",
@@ -840,7 +854,8 @@
       "activitiesVal": "Digital & Online",
       "networkVal": "Global Community",
       "opportunitiesVal": "Performance Based",
-      "goalVal": "Skill & Growth"
+      "goalVal": "Skill & Growth",
+      "aboutTitle": "About"
     },
     "whyChooseUs": {
       "title": "Our",
@@ -976,7 +991,11 @@
       "totalActiveInvestors": "Total Active Investors",
       "totalInvestmentsMade": "Total Investments Made",
       "totalProfitsGenerated": "Total Profits Generated",
-      "successfulWithdrawals": "Successful Withdrawals"
+      "successfulWithdrawals": "Successful Withdrawals",
+      "totalRegisteredMembers": "Total Registered Members",
+      "verifiedFreelancers": "Verified Freelancers",
+      "packageInvestmentOverview": "Package Investment Overview",
+      "countriesConnected": "Countries Connected"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1038,9 +1057,6 @@
     "card4Title": "Campaign Performance & Responsibility",
     "card4Sub": "Decentralized Responsibility",
     "card4Desc": "Oxford Financial Ads: Advertising campaigns operate based on market dynamics and platform algorithms. Clients maintain full responsibility for their marketing decisions, budget allocations, and business outcomes.",
-    "card5Title": "Service Risk & Market Disclaimer",
-    "card5Sub": "Risk Acknowledgment",
-    "card5Desc": "Oxford Financial Ads: Executing digital advertising campaigns involves market risks and fluctuations in audience engagement. Past campaign performance does not guarantee identical future results. Oxford Financial Ads uses advanced optimization models, but cannot guarantee specific sales or market conversion outcomes with absolute certainty. Clients should allocate marketing budgets based on their business goals and conduct independent market research before launching large-scale campaigns.",
     "footer": "Committed to transparency, accountability, and ethical leadership worldwide"
   },
   "privacySecurity": {
@@ -1788,7 +1804,8 @@
     "collapse": "Collapse",
     "announcement": "Announcement",
     "continue": "Continue",
-    "closeAnnouncement": "Close announcement"
+    "closeAnnouncement": "Close announcement",
+    "scrollToTop": "Scroll to top"
   },
   "roadmap": {
     "badge": "Roadmap",
@@ -1984,7 +2001,9 @@
   },
   "homePage": {
     "imageAlt": "Financial Services",
-    "altOurCommitment": "Our Commitment"
+    "altOurCommitment": "Our Commitment",
+    "altGlobalCertifications": "Global Certifications & Commitment",
+    "altHero": "Oxford Financial Ads team"
   },
   "language": {
     "switch": "Switch Language"

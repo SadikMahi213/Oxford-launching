@@ -38,7 +38,16 @@
     "address1": "25 Business Square",
     "address2": "Canary District",
     "address3": "London, EC2A 4AB",
-    "address4": "United Kingdom"
+    "address4": "United Kingdom",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "faq": {
     "badge": "FAQ",
@@ -73,7 +82,9 @@
       "success": "You don login success",
       "blocked": "Your account don dey blocked temporarily because plenty failed login attempts. Abeg contact support: support.oxfordfinancialads@gmail.com",
       "invalid": "Login no correct",
-      "failed": "Login no work"
+      "failed": "Login no work",
+      "welcomeBack": "Welcome Back",
+      "welcomeSubtitle": "Sign in to access your dashboard and grow your portfolio."
     },
     "register": {
       "title": "Create Your Account",
@@ -172,7 +183,10 @@
       "err_agree": "You must agree to terms & conditions",
       "success": "Registration success!",
       "networkError": "Network error or server no dey reachable",
-      "error": "Something don happen"
+      "error": "Something don happen",
+      "joinTitle": "Join Us Today",
+      "joinSubtitle": "Create account to start earning with our modern platform for digital advertising.",
+      "perDay": "/day"
     },
     "forgotPassword": {
       "title": "Reset Your Password",
@@ -707,10 +721,13 @@
     "all": "All",
     "none": "None",
     "required": "Needed",
-    "optional": "No Be Must"
+    "optional": "No Be Must",
+    "scrollToTop": "Scroll go top"
   },
   "homePage": {
-    "imageAlt": "Financial Services"
+    "imageAlt": "Financial Services",
+    "altGlobalCertifications": "Global Certifications & Commitment",
+    "altHero": "Oxford Financial Ads team"
   },
   "home": {
     "ecommerce": {
@@ -725,6 +742,47 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "platformStats": {
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Live Statistics",
+      "subtitle": "Real-time transparency into our global network, active memberships, and successful financial engagements.",
+      "totalRegisteredMembers": "Total Registered Members",
+      "verifiedFreelancers": "Verified Freelancers",
+      "packageInvestmentOverview": "Package Investment Overview",
+      "countriesConnected": "Countries Connected",
+      "successfulWithdrawals": "Successful Withdrawals"
+    },
+    "executiveSummary": {
+      "aboutTitle": "About"
+    }
+  },
+  "hero": {
+    "title": "Start Your",
+    "subtitle": "Freelancing Journey",
+    "description": "Connect with clients, complete professional projects, and grow your freelance career for the whole world.",
+    "cta": "Register Free Now"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Celebrating Milestones & Team Moments",
+      "title": "Celebrating Milestones & Team Moments",
+      "description": "We dey celebrate our milestones, achievements, and memorable moments together. Every event show our teamwork, growth, and commitment to build a stronger future."
+    },
+    "community": {
+      "badge": "Community & Team",
+      "title": "Community & Team",
+      "description": "We build am on unity, collaboration, and respect for each other. Our community and team dey create new opportunities every day. Working together, learning together, and winning together na wetin dey drive our growth and progress."
+    },
+    "training": {
+      "badge": "Training & Development",
+      "title": "Training & Development",
+      "description": "We believe say knowledge na the foundation of success wey go last. Through continuous training, skill development, and practical learning, we dey help every member to face future challenges with confidence. By promoting continuous learning, professional excellence, and leadership, we dey build a capable team wey go drive innovation, achieve success, and create long-term growth."
+    },
+    "life": {
+      "badge": "Life at Oxford Financial Ads",
+      "title": "Life at Oxford Financial Ads",
+      "description": "Our workplace dey vibrant, collaborative, and positive. Every team member dey support one another with smile, dey learn together, dey work together, and dey share the joy of every achievement. This spirit of sincerity, respect, and teamwork dey make our organization stronger every day."
     }
   }
 }
