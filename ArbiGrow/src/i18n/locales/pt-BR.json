@@ -1356,10 +1356,10 @@
     "title": "Redefinir Sua Senha"
   },
   "heroSection": {
-    "badge": "Alocações Protegidas por Smart Contract",
-    "subtitle": "Selecione seu nível de alocação de capital para participar de estratégias de negociação automatizadas por IA na Arbitrum Layer-2. Todas as alocações são não-custodiais e protegidas por contratos inteligentes.",
-    "title": "Participação em Estratégias",
-    "titleHighlight": "Níveis"
+    "badge": "Planos de Investimento",
+    "subtitle": "Soluções de investimento personalizadas projetadas para atender aos seus objetivos financeiros, apetite de risco e visão para o futuro.",
+    "title": "Escolha Seu",
+    "titleHighlight": "Pacote Perfeito"
   },
   "investmentCard": {
     "dailyPayment": "Pagamento Diário",

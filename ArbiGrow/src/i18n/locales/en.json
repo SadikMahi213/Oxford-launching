@@ -2078,10 +2078,10 @@
     "legalText": "Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating."
   },
   "heroSection": {
-    "badge": "Smart Contract Secured Allocations",
-    "title": "Strategy Participation",
-    "titleHighlight": "Tiers",
-    "subtitle": "Select your capital allocation tier to participate in automated AI-driven trading strategies on Arbitrum Layer-2. All allocations are non-custodial and secured by smart contracts."
+    "badge": "Investment Plans",
+    "title": "Choose Your Perfect",
+    "titleHighlight": "Package",
+    "subtitle": "Tailored investment solutions designed to match your financial goals, risk appetite, and vision for the future."
   },
   "packageModal": {
     "adViewPackage": "Ad View",

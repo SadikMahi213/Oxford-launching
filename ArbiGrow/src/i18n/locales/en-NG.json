@@ -1274,10 +1274,10 @@
     "title": "Reset Your Password"
   },
   "heroSection": {
-    "badge": "Smart Contract Secured Allocations",
-    "subtitle": "Select your capital allocation tier to participate in automated AI-driven trading strategies on Arbitrum Layer-2. All allocations are non-custodial and secured by smart contracts.",
-    "title": "Strategy Participation",
-    "titleHighlight": "Tiers"
+    "badge": "Investment Plans",
+    "subtitle": "Tailored investment solutions designed to match your financial goals, risk appetite, and vision for the future.",
+    "title": "Choose Your Perfect",
+    "titleHighlight": "Package"
   },
   "investmentCard": {
     "dailyPayment": "Daily Payment",

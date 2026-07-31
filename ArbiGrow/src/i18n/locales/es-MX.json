@@ -1356,10 +1356,10 @@
     "title": "Restablece Tu Contraseña"
   },
   "heroSection": {
-    "badge": "Asignaciones Protegidas por Smart Contract",
-    "subtitle": "Selecciona tu nivel de asignación de capital para participar en estrategias de negociación automatizadas con IA en Arbitrum Layer-2. Todas las asignaciones son no custodiales y están protegidas por contratos inteligentes.",
-    "title": "Participación en Estrategias",
-    "titleHighlight": "Niveles"
+    "badge": "Planes de Inversión",
+    "subtitle": "Soluciones de inversión personalizadas diseñadas para alinearse con tus objetivos financieros, tolerancia al riesgo y visión de futuro.",
+    "title": "Elige Tu",
+    "titleHighlight": "Paquete Perfecto"
   },
   "investmentCard": {
     "dailyPayment": "Pago Diario",
