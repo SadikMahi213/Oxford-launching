@@ -26,8 +26,7 @@
     "copyright": "© {{year}} آکسفورڈ فنانشل ایڈز۔ تمام حقوق محفوظ ہیں۔ | پرائیویسی پالیسی | شرائط و ضوابط | AML اور KYC پالیسی | ہم سے رابطہ کریں",
     "logoAlt": "میرا لوگو",
     "logoAltMobile": "آکسفورڈ فنانشل ایڈز لوگو",
-    "tagline": "ڈیجیٹل سروسز",
-    "taglineMobile": "AI ٹریڈنگ"
+    "tagline": "ڈیجیٹل سروسز"
   },
   "footer": {
     "description": "اپنے برانڈ کو عالمی سطح پر بلند کریں۔ آکسفورڈ فائنانشیل ایڈز ایک بین الاقوامی اشتہاری ایجنسی ہے جو کاروباروں کو عالمی بازار میں اپنے برانڈ قائم کرنے میں مدد دیتی ہے۔",
@@ -1051,6 +1050,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "دیانتداری اور گورننس",
+      "title": "پیچھے کے اصول",
+      "titleHighlight": "جو کچھ ہم کرتے ہیں",
+      "description": "ہماری تنظیم اخلاقی قیادت اور ذمہ دار گورننس کی بنیاد پر قائم ہے۔ یہ بنیادی اصول ہمارے ہر فیصلے اور ہمارے عالمی نیٹ ورک میں بنائے گئے ہر تعلق کی رہنمائی کرتے ہیں۔"
     }
   },
   "securityStandards": {

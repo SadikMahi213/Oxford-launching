@@ -26,8 +26,7 @@
     "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
-    "tagline": "Digital Services",
-    "taglineMobile": "AI Trading"
+    "tagline": "Digital Services"
   },
   "footer": {
     "description": "Make Your Brand Shine for Global People. Oxford Financial Ads na international advertising agency wey dey help businesses make their brand known for global market.",
@@ -1051,6 +1050,12 @@
       "description": "",
       "title": "",
       "titleHighlight": ""
+    },
+    "integrityFeatures": {
+      "badge": "Integrity and Governance",
+      "title": "The Principles Behind",
+      "titleHighlight": "Everything We Do",
+      "description": "Our organization na build on foundation of ethical leadership and responsible governance. These core principles dey guide every decision we make and every relationship we build across our global network."
     }
   },
   "hero": {

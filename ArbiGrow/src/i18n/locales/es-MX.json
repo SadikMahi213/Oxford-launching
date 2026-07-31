@@ -26,8 +26,7 @@
     "copyright": "© {{year}} Oxford Financial Ads. Todos los Derechos Reservados. | Política de Privacidad | Términos y Condiciones | Política AML y KYC | Contáctenos",
     "logoAlt": "Mi Logotipo",
     "logoAltMobile": "Logotipo Oxford Financial Ads",
-    "tagline": "Servicios Digitales",
-    "taglineMobile": "Trading de IA"
+    "tagline": "Servicios Digitales"
   },
   "footer": {
     "description": "Eleva Tu Marca Globalmente. Oxford Financial Ads es una agencia de publicidad internacional dedicada a ayudar a empresas a establecer sus marcas en el mercado global.",
@@ -1051,6 +1050,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "Integridad y Gobernanza",
+      "title": "Los Principios Detrás",
+      "titleHighlight": "Todo lo que Hacemos",
+      "description": "Nuestra organización se basa en un liderazgo ético y una gobernanza responsable. Estos principios fundamentales guían cada decisión que tomamos y cada relación que construimos en nuestra red global."
     }
   },
   "securityStandards": {

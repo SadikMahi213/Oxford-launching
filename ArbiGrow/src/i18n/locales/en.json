@@ -21,7 +21,6 @@
     "comingSoon": "Coming Soon",
     "brandName": "Oxford Financial Ads",
     "tagline": "Digital Services",
-    "taglineMobile": "AI Trading",
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
     "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
@@ -1057,6 +1056,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "Integrity & Governance",
+      "title": "The Principles Behind",
+      "titleHighlight": "Everything We Do",
+      "description": "Our organization is built on a foundation of ethical leadership and responsible governance. These core principles guide every decision we make and every relationship we build across our global network."
     }
   },
   "securityStandards": {

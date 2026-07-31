@@ -272,7 +272,7 @@ export default function Navbar() {
                         {t("nav.brandName")}
                       </div>
                       <div className="text-[8px] text-cyan-400/80 uppercase tracking-wider">
-                        {t("nav.taglineMobile")}
+                        {t("nav.tagline")}
                       </div>
                     </div>
                   </div>

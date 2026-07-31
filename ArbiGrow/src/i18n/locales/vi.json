@@ -26,8 +26,7 @@
     "copyright": "© {{year}} Oxford Financial Ads. Đã đăng ký bản quyền. | Chính Sách Quyền Riêng Tư | Điều Khoản & Điều Kiện | Chính Sách AML & KYC | Liên Hệ",
     "logoAlt": "Logo Của Tôi",
     "logoAltMobile": "Logo Oxford Financial Ads",
-    "tagline": "Dịch Vụ Kỹ Thuật Số",
-    "taglineMobile": "Giao Dịch AI"
+    "tagline": "Dịch Vụ Kỹ Thuật Số"
   },
   "footer": {
     "description": "Nâng Tầm Thương Hiệu Toàn Cầu. Oxford Financial Ads là công ty quảng cáo quốc tế chuyên giúp doanh nghiệp thiết lập thương hiệu trên thị trường toàn cầu.",
@@ -1051,6 +1050,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "Liêm Chính & Quản Trị",
+      "title": "Nguyên tắc Đằng sau",
+      "titleHighlight": "Mọi Điều Chúng Tôi Làm",
+      "description": "Tổ chức của chúng tôi được xây dựng trên nền tảng lãnh đạo đạo đức và quản trị có trách nhiệm. Những nguyên tắc cốt lõi này hướng dẫn mọi quyết định chúng tôi đưa ra và mọi mối quan hệ chúng tôi xây dựng trên mạng lưới toàn cầu."
     }
   },
   "securityStandards": {

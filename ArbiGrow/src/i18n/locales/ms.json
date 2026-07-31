@@ -26,8 +26,7 @@
     "copyright": "© {{year}} Oxford Financial Ads. Hak Cipta Terpelihara. | Dasar Privasi | Terma & Syarat | Dasar AML & KYC | Hubungi Kami",
     "logoAlt": "Logo Saya",
     "logoAltMobile": "Logo Oxford Financial Ads",
-    "tagline": "Perkhidmatan Digital",
-    "taglineMobile": "Dagangan AI"
+    "tagline": "Perkhidmatan Digital"
   },
   "footer": {
     "description": "Tingkatkan Jenama Anda Secara Global. Oxford Financial Ads ialah agensi pengiklanan antarabangsa yang membantu perniagaan membina jenama di pasaran global.",
@@ -1051,6 +1050,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "Integriti & Tadbir Urus",
+      "title": "Prinsip Di Sebalik",
+      "titleHighlight": "Segala yang Kami Lakukan",
+      "description": "Organisasi kami dibina di atas asas kepimpinan beretika dan tadbir urus yang bertanggungjawab. Prinsip-prinsip teras ini membimbing setiap keputusan yang kami buat dan setiap hubungan yang kami bina merentasi rangkaian global kami."
     }
   },
   "securityStandards": {

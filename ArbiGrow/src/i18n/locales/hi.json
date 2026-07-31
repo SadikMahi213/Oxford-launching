@@ -26,8 +26,7 @@
     "copyright": "© {{year}} ऑक्सफोर्ड फाइनेंशियल एड्स। सर्वाधिकार सुरक्षित। | गोपनीयता नीति | नियम और शर्तें | AML और KYC नीति | संपर्क करें",
     "logoAlt": "मेरा लोगो",
     "logoAltMobile": "ऑक्सफोर्ड फाइनेंशियल एड्स लोगो",
-    "tagline": "डिजिटल सेवाएं",
-    "taglineMobile": "एआई ट्रेडिंग"
+    "tagline": "डिजिटल सेवाएं"
   },
   "footer": {
     "description": "अपने ब्रांड को वैश्विक स्तर पर ऊंचाई दें। ऑक्सफोर्ड फाइनेंशियल एड्स एक अंतरराष्ट्रीय विज्ञापन एजेंसी है जो व्यवसायों को वैश्विक बाजार में अपने ब्रांड स्थापित करने में सहायता करती है।",
@@ -1051,6 +1050,12 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+    "integrityFeatures": {
+      "badge": "अखंडता और प्रशासन",
+      "title": "पीछे के सिद्धांत",
+      "titleHighlight": "जो कुछ भी हम करते हैं",
+      "description": "हमारा संगठन नैतिक नेतृत्व और जिम्मेदार प्रशासन की नींव पर बना है। ये मुख्य सिद्धांत हमारे हर निर्णय और हमारे वैश्विक नेटवर्क में बनाए गए हर संबंध का मार्गदर्शन करते हैं।"
     }
   },
   "securityStandards": {
