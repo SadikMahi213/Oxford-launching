@@ -3,12 +3,8 @@ import { motion } from "motion/react";
 import {
   Building2,
   ShieldCheck,
-  FileText,
   Scale,
-  AlertTriangle,
   CheckCircle2,
-  Landmark,
-  ScrollText,
   Globe,
   HeartHandshake,
 } from "lucide-react";
@@ -59,15 +55,6 @@ export function CorporateIntegrity() {
       gradient: "from-purple-600/20 to-violet-600/20",
       border: "border-purple-500/30",
       iconColor: "text-purple-400",
-    },
-    {
-      icon: AlertTriangle,
-      title: t("corporateIntegrity.card5Title"),
-      subtitle: t("corporateIntegrity.card5Sub"),
-      description: t("corporateIntegrity.card5Desc"),
-      gradient: "from-rose-600/20 to-pink-600/20",
-      border: "border-rose-500/30",
-      iconColor: "text-rose-400",
     },
   ];
 
