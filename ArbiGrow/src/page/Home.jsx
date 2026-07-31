@@ -104,7 +104,7 @@ const Home = () => {
       </div>
 
       {/* Commitment Hero Image */}
-      <div className="flex justify-center my-6 md:my-8 px-4 md:px-8">
+      <div className="flex justify-center my-3 md:my-4 px-4 md:px-8">
         <div className="relative group max-w-6xl w-full">
           {/* Subtle glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/15 via-blue-500/15 to-cyan-500/15 rounded-3xl blur-xl opacity-60 group-hover:opacity-100 transition duration-1000 group-hover:duration-500"></div>
@@ -141,6 +141,7 @@ const Home = () => {
         description={t("showcase.training.description")}
         images={trainingImages}
         imageAlt={t("homePage.imageAlt")}
+        accentClass="from-purple-500 via-violet-400 to-fuchsia-400"
       />
       <div id="corporate">
         <CorporateIntegrity />
@@ -157,6 +158,7 @@ const Home = () => {
         images={communityImages}
         imageAlt={t("homePage.imageAlt")}
         reversed
+        accentClass="from-emerald-500 via-teal-400 to-green-400"
       />
       <div id="privacy">
         <PrivacySecurity />
@@ -172,6 +174,7 @@ const Home = () => {
         image={lifeImg}
         imageAlt={t("homePage.imageAlt")}
         reversed
+        accentClass="from-blue-500 via-sky-400 to-cyan-400"
       />
       <Footer />
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function ShowcaseSection({ badge, badgeIcon: BadgeIcon, title, description, image, images, imageAlt, reversed }) {
+export function ShowcaseSection({ badge, badgeIcon: BadgeIcon, title, description, image, images, imageAlt, reversed, accentClass = "from-pink-500 via-rose-400 to-orange-400" }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function ShowcaseSection({ badge, badgeIcon: BadgeIcon, title, descriptio
                 const parts = title.split(" & ");
                 return (
                   <>
-                    {parts[0]} & <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-orange-400">{parts.slice(1).join(" & ")}</span>
+                    {parts[0]} & <span className={`text-transparent bg-clip-text bg-gradient-to-r ${accentClass}`}>{parts.slice(1).join(" & ")}</span>
                   </>
                 );
               }
@@ -62,7 +62,7 @@ export function ShowcaseSection({ badge, badgeIcon: BadgeIcon, title, descriptio
                 return (
                   <>
                     {words.slice(0, splitIdx).join(" ")}{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-orange-400">
+                    <span className={`text-transparent bg-clip-text bg-gradient-to-r ${accentClass}`}>
                       {words.slice(splitIdx).join(" ")}
                     </span>
                   </>
