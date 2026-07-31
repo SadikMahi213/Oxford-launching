@@ -1,0 +1,134 @@
+import { useEffect, useRef, useState } from "react"
+
+const SPIN_KEYFRAMES = `
+@keyframes ofa-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes ofa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ofa-glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+`
+
+const OFACryptocurrency = () => {
+  const cardRef = useRef(null)
+  const coinRef = useRef(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    const card = cardRef.current
+    if (!card) return
+
+    const handleMouseMove = (e) => {
+      const rect = card.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / rect.width - 0.5
+      const y = (e.clientY - rect.top) / rect.height - 0.5
+      if (coinRef.current) {
+        coinRef.current.style.transform = `rotateY(${x * 25}deg) rotateX(${-y * 25}deg)`
+      }
+    }
+
+    const handleMouseLeave = () => {
+      if (coinRef.current) {
+        coinRef.current.style.transform = "rotateY(0deg) rotateX(0deg)"
+      }
+    }
+
+    card.addEventListener("mousemove", handleMouseMove)
+    card.addEventListener("mouseleave", handleMouseLeave)
+    return () => {
+      card.removeEventListener("mousemove", handleMouseMove)
+      card.removeEventListener("mouseleave", handleMouseLeave)
+    }
+  }, [])
+
+  if (!mounted) return null
+
+  return (
+    <>
+      <style>{SPIN_KEYFRAMES}</style>
+      <div
+        ref={cardRef}
+        className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.1)] overflow-hidden group"
+      >
+        {/* Animated bg orbs */}
+        <div className="pointer-events-none absolute -top-20 -right-20 w-40 h-40 rounded-full bg-blue-500/5 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite" }} />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-cyan-500/5 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite", animationDelay: "2s" }} />
+
+        {/* Title */}
+        <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+          OFA Cryptocurrency
+        </h3>
+        <p className="text-[11px] text-blue-300/70 mb-3 tracking-wide">The Native Digital Asset Powering Our Ecosystem</p>
+
+        {/* 3D Coin Container */}
+        <div className="relative flex items-center justify-center py-4">
+          <div
+            ref={coinRef}
+            className="relative w-28 h-28 rounded-full cursor-pointer"
+            style={{ transformStyle: "preserve-3d", perspective: "800px", transition: "transform 0.15s ease-out", animation: "ofa-float 3s ease-in-out infinite" }}
+          >
+            {/* Glow ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/30 via-cyan-400/20 to-blue-600/30 blur-xl" style={{ animation: "ofa-glow-pulse 3s ease-in-out infinite" }} />
+
+            {/* Outer ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 shadow-[0_0_30px_rgba(234,179,8,0.3)]" style={{ clipPath: "inset(2px round 50%)", animation: "ofa-spin 10s linear infinite" }} />
+
+            {/* Coin face */}
+            <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a3e] to-[#0d0d2b] border border-yellow-500/30 flex items-center justify-center shadow-[inset_0_0_30px_rgba(59,130,246,0.15)]">
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-500/10 to-cyan-400/5" />
+
+              {/* OFA symbol */}
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="text-xl font-black bg-gradient-to-br from-blue-300 via-cyan-300 to-blue-400 bg-clip-text text-transparent" style={{ filter: "drop-shadow(0 0 12px rgba(59,130,246,0.5))" }}>
+                  OFA
+                </div>
+                <div className="text-[8px] text-yellow-400/80 mt-0.5 font-mono tracking-widest">TOKEN</div>
+              </div>
+
+              {/* Decorative rings */}
+              <div className="absolute inset-[6px] rounded-full border border-blue-500/10" />
+              <div className="absolute inset-[10px] rounded-full border border-dashed border-yellow-500/20" style={{ animation: "ofa-spin 20s linear infinite" }} />
+              <div className="absolute inset-[14px] rounded-full border border-blue-500/8" />
+            </div>
+
+            {/* Inner shine */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tl from-transparent via-white/5 to-transparent pointer-events-none" />
+
+            {/* Top reflection */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-8 rounded-full bg-gradient-to-b from-white/10 to-transparent blur-sm pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Description */}
+        <p className="text-[11px] text-gray-400 leading-relaxed text-center mt-1">
+          Experience a next-generation blockchain-powered digital asset designed for secure transactions, rewards, and long-term ecosystem growth.
+        </p>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          {[
+            { label: "Symbol", value: "OFA" },
+            { label: "Network", value: "BSC" },
+            { label: "Supply", value: "10M" },
+          ].map((s) => (
+            <div key={s.label} className="text-center p-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+              <div className="text-[9px] text-gray-500 uppercase tracking-wider">{s.label}</div>
+              <div className="text-xs font-bold text-white mt-0.5">{s.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
+export default OFACryptocurrency

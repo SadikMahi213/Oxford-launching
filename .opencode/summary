@@ -1,0 +1,61 @@
+## KYC Snapshot & Post-KYC Team Volume Logic — Implementation Complete
+
+### What was implemented
+
+**Database:**
+- Added `kyc_approved_team_volume` (Numeric(24,14), nullable) column to `users` table — captures lifetime team volume at the moment of first KYC approval. Permanent, never changes.
+
+**Backend `rank_service.py`:**
+- `get_team_volume(since=None)` — new optional `since` parameter. When provided, filters deposits and investments by `created_at >= since`. Wallet balance is excluded when `since` is set (running balance is not time-filterable).
+- `evaluate_and_process_rank()` — three-way volume selection:
+  - `use_snapshot_volume=True`: uses pre-calculated snapshot for KYC initial rank
+  - KYC-approved user, normal operation (`skip_bonus=False`): uses post-KYC volume (since `kyc_approved_at`)
+  - Otherwise: uses total lifetime volume (existing behavior, unchanged)
+- Total lifetime `team_volume` is always stored on `User` for dashboard display
+
+**Backend `admin.py`:**
+- KYC approval now calculates snapshot BEFORE committing status change
+- Stores `kyc_approved_team_volume` on first approval only (permanent)
+- Passes `use_snapshot_volume=True` with snapshot to `evaluate_and_process_rank()`
+- Ancestor walking continues unchanged (uses total volume at KYC time which is safe)
+
+**Backend `ranks.py`:**
+- `GET /v1/ranks/my-rank` now returns `kyc_approved_team_volume` and `post_kyc_team_volume` fields
+
+**Frontend `MatchingBonusInfo.jsx`:**
+- Added KYC Volume Breakdown cards showing:
+  - Lifetime Team Volume (total)
+  - Snapshot Volume / Pre-KYC (captured at approval)
+  - Post-KYC Team Volume (accumulated since approval)
+- Progress bar and rank table now use Post-KYC volume (or lifetime if not yet KYC-approved)
+
+**Translations (`en.json`):**
+- Added 6 new keys for volume breakdown labels
+- Updated "How Matching Bonus Works" descriptions to reflect post-KYC logic
+
+### Business Logic Verification
+
+| Requirement | Status |
+|---|---|
+| Lifetime Team Volume: 40 gen, no KYC filter | ✅ Unchanged |
+| Snapshot created once on first KYC approval | ✅ `rank_service.py:244-245` |
+| Initial rank from snapshot | ✅ `admin.py:904-911` |
+| Post-KYC volume starts at 0 after approval | ✅ `get_team_volume(since=kyc_approved_at)` |
+| Matching bonus from post-KYC volume only | ✅ `evaluate_and_process_rank()` uses since-filtered volume for KYC-approved users |
+| Future rank updates use post-KYC volume | ✅ Same as above |
+| No bonus from pre-KYC volume | ✅ `skip_bonus=True` at KYC time + separate post-KYC counter |
+
+### Files Modified
+- `arbigrow-fastapi/app/models/user.py` — added `kyc_approved_team_volume`
+- `arbigrow-fastapi/app/services/rank_service.py` — `get_team_volume(since)`, `evaluate_and_process_rank()` post-KYC logic
+- `arbigrow-fastapi/app/api/v1/admin.py` — KYC snapshot calculation + snapshot-based rank
+- `arbigrow-fastapi/app/api/v1/ranks.py` — return snapshot/post-KYC volume in API
+- `ArbiGrow/src/component/user/MatchingBonusInfo.jsx` — volume breakdown cards
+- `ArbiGrow/src/i18n/locales/en.json` — new translation keys
+- `users` table — new `kyc_approved_team_volume` column (nullable)
+
+### Deployment
+- All files SCP'd to server
+- Docker containers rebuilt and restarted
+- SQL column added via `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`
+- API verified: `GET /v1/ranks/my-rank` returns all expected fields including the two new volume fields
