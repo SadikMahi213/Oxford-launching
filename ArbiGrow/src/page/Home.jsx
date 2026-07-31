@@ -9,7 +9,6 @@ import { SecurityCompliance } from "../component/SecurityCompliance";
 import { GlobalCertifications } from "../component/GlobalCertifications";
 import { SecurityStandards } from "../component/SecurityStandards";
 import { CorporateIntegrity } from "../component/CorporateIntegrity";
-import { IntegrityFeatures } from "../component/IntegrityFeatures";
 import { CertifiedExcellence } from "../component/CertifiedExcellence";
 import Founders from "../component/Founder";
 import { PrivacySecurity } from "../component/PrivacySecurity";
@@ -147,7 +146,6 @@ const Home = () => {
         <CorporateIntegrity />
       </div>
 
-      <IntegrityFeatures />
       <CertifiedExcellence />
 
       <ShowcaseSection
