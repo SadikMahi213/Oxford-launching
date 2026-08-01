@@ -1185,12 +1185,97 @@ async def delete_user(
     await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
     from app.models.bank_info import BankInfo
     await db.execute(delete(BankInfo).where(BankInfo.user_id == user_id))
-    await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(
-        select(Order.id).where(Order.user_id == user_id).scalar_subquery()
-    )))
-    await db.execute(delete(Order).where(Order.user_id == user_id))
-    await db.execute(delete(Seller).where(Seller.user_id == user_id))
-    await db.execute(delete(Announcement).where(Announcement.user_id == user_id))
+    from app.models.cart import Cart, CartItem
+    cart_result = await db.execute(
+        select(Cart.id).where(Cart.user_id == user_id)
+    )
+    cart_ids = [row[0] for row in cart_result.all()]
+    if cart_ids:
+        await db.execute(delete(CartItem).where(CartItem.cart_id.in_(cart_ids)))
+        await db.execute(delete(Cart).where(Cart.id.in_(cart_ids)))
+
+    from app.models.wishlist import WishlistItem
+    from app.models.compare import CompareItem
+    from app.models.coupon import CouponUsage
+    from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
+    from app.models.ofa_coin_transaction import OFACoinTransaction
+    from app.models.product_review import ProductReview
+    from app.models.product_view import ProductView
+    from app.models.return_request import ReturnRequest
+    from app.models.vendor_withdraw import VendorWithdraw
+    await db.execute(delete(WishlistItem).where(WishlistItem.user_id == user_id))
+    await db.execute(delete(CompareItem).where(CompareItem.user_id == user_id))
+    await db.execute(delete(CouponUsage).where(CouponUsage.user_id == user_id))
+    await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.user_id == user_id))
+    await db.execute(delete(OFACoinTransaction).where(OFACoinTransaction.user_id == user_id))
+    await db.execute(delete(ProductReview).where(ProductReview.user_id == user_id))
+    await db.execute(delete(ProductView).where(ProductView.user_id == user_id))
+    await db.execute(delete(ReturnRequest).where(ReturnRequest.user_id == user_id))
+    await db.execute(delete(VendorWithdraw).where(VendorWithdraw.user_id == user_id))
+
+    user_order_result = await db.execute(
+        select(Order.id).where(Order.user_id == user_id)
+    )
+    user_order_ids = [row[0] for row in user_order_result.all()]
+
+    from app.models.order_attachment import OrderAttachment
+    from app.models.order_status_log import OrderStatusLog
+    from app.models.product import Product
+    seller_result = await db.execute(
+        select(Seller.id).where(Seller.user_id == user_id)
+    )
+    seller_ids = [row[0] for row in seller_result.all()]
+
+    product_ids: list[int] = []
+    if seller_ids:
+        product_result = await db.execute(
+            select(Product.id).where(Product.seller_id.in_(seller_ids))
+        )
+        product_ids = [row[0] for row in product_result.all()]
+
+    all_order_ids = list(dict.fromkeys(user_order_ids))
+    if seller_ids:
+        seller_order_result = await db.execute(
+            select(Order.id).where(Order.seller_id.in_(seller_ids))
+        )
+        all_order_ids = list(
+            dict.fromkeys(all_order_ids + [row[0] for row in seller_order_result.all()])
+        )
+
+    if all_order_ids:
+        await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(all_order_ids)))
+        await db.execute(delete(OrderAttachment).where(OrderAttachment.order_id.in_(all_order_ids)))
+        await db.execute(delete(OrderStatusLog).where(OrderStatusLog.order_id.in_(all_order_ids)))
+        await db.execute(delete(CouponUsage).where(CouponUsage.order_id.in_(all_order_ids)))
+        await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.order_id.in_(all_order_ids)))
+        await db.execute(delete(ReturnRequest).where(ReturnRequest.order_id.in_(all_order_ids)))
+        await db.execute(delete(ProductReview).where(ProductReview.order_id.in_(all_order_ids)))
+        await db.execute(delete(Order).where(Order.id.in_(all_order_ids)))
+
+    if product_ids:
+        from app.models.product_tag import ProductTag
+        from app.models.flash_deal import FlashDealProduct
+        from app.models.product_attribute_value import ProductAttributeValue
+        from app.models.product_variant import ProductVariant
+        await db.execute(delete(CartItem).where(CartItem.product_id.in_(product_ids)))
+        await db.execute(delete(WishlistItem).where(WishlistItem.product_id.in_(product_ids)))
+        await db.execute(delete(CompareItem).where(CompareItem.product_id.in_(product_ids)))
+        await db.execute(delete(ProductReview).where(ProductReview.product_id.in_(product_ids)))
+        await db.execute(delete(ProductView).where(ProductView.product_id.in_(product_ids)))
+        await db.execute(delete(ProductTag).where(ProductTag.product_id.in_(product_ids)))
+        await db.execute(delete(FlashDealProduct).where(FlashDealProduct.product_id.in_(product_ids)))
+        await db.execute(delete(ProductAttributeValue).where(ProductAttributeValue.product_id.in_(product_ids)))
+        await db.execute(delete(ProductVariant).where(ProductVariant.product_id.in_(product_ids)))
+        await db.execute(delete(OrderItem).where(OrderItem.product_id.in_(product_ids)))
+        await db.execute(delete(Product).where(Product.id.in_(product_ids)))
+
+    if seller_ids:
+        from app.models.seller_delivery_zone import SellerDeliveryZone
+        await db.execute(delete(SellerDeliveryZone).where(SellerDeliveryZone.seller_id.in_(seller_ids)))
+        await db.execute(delete(VendorWithdraw).where(VendorWithdraw.seller_id.in_(seller_ids)))
+        await db.execute(delete(Seller).where(Seller.id.in_(seller_ids)))
+
+    await db.execute(delete(Announcement).where(Announcement.created_by == user_id))
 
     await db.execute(
         update(User)
@@ -1224,7 +1309,7 @@ async def delete_user(
     await notify_admin(
         db=db, type="user_deleted",
         message=f"User #{user_id} was deleted by admin",
-        user_id=user_id, request=request,
+        request=request,
     )
 
     return {"message": "User deleted successfully"}
