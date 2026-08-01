@@ -133,12 +133,28 @@ class IdentityVerificationRequest(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    identifier: str = Field(..., min_length=1, max_length=255)
+    verification: str = Field(..., min_length=1, max_length=255)
 
 
 class ResetPasswordRequest(BaseModel):
     new_password: str
     token: str
+
+    @model_validator(mode="after")
+    def validate_password_strength(self):
+        password = self.new_password
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        if not any(c.isupper() for c in password):
+            raise ValueError("Password must contain an uppercase letter")
+        if not any(c.islower() for c in password):
+            raise ValueError("Password must contain a lowercase letter")
+        if not any(c.isdigit() for c in password):
+            raise ValueError("Password must contain a number")
+        if not any(c in "!@#$%^&*(),.?\":{}|<>" for c in password):
+            raise ValueError("Password must contain a special character")
+        return self
 
 
 class ResendVerificationRequest(BaseModel):

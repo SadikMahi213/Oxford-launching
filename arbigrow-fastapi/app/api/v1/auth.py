@@ -1,10 +1,11 @@
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, delete
 from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 import hashlib
+import hmac
 import secrets
 
 
@@ -12,6 +13,7 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.services.b2_service import generate_presigned_url
 from app.models.user import User
+from app.models.password_reset import PasswordResetSession
 from app.models.kyc import KYC
 from app.models.package import Package
 from app.models.investments import Investment
@@ -24,12 +26,12 @@ from app.schemas.user import (
 )
 from app.core.security import (
     hash_password, verify_password, create_access_token,
-    get_current_user_id, verify_password_reset_token,
+    get_current_user_id,
     generate_refresh_token, blacklist_access_token,
 )
 from app.core.rate_limiter import limiter
 from app.core.config import settings
-from app.tasks.email_tasks import send_password_reset_email_task, send_email_verification_task
+from app.tasks.email_tasks import send_email_verification_task
 from app.utils.generate_username import generate_username
 from app.utils.notifications import notify_admin
 from app.services.security_logger import SecurityLogger
@@ -54,6 +56,69 @@ def _hash_otp_code(otp_code: str) -> str:
 def _generate_user_no() -> str:
     # 11-digit number: 10,000,000,000 to 99,999,999,999
     return str(secrets.randbelow(9 * 10**10) + 10**10)
+
+
+def _client_context(request: Request) -> tuple[str | None, str | None]:
+    ip_address = request.client.host if request.client else None
+    if request.headers.get("x-forwarded-for"):
+        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
+    device = (request.headers.get("user-agent", "") or "")[:255]
+    return ip_address, device
+
+
+def _check_origin(request: Request) -> None:
+    """Lightweight CSRF defense for password-recovery endpoints.
+
+    Rejects state-changing requests whose Origin header is present but is not
+    one of the configured allowed origins. Requests without an Origin header
+    (non-browser clients) are unaffected.
+    """
+    origin = request.headers.get("origin")
+    if not origin:
+        return
+    allowed = set(settings.ALLOWED_ORIGINS)
+    if origin not in allowed:
+        raise HTTPException(status_code=403, detail="Request origin not allowed")
+
+
+async def _lookup_user_by_identifier(db: AsyncSession, identifier: str) -> User | None:
+    value = identifier.strip()
+    if not value:
+        return None
+    result = await db.execute(
+        select(User).where(
+            (func.lower(User.username) == value.lower())
+            | (User.user_no == value)
+            | (func.lower(User.email) == value.lower())
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+def _verification_matches(user: User, verification: str) -> bool:
+    """Check the submitted value against existing non-public profile data.
+
+    Accepts either the stored mobile number (normalised digits) or the stored
+    date of birth. Reuses only profile fields already held in the user record.
+    """
+    candidate = verification.strip()
+    if not candidate:
+        return False
+
+    if user.mobile_number:
+        stored_digits = "".join(ch for ch in user.mobile_number if ch.isdigit())
+        candidate_digits = "".join(ch for ch in candidate if ch.isdigit())
+        if stored_digits and candidate_digits:
+            if hmac.compare_digest(stored_digits, candidate_digits):
+                return True
+
+    if user.date_of_birth:
+        stored_iso = user.date_of_birth.isoformat()
+        normalized = candidate.replace("/", "-")
+        if hmac.compare_digest(stored_iso, normalized):
+            return True
+
+    return False
 
 
 @router.post("/signup", response_model=UserResponse)
@@ -430,33 +495,67 @@ async def forgot_password(
     data: ForgotPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    normalized_email = _normalize_email(data.email)
-    result = await db.execute(
-        select(User).where(func.lower(User.email) == normalized_email)
-    )
-    user = result.scalar_one_or_none()
+    _check_origin(request)
+    ip_address, device = _client_context(request)
+    sec_logger = SecurityLogger(db)
 
-    # returning success message (to prevent email enumeration)
+    user = await _lookup_user_by_identifier(db, data.identifier)
+
+    # Always return the same generic message to prevent account enumeration,
+    # regardless of whether the identifier or the verification value was wrong.
+    generic_message = "If this account exists and verification matches, a reset session has been created."
+
     if not user:
-        return {"message": "If this email exists, a reset link has been sent."}
+        await sec_logger.log(
+            event_type="password_reset_requested",
+            user_id=None,
+            ip_address=ip_address,
+            device=device,
+            details="Unknown recovery identifier",
+        )
+        return {"message": generic_message}
 
-    # short-lived token (15 minutes)
-    reset_token = create_access_token(
-        data={
-            "sub": str(user.id),
-            "type": "password_reset"
-        },
-        expires_minutes=15
+    if not _verification_matches(user, data.verification):
+        await sec_logger.log(
+            event_type="password_reset_failed",
+            user_id=user.id,
+            email=user.email,
+            ip_address=ip_address,
+            device=device,
+            details="Recovery verification mismatch",
+        )
+        return {"message": generic_message}
+
+    # Invalidate all previous reset sessions for this user.
+    await db.execute(
+        delete(PasswordResetSession).where(PasswordResetSession.user_id == user.id)
     )
 
-    reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password"
+    # Secure one-time reset token: store only the hash in the database.
+    reset_token = secrets.token_urlsafe(48)
+    token_hash = hashlib.sha256(reset_token.encode("utf-8")).hexdigest()
+    db.add(PasswordResetSession(
+        user_id=user.id,
+        token_hash=token_hash,
+        expires_at=datetime.now(timezone.utc)
+        + timedelta(minutes=settings.PASSWORD_RESET_EXPIRE_MINUTES),
+        ip_address=ip_address,
+        device=device,
+    ))
+    await db.commit()
 
-    # NOTE: Token is sent in email body, NOT in URL query string.
-    # This prevents exposure in browser history, server logs, and Referer headers.
+    await sec_logger.log(
+        event_type="password_reset_requested",
+        user_id=user.id,
+        email=user.email,
+        ip_address=ip_address,
+        device=device,
+        details="Password reset session created",
+    )
 
-    send_password_reset_email_task.delay(user.email, f"Your reset link: {reset_link}\n\nYour reset token: {reset_token}")
-
-    return {"message": "If this email exists, a reset link has been sent."}
+    # The token is returned to the client that proved profile-data knowledge.
+    # It is NOT placed in the URL to avoid browser history / log exposure.
+    return {"message": "Password reset session created.", "reset_token": reset_token}
 
 
 @router.post("/reset-password")
@@ -466,10 +565,48 @@ async def reset_password(
     data: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    user_id = verify_password_reset_token(data.token)
+    _check_origin(request)
+    ip_address, device = _client_context(request)
+    sec_logger = SecurityLogger(db)
+
+    token_hash = hashlib.sha256(data.token.encode("utf-8")).hexdigest()
+    result = await db.execute(
+        select(PasswordResetSession).where(PasswordResetSession.token_hash == token_hash)
+    )
+    session = result.scalar_one_or_none()
+
+    if not session:
+        await sec_logger.log(
+            event_type="password_reset_failed",
+            user_id=None,
+            ip_address=ip_address,
+            device=device,
+            details="Invalid reset token",
+        )
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    if session.used_at:
+        await sec_logger.log(
+            event_type="password_reset_failed",
+            user_id=session.user_id,
+            ip_address=ip_address,
+            device=device,
+            details="Reset token already used",
+        )
+        raise HTTPException(status_code=400, detail="Reset token has already been used")
+
+    if session.expires_at < datetime.now(timezone.utc):
+        await sec_logger.log(
+            event_type="password_reset_failed",
+            user_id=session.user_id,
+            ip_address=ip_address,
+            device=device,
+            details="Reset token expired",
+        )
+        raise HTTPException(status_code=400, detail="Reset token has expired")
 
     result = await db.execute(
-        select(User).where(User.id == user_id)
+        select(User).where(User.id == session.user_id)
     )
     user = result.scalar_one_or_none()
 
@@ -482,6 +619,15 @@ async def reset_password(
     user.blocked_at = None
     user.blocked_reason = None
 
+    # Mark this session as used (one-time token) and drop any leftover sessions.
+    session.used_at = datetime.now(timezone.utc)
+    await db.execute(
+        delete(PasswordResetSession).where(
+            PasswordResetSession.user_id == user.id,
+            PasswordResetSession.id != session.id,
+        )
+    )
+
     await db.commit()
 
     await notify_admin(
@@ -490,16 +636,13 @@ async def reset_password(
         user_id=user.id, request=request,
     )
 
-    sec_logger = SecurityLogger(db)
-    ip_address = request.client.host if request.client else None
-    if request.headers.get("x-forwarded-for"):
-        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
     await sec_logger.log(
         event_type="password_change",
         user_id=user.id,
         email=user.email,
         ip_address=ip_address,
-        device=(request.headers.get("user-agent", "") or "")[:255],
+        device=device,
+        details="Password reset via recovery session",
     )
 
     return {"message": "Password reset successful"}

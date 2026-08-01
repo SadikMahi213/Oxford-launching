@@ -91,18 +91,6 @@ async def get_current_user_id(
     return int(user_id)
 
 
-def verify_password_reset_token(token: str) -> int:
-    payload = _decode_token(token)
-    if payload is None:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    if payload.get("type") != "password_reset":
-        raise HTTPException(status_code=401, detail="Invalid token type")
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    return int(user_id)
-
-
 def generate_refresh_token() -> tuple[str, str]:
     raw = secrets.token_hex(32)
     hashed = hashlib.sha256(raw.encode("utf-8")).hexdigest()
