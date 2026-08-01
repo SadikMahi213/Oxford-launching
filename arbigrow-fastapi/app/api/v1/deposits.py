@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from app.core.database import get_db
 from app.core.referral import get_referral_level_rates
@@ -19,6 +19,9 @@ from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.tasks.email_tasks import send_deposit_success_email_task
 from app.services.invoice_service import generate_deposit_invoice
 from app.utils.notifications import notify_admin
+
+WALLET_PRECISION = Decimal("0.00000000000001")
+PERCENT_PRECISION = Decimal("0.0001")
 
 router = APIRouter(prefix="/deposits", tags=["Deposits"])
 
@@ -291,19 +294,34 @@ async def update_deposit_status(
             if pkg and user.deposit_wallet >= pkg.investment_amount:
                 now = datetime.now(timezone.utc)
                 user.deposit_wallet -= pkg.investment_amount
+                expected_profit = (pkg.total_return - pkg.investment_amount).quantize(
+                    WALLET_PRECISION,
+                    rounding=ROUND_HALF_UP,
+                )
+                if pkg.investment_amount > 0:
+                    roi_percent = ((pkg.total_return / pkg.investment_amount) * Decimal("100")).quantize(
+                        PERCENT_PRECISION,
+                        rounding=ROUND_HALF_UP,
+                    )
+                else:
+                    roi_percent = Decimal("0")
+                if pkg.investment_amount == 0:
+                    end_date = now + timedelta(days=36500)  # ~100 years for free packages
+                else:
+                    end_date = now + timedelta(days=pkg.duration_days)
                 investment = Investment(
                     user_id=user.id,
                     package_name=pkg.name,
                     invested_amount=pkg.investment_amount,
-                    roi_percent=Decimal("0"),
-                    expected_profit=Decimal("0"),
+                    roi_percent=roi_percent,
+                    expected_profit=expected_profit,
                     daily_payment=pkg.daily_payment,
                     captcha_required_per_day=pkg.captcha_required_per_day,
                     earn_per_captcha=pkg.earn_per_captcha,
                     daily_captcha_limit=pkg.daily_captcha_limit,
                     captchas_typed_today=0,
                     start_date=now,
-                    end_date=now,
+                    end_date=end_date,
                     status="active",
                 )
                 db.add(investment)

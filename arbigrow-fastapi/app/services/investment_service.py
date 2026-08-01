@@ -253,6 +253,17 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 return False
 
             # Check if investment is already completed
+            # Guard: paid packages snapshot with missing expected_profit (legacy
+            # registration rows) must not be falsely completed; keep them active
+            # so the dashboard can still detect the active package.
+            if (
+                investment.expected_profit <= 0
+                and investment.invested_amount > 0
+                and (investment.daily_payment or 0) > 0
+            ):
+                await db.rollback()
+                return False
+
             remaining_profit = _to_wallet_precision(
                 investment.expected_profit - investment.profit_earned
             )
