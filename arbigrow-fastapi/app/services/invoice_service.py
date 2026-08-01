@@ -381,7 +381,12 @@ def _build_invoice_html(
 
 
 async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
-    """Generate a PDF from HTML using Playwright (Chromium)."""
+    """Generate a PDF from HTML using Playwright (Chromium).
+
+    Never raises: PDF generation is best-effort. If the PDF cannot be written
+    (e.g. missing permissions), a placeholder is attempted and False is returned
+    so that invoice DB record creation can still proceed.
+    """
     try:
         from playwright.async_api import async_playwright
         async with async_playwright() as p:
@@ -400,16 +405,25 @@ async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
         return True
     except ImportError:
         logger.warning("Playwright not installed. Creating placeholder PDF.")
-        _create_placeholder_pdf(output_path, html_content)
+        try:
+            _create_placeholder_pdf(output_path, html_content)
+        except Exception as e:
+            logger.warning(f"Failed to create placeholder PDF: {e}")
         return False
     except Exception as e:
         logger.error(f"Failed to generate PDF: {e}", exc_info=True)
-        _create_placeholder_pdf(output_path, html_content)
+        try:
+            _create_placeholder_pdf(output_path, html_content)
+        except Exception as pe:
+            logger.warning(f"Failed to create placeholder PDF: {pe}")
         return False
 
 
 def _create_placeholder_pdf(output_path: str, html_content: str):
-    """Create a simple text-based placeholder when Playwright is unavailable."""
+    """Create a simple text-based placeholder when Playwright is unavailable.
+
+    Never raises: placeholder creation must not abort invoice generation.
+    """
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -424,8 +438,13 @@ def _create_placeholder_pdf(output_path: str, html_content: str):
         story.append(Paragraph("Install with: pip install playwright && playwright install chromium", styles["Normal"]))
         doc.build(story)
     except ImportError:
-        with open(output_path, "w") as f:
-            f.write("PDF generation unavailable. Install Playwright.\n")
+        try:
+            with open(output_path, "w") as f:
+                f.write("PDF generation unavailable. Install Playwright.\n")
+        except OSError as e:
+            logger.warning(f"Could not write placeholder PDF to {output_path}: {e}")
+    except OSError as e:
+        logger.warning(f"Could not write placeholder PDF to {output_path}: {e}")
 
 
 # ── Invoice Generators ──────────────────────────────────────────────────────
