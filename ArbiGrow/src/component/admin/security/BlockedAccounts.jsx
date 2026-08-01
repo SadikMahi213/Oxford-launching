@@ -322,7 +322,9 @@ export default function BlockedAccounts() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/10 text-xs text-gray-400 uppercase">
+                      <th className="px-4 py-3 text-left">User ID</th>
                       <th className="px-4 py-3 text-left">User</th>
+                      <th className="px-4 py-3 text-left">Status</th>
                       <th className="px-4 py-3 text-left">Failed Attempts</th>
                       <th className="px-4 py-3 text-left">Blocked At</th>
                       <th className="px-4 py-3 text-left">IP Address</th>
@@ -333,9 +335,18 @@ export default function BlockedAccounts() {
                   <tbody>
                     {users.map((u) => (
                       <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                        <td data-label="User ID" className="px-4 py-3 text-xs text-gray-400">
+                          {u.id}
+                        </td>
                         <td data-label="User" className="px-4 py-3">
-                          <div className="text-sm font-medium">{u.full_name}</div>
-                          <div className="text-xs text-gray-400">{u.email}</div>
+                          <div className="text-sm font-medium">{u.full_name || "-"}</div>
+                          <div className="text-xs text-gray-400">{u.username || "-"}</div>
+                          <div className="text-xs text-gray-400">{u.email || "-"}</div>
+                        </td>
+                        <td data-label="Status" className="px-4 py-3">
+                          <span className="inline-block px-2 py-0.5 rounded-lg text-xs font-medium bg-red-500/10 text-red-400">
+                            Blocked
+                          </span>
                         </td>
                         <td data-label="Failed Attempts" className="px-4 py-3">
                           <span className={`inline-block px-2 py-0.5 rounded-lg text-xs font-medium ${
