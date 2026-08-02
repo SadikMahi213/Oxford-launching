@@ -1,6 +1,7 @@
 import json, math, re
 from datetime import datetime, timezone
 from decimal import Decimal
+from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, delete, desc, asc
@@ -38,10 +39,27 @@ from app.models.product_view import ProductView
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 
 
+def _b2_object_key_from_url(url: str) -> str | None:
+    """Extract the B2 object key from a presigned URL if it belongs to our bucket."""
+    try:
+        parsed = urlsplit(url)
+        path = parsed.path.lstrip("/")
+        bucket = (settings.B2_BUCKET_NAME or "").strip()
+        if bucket and path.startswith(bucket + "/"):
+            return path[len(bucket) + 1:]
+    except Exception:
+        return None
+    return None
+
+
 def _resolve_image_url(stored: str | None) -> str | None:
     if not stored:
         return None
     if stored.startswith("http"):
+        # Stored value may be a stale presigned URL from our own bucket; regenerate a fresh one.
+        key = _b2_object_key_from_url(stored)
+        if key:
+            return generate_presigned_url(key)
         return stored
     return generate_presigned_url(stored)
 
@@ -125,7 +143,7 @@ def _product_to_dict(product, include_variants=True):
         "name": product.name,
         "description": product.description,
         "price": float(product.price),
-        "image_urls": product.get_image_urls(),
+        "image_urls": _presign_product_images(product),
         "category": product.category,
         "is_active": product.is_active,
         "created_at": str(product.created_at),
@@ -139,7 +157,7 @@ def _product_to_dict(product, include_variants=True):
 
 def _presign_product_images(product):
     urls = product.get_image_urls()
-    return [generate_presigned_url(u) if u and not u.startswith("http") else u for u in urls]
+    return [_resolve_image_url(u) for u in urls if _resolve_image_url(u)]
 
 # ──────────────────────────────────────────────────────────────────
 #  CATEGORIES

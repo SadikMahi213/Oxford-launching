@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
@@ -7,6 +8,7 @@ from decimal import Decimal
 from pydantic import BaseModel, EmailStr
 import re
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.models.user import User
@@ -30,12 +32,40 @@ from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
 
 
+def _b2_object_key_from_url(url: str) -> str | None:
+    """Extract the B2 object key from a presigned URL if it belongs to our bucket."""
+    try:
+        parsed = urlsplit(url)
+        path = parsed.path.lstrip("/")
+        bucket = (settings.B2_BUCKET_NAME or "").strip()
+        if bucket and path.startswith(bucket + "/"):
+            return path[len(bucket) + 1:]
+    except Exception:
+        return None
+    return None
+
+
 def _resolve_image_url(stored: str | None) -> str | None:
     if not stored:
         return None
     if stored.startswith("http"):
+        # It may be a stale presigned URL from our own bucket; regenerate a fresh one.
+        key = _b2_object_key_from_url(stored)
+        if key:
+            return generate_presigned_url(key)
         return stored
     return generate_presigned_url(stored)
+
+
+def _resolve_image_urls(urls: list[str] | None) -> list[str]:
+    if not urls:
+        return []
+    resolved = []
+    for url in urls:
+        r = _resolve_image_url(url)
+        if r:
+            resolved.append(r)
+    return resolved
 
 
 router = APIRouter(prefix="/ecommerce", tags=["Ecommerce"])
@@ -407,8 +437,8 @@ async def list_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
-                "image_url": p.image_url,
-                "image_urls": p.get_image_urls(),
+                "image_url": _resolve_image_url(p.image_url),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "category": p.category,
                 "store_name": sellers_map.get(p.seller_id, ""),
                 "seller_whatsapp": seller_whatsapp_map.get(p.seller_id, ""),
@@ -438,8 +468,8 @@ async def get_product(
         "name": product.name,
         "description": product.description,
         "price": float(product.price),
-        "image_url": product.image_url,
-        "image_urls": product.get_image_urls(),
+        "image_url": _resolve_image_url(product.image_url),
+        "image_urls": _resolve_image_urls(product.get_image_urls()),
         "category": product.category,
         "store_name": seller.store_name if seller else "",
         "seller_status": seller.status if seller else "",
@@ -545,8 +575,8 @@ async def get_my_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
-                "image_url": p.image_url,
-                "image_urls": p.get_image_urls(),
+                "image_url": _resolve_image_url(p.image_url),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "category": p.category,
                 "arbx_allocated": float(p.arbx_allocated),
                 "is_active": p.is_active,
@@ -994,7 +1024,7 @@ async def admin_list_seller_products(
                 "id": p.id,
                 "name": p.name,
                 "price": float(p.price),
-                "image_urls": p.get_image_urls(),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "is_active": p.is_active,
                 "arbx_allocated": float(p.arbx_allocated),
                 "created_at": p.created_at.isoformat() if p.created_at else None,
