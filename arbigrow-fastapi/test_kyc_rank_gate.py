@@ -93,6 +93,40 @@ def test_scenario2_verified_proceeds_past_gate():
     assert "bonuses_paid" in result
 
 
+def test_has_rank_bonus_been_paid_ignores_reversed():
+    """A reversed matching bonus must NOT block a future legitimate earn."""
+    import io
+    import contextlib
+    import app.services.rank_service as rs
+
+    seen = []
+
+    class Row:
+        def first(self):
+            # Return non-None (a paid record exists) so the check is exercised.
+            return object()
+
+    class FakeDb:
+        def __init__(self):
+            self.row = None
+
+        async def execute(self, stmt):
+            seen.append(stmt)
+            return Row()
+
+    async def run():
+        return await rs._has_rank_bonus_been_paid(99, 3, FakeDb())
+
+    asyncio.run(run())
+    import sqlalchemy.sql.elements as el
+    from sqlalchemy.sql.expression import false as sa_false
+
+    # Confirm the executed query references is_reversed == False
+    stmt = seen[0]
+    text = str(stmt)
+    assert "is_reversed" in text, "duplicate-pay check must filter reversed rows"
+
+
 if __name__ == "__main__":
     r1, k1, g1 = _run(1, False)
     print("Scenario 1 (not verified):", r1, "| kyc_calls:", k1, "| volume_calls:", g1)

@@ -198,6 +198,7 @@ async def list_all_matching_bonuses(
         query = query.where(MatchingBonus.rank_id == rank_id)
     if bonus_type:
         query = query.where(MatchingBonus.bonus_type == bonus_type)
+    query = query.where(MatchingBonus.is_reversed == False)
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
     result = await db.execute(query)

@@ -89,6 +89,7 @@ async def _has_rank_bonus_been_paid(
         .where(
             MatchingBonus.user_id == user_id,
             MatchingBonus.rank_id == rank_id,
+            MatchingBonus.is_reversed == False,
         )
         .with_for_update()
         .limit(1)

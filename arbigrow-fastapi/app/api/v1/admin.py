@@ -2166,6 +2166,7 @@ async def get_realtime_stats(
 
     total_matching_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+        .where(MatchingBonus.is_reversed == False)
     )
     total_matching = Decimal(str(total_matching_result.scalar() or 0))
 

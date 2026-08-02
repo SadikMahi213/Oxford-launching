@@ -68,7 +68,10 @@ async def get_my_rank(
     # Compute total matching bonus earned
     total_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
-        .where(MatchingBonus.user_id == current_user.id)
+        .where(
+            MatchingBonus.user_id == current_user.id,
+            MatchingBonus.is_reversed == False,
+        )
     )
     total_matching_bonus = total_result.scalar() or Decimal("0")
     next_target = next_rank.target_volume if next_rank else Decimal("0")
@@ -151,7 +154,10 @@ async def get_my_matching_bonuses(
     result = await db.execute(
         select(MatchingBonus)
         .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))
-        .where(MatchingBonus.user_id == current_user.id)
+        .where(
+            MatchingBonus.user_id == current_user.id,
+            MatchingBonus.is_reversed == False,
+        )
         .order_by(MatchingBonus.created_at.desc())
         .offset((page - 1) * limit)
         .limit(limit)
@@ -172,7 +178,9 @@ async def get_my_matching_bonuses(
             "reference_id": b.reference_id,
             "reference_type": b.reference_type,
             "description": b.description,
+            "is_reversed": b.is_reversed,
             "created_at": b.created_at.isoformat() if b.created_at else None,
+            "rank_name": b.rank.name if b.rank else None,
         }
         for b in bonuses
     ]
