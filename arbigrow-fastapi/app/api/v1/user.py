@@ -92,7 +92,21 @@ async def _is_mining_enabled(db: AsyncSession) -> bool:
 
 router = APIRouter(prefix="/user", tags=["User"])
 
-# Display commission rates loaded dynamically from SystemConfig
+
+@router.get("/conversion-rate")
+@limiter.limit("120/minute")
+async def get_ofa_conversion_rate(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
+    cfg = result.scalar_one_or_none()
+    rate = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
+    return {
+        "ofa_to_usdt_rate": float(rate),
+        "rate": f"1 OFA = {float(rate)} USDT",
+    }
 
 
 @router.get("/me", response_model=UserRefreshResponse)
