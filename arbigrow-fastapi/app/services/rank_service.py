@@ -9,6 +9,7 @@ from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.deposit import Deposit
 from app.models.rank_bonus_config import RankBonusConfig
+from app.utils.kyc_helper import is_kyc_approved
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 
@@ -217,6 +218,11 @@ async def evaluate_and_process_rank(
     )
     user = user_result.scalar_one_or_none()
     if not user:
+        return result
+
+    # KYC guard: a user must be fully KYC-verified (approved) before they can qualify
+    # for any rank or receive any matching bonus. Eligibility starts at verification.
+    if not await is_kyc_approved(user, db):
         return result
 
     # Step 1: Calculate personal deposit and total team volume

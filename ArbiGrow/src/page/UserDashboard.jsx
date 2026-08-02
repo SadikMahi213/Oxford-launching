@@ -659,12 +659,14 @@ export function UserDashboard() {
       icon: GitBranch,
       description: t("userDashboard.sidebar.genBonuses_desc"),
     },
-    {
-      id: "matching-bonus",
-      label: t("userDashboard.sidebar.matchingBonus"),
-      icon: Trophy,
-      description: t("userDashboard.sidebar.matchingBonus_desc"),
-    },
+    ...(user?.kyc_status === "approved"
+      ? [{
+          id: "matching-bonus",
+          label: t("userDashboard.sidebar.matchingBonus"),
+          icon: Trophy,
+          description: t("userDashboard.sidebar.matchingBonus_desc"),
+        }]
+      : []),
     {
       id: "transfer",
       label: t("userDashboard.sidebar.walletTransfer"),
