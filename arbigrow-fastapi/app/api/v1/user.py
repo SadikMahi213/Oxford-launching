@@ -127,7 +127,11 @@ async def get_me(
     # Ensure team_volume is live — recalculate if stored value is zero
     if not current_user.team_volume:
         from app.services.rank_service import get_team_volume
-        _pv, _tv = await get_team_volume(current_user.id, db)
+        _pv, _tv = await get_team_volume(
+            current_user.id,
+            db,
+            cutover=getattr(current_user, "kyc_approved_at", None),
+        )
         current_user.team_volume = _tv
         db.add(current_user)
         await db.commit()

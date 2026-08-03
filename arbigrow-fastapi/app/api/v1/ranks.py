@@ -44,7 +44,11 @@ async def get_my_rank(
     """
     from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
 
-    personal_volume, team_volume = await get_team_volume(current_user.id, db)
+    personal_volume, team_volume = await get_team_volume(
+        current_user.id,
+        db,
+        cutover=getattr(current_user, "kyc_approved_at", None),
+    )
 
     # Cache live value back to user model for all other queries
     current_user.team_volume = team_volume

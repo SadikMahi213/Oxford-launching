@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime
 
 from sqlalchemy import select, func as sa_func, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,19 +18,28 @@ BONUS_PERCENT_PRECISION = Decimal("0.0001")
 async def get_team_volume(
     user_id: int,
     db: AsyncSession,
+    *,
+    cutover: datetime | None = None,
 ) -> tuple[Decimal, Decimal]:
     """Calculate personal deposit and total team volume.
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
       - team_volume    = personal_volume + all descendants' approved deposits
+
+    When ``cutover`` (the user's ``kyc_approved_at``) is provided, only deposits
+    created at or after the cutover count. Deposits made before KYC approval are
+    excluded so they never contribute to rank eligibility or matching bonuses.
     """
     # Self deposits (approved)
+    self_conds = [
+        Deposit.user_id == user_id,
+        Deposit.status == "approved",
+    ]
+    if cutover is not None:
+        self_conds.append(Deposit.created_at >= cutover)
     self_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
-            Deposit.user_id == user_id,
-            Deposit.status == "approved",
-        )
+        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*self_conds)
     )
     self_volume = Decimal(str(self_result.scalar()))
 
@@ -50,11 +60,14 @@ async def get_team_volume(
 
     team_volume = self_volume
     if descendant_ids:
+        team_conds = [
+            Deposit.user_id.in_(descendant_ids),
+            Deposit.status == "approved",
+        ]
+        if cutover is not None:
+            team_conds.append(Deposit.created_at >= cutover)
         team_result = await db.execute(
-            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
-                Deposit.user_id.in_(descendant_ids),
-                Deposit.status == "approved",
-            )
+            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*team_conds)
         )
         team_volume += Decimal(str(team_result.scalar()))
 
@@ -226,12 +239,16 @@ async def evaluate_and_process_rank(
     if not await is_kyc_approved(user, db):
         return result
 
+    # Only deposits created at/after KYC approval count toward team volume, so
+    # pre-approval deposits never drive rank eligibility or matching bonuses.
+    cutover = getattr(user, "kyc_approved_at", None)
+
     # Step 1: Calculate personal deposit and total team volume
     if use_snapshot_volume and snapshot_volume is not None:
         team_volume = snapshot_volume
-        personal_volume, _ = await get_team_volume(user_id, db)
+        personal_volume, _ = await get_team_volume(user_id, db, cutover=cutover)
     else:
-        personal_volume, team_volume = await get_team_volume(user_id, db)
+        personal_volume, team_volume = await get_team_volume(user_id, db, cutover=cutover)
 
     # Update user's team_volume (even if personal_volume is 0)
     user.team_volume = team_volume
