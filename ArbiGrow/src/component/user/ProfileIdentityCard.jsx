@@ -172,7 +172,7 @@ export default function ProfileIdentityCard() {
             ? "text-red-400"
             : "text-gray-400"
         }`}>
-          {kycRaw === "approved" ? "✅" : kycRaw === "pending" ? "⏳" : "❌"} {getKycStatus()}
+          {getKycStatus()}
         </p>
 
         {kycRaw === "rejected" && user?.kyc_note && (

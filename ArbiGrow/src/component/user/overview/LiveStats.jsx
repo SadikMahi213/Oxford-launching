@@ -1,66 +1,10 @@
-import { motion, AnimatePresence } from "motion/react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { motion } from "motion/react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { getLiveStats } from "../../../api/user.api.js";
 import { Users, CheckCircle2, DollarSign } from "lucide-react";
-
-function useAnimatedValue(target, duration = 800) {
-  const [display, setDisplay] = useState(target);
-  const prevRef = useRef(target);
-  const rafRef = useRef(null);
-
-  useEffect(() => {
-    const start = prevRef.current;
-    const diff = target - start;
-    if (Math.abs(diff) < 0.5) {
-      setDisplay(target);
-      prevRef.current = target;
-      return;
-    }
-    const startTime = performance.now();
-
-    const tick = (now) => {
-      const elapsed = now - startTime;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = 1 - (1 - t) * (1 - t);
-      setDisplay(start + diff * eased);
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        setDisplay(target);
-        prevRef.current = target;
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [target, duration]);
-
-  return display;
-}
-
-function AnimatedNumber({ value, format }) {
-  const animated = useAnimatedValue(value);
-  return <>{format(animated)}</>;
-}
-
-function fmtLiveOnline(v) {
-  return Math.round(v).toLocaleString("en-US");
-}
-
-function fmtTasks(v) {
-  return Math.round(v).toLocaleString("en-US");
-}
-
-function fmtEarnings(v) {
-  return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-const POLL_INTERVAL_MIN = 6000;
-const POLL_INTERVAL_MAX = 10000;
+import { useLiveStatsStore, liveStatsActions } from "../../../store/liveStatsStore.js";
+import { AnimatedNumber } from "./AnimatedNumber.jsx";
+import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js";
 
 const cards = [
   {
@@ -120,52 +64,17 @@ function ErrorFallback({ onRetry }) {
 
 export function LiveStats() {
   const { t } = useTranslation();
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const intervalRef = useRef(null);
-  const mountedRef = useRef(true);
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await getLiveStats();
-      if (!mountedRef.current) return;
-      setData({
-        live_online: res.data.live_online,
-        tasks_completed_today: res.data.tasks_completed_today,
-        earnings_paid_today: res.data.earnings_paid_today,
-      });
-      setError(null);
-      setLoading(false);
-    } catch (err) {
-      if (!mountedRef.current) return;
-      setError(true);
-      setLoading(false);
-    }
-  }, []);
-
-  const scheduleNext = useCallback(() => {
-    const delay = POLL_INTERVAL_MIN + Math.random() * (POLL_INTERVAL_MAX - POLL_INTERVAL_MIN);
-    intervalRef.current = setTimeout(async () => {
-      await fetchStats();
-      if (mountedRef.current) scheduleNext();
-    }, delay);
-  }, [fetchStats]);
+  const data = useLiveStatsStore((s) => s.data);
+  const error = useLiveStatsStore((s) => s.error);
+  const loading = useLiveStatsStore((s) => s.loading);
 
   useEffect(() => {
-    mountedRef.current = true;
-    fetchStats().then(() => {
-      if (mountedRef.current) scheduleNext();
-    });
-
-    return () => {
-      mountedRef.current = false;
-      if (intervalRef.current) clearTimeout(intervalRef.current);
-    };
-  }, [fetchStats, scheduleNext]);
+    liveStatsActions.subscribe();
+    return () => liveStatsActions.unsubscribe();
+  }, []);
 
   if (loading) return <LoadingSkeleton />;
-  if (error) return <ErrorFallback onRetry={fetchStats} />;
+  if (error) return <ErrorFallback onRetry={() => useLiveStatsStore.getState().refresh()} />;
   if (!data) return null;
 
   return (

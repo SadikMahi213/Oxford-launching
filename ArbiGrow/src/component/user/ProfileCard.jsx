@@ -309,7 +309,7 @@ export default function ProfileCard({ setActivePage }) {
                       ? "bg-red-500/10 text-red-400 border-red-500/30"
                       : "bg-gray-500/10 text-gray-400 border-gray-500/30"
                   }`}>
-                    {kycRaw === "approved" ? "✅" : kycRaw === "pending" ? "⏳" : "❌"} {kycStatus}
+                    {kycStatus}
                   </span>
                   {userId && (
                     <span className="flex items-center gap-1 text-xs text-gray-500">
