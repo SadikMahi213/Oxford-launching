@@ -210,6 +210,33 @@ def test_scheduler_recalc_never_grants_rank_to_non_kyc():
     assert gtv.await_count == 0, "recalculate path must also respect the gate"
 
 
+def test_my_bonuses_eager_loads_rank_relationship():
+    """/my-bonuses must eager-load the rank relationship so approved users can
+    see rank_name without an async lazy load (MissingGreenlet 500)."""
+    seen = []
+
+    class CaptureDb:
+        async def execute(self, stmt):
+            seen.append(str(stmt))
+            return _FakeRow(None, [])
+
+    user = _FakeUser(10)
+
+    async def run():
+        import app.api.v1.ranks as ranks_mod
+        with patch("app.utils.kyc_helper.is_kyc_approved", AsyncMock(return_value=True)):
+            return await ranks_mod.get_my_matching_bonuses(
+                page=1, limit=50, db=CaptureDb(), current_user=user
+            )
+
+    asyncio.run(run())
+    assert seen, "endpoint must execute a query"
+    text = seen[0]
+    assert "LEFT OUTER JOIN" in text and "ranks" in text, (
+        "my-bonuses must eager-load the rank relationship (joinedload)"
+    )
+
+
 if __name__ == "__main__":
     passed = []
     for name, fn in sorted(globals().items()):

@@ -186,7 +186,7 @@ async def get_my_matching_bonuses(
         return []
     result = await db.execute(
         select(MatchingBonus)
-        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))
+        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user), joinedload(MatchingBonus.rank))
         .where(
             MatchingBonus.user_id == current_user.id,
             MatchingBonus.is_reversed == False,
