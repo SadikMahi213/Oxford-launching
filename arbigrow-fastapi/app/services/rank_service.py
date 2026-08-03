@@ -335,8 +335,11 @@ async def evaluate_and_process_rank(
     # Update user's team_volume (even if personal_volume is 0)
     user.team_volume = team_volume
 
-    # Users with zero personal deposit are not eligible for matching bonuses
-    if personal_volume <= 0:
+    # Users with zero personal deposit are not eligible for matching bonuses.
+    # Exception: the KYC-approval path assigns a rank ONCE from the full
+    # historical snapshot volume (use_snapshot_volume=True) even when the user
+    # has no post-approval personal deposits yet, because bonuses are skipped.
+    if personal_volume <= 0 and not use_snapshot_volume:
         return result
 
     # Step 2: Find highest qualified rank
@@ -425,6 +428,11 @@ async def evaluate_and_process_rank(
                 reference_id=reference_id,
                 reference_type=reference_type,
             )
+            result["bonuses_paid"].append({
+                "rank_id": rank.id,
+                "rank_name": rank.name,
+                "eligible_amount": str(eligible),
+            })
 
         # Save rank history
         await _create_rank_history(
@@ -434,12 +442,6 @@ async def evaluate_and_process_rank(
             team_volume=team_volume,
             db=db,
         )
-
-        result["bonuses_paid"].append({
-            "rank_id": rank.id,
-            "rank_name": rank.name,
-            "eligible_amount": str(eligible),
-        })
 
         previous_rank_id = rank.id
         previous_target = rank.target_volume
