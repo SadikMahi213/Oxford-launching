@@ -30,6 +30,7 @@ const getErrorMessage = (error) =>
 export default function MatchingBonusInfo({ setActivePage }) {
   const { t } = useTranslation();
   const token = useUserStore((state) => state.token);
+  const user = useUserStore((state) => state.user);
   const [rankInfo, setRankInfo] = useState(null);
   const [ranks, setRanks] = useState([]);
   const [rankHistory, setRankHistory] = useState([]);
@@ -153,7 +154,9 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {t("matchingBonusInfo.currentRank")}
                 </div>
                 <div className="text-xl font-bold text-white">
-                  {currentRank?.name || t("matchingBonusInfo.unranked")}
+                  {user?.kyc_status === "approved"
+                    ? (currentRank?.name || t("matchingBonusInfo.unranked"))
+                    : t("matchingBonusInfo.unranked")}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {currentMatchingPercent > 0

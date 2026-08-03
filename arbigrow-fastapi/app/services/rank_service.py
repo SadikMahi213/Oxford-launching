@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select, func as sa_func, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +13,7 @@ from app.models.rank_bonus_config import RankBonusConfig
 from app.utils.kyc_helper import is_kyc_approved
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
+REVERSAL_REASON = "Reversed: user not KYC-verified at time of rank/bonus assignment."
 
 
 async def get_team_volume(
@@ -73,6 +74,86 @@ async def get_team_volume(
 
     team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
     return self_volume, team_volume
+
+
+async def get_rank_eligible_volume(
+    user: User,
+    db: AsyncSession,
+) -> tuple[Decimal, Decimal]:
+    """Return the team volume that may count toward a user's rank.
+
+    A user is only eligible once their KYC status is ``approved``. Until then the
+    eligible volume is zero. Once approved, only deposits created at/after
+    ``kyc_approved_at`` count, so pre-approval deposits never qualify.
+    """
+    if not await is_kyc_approved(user, db):
+        return Decimal("0"), Decimal("0")
+    return await get_team_volume(user.id, db, cutover=user.kyc_approved_at)
+
+
+async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
+    """Enforce the KYC-first business rule for rank entitlements.
+
+    If ``user`` is NOT KYC-approved this strips every rank artifact so no later
+    code can re-expose it:
+      * clears ``current_rank_id``
+      * zeroes ``team_volume``
+      * reverses all active ``matching_bonuses`` and recomputes
+        ``matching_bonus_wallet`` from the remaining (non-reversed) rows
+      * marks active ``rank_histories`` as ``reversed``
+
+    Returns True when the user is blocked (not KYC-approved).
+    """
+    if await is_kyc_approved(user, db):
+        return False
+
+    now = datetime.now(timezone.utc)
+    changed = False
+
+    bonuses = (
+        await db.execute(
+            select(MatchingBonus).where(
+                MatchingBonus.user_id == user.id,
+                MatchingBonus.is_reversed == False,
+            )
+        )
+    ).scalars().all()
+    if bonuses:
+        changed = True
+        for b in bonuses:
+            b.is_reversed = True
+            b.reversed_at = now
+            b.reversal_reason = REVERSAL_REASON
+
+    if user.current_rank_id is not None:
+        changed = True
+        user.current_rank_id = None
+    if (user.team_volume or Decimal("0")) > 0:
+        changed = True
+        user.team_volume = Decimal("0")
+
+    histories = (
+        await db.execute(
+            select(RankHistory).where(
+                RankHistory.user_id == user.id,
+                RankHistory.status == "achieved",
+            )
+        )
+    ).scalars().all()
+    if histories:
+        changed = True
+        for h in histories:
+            h.status = "reversed"
+            h.released_at = now
+
+    if changed:
+        remaining = sum(
+            (b.bonus_amount or Decimal("0") for b in bonuses if not b.is_reversed),
+            Decimal("0"),
+        ).quantize(WALLET_PRECISION)
+        user.matching_bonus_wallet = remaining
+
+    return True
 
 
 async def _get_highest_qualified_rank(
@@ -235,8 +316,9 @@ async def evaluate_and_process_rank(
         return result
 
     # KYC guard: a user must be fully KYC-verified (approved) before they can qualify
-    # for any rank or receive any matching bonus. Eligibility starts at verification.
-    if not await is_kyc_approved(user, db):
+    # for any rank or receive any matching bonus. Not-approved users are stripped of
+    # any existing rank artifacts so a stale rank can never survive or be re-exposed.
+    if await enforce_kyc_rank_gate(user, db):
         return result
 
     # Only deposits created at/after KYC approval count toward team volume, so

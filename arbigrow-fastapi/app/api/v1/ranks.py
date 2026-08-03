@@ -39,10 +39,28 @@ async def get_my_rank(
 ):
     """Return the current user's rank info and next rank target.
 
-    Team volume is always calculated live from deposits + investments,
-    and cached back to user.team_volume so other queries stay in sync.
+    A user whose KYC is not approved must never see any rank: the endpoint
+    returns ``current_rank: null`` (and zero volumes) until KYC is approved.
     """
     from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
+    from app.utils.kyc_helper import is_kyc_approved
+
+    if not await is_kyc_approved(current_user, db):
+        return {
+            "user_no": current_user.user_no,
+            "current_rank": None,
+            "next_rank": None,
+            "personal_volume": "0",
+            "network_volume": "0",
+            "team_volume": "0",
+            "kyc_approved_team_volume": None,
+            "post_kyc_team_volume": None,
+            "total_matching_bonus_earned": "0",
+            "remaining_volume": "0",
+            "next_target_volume": "0",
+            "progress": 0.0,
+            "kyc_required": True,
+        }
 
     personal_volume, team_volume = await get_team_volume(
         current_user.id,
@@ -139,10 +157,17 @@ async def get_my_rank_history(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.utils.kyc_helper import is_kyc_approved
+
+    if not await is_kyc_approved(current_user, db):
+        return []
     result = await db.execute(
         select(RankHistory)
         .options(joinedload(RankHistory.user))
-        .where(RankHistory.user_id == current_user.id)
+        .where(
+            RankHistory.user_id == current_user.id,
+            RankHistory.status != "reversed",
+        )
         .order_by(RankHistory.created_at.desc())
     )
     return result.scalars().all()
@@ -155,6 +180,10 @@ async def get_my_matching_bonuses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.utils.kyc_helper import is_kyc_approved
+
+    if not await is_kyc_approved(current_user, db):
+        return []
     result = await db.execute(
         select(MatchingBonus)
         .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))

@@ -1038,6 +1038,16 @@ async def update_kyc_status(
             await db.commit()
         except Exception:
             logger.warning("Rank evaluation failed for user_id=%s during KYC approval (non-blocking)", user_id, exc_info=True)
+    elif was_rejected or was_reset:
+        # KYC gate: a rejected/reset user must never keep any rank entitlement.
+        # Strip current rank, team volume, matching bonuses, and rank history.
+        try:
+            from app.services.rank_service import enforce_kyc_rank_gate
+            await enforce_kyc_rank_gate(user, db)
+            await db.commit()
+            await db.refresh(user)
+        except Exception:
+            logger.warning("KYC rank enforcement failed for user_id=%s (non-blocking)", user_id, exc_info=True)
 
     notif_type = "kyc_approved" if was_approved else "kyc_rejected"
     await notify_admin(

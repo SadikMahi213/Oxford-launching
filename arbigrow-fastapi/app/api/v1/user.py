@@ -124,14 +124,12 @@ async def get_me(
     kyc = kyc_result.scalar_one_or_none()
     seller = seller_result.scalar_one_or_none()
 
-    # Ensure team_volume is live — recalculate if stored value is zero
+    # Ensure team_volume is live — recalculate if stored value is zero.
+    # Rank-eligible volume is zero until KYC is approved (and only counts
+    # deposits made at/after approval), so non-approved users cache zero.
     if not current_user.team_volume:
-        from app.services.rank_service import get_team_volume
-        _pv, _tv = await get_team_volume(
-            current_user.id,
-            db,
-            cutover=getattr(current_user, "kyc_approved_at", None),
-        )
+        from app.services.rank_service import get_rank_eligible_volume
+        _pv, _tv = await get_rank_eligible_volume(current_user, db)
         current_user.team_volume = _tv
         db.add(current_user)
         await db.commit()

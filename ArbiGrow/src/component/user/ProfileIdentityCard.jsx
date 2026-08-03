@@ -236,7 +236,7 @@ export default function ProfileIdentityCard() {
               <Award className="w-3.5 h-3.5 text-blue-400" />
               <p className="text-[9px] text-gray-500 uppercase tracking-wider">{t("profileIdentity.position")}</p>
             </div>
-            <p className="text-sm font-bold text-white truncate">{currentRank?.name || t("profileCard.member")}</p>
+            <p className="text-sm font-bold text-white truncate">{user?.kyc_status === "approved" ? (currentRank?.name || t("profileCard.member")) : t("profileCard.member")}</p>
           </div>
           <div className="bg-white/[0.04] backdrop-blur-sm rounded-xl border border-white/[0.06] p-3">
             <div className="flex items-center gap-1.5 mb-1">

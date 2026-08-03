@@ -13,6 +13,11 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 
 
+class _FakeScalars:
+    def all(self):
+        return []
+
+
 class _FakeRow:
     def __init__(self, val):
         self.val = val
@@ -25,6 +30,9 @@ class _FakeRow:
 
     def fetchall(self):
         return []
+
+    def scalars(self):
+        return _FakeScalars()
 
 
 class _FakeUser:
