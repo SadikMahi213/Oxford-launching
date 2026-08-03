@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { Camera, Check, Lock, Award, X } from "lucide-react";
+import { Camera, Check, Lock, X } from "lucide-react";
 import VerifiedBadge from "../common/VerifiedBadge";
 import profilePlaceholder from "../../assets/banner.jpeg";
 import useUserStore from "../../store/userStore";
@@ -269,72 +269,6 @@ const ProfilePage = () => {
         </div>
       </motion.div>
 
-      {/* Additional Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Account Status */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className={`rounded-xl backdrop-blur-xl border p-4 md:p-5 ${
-            user?.kyc_status === "approved"
-              ? "bg-gradient-to-br from-green-600/10 to-green-600/5 border-green-500/30"
-              : user?.kyc_status === "pending"
-                ? "bg-gradient-to-br from-yellow-600/10 to-yellow-600/5 border-yellow-500/30"
-                : "bg-gradient-to-br from-red-600/10 to-red-600/5 border-red-500/30"
-          }`}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              user?.kyc_status === "approved" ? "bg-green-500/20" : user?.kyc_status === "pending" ? "bg-yellow-500/20" : "bg-red-500/20"
-            }`}>
-              <Check className={`w-5 h-5 ${
-                user?.kyc_status === "approved" ? "text-green-400" : user?.kyc_status === "pending" ? "text-yellow-400" : "text-red-400"
-              }`} />
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">{t('profile.accountStatus')}</h3>
-              <p className={`text-xs ${
-                user?.kyc_status === "approved" ? "text-green-400" : user?.kyc_status === "pending" ? "text-yellow-400" : "text-red-400"
-              }`}>
-                {user?.kyc_status === "approved" ? t('profile.status_active') : user?.kyc_status === "pending" ? t('profile.status_pending') : t('profile.status_unverified')}
-              </p>
-            </div>
-          </div>
-          <p className="text-sm text-gray-400">
-            {user?.kyc_status === "approved"
-              ? t('profile.desc_active')
-              : user?.kyc_status === "pending"
-                ? t('profile.desc_pending')
-                : t('profile.desc_unverified')}
-          </p>
-          {user?.kyc_status === "rejected" && user?.kyc_note && (
-            <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-              <p className="text-xs font-semibold text-red-300 mb-1">{t('profile.rejectionReason')}</p>
-              <p className="text-sm text-red-200">{user.kyc_note}</p>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Member Since */}
-        {/* <motion.div
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ duration: 0.5, delay: 0.2 }}
-                 className="rounded-xl bg-gradient-to-br from-blue-600/10 to-cyan-600/5 backdrop-blur-xl border border-blue-500/30 p-4 md:p-5"
-               >
-                 <div className="flex items-center gap-3 mb-3">
-                   <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                     <Award className="w-5 h-5 text-blue-400" />
-                   </div>
-                   <div>
-                     <h3 className="font-semibold text-white">Member Since</h3>
-                     <p className="text-xs text-gray-400">Join Date</p>
-                   </div>
-                 </div>
-                 <p className="text-sm text-gray-400">You joined Oxford Financial Ads on <span className="text-white font-semibold">December 1, 2024</span></p>
-               </motion.div> */}
-      </div>
     </div>
   );
 };

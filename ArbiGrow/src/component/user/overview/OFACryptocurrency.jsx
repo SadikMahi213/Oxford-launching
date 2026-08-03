@@ -191,10 +191,9 @@ const OFACryptocurrency = () => {
         </div>
 
         {/* Lower information cards */}
-        <div className="grid grid-cols-3 gap-2 mt-4">
+        <div className="grid grid-cols-2 gap-2 mt-4">
           {[
             { label: t("overview.ofaCoin.symbol"), value: t("overview.tokenInfo.symbolVal") },
-            { label: t("overview.ofaCoin.network"), value: t("overview.tokenInfo.networkVal") },
             { label: t("overview.ofaCoin.supply"), value: t("overview.tokenInfo.supplyVal") },
           ].map((s) => (
             <div key={s.label} className="text-center p-2 rounded-xl bg-white/[0.04] border border-white/[0.06]">

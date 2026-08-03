@@ -1,55 +1,12 @@
 import { motion } from "motion/react";
-import {
-  Keyboard,
-  MonitorPlay,
-  Database,
-  Palette,
-  Film,
-  Megaphone,
-  Store,
-  Globe,
-  GraduationCap,
-  Rocket,
-  TrendingUp,
-  Coins,
-  Cpu,
-  Users,
-  Clock,
-  Award,
-  BadgeCheck,
-  UserRoundPlus,
-  UserCheck,
-  Sparkles,
-} from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
-import Button from "./Button";
-
-const serviceIcons = [Keyboard, MonitorPlay, Database, Palette, Film, Megaphone, Store, Globe, GraduationCap, Cpu];
-const whyIcons = [Rocket, TrendingUp, Coins, Cpu, Users, Clock, Award, BadgeCheck];
-const howIcons = [UserRoundPlus, UserCheck, MonitorPlay, Coins];
+import { Eye, Target, Layers, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function ExecutiveSummary() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
-  const services = Array.from({ length: 10 }, (_, i) => ({
-    icon: serviceIcons[i],
-    title: t(`home.about.service${i + 1}Title`),
-    description: t(`home.about.service${i + 1}Desc`),
-  }));
-
-  const whyItems = Array.from({ length: 8 }, (_, i) => ({
-    icon: whyIcons[i],
-    title: t(`home.about.why${i + 1}Title`),
-    description: t(`home.about.why${i + 1}Desc`),
-  }));
-
-  const howSteps = Array.from({ length: 4 }, (_, i) => ({
-    icon: howIcons[i],
-    title: t(`home.about.howTitle${i + 1}`),
-    description: t(`home.about.howStep${i + 1}`),
-  }));
+  const builtForItems = t("home.about.builtForItems", { returnObjects: true });
+  const closingTaglines = t("home.about.closingTaglines", { returnObjects: true });
 
   return (
     <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
@@ -60,7 +17,7 @@ export default function ExecutiveSummary() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* ===== Section Header ===== */}
+        {/* ===== Company Overview ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -74,17 +31,51 @@ export default function ExecutiveSummary() {
             </span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            {t("home.about.title")}{" "}
+            {t("home.about.title")}
+            {t("home.about.titleHighlight") && (
+              <>{" "}
+              <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                {t("home.about.titleHighlight")}
+              </span>
+              </>
+            )}
+          </h2>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed">
+            {t("home.about.overview1")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.overview2")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.overview3")}
+          </p>
+        </motion.div>
+
+        {/* ===== Our Vision ===== */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 mx-auto">
+            <Eye className="w-7 h-7 text-cyan-400" />
+          </div>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              {t("home.about.titleHighlight")}
+              {t("home.about.visionHeading")}
             </span>
           </h2>
           <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed">
-            {t("home.about.intro")}
+            {t("home.about.vision1")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.vision2")}
           </p>
         </motion.div>
 
-        {/* ===== What You Can Do ===== */}
+        {/* ===== Our Mission ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -92,41 +83,23 @@ export default function ExecutiveSummary() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 mx-auto">
+            <Target className="w-7 h-7 text-cyan-400" />
+          </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            {t("home.about.servicesTitle")}{" "}
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              {t("home.about.servicesHighlight")}
+              {t("home.about.missionHeading")}
             </span>
           </h2>
-          <p className="text-gray-400 text-lg max-w-full md:max-w-3xl mx-auto px-2">
-            {t("home.about.servicesSubtitle")}
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed">
+            {t("home.about.mission1")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.mission2")}
           </p>
         </motion.div>
 
-        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-5 mb-12">
-          {services.map((service, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: (index % 5) * 0.1 }}
-              className="group relative p-5 md:p-6 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500 hover:-translate-y-2"
-            >
-              <div className="relative flex flex-col items-center text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <service.icon className="w-7 h-7 text-cyan-400" />
-                </div>
-                <h3 className="text-sm font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">
-                  {service.title}
-                </h3>
-                <p className="text-xs text-gray-400 leading-relaxed">{service.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* ===== Why Choose OFA ===== */}
+        {/* ===== Our Platform is Built For ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -134,40 +107,26 @@ export default function ExecutiveSummary() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 mx-auto">
+            <Layers className="w-7 h-7 text-cyan-400" />
+          </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            {t("home.about.whyTitle")}{" "}
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              {t("home.about.whyHighlight")}
+              {t("home.about.builtForHeading")}
             </span>
           </h2>
-          <p className="text-gray-400 text-lg max-w-full md:max-w-3xl mx-auto px-2">
-            {t("home.about.whySubtitle")}
-          </p>
+          <div className="max-w-2xl mx-auto flex flex-col items-center gap-3">
+            {Array.isArray(builtForItems) &&
+              builtForItems.map((item) => (
+                <div key={item} className="flex items-start gap-3 text-left w-full max-w-md">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 mt-2 flex-shrink-0" />
+                  <p className="text-gray-300 text-base md:text-lg leading-relaxed">{item}</p>
+                </div>
+              ))}
+          </div>
         </motion.div>
 
-        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-          {whyItems.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: (index % 4) * 0.1 }}
-              className="group relative p-5 md:p-6 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500 hover:-translate-y-2"
-            >
-              <div className="absolute -inset-[1px] bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/20 group-hover:to-cyan-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="relative flex flex-col items-center text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <item.icon className="w-6 h-6 text-cyan-400" />
-                </div>
-                <h3 className="font-bold text-white mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-400 leading-relaxed">{item.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* ===== How It Works ===== */}
+        {/* ===== Our Commitment ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -175,95 +134,53 @@ export default function ExecutiveSummary() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-4 mx-auto">
+            <ShieldCheck className="w-7 h-7 text-cyan-400" />
+          </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            {t("home.about.howTitle")}{" "}
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              {t("home.about.howHighlight")}
+              {t("home.about.commitmentHeading")}
             </span>
           </h2>
-          <p className="text-gray-400 text-lg max-w-full md:max-w-3xl mx-auto px-2">
-            {t("home.about.howSubtitle")}
+          <p className="text-cyan-300 text-lg md:text-xl font-semibold max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed">
+            {t("home.about.commitmentTagline")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.commitment1")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.commitment2")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.commitment3")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.commitment4")}
           </p>
         </motion.div>
 
-        <div className="grid gap-6 md:grid-cols-4 mb-12">
-          {howSteps.map((step, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="relative"
-            >
-              <div className="h-full p-6 md:p-8 rounded-2xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 hover:border-cyan-500/30 transition-all duration-500 hover:-translate-y-2">
-                <div className="relative">
-                  <div className="absolute -top-1 -left-1 w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold flex items-center justify-center text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-5 group-hover:scale-110 transition-transform duration-300">
-                    <step.icon className="w-7 h-7 text-cyan-400" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed">{step.description}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* ===== Community ===== */}
+        {/* ===== Closing Statement ===== */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="relative text-center p-6 md:p-12 mb-12 rounded-[2.5rem] bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-2xl border border-white/10 overflow-hidden"
+          className="relative text-center p-6 md:p-12 rounded-[2.5rem] bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-2xl border border-white/10 overflow-hidden"
         >
           <div className="absolute -top-32 -right-32 w-72 h-72 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
           <div className="relative z-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 mb-5 mx-auto">
-              <Users className="w-7 h-7 text-cyan-400" />
+              <Sparkles className="w-7 h-7 text-cyan-400" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              {t("home.about.communityTitle")}
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-6">
+              {t("home.about.closingHeading")}
             </h3>
-            <p className="text-gray-300 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
-              {t("home.about.communityText")}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* ===== CTA ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="relative text-center p-6 md:p-12 rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-blue-600/20 via-cyan-500/15 to-blue-700/25"
-        >
-          <div className="absolute -inset-[1px] bg-gradient-to-br from-cyan-500/30 to-blue-500/30 rounded-[2.5rem] blur-xl opacity-40"></div>
-          <div className="relative z-10">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 border border-cyan-300/30 mb-6 mx-auto">
-              <Sparkles className="w-7 h-7 text-cyan-300" />
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              {t("home.about.ctaTitle")}
-            </h3>
-            <p className="text-gray-200 text-base md:text-lg leading-relaxed max-w-3xl mx-auto mb-8">
-              {t("home.about.ctaText")}
-            </p>
-            <Button
-              variant="gradient"
-              icon={<Sparkles />}
-              fullWidth={false}
-              onClick={() => navigate("/register")}
-              className="mx-auto"
-            >
-              {t("home.about.ctaButton")}
-            </Button>
+            {Array.isArray(closingTaglines) &&
+              closingTaglines.map((line) => (
+                <p key={line} className="text-cyan-300 text-lg md:text-xl leading-relaxed">
+                  {line}
+                </p>
+              ))}
           </div>
         </motion.div>
       </div>
