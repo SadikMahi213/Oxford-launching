@@ -890,6 +890,9 @@ async def update_kyc_status(
 
         # Refund hold on issue
         hold_amount = user.kyc_hold or Decimal("0")
+        refunded = Decimal("0")
+        refund_txn = None
+        refunded_at = None
         if hold_amount > 0:
             user.kyc_hold = Decimal("0")
             user.deposit_wallet = ((user.deposit_wallet or Decimal("0")) + hold_amount).quantize(
@@ -899,6 +902,9 @@ async def update_kyc_status(
                 kyc.payment_status = PaymentStatus.refunded
                 kyc.fee_refunded = True
                 kyc.fee_refunded_at = datetime.now(timezone.utc)
+                refunded_at = kyc.fee_refunded_at
+            else:
+                refunded_at = datetime.now(timezone.utc)
             wallet_txn = WalletTransaction(
                 user_id=user_id,
                 type=WalletTransactionType.kyc_fee_refund,
@@ -912,14 +918,34 @@ async def update_kyc_status(
                 status=WalletTransactionStatus.refunded,
             )
             db.add(wallet_txn)
+            refunded = hold_amount
+            refund_txn = wallet_txn
 
         await db.commit()
         await db.refresh(user)
 
+        message = f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}"
+        notif_metadata = None
+        if refunded > 0 and refund_txn is not None:
+            ts = refunded_at or datetime.now(timezone.utc)
+            message += (
+                f" Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+                f" (Ref #{refund_txn.id}) at {ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
+            )
+            notif_metadata = {
+                "refund_amount": str(refunded),
+                "refund_wallet": "deposit_wallet",
+                "refund_wallet_label": "Deposit Wallet",
+                "refund_txn_id": refund_txn.id,
+                "refund_kyc_id": kyc.id if kyc else None,
+                "refunded_at": ts.isoformat(),
+            }
+
         await notify_admin(
             db=db, type="kyc_rejected",
-            message=f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}",
+            message=message,
             user_id=user.id, request=request,
+            metadata_dict=notif_metadata,
         )
 
         return {
@@ -946,6 +972,9 @@ async def update_kyc_status(
 
     # Handle KYC hold: release on approve, refund on reject/reset
     hold_amount = user.kyc_hold or Decimal("0")
+    refunded = Decimal("0")
+    refund_txn = None
+    refunded_at = None
     if hold_amount > 0:
         if was_approved:
             # Release hold to company wallet
@@ -998,6 +1027,9 @@ async def update_kyc_status(
                 status=WalletTransactionStatus.refunded,
             )
             db.add(wallet_txn)
+            refunded = hold_amount
+            refund_txn = wallet_txn
+            refunded_at = kyc.fee_refunded_at if (kyc and kyc.fee_refunded_at) else datetime.now(timezone.utc)
 
     # KYC Snapshot: capture lifetime team volume on first approval
     if was_approved and not user.kyc_approved_team_volume:
@@ -1050,10 +1082,31 @@ async def update_kyc_status(
             logger.warning("KYC rank enforcement failed for user_id=%s (non-blocking)", user_id, exc_info=True)
 
     notif_type = "kyc_approved" if was_approved else "kyc_rejected"
+
+    message = f"User #{user_id} KYC was {new_kyc_status.value} by admin"
+    notif_metadata = None
+    if (was_rejected or was_reset) and refunded > 0:
+        ts = refunded_at or datetime.now(timezone.utc)
+        message = (
+            f"User #{user_id} KYC was {new_kyc_status.value} by admin. "
+            f"Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+            f" (Ref #{refund_txn.id if refund_txn else 'N/A'}) at "
+            f"{ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
+        )
+        notif_metadata = {
+            "refund_amount": str(refunded),
+            "refund_wallet": "deposit_wallet",
+            "refund_wallet_label": "Deposit Wallet",
+            "refund_txn_id": refund_txn.id if refund_txn else None,
+            "refund_kyc_id": kyc.id if kyc else None,
+            "refunded_at": ts.isoformat(),
+        }
+
     await notify_admin(
         db=db, type=notif_type,
-        message=f"User #{user_id} KYC was {new_kyc_status.value} by admin",
+        message=message,
         user_id=user_id, request=request,
+        metadata_dict=notif_metadata,
     )
 
     return {
