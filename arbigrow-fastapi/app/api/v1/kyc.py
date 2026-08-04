@@ -99,6 +99,15 @@ async def submit_kyc(
         existing_kyc.status = "pending"
         existing_kyc.transaction_id = transaction_id
 
+        # A new review cycle starts: reset the admin-controlled status so the
+        # Admin Panel immediately shows the resubmission as pending instead of
+        # keeping the previous rejected/issue state.
+        if user:
+            user.admin_kyc_status = "pending"
+            if user.account_status == "on_hold":
+                user.account_status = "inactive"
+                user.account_issue = None
+
         # Re-deduct fee if previous was refunded
         fee_deducted = "0"
         if existing_kyc.payment_status == PaymentStatus.refunded and existing_kyc.fee_paid > 0:
