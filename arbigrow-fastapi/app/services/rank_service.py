@@ -253,6 +253,48 @@ async def evaluate_and_process_rank(
             previous_rank_id = current_rank.id
 
     if qualified_rank.sort_order <= current_rank_sort:
+        # Even when no rank upgrade is needed, the user may still be owed a matching
+        # bonus for their current rank.  This happens when:
+        #   1. KYC approval assigned a rank with skip_bonus=True (no bonus paid).
+        #   2. A later deposit triggers rank evaluation but doesn't push the user
+        #      to a higher rank, so the normal bonus-distribution path is skipped.
+        # Without this, the bonus for the KYC-assigned rank is never paid.
+        if (
+            not skip_bonus
+            and user.current_rank_id
+            and not await _has_rank_bonus_been_paid(user_id, user.current_rank_id, db)
+        ):
+            current_rank = await db.get(Rank, user.current_rank_id)
+            if current_rank:
+                bonus_configs_for_current = (
+                    await db.execute(
+                        select(RankBonusConfig)
+                        .where(RankBonusConfig.rank_id == current_rank.id)
+                        .order_by(RankBonusConfig.sort_order)
+                    )
+                ).scalars().all()
+                if bonus_configs_for_current:
+                    eligible_for_current = team_volume - current_rank.target_volume
+                    if eligible_for_current > 0:
+                        cfg_list = [
+                            (c.bonus_type, c.bonus_percent)
+                            for c in bonus_configs_for_current
+                        ]
+                        await _distribute_rank_bonuses(
+                            user_id=user_id,
+                            source_user_id=source_user_id,
+                            rank=current_rank,
+                            eligible_amount=eligible_for_current,
+                            db=db,
+                            bonus_configs=cfg_list,
+                            reference_id=reference_id,
+                            reference_type=reference_type,
+                        )
+                        result["bonuses_paid"].append({
+                            "rank_id": current_rank.id,
+                            "rank_name": current_rank.name,
+                            "eligible_amount": str(eligible_for_current),
+                        })
         return result
 
     # Step 4: Get all newly achievable ranks between current and qualified
