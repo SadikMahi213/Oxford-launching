@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Search,
+  Download,
 } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
 import {
@@ -74,7 +75,6 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
   const nextRank = rankInfo?.next_rank;
   const currentRank = rankInfo?.current_rank;
-  const personalVolume = parseFloat(rankInfo?.personal_volume || 0);
   const teamVolume = parseFloat(rankInfo?.team_volume || 0);
   const totalMatchingBonus = parseFloat(rankInfo?.total_matching_bonus_earned || 0);
   const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
@@ -167,11 +167,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <Download className="w-4 h-4 text-emerald-400" />
                   {t("matchingBonusInfo.yourDeposit")}
                 </div>
                 <div className="text-xl font-bold text-emerald-400">
-                  {personalVolume.toFixed(2)} USDT
+                  {Number(user?.deposit_wallet ?? 0).toFixed(2)} USDT
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {t("matchingBonusInfo.ownDepositDesc")}

@@ -1783,7 +1783,7 @@
     "nextTarget": "اگلا ہدف",
     "noBonuses": "ابھی کوئی میچنگ بونس نہیں",
     "noRankHistory": "ابھی کوئی رینک تاریخ نہیں",
-    "ownDepositDesc": "آپ کے منظور شدہ اپنے ڈپازٹ",
+    "ownDepositDesc": "آپ کا ڈپازٹ والیٹ بیلنس",
     "page": "صفحہ {{page}} / {{totalPages}}",
     "progressTo": "پیش رفت",
     "rank": "رینک",
@@ -1806,7 +1806,7 @@
     "unknown": "نامعلوم",
     "unranked": "بغیر رینک",
     "volumeRequired": "مطلوبہ والیوم",
-    "yourDeposit": "آپ کا ڈپازٹ"
+    "yourDeposit": "ڈپازٹ والیٹ"
   },
   "ourInvestors": {
     "subtitle": "معروف وینچر کیپیٹل فرموں اور اسٹریٹجک شراکت داروں کی حمایت سے",

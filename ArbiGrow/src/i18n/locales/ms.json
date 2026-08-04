@@ -1783,7 +1783,7 @@
     "nextTarget": "Sasaran Seterusnya",
     "noBonuses": "Belum ada bonus padanan",
     "noRankHistory": "Belum ada sejarah pangkat",
-    "ownDepositDesc": "Deposit sendiri anda yang diluluskan",
+    "ownDepositDesc": "Baki dompet deposit anda",
     "page": "Halaman {{page}} daripada {{totalPages}}",
     "progressTo": "Progres ke",
     "rank": "Pangkat",
@@ -1806,7 +1806,7 @@
     "unknown": "Tidak Diketahui",
     "unranked": "Tiada Pangkat",
     "volumeRequired": "Volume Diperlukan",
-    "yourDeposit": "Deposit Anda"
+    "yourDeposit": "Dompet Deposit"
   },
   "ourInvestors": {
     "subtitle": "Disokong oleh firma modal teroka terkemuka dan rakan strategik",

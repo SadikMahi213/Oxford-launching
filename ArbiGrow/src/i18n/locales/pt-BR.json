@@ -1783,7 +1783,7 @@
     "nextTarget": "Próximo Objetivo",
     "noBonuses": "Nenhum bônus de correspondência ainda",
     "noRankHistory": "Nenhum histórico de nível ainda",
-    "ownDepositDesc": "Seus próprios depósitos aprovados",
+    "ownDepositDesc": "Saldo da sua carteira de depósito",
     "page": "Página {{page}} de {{totalPages}}",
     "progressTo": "Progresso para",
     "rank": "Nível",
@@ -1806,7 +1806,7 @@
     "unknown": "Desconhecido",
     "unranked": "Sem Nível",
     "volumeRequired": "Volume Necessário",
-    "yourDeposit": "Seu Depósito"
+    "yourDeposit": "Carteira de Depósito"
   },
   "ourInvestors": {
     "subtitle": "Apoiado por principais empresas de capital de risco e parceiros estratégicos",

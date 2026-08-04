@@ -1781,7 +1781,7 @@
     "nextTarget": "Susunod na Target",
     "noBonuses": "Wala pang matching bonuses",
     "noRankHistory": "Wala pang kasaysayan ng rank",
-    "ownDepositDesc": "Iyong inaprubahang sariling deposito",
+    "ownDepositDesc": "Balanse ng iyong deposit wallet",
     "page": "Pahina {{page}} ng {{totalPages}}",
     "progressTo": "Progreso papunta sa",
     "rank": "Rank",
@@ -1804,7 +1804,7 @@
     "unknown": "Hindi Alam",
     "unranked": "Walang Rank",
     "volumeRequired": "Kinakailangang Volume",
-    "yourDeposit": "Iyong Deposito"
+    "yourDeposit": "Deposit Wallet"
   },
   "ourInvestors": {
     "subtitle": "Suportado ng mga nangungunang venture capital firm at strategic partners",

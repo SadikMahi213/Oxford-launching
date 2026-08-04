@@ -1701,7 +1701,7 @@
     "nextTarget": "Next Target",
     "noBonuses": "No matching bonuses yet",
     "noRankHistory": "No rank history yet",
-    "ownDepositDesc": "Your own approved deposits",
+    "ownDepositDesc": "Your deposit wallet balance",
     "page": "Page {{page}} of {{totalPages}}",
     "progressTo": "Progress to",
     "rank": "Rank",
@@ -1724,7 +1724,7 @@
     "unknown": "Unknown",
     "unranked": "Unranked",
     "volumeRequired": "Volume Required",
-    "yourDeposit": "Your Deposit"
+    "yourDeposit": "Deposit Wallet"
   },
   "ourInvestors": {
     "subtitle": "Backed by leading venture capital firms and strategic partners",

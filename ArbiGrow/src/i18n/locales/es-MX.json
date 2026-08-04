@@ -1783,7 +1783,7 @@
     "nextTarget": "Siguiente Objetivo",
     "noBonuses": "Aún no hay bonos de emparejamiento",
     "noRankHistory": "Aún no hay historial de rangos",
-    "ownDepositDesc": "Tus propios depósitos aprobados",
+    "ownDepositDesc": "El saldo de tu cartera de depósito",
     "page": "Página {{page}} de {{totalPages}}",
     "progressTo": "Progreso hacia",
     "rank": "Rango",
@@ -1806,7 +1806,7 @@
     "unknown": "Desconocido",
     "unranked": "Sin Rango",
     "volumeRequired": "Volumen Requerido",
-    "yourDeposit": "Tu Depósito"
+    "yourDeposit": "Cartera de Depósito"
   },
   "ourInvestors": {
     "subtitle": "Respaldado por firmas líderes de capital de riesgo y socios estratégicos",

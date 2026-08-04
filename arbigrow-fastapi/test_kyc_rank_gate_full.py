@@ -168,13 +168,18 @@ def test_dashboard_my_rank_null_for_non_kyc():
 
     async def run():
         import app.api.v1.ranks as ranks_mod
-        with patch("app.utils.kyc_helper.is_kyc_approved", AsyncMock(return_value=False)):
+        with patch("app.utils.kyc_helper.is_kyc_approved", AsyncMock(return_value=False)), patch(
+            "app.services.rank_service.get_team_volume",
+            AsyncMock(return_value=(Decimal("500"), Decimal("2000"))),
+        ):
             return await ranks_mod.get_my_rank(db=db, current_user=user)
 
     payload = asyncio.run(run())
     assert payload["current_rank"] is None
     assert payload["next_rank"] is None
-    assert payload["team_volume"] == "0"
+    # Team Volume still accumulates for pending users, but it can never grant a rank.
+    assert payload["team_volume"] == "2000"
+    assert payload["personal_volume"] == "500"
     assert payload["progress"] == 0.0
     assert payload.get("kyc_required") is True
 

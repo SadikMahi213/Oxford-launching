@@ -1783,7 +1783,7 @@
     "nextTarget": "अगला लक्ष्य",
     "noBonuses": "अभी कोई मैचिंग बोनस नहीं",
     "noRankHistory": "अभी कोई रैंक इतिहास नहीं",
-    "ownDepositDesc": "आपकी स्वीकृत स्वयं की जमा",
+    "ownDepositDesc": "आपकी जमा वॉलेट शेष राशि",
     "page": "पृष्ठ {{page}} / {{totalPages}}",
     "progressTo": "प्रगति",
     "rank": "रैंक",
@@ -1806,7 +1806,7 @@
     "unknown": "अज्ञात",
     "unranked": "बिना रैंक",
     "volumeRequired": "आवश्यक वॉल्यूम",
-    "yourDeposit": "आपकी जमा"
+    "yourDeposit": "जमा वॉलेट"
   },
   "ourInvestors": {
     "subtitle": "अग्रणी उद्यम पूंजी फर्मों और रणनीतिक भागीदारों द्वारा समर्थित",

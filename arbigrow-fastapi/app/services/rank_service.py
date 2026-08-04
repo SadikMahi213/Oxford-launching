@@ -26,7 +26,8 @@ async def get_team_volume(
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
-      - team_volume    = personal_volume + all descendants' approved deposits
+      - team_volume    = personal_volume + descendants' approved deposits
+        (up to 40 generations, matching the documented business formula)
 
     When ``cutover`` (the user's ``kyc_approved_at``) is provided, only deposits
     created at or after the cutover count. Deposits made before KYC approval are
@@ -56,7 +57,7 @@ async def get_team_volume(
         )
         SELECT id FROM team_tree
     """)
-    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": 999})
+    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": 40})
     descendant_ids = [row[0] for row in descendant_result.fetchall()]
 
     team_volume = self_volume

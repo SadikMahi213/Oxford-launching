@@ -39,20 +39,26 @@ async def get_my_rank(
 ):
     """Return the current user's rank info and next rank target.
 
-    A user whose KYC is not approved must never see any rank: the endpoint
-    returns ``current_rank: null`` (and zero volumes) until KYC is approved.
+    Team Volume (own deposit + up to 40 generations of descendants) ALWAYS
+    accumulates and is reported regardless of KYC status. A user whose KYC is
+    not approved still sees their accumulated volume but never a rank: no
+    volume is eligible for rank assignment or matching bonuses until approval.
     """
     from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
     from app.utils.kyc_helper import is_kyc_approved
+
+    # Lifetime Team Volume = own approved deposits + up to 40 generations of
+    # descendants. It always accumulates and is the value the UI reports.
+    personal_volume, team_volume = await get_team_volume(current_user.id, db)
 
     if not await is_kyc_approved(current_user, db):
         return {
             "user_no": current_user.user_no,
             "current_rank": None,
             "next_rank": None,
-            "personal_volume": "0",
-            "network_volume": "0",
-            "team_volume": "0",
+            "personal_volume": str(personal_volume),
+            "network_volume": str(max(Decimal("0"), team_volume - personal_volume)),
+            "team_volume": str(team_volume),
             "kyc_approved_team_volume": None,
             "post_kyc_team_volume": None,
             "total_matching_bonus_earned": "0",
@@ -62,17 +68,18 @@ async def get_my_rank(
             "kyc_required": True,
         }
 
-    personal_volume, team_volume = await get_team_volume(
+    # Cache the rank-ELIGIBLE volume (only deposits created at/after KYC
+    # approval) so every other consumer reads the same value the rank engine
+    # uses. Pre-approval deposits stay excluded from rank eligibility.
+    _eligible_personal, eligible_team = await get_team_volume(
         current_user.id,
         db,
-        cutover=getattr(current_user, "kyc_approved_at", None),
+        cutover=current_user.kyc_approved_at,
     )
-
-    # Cache live value back to user model for all other queries
-    current_user.team_volume = team_volume
+    current_user.team_volume = eligible_team
     await db.commit()
 
-    current_rank = await _get_highest_qualified_rank(team_volume, db)
+    current_rank = await _get_highest_qualified_rank(eligible_team, db)
     if not current_rank:
         current_rank = await db.get(Rank, current_user.current_rank_id)
 

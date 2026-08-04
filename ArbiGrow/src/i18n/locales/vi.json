@@ -1783,7 +1783,7 @@
     "nextTarget": "Mục Tiêu Tiếp Theo",
     "noBonuses": "Chưa có thưởng khớp",
     "noRankHistory": "Chưa có lịch sử cấp bậc",
-    "ownDepositDesc": "Các khoản nạp đã phê duyệt của chính bạn",
+    "ownDepositDesc": "Số dư ví nạp tiền của bạn",
     "page": "Trang {{page}} / {{totalPages}}",
     "progressTo": "Tiến trình đến",
     "rank": "Cấp Bậc",
@@ -1806,7 +1806,7 @@
     "unknown": "Không Rõ",
     "unranked": "Chưa Xếp Hạng",
     "volumeRequired": "Khối Lượng Yêu Cầu",
-    "yourDeposit": "Khoản Nạp Của Bạn"
+    "yourDeposit": "Ví Nạp Tiền"
   },
   "ourInvestors": {
     "subtitle": "Được hậu thuẫn bởi các công ty vốn đầu tư mạo hiểm hàng đầu và đối tác chiến lược",

@@ -1783,7 +1783,7 @@
     "nextTarget": "Target Berikutnya",
     "noBonuses": "Belum ada bonus pencocokan",
     "noRankHistory": "Belum ada riwayat peringkat",
-    "ownDepositDesc": "Deposit milik Anda yang disetujui",
+    "ownDepositDesc": "Saldo dompet deposit Anda",
     "page": "Halaman {{page}} dari {{totalPages}}",
     "progressTo": "Progres ke",
     "rank": "Peringkat",
@@ -1806,7 +1806,7 @@
     "unknown": "Tidak Diketahui",
     "unranked": "Tanpa Peringkat",
     "volumeRequired": "Volume Diperlukan",
-    "yourDeposit": "Deposit Anda"
+    "yourDeposit": "Dompet Deposit"
   },
   "ourInvestors": {
     "subtitle": "Didukung oleh perusahaan modal ventura terkemuka dan mitra strategis",
