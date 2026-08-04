@@ -16,6 +16,7 @@ from app.models.mining_log import MiningLog
 from app.models.system_config import SystemConfig
 from app.models.transfer_log import TransferLog
 from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
+from app.models.wallet_transaction import WalletTransaction
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
 from app.core.rate_limiter import limiter
 
@@ -1281,4 +1282,46 @@ async def get_my_mining_history(
             }
             for m in logs
         ]
+    }
+
+
+@router.get("/wallet-transactions")
+async def get_my_wallet_transactions(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the current user's wallet transactions (KYC fee holds and refunds)."""
+    base_query = (
+        select(WalletTransaction)
+        .where(WalletTransaction.user_id == current_user.id)
+        .order_by(WalletTransaction.created_at.desc(), WalletTransaction.id.desc())
+    )
+    total = await db.scalar(select(func.count()).select_from(base_query.subquery()))
+    result = await db.execute(base_query.offset((page - 1) * limit).limit(limit))
+    items = result.scalars().all()
+    return {
+        "total": total or 0,
+        "page": page,
+        "limit": limit,
+        "data": [
+            {
+                "id": wt.id,
+                "transaction_id": wt.id,
+                "user_id": wt.user_id,
+                "type": wt.type.value if hasattr(wt.type, "value") else wt.type,
+                "wallet_type": wt.wallet_type,
+                "amount": float(wt.amount),
+                "balance_before": float(wt.balance_before) if wt.balance_before is not None else None,
+                "balance_after": float(wt.balance_after) if wt.balance_after is not None else None,
+                "currency": "USDT",
+                "reference_type": wt.reference_type,
+                "reference_id": wt.reference_id,
+                "description": wt.description,
+                "status": wt.status.value if hasattr(wt.status, "value") else wt.status,
+                "created_at": wt.created_at.isoformat() if wt.created_at else None,
+            }
+            for wt in items
+        ],
     }

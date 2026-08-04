@@ -1407,6 +1407,8 @@
     "type_captcha": "Pendapatan Captcha",
     "type_deposit": "Deposit",
     "type_ecommerce": "Transaksi E-dagang",
+    "type_kyc_fee": "Yuran KYC",
+    "type_kyc_refund": "Bayaran Balik KYC",
     "type_generation_bonus": "Bonus Generasi",
     "type_investment": "Pelaburan",
     "type_invoice": "Invois",

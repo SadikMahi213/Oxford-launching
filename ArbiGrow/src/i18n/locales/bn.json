@@ -1368,6 +1368,8 @@
     "type_captcha": "ক্যাপচা উপার্জন",
     "type_deposit": "ডিপোজিট",
     "type_ecommerce": "ই-কমার্স লেনদেন",
+    "type_kyc_fee": "KYC ফি",
+    "type_kyc_refund": "KYC রিফান্ড",
     "type_generation_bonus": "জেনারেশন বোনাস",
     "type_investment": "বিনিয়োগ",
     "type_invoice": "ইনভয়েস",

@@ -1407,6 +1407,8 @@
     "type_captcha": "कैप्चा कमाई",
     "type_deposit": "जमा",
     "type_ecommerce": "ई-कॉमर्स लेनदेन",
+    "type_kyc_fee": "KYC शुल्क",
+    "type_kyc_refund": "KYC रिफंड",
     "type_generation_bonus": "जनरेशन बोनस",
     "type_investment": "निवेश",
     "type_invoice": "चालान",

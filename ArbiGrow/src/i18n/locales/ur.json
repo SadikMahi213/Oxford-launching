@@ -1407,6 +1407,8 @@
     "type_captcha": "کیپچا آمدنی",
     "type_deposit": "ڈپازٹ",
     "type_ecommerce": "ای کامرس لین دین",
+    "type_kyc_fee": "KYC فیس",
+    "type_kyc_refund": "KYC رقم واپسی",
     "type_generation_bonus": "جنریشن بونس",
     "type_investment": "سرمایہ کاری",
     "type_invoice": "انوائس",

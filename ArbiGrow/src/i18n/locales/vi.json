@@ -1407,6 +1407,8 @@
     "type_captcha": "Thu Nhập Captcha",
     "type_deposit": "Nạp Tiền",
     "type_ecommerce": "Giao Dịch Thương Mại Điện Tử",
+    "type_kyc_fee": "Phí KYC",
+    "type_kyc_refund": "Hoàn Tiền KYC",
     "type_generation_bonus": "Thưởng Thế Hệ",
     "type_investment": "Đầu Tư",
     "type_invoice": "Hóa Đơn",

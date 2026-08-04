@@ -1405,6 +1405,8 @@
     "type_captcha": "Kita sa Captcha",
     "type_deposit": "Deposito",
     "type_ecommerce": "E-commerce Transaction",
+    "type_kyc_fee": "Bayad sa KYC",
+    "type_kyc_refund": "Refund ng KYC",
     "type_generation_bonus": "Generation Bonus",
     "type_investment": "Investasyon",
     "type_invoice": "Invoice",

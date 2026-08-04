@@ -1325,6 +1325,8 @@
     "type_captcha": "Captcha Earning",
     "type_deposit": "Deposit",
     "type_ecommerce": "Ecommerce Transaction",
+    "type_kyc_fee": "KYC Fee",
+    "type_kyc_refund": "KYC Refund",
     "type_generation_bonus": "Generation Bonus",
     "type_investment": "Investment",
     "type_invoice": "Invoice",

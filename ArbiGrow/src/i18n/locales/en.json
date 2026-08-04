@@ -2217,6 +2217,8 @@
     "type_invoice": "Invoice",
     "type_vendor_withdraw": "Vendor Withdraw",
     "type_ecommerce": "Ecommerce Transaction",
+    "type_kyc_fee": "KYC Fee",
+    "type_kyc_refund": "KYC Refund",
     "wallet_captcha": "Captcha Wallet",
     "wallet_arbx_mining": "ARBX Mining Wallet",
     "wallet_ad_view": "Ad View Wallet",

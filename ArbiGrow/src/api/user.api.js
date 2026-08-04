@@ -205,5 +205,6 @@ export const getMyInvoiceHistory = (invoiceType) => {
 };
 export const getVendorWithdraws = () => api.get("v1/marketplace/vendor/withdraws", authHeaders());
 export const getEcommerceWalletTransactions = () => api.get("v1/marketplace/wallet-transactions", authHeaders());
+export const getMyWalletTransactions = () => api.get("v1/user/wallet-transactions", authHeaders());
 
 export const getLiveStats = () => api.get("v1/live-stats/");

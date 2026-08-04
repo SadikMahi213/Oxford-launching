@@ -1407,6 +1407,8 @@
     "type_captcha": "Ganancia de Captcha",
     "type_deposit": "Depósito",
     "type_ecommerce": "Transacción de E-commerce",
+    "type_kyc_fee": "Tarifa KYC",
+    "type_kyc_refund": "Reembolso KYC",
     "type_generation_bonus": "Bono de Generación",
     "type_investment": "Inversión",
     "type_invoice": "Factura",
