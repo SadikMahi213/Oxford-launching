@@ -19,7 +19,7 @@ from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionTy
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
 from app.core.rate_limiter import limiter
 
-from app.api.v1.deps import get_current_user, get_current_admin_user, check_earning_access
+from app.api.v1.deps import get_current_user, check_earning_access
 from app.utils.is_system_active import is_system_active
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
@@ -1170,9 +1170,14 @@ async def get_user_list(
     limit: int = Query(50, ge=1, le=50),
     search: str | None = Query(None, description="Search by email, username, or full name"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_user),
 ):
     offset = (page - 1) * limit
+
+    # Non-admin users may only look up a specific recipient (Fund Send / MB Transfer).
+    # Full user listing stays an admin-only capability so user data is not enumerated.
+    if not current_user.is_admin and not (search and search.strip()):
+        return {"total": 0, "page": page, "limit": limit, "users": []}
 
     base_query = select(User)
     count_query = select(func.count(User.id))
