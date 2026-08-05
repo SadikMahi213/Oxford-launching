@@ -222,7 +222,7 @@ export default function CyberProfileCard() {
               </div>
               <span className="text-[9px] text-gray-500 uppercase tracking-wider font-medium">POSITION</span>
             </div>
-            <p className="text-sm font-bold text-amber-300">{currentRank?.name || "Member"}</p>
+            <p className="text-sm font-bold text-amber-300">{hasKYC ? (currentRank?.name || "Member") : "Member"}</p>
           </div>
           <div className="p-3.5 rounded-xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] hover:border-cyan-500/30 transition-all shadow-[0_0_15px_rgba(34,211,238,0.03)]">
             <div className="flex items-center gap-2 mb-1.5">

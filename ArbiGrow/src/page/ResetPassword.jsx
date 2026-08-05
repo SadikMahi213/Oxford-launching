@@ -18,7 +18,9 @@ export default function ResetPassword() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const urlToken = new URLSearchParams(location.search).get("token");
+  const urlToken =
+    location.state?.reset_token ||
+    new URLSearchParams(location.search).get("token");
   const { logout } = useUserStore();
 
   const [token, setToken] = useState(urlToken || "");

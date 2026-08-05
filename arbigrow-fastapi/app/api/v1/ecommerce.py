@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
@@ -7,6 +8,7 @@ from decimal import Decimal
 from pydantic import BaseModel, EmailStr
 import re
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.models.user import User
@@ -16,6 +18,7 @@ from app.models.seller_delivery_zone import SellerDeliveryZone
 from app.models.vendor_withdraw import VendorWithdraw
 from app.models.order import Order, OrderItem
 from app.models.ecommerce_config import EcommerceConfig
+from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
 from app.models.cart import CartItem
 from app.models.wishlist import WishlistItem
 from app.models.compare import CompareItem
@@ -27,6 +30,43 @@ from app.models.product_tag import ProductTag
 from app.models.flash_deal import FlashDealProduct
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
+
+
+def _b2_object_key_from_url(url: str) -> str | None:
+    """Extract the B2 object key from a presigned URL if it belongs to our bucket."""
+    try:
+        parsed = urlsplit(url)
+        path = parsed.path.lstrip("/")
+        bucket = (settings.B2_BUCKET_NAME or "").strip()
+        if bucket and path.startswith(bucket + "/"):
+            return path[len(bucket) + 1:]
+    except Exception:
+        return None
+    return None
+
+
+def _resolve_image_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http"):
+        # It may be a stale presigned URL from our own bucket; regenerate a fresh one.
+        key = _b2_object_key_from_url(stored)
+        if key:
+            return generate_presigned_url(key)
+        return stored
+    return generate_presigned_url(stored)
+
+
+def _resolve_image_urls(urls: list[str] | None) -> list[str]:
+    if not urls:
+        return []
+    resolved = []
+    for url in urls:
+        r = _resolve_image_url(url)
+        if r:
+            resolved.append(r)
+    return resolved
+
 
 router = APIRouter(prefix="/ecommerce", tags=["Ecommerce"])
 
@@ -147,13 +187,17 @@ def _seller_to_dict(seller, user):
         "whatsapp_number": seller.whatsapp_number,
         "nid_number": seller.nid_number,
         "nid_front_image_key": seller.nid_front_image_key,
+        "nid_front_image_url": _resolve_image_url(seller.nid_front_image_key),
         "nid_back_image_key": seller.nid_back_image_key,
+        "nid_back_image_url": _resolve_image_url(seller.nid_back_image_key),
         "country": seller.country,
         "division_state": seller.division_state,
         "district_city": seller.district_city,
         "full_address": seller.full_address,
         "store_logo_key": seller.store_logo_key,
+        "store_logo_url": _resolve_image_url(seller.store_logo_key),
         "store_banner_key": seller.store_banner_key,
+        "store_banner_url": _resolve_image_url(seller.store_banner_key),
         "facebook_url": seller.facebook_url,
         "youtube_url": seller.youtube_url,
         "tiktok_url": seller.tiktok_url,
@@ -393,8 +437,8 @@ async def list_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
-                "image_url": p.image_url,
-                "image_urls": p.get_image_urls(),
+                "image_url": _resolve_image_url(p.image_url),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "category": p.category,
                 "store_name": sellers_map.get(p.seller_id, ""),
                 "seller_whatsapp": seller_whatsapp_map.get(p.seller_id, ""),
@@ -424,8 +468,8 @@ async def get_product(
         "name": product.name,
         "description": product.description,
         "price": float(product.price),
-        "image_url": product.image_url,
-        "image_urls": product.get_image_urls(),
+        "image_url": _resolve_image_url(product.image_url),
+        "image_urls": _resolve_image_urls(product.get_image_urls()),
         "category": product.category,
         "store_name": seller.store_name if seller else "",
         "seller_status": seller.status if seller else "",
@@ -531,8 +575,8 @@ async def get_my_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
-                "image_url": p.image_url,
-                "image_urls": p.get_image_urls(),
+                "image_url": _resolve_image_url(p.image_url),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "category": p.category,
                 "arbx_allocated": float(p.arbx_allocated),
                 "is_active": p.is_active,
@@ -849,13 +893,17 @@ async def admin_list_sellers(
                 "whatsapp_number": s.whatsapp_number,
                 "nid_number": s.nid_number,
                 "nid_front_image_key": s.nid_front_image_key,
+                "nid_front_image_url": _resolve_image_url(s.nid_front_image_key),
                 "nid_back_image_key": s.nid_back_image_key,
+                "nid_back_image_url": _resolve_image_url(s.nid_back_image_key),
                 "country": s.country,
                 "division_state": s.division_state,
                 "district_city": s.district_city,
                 "full_address": s.full_address,
                 "store_logo_key": s.store_logo_key,
+                "store_logo_url": _resolve_image_url(s.store_logo_key),
                 "store_banner_key": s.store_banner_key,
+                "store_banner_url": _resolve_image_url(s.store_banner_key),
                 "facebook_url": s.facebook_url,
                 "youtube_url": s.youtube_url,
                 "tiktok_url": s.tiktok_url,
@@ -900,7 +948,19 @@ async def admin_update_seller_status(
             config = await db.execute(select(EcommerceConfig).limit(1))
             cfg = config.scalar_one_or_none()
             bonus = cfg.signup_bonus_arbx if cfg else Decimal("50")
-            user.arbx_wallet = (user.arbx_wallet or 0) + bonus
+            bal_before = user.arbx_wallet or Decimal("0")
+            user.arbx_wallet = bal_before + bonus
+            db.add(OFACoinTransaction(
+                user_id=user.id,
+                tx_type=OFATransactionType.ecommerce_seller_bonus,
+                amount=bonus,
+                wallet_balance_before=bal_before,
+                wallet_balance_after=user.arbx_wallet,
+                target_wallet="arbx_wallet",
+                reference_type="seller",
+                reference_id=seller.id,
+                description="Ecommerce seller approval ARBX bonus",
+            ))
 
     await db.commit()
     return {"status": "updated", "seller_status": status}
@@ -964,7 +1024,7 @@ async def admin_list_seller_products(
                 "id": p.id,
                 "name": p.name,
                 "price": float(p.price),
-                "image_urls": p.get_image_urls(),
+                "image_urls": _resolve_image_urls(p.get_image_urls()),
                 "is_active": p.is_active,
                 "arbx_allocated": float(p.arbx_allocated),
                 "created_at": p.created_at.isoformat() if p.created_at else None,

@@ -27,6 +27,7 @@ import RankManagement from "../component/admin/RankManagement.jsx";
 import RankHistoryPage from "../component/admin/RankHistory.jsx";
 import BonusHistory from "../component/admin/BonusHistory.jsx";
 import WithdrawalMethodManager from "../component/admin/WithdrawalMethodManager.jsx";
+import CommissionConfig from "../component/admin/CommissionConfig.jsx";
 import { Camera, Check, X } from "lucide-react";
 import api from "../api/axiosInstance.js";
 
@@ -157,6 +158,8 @@ export default function AdminDashboard() {
         return <AdminWhatsAppConfig />;
       case "settings":
         return <SystemConfigPanel />;
+      case "commission-config":
+        return <CommissionConfig />;
       case "profile":
         return (
           <div className="p-4 md:p-6 space-y-5">

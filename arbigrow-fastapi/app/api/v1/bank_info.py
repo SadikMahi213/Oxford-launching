@@ -124,7 +124,7 @@ async def update_bank_info_status(
     admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
-        select(BankInfo).where(BankInfo.id == bank_info_id)
+        select(BankInfo).options(joinedload(BankInfo.user)).where(BankInfo.id == bank_info_id)
     )
     bank_info = result.scalar_one_or_none()
     if not bank_info:

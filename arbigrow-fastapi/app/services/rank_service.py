@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, timezone
 
 from sqlalchemy import select, func as sa_func, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,26 +10,38 @@ from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.deposit import Deposit
 from app.models.rank_bonus_config import RankBonusConfig
+from app.utils.kyc_helper import is_kyc_approved
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
+REVERSAL_REASON = "Reversed: user not KYC-verified at time of rank/bonus assignment."
 
 
 async def get_team_volume(
     user_id: int,
     db: AsyncSession,
+    *,
+    cutover: datetime | None = None,
 ) -> tuple[Decimal, Decimal]:
     """Calculate personal deposit and total team volume.
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
-      - team_volume    = personal_volume + all descendants' approved deposits
+      - team_volume    = personal_volume + descendants' approved deposits
+        (up to 40 generations, matching the documented business formula)
+
+    When ``cutover`` (the user's ``kyc_approved_at``) is provided, only deposits
+    created at or after the cutover count. Deposits made before KYC approval are
+    excluded so they never contribute to rank eligibility or matching bonuses.
     """
     # Self deposits (approved)
+    self_conds = [
+        Deposit.user_id == user_id,
+        Deposit.status == "approved",
+    ]
+    if cutover is not None:
+        self_conds.append(Deposit.created_at >= cutover)
     self_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
-            Deposit.user_id == user_id,
-            Deposit.status == "approved",
-        )
+        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*self_conds)
     )
     self_volume = Decimal(str(self_result.scalar()))
 
@@ -49,16 +62,99 @@ async def get_team_volume(
 
     team_volume = self_volume
     if descendant_ids:
+        team_conds = [
+            Deposit.user_id.in_(descendant_ids),
+            Deposit.status == "approved",
+        ]
+        if cutover is not None:
+            team_conds.append(Deposit.created_at >= cutover)
         team_result = await db.execute(
-            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
-                Deposit.user_id.in_(descendant_ids),
-                Deposit.status == "approved",
-            )
+            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*team_conds)
         )
         team_volume += Decimal(str(team_result.scalar()))
 
     team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
     return self_volume, team_volume
+
+
+async def get_rank_eligible_volume(
+    user: User,
+    db: AsyncSession,
+) -> tuple[Decimal, Decimal]:
+    """Return the team volume that may count toward a user's rank.
+
+    A user is only eligible once their KYC status is ``approved``. Until then the
+    eligible volume is zero. Once approved, only deposits created at/after
+    ``kyc_approved_at`` count, so pre-approval deposits never qualify.
+    """
+    if not await is_kyc_approved(user, db):
+        return Decimal("0"), Decimal("0")
+    return await get_team_volume(user.id, db, cutover=user.kyc_approved_at)
+
+
+async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
+    """Enforce the KYC-first business rule for rank entitlements.
+
+    If ``user`` is NOT KYC-approved this strips every rank artifact so no later
+    code can re-expose it:
+      * clears ``current_rank_id``
+      * zeroes ``team_volume``
+      * reverses all active ``matching_bonuses`` and recomputes
+        ``matching_bonus_wallet`` from the remaining (non-reversed) rows
+      * marks active ``rank_histories`` as ``reversed``
+
+    Returns True when the user is blocked (not KYC-approved).
+    """
+    if await is_kyc_approved(user, db):
+        return False
+
+    now = datetime.now(timezone.utc)
+    changed = False
+
+    bonuses = (
+        await db.execute(
+            select(MatchingBonus).where(
+                MatchingBonus.user_id == user.id,
+                MatchingBonus.is_reversed == False,
+            )
+        )
+    ).scalars().all()
+    if bonuses:
+        changed = True
+        for b in bonuses:
+            b.is_reversed = True
+            b.reversed_at = now
+            b.reversal_reason = REVERSAL_REASON
+
+    if user.current_rank_id is not None:
+        changed = True
+        user.current_rank_id = None
+    if (user.team_volume or Decimal("0")) > 0:
+        changed = True
+        user.team_volume = Decimal("0")
+
+    histories = (
+        await db.execute(
+            select(RankHistory).where(
+                RankHistory.user_id == user.id,
+                RankHistory.status == "achieved",
+            )
+        )
+    ).scalars().all()
+    if histories:
+        changed = True
+        for h in histories:
+            h.status = "reversed"
+            h.released_at = now
+
+    if changed:
+        remaining = sum(
+            (b.bonus_amount or Decimal("0") for b in bonuses if not b.is_reversed),
+            Decimal("0"),
+        ).quantize(WALLET_PRECISION)
+        user.matching_bonus_wallet = remaining
+
+    return True
 
 
 async def _get_highest_qualified_rank(
@@ -88,6 +184,7 @@ async def _has_rank_bonus_been_paid(
         .where(
             MatchingBonus.user_id == user_id,
             MatchingBonus.rank_id == rank_id,
+            MatchingBonus.is_reversed == False,
         )
         .with_for_update()
         .limit(1)
@@ -202,11 +299,11 @@ async def evaluate_and_process_rank(
     snapshot_volume: Decimal | None = None,
 ) -> dict:
     """
-    Main entry point called after a deposit approval or investment purchase.
+    Main entry point called after a deposit approval, KYC approval, or investment purchase.
     
-    1. Recalculates team volume
+    1. Calculates team volume (or uses snapshot from KYC approval)
     2. Checks if user qualifies for a new rank
-    3. Distributes matching bonuses for any newly achieved ranks
+    3. Distributes matching bonuses for any newly achieved ranks (unless skip_bonus=True)
     4. Saves rank history
     5. Updates user's current_rank_id
     """
@@ -219,23 +316,31 @@ async def evaluate_and_process_rank(
     if not user:
         return result
 
-    import logging; logging.getLogger(__name__).warning("KYC_CHECK: user_id=%s admin_kyc_status=%s", user.id, user.admin_kyc_status)
-    # KYC gate: only KYC-approved users can receive rank upgrades and bonuses
-    if user.admin_kyc_status != "approved":
+    # KYC guard: a user must be fully KYC-verified (approved) before they can qualify
+    # for any rank or receive any matching bonus. Not-approved users are stripped of
+    # any existing rank artifacts so a stale rank can never survive or be re-exposed.
+    if await enforce_kyc_rank_gate(user, db):
         return result
 
+    # Only deposits created at/after KYC approval count toward team volume, so
+    # pre-approval deposits never drive rank eligibility or matching bonuses.
+    cutover = getattr(user, "kyc_approved_at", None)
+
     # Step 1: Calculate personal deposit and total team volume
-    personal_volume, live_team_volume = await get_team_volume(user_id, db)
     if use_snapshot_volume and snapshot_volume is not None:
         team_volume = snapshot_volume
+        personal_volume, _ = await get_team_volume(user_id, db, cutover=cutover)
     else:
-        team_volume = live_team_volume
+        personal_volume, team_volume = await get_team_volume(user_id, db, cutover=cutover)
 
     # Update user's team_volume (even if personal_volume is 0)
     user.team_volume = team_volume
 
-    # Users with zero personal deposit are not eligible for matching bonuses
-    if personal_volume <= 0:
+    # Users with zero personal deposit are not eligible for matching bonuses.
+    # Exception: the KYC-approval path assigns a rank ONCE from the full
+    # historical snapshot volume (use_snapshot_volume=True) even when the user
+    # has no post-approval personal deposits yet, because bonuses are skipped.
+    if personal_volume <= 0 and not use_snapshot_volume:
         return result
 
     # Step 2: Find highest qualified rank
@@ -354,7 +459,7 @@ async def evaluate_and_process_rank(
             last_achieved_rank = rank
             continue
 
-        # Distribute bonuses for this rank (skip if skip_bonus is True)
+        # Distribute bonuses for this rank (skip if skip_bonus=True, e.g. from KYC approval)
         if not skip_bonus:
             await _distribute_rank_bonuses(
                 user_id=user_id,
@@ -366,6 +471,11 @@ async def evaluate_and_process_rank(
                 reference_id=reference_id,
                 reference_type=reference_type,
             )
+            result["bonuses_paid"].append({
+                "rank_id": rank.id,
+                "rank_name": rank.name,
+                "eligible_amount": str(eligible),
+            })
 
         # Save rank history
         await _create_rank_history(
@@ -375,12 +485,6 @@ async def evaluate_and_process_rank(
             team_volume=team_volume,
             db=db,
         )
-
-        result["bonuses_paid"].append({
-            "rank_id": rank.id,
-            "rank_name": rank.name,
-            "eligible_amount": str(eligible),
-        })
 
         previous_rank_id = rank.id
         previous_target = rank.target_volume

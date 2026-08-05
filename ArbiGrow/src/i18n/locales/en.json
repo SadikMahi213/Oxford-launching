@@ -21,7 +21,6 @@
     "comingSoon": "Coming Soon",
     "brandName": "Oxford Financial Ads",
     "tagline": "Digital Services",
-    "taglineMobile": "AI Trading",
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
     "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
@@ -46,14 +45,22 @@
     "serving": "Serving Members Worldwide",
     "support247": "24/7 Online Operations & Support",
     "supportEmail": "support.oxfordfinancialads@gmail.com",
-    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
+    "social": {
+      "telegram": "Telegram",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "linkedin": "LinkedIn",
+      "youtube": "YouTube",
+      "mail": "Email"
+    }
   },
   "hero": {
-    "title": "Digital Advertising & Online",
-    "subtitle": "Earning Platform",
-    "description": "Oxford Financial Ads is a modern digital advertising and online engagement platform where members can participate in various digital earning activities.",
-    "cta": "Pre-Register Now",
-    "whitepaper": "Read Technical Whitepaper"
+    "title": "Start Your",
+    "subtitle": "Freelancing Journey",
+    "description": "Connect with clients, complete professional projects, and grow your freelance career worldwide.",
+    "cta": "Free Register Now"
   },
   "auth": {
     "login": {
@@ -68,7 +75,9 @@
       "success": "Login successful",
       "blocked": "Your account has been temporarily blocked due to multiple failed login attempts. Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com",
       "invalid": "Invalid login",
-      "failed": "Login failed"
+      "failed": "Login failed",
+      "welcomeBack": "Welcome Back",
+      "welcomeSubtitle": "Sign in to access your dashboard and grow your portfolio."
     },
     "register": {
       "title": "Create Your Account",
@@ -168,7 +177,10 @@
       "success": "Registration successful!",
       "success_paid": "Registration submitted! Please complete payment to activate your account.",
       "networkError": "Network error or server not reachable",
-      "error": "Something went wrong"
+      "error": "Something went wrong",
+      "joinTitle": "Join Us Today",
+      "joinSubtitle": "Create an account to start earning with our modern platform for digital advertising.",
+      "perDay": "/day"
     },
     "forgotPassword": {
       "title": "Reset Your Password",
@@ -317,7 +329,9 @@
       "clickHistory": "Click to view history",
       "openTokenInfo": "Open token information",
       "viewHistory": "View History",
-      "transfer": "Transfer"
+      "transfer": "Transfer",
+      "usable": "Usable Balance",
+      "ofaToken": "OFA token"
     },
     "tokenInfo": {
       "title": "Token Information",
@@ -353,7 +367,8 @@
       "title": "Team Performance",
       "level": "Level {{level}}",
       "loading": "Loading...",
-      "netEarnings": "Net Earnings (All Levels)"
+      "netEarnings": "Net Earnings (All Levels)",
+      "growth": "15.7% vs last 30 days"
     },
     "mining": {
       "title": "OFA token Mining Wallet",
@@ -365,12 +380,17 @@
       "claiming": "Claiming...",
       "claim": "Claim Reward",
       "howTitle": "How Mining Works",
-      "step1": "1. Click \"Start Mining\" to begin a 24-hour mining cycle.",
-      "step2": "2. OFA tokens are mined continuously at a rate proportional to the daily cap divided by 86,400 seconds.",
-      "step3": "3. After at least 1 minute, you can click \"Claim Reward\" to transfer mined tokens to your Mining Wallet.",
-      "step4": "4. You can claim multiple times during a cycle — each claim gives you the tokens mined since your last claim.",
-      "step5": "5. When the 24-hour cycle ends, mining resets automatically. Start a new cycle to continue earning.",
-      "step6": "6. Mined OFA tokens can be converted to USDT via the Convert page. External transfers are coming soon."
+      "step1": "Start mining session — OFA tokens begin accumulating every second over a 24-hour cycle.",
+      "step2": "Mining rate is calculated based on your current network volume and staking tier.",
+      "step3": "Accumulated tokens are deposited directly into your Mining Wallet in real-time.",
+      "step4": "Cycle auto-resets after 24 hours — claim or let it restart for continuous mining.",
+      "totalBalance": "TOTAL BALANCE",
+      "currentCycle": "CURRENT CYCLE",
+      "remainingLabel": "Remaining",
+      "minedToday": "MINED (TODAY)",
+      "dailyCap": "DAILY CAP",
+      "lastClaim": "LAST CLAIM",
+      "notClaimed": "Not claimed yet"
     },
     "history": {
       "noHistory": "No {{type}} history found.",
@@ -394,7 +414,19 @@
       "referral": "Referral Earnings History",
       "matching": "Matching Bonus History",
       "generation": "Generation Earnings History"
-    }
+    },
+    "ofaCoin": {
+      "title": "OFA Cryptocurrency",
+      "subtitle": "The Native Digital Asset Powering Our Ecosystem",
+      "token": "TOKEN",
+      "description": "Experience a next-generation blockchain-powered digital asset designed for secure transactions, rewards, and long-term ecosystem growth.",
+      "symbol": "Symbol",
+      "network": "Network",
+      "supply": "Supply"
+    },
+    "pendingPayment": "Your package payment has not been completed yet. Please complete your payment. Once your payment has been approved by the administrator, all earning features will be activated automatically.",
+    "viewAll": "View All",
+    "allLevels": "All Levels"
   },
   "profile": {
     "title": "Profile",
@@ -423,7 +455,8 @@
     "photo_uploaded": "Profile image uploaded",
     "photo_saved": "Photo saved",
     "photo_failed": "Upload failed",
-    "photo_saveFailed": "Failed to save photo"
+    "photo_saveFailed": "Failed to save photo",
+    "rejectionReason": "Rejection Reason:"
   },
   "deposit": {
     "title": "Deposit USDT",
@@ -507,7 +540,24 @@
     "mode_network": "Network Withdrawal",
     "mode_both": "Banking + Network",
     "err_mode_banking": "Only bank transfer withdrawals are allowed at this time.",
-    "err_mode_network": "Network withdrawals are currently disabled."
+    "err_mode_network": "Network withdrawals are currently disabled.",
+    "err_kyc": "KYC verification required. Please complete KYC verification before withdrawing.",
+    "err_mobile": "Invalid mobile number",
+    "err_banking": "Please complete your Banking Setup before requesting a withdrawal.",
+    "selectMethod_plh": "Select withdrawal method",
+    "destinationBankAccount": "Destination Bank Account",
+    "bankLabel": "Bank:",
+    "accountLabel": "Account:",
+    "holderLabel": "Holder:",
+    "swiftLabel": "SWIFT:",
+    "bankingWarning": "Please complete your <strong>Banking Setup</strong> before requesting a withdrawal.",
+    "destinationAddress": "Destination Address",
+    "networkAddress_plh": "Enter your wallet address",
+    "mobileNumber": "Mobile Number",
+    "mobile_plh": "e.g. 01XXXXXXXXX",
+    "accountType": "Account Type",
+    "accountPersonal": "Personal",
+    "accountAgent": "Agent"
   },
   "walletTransfer": {
     "title": "Wallet Transfer",
@@ -525,7 +575,15 @@
     "err_amount": "Enter a valid amount",
     "err_sameWallet": "Source and destination must be different",
     "err_balance": "Insufficient balance",
-    "err_failed": "Transfer failed"
+    "err_failed": "Transfer failed",
+    "walletMain": "Main Wallet",
+    "walletReferral": "Referral Wallet",
+    "walletGeneration": "Generation Wallet",
+    "walletMatchingBonus": "Matching Bonus Wallet",
+    "walletEcommerce": "Ecommerce Wallet",
+    "walletCaptcha": "Captcha Typing Wallet",
+    "walletAdView": "Ad View Wallet",
+    "walletDeposit": "Deposit Wallet"
   },
   "sendFunds": {
     "title": "Send Funds",
@@ -547,7 +605,8 @@
     "err_noUser": "No user found matching '{{query}}'",
     "err_search": "Search failed: {{error}}",
     "success": "Sent {{amount}} USDT to {{name}}",
-    "err_failed": "Transfer failed"
+    "err_failed": "Transfer failed",
+    "err_kyc": "KYC verification required. Please complete KYC verification before sending funds."
   },
   "matchingBonusTransfer": {
     "title": "Matching Bonus Transfer",
@@ -652,7 +711,8 @@
       "fileTooLarge": "File size must be less than 5MB",
       "invalidFileType": "Please upload a valid image file (JPEG, PNG, WebP) or PDF",
       "uploadFailed": "Failed to upload"
-    }
+    },
+    "resubmit": "Resubmit"
   },
   "investments": {
     "title": "My Investments",
@@ -831,18 +891,6 @@
     }
   },
   "home": {
-    "executiveSummary": {
-      "badge": "About Us",
-      "paragraph": "Oxford Financial Ads is a modern digital advertising and online engagement platform where members can participate in various digital activities. These include captcha typing, data entry, video editing, graphic design, digital marketing, and other online-based tasks. Through these activities, members can connect with a global network and gain opportunities to work at an international level as well as real-world experience. Our goal is to create a professional, development-oriented, and growth-focused environment through skill development, global connectivity, and community-based collaboration. By participating here, members can build an international network and also gain access to various performance-based opportunities such as generation bonuses, group bonuses, company profit sharing, and different position achievements. This platform provides a structured opportunity for members to gain new experiences in the digital world, enhance their skills, and move forward financially.",
-      "activities": "Activities",
-      "network": "Network",
-      "opportunities": "Opportunities",
-      "goal": "Goal",
-      "activitiesVal": "Digital & Online",
-      "networkVal": "Global Community",
-      "opportunitiesVal": "Performance-Based",
-      "goalVal": "Skill & Growth"
-    },
     "whyChooseUs": {
       "title": "Our",
       "titleHighlight": "Financial Service",
@@ -862,7 +910,9 @@
       "networkTitle": "Networking & Community",
       "networkDesc": "A professional global community has been built to connect individuals across different countries and cultures, enabling knowledge sharing and experience exchange on an international level. Based on skills and performance, members gain opportunities to work globally.",
       "benefitsTitle": "Member Benefits",
-      "benefitsDesc": "By joining Oxford Financial Ads, members gain access to a structured environment designed for professional and personal excellence with opportunities to develop advanced digital and professional skills."
+      "benefitsDesc": "By joining Oxford Financial Ads, members gain access to a structured environment designed for professional and personal excellence with opportunities to develop advanced digital and professional skills.",
+      "ecommerceTitle": "Free Global E-Commerce Seller Account",
+      "ecommerceDesc": "Members receive a free global e-commerce seller account to start selling products online across international marketplaces. Through this opportunity, members can build their own online business, reach customers worldwide, and earn income from product sales."
     },
     "memberBenefits": {
       "badge": "Member Benefits",
@@ -968,11 +1018,18 @@
     },
     "platformStats": {
       "badge": "Live Platform Statistics",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "Live Statistics",
+      "subtitle": "Real-time transparency into our global network, active memberships, and successful financial engagements.",
       "totalUsers": "Total Users",
       "totalActiveInvestors": "Total Active Investors",
       "totalInvestmentsMade": "Total Investments Made",
       "totalProfitsGenerated": "Total Profits Generated",
-      "successfulWithdrawals": "Successful Withdrawals"
+      "successfulWithdrawals": "Successful Withdrawals",
+      "totalRegisteredMembers": "Total Registered Members",
+      "verifiedFreelancers": "Verified Freelancers",
+      "packageInvestmentOverview": "Package Investment Overview",
+      "countriesConnected": "Countries Connected"
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -986,6 +1043,103 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+    },
+"about": {
+      "badge": "Company Overview",
+      "title": "Oxford Financial Ads",
+      "titleHighlight": "(OFA)",
+      "intro": "OFA is a global digital work platform where you can learn new skills, complete simple online tasks, and earn rewards — anytime, anywhere.",
+      "overview1": "Oxford Financial Ads (OFA) is a global technology-driven platform that connects businesses, advertisers, and individuals through a modern ecosystem for digital work and advertising solutions.",
+      "overview2": "Our platform is designed to simplify online work by providing access to task-based digital opportunities that can be completed from anywhere in the world using a smartphone or computer. At the same time, OFA helps organizations efficiently distribute and manage digital tasks through a scalable global workforce.",
+      "overview3": "We are committed to building a secure, transparent, and technology-powered environment where businesses gain reliable digital support and individuals are rewarded for completing legitimate digital tasks.",
+      "visionHeading": "Our Vision",
+      "vision1": "At Oxford Financial Ads (OFA), our vision is to become one of the world's leading digital work and advertising platforms by building a trusted ecosystem powered by technology, innovation, and integrity.",
+      "vision2": "We are committed to creating a global digital environment where individuals, businesses, and partners can connect, collaborate, and unlock new economic opportunities in a secure, transparent, and efficient way.",
+      "missionHeading": "Our Mission",
+      "mission1": "At Oxford Financial Ads (OFA), our mission is to create accessible, technology-driven, and legitimate digital work opportunities for people around the world while delivering reliable, efficient, and scalable digital task solutions for businesses.",
+      "mission2": "Through innovation, transparent operations, strong security, and a user-centric approach, we strive to build a sustainable digital economy where users, partners, and organizations can achieve long-term growth, trust, and shared success.",
+      "builtForHeading": "Our Platform is Built For",
+      "builtForItems": [
+        "Individuals seeking digital work opportunities",
+        "Freelancers",
+        "Students",
+        "Professionals",
+        "Entrepreneurs",
+        "Small and Medium Businesses (SMEs)",
+        "Large Enterprises",
+        "Advertising Agencies",
+        "Global Brands"
+      ],
+      "commitmentHeading": "Our Commitment",
+      "commitmentTagline": "Building Trust. Creating Opportunities. Empowering the Digital Future.",
+      "commitment1": "At Oxford Financial Ads (OFA), our commitment goes beyond technology.",
+      "commitment2": "We are dedicated to building a trusted, secure, and transparent digital ecosystem where individuals, businesses, and partners can grow with confidence.",
+      "commitment3": "Every opportunity we create is guided by integrity, innovation, accountability, and long-term sustainability.",
+      "commitment4": "We believe that trust is earned through consistent action, and we remain committed to delivering reliable digital solutions that create lasting value for our global community.",
+      "closingHeading": "Oxford Financial Ads (OFA)",
+      "closingTaglines": [
+        "Committed to Trust.",
+        "Driven by Innovation.",
+        "Building a Better Digital Future."
+      ],
+      "servicesTitle": "What You Can Do",
+      "servicesHighlight": "",
+      "servicesSubtitle": "Flexible digital work opportunities that fit your lifestyle.",
+      "service1Title": "Digital Tasks",
+      "service1Desc": "Build practical skills with simple daily online tasks.",
+      "service2Title": "Captcha Work",
+      "service2Desc": "Earn by completing quick captcha typing activities.",
+      "service3Title": "Watch & Earn",
+      "service3Desc": "Watch short ads and earn rewards from anywhere.",
+      "service4Title": "Data Entry",
+      "service4Desc": "Grow accuracy and professionalism with structured data work.",
+      "service5Title": "Graphics Design",
+      "service5Desc": "Unleash creativity through professional visual projects.",
+      "service6Title": "Video Editing",
+      "service6Desc": "Develop modern media and content creation skills.",
+      "service7Title": "Digital Marketing",
+      "service7Desc": "Gain hands-on experience in marketing and branding.",
+      "service8Title": "E-Commerce",
+      "service8Desc": "Launch a free online store and sell worldwide.",
+      "service9Title": "Training",
+      "service9Desc": "Master new skills with structured training programs.",
+      "service10Title": "Networking",
+      "service10Desc": "Connect with a global community and grow together.",
+      "whyTitle": "Why Choose",
+      "whyHighlight": "OFA",
+      "whySubtitle": "A trusted platform built for your growth.",
+      "why1Title": "Global Opportunity",
+      "why1Desc": "Work with a worldwide community without borders.",
+      "why2Title": "Skill Development",
+      "why2Desc": "Grow real, market-ready digital skills.",
+      "why3Title": "Transparent Earnings",
+      "why3Desc": "Clear, performance-based rewards you can verify.",
+      "why4Title": "Modern Technology",
+      "why4Desc": "A fast, reliable, and secure platform.",
+      "why5Title": "Community & Networking",
+      "why5Desc": "Build your international network with ease.",
+      "why6Title": "Flexible & Online",
+      "why6Desc": "Earn and learn on your own schedule.",
+      "why7Title": "Rewarding Performance",
+      "why7Desc": "Unlock bonuses and rewards through your efforts.",
+      "why8Title": "Trusted & Professional",
+      "why8Desc": "A member-focused platform committed to success.",
+      "howTitle": "How It Works",
+      "howHighlight": "",
+      "howSubtitle": "Start earning in four simple steps.",
+      "howTitle1": "Create Account",
+      "howStep1": "Sign up free in just a few minutes.",
+      "howTitle2": "Complete Profile",
+      "howStep2": "Fill in your details to get started.",
+      "howTitle3": "Start Digital Work",
+      "howStep3": "Choose the tasks that best suit you.",
+      "howTitle4": "Receive Rewards",
+      "howStep4": "Earn and withdraw rewards on your schedule.",
+      "communityTitle": "A Global Community",
+      "communityText": "Join thousands of members worldwide who work, learn, and grow together on one trusted platform.",
+      "ctaTitle": "Ready to Start Earning?",
+      "ctaText": "Create your free account today and begin your digital earning journey in minutes.",
+      "ctaButton": "Get Started Free"
     }
   },
   "securityStandards": {
@@ -1034,10 +1188,10 @@
     "card4Title": "Campaign Performance & Responsibility",
     "card4Sub": "Decentralized Responsibility",
     "card4Desc": "Oxford Financial Ads: Advertising campaigns operate based on market dynamics and platform algorithms. Clients maintain full responsibility for their marketing decisions, budget allocations, and business outcomes.",
+    "footer": "Committed to transparency, accountability, and ethical leadership worldwide",
     "card5Title": "Service Risk & Market Disclaimer",
     "card5Sub": "Risk Acknowledgment",
-    "card5Desc": "Oxford Financial Ads: Executing digital advertising campaigns involves market risks and fluctuations in audience engagement. Past campaign performance does not guarantee identical future results. Oxford Financial Ads uses advanced optimization models, but cannot guarantee specific sales or market conversion outcomes with absolute certainty. Clients should allocate marketing budgets based on their business goals and conduct independent market research before launching large-scale campaigns.",
-    "footer": "Committed to transparency, accountability, and ethical leadership worldwide"
+    "card5Desc": "Oxford Financial Ads: Executing digital advertising campaigns involves market risks and fluctuations in audience engagement. Past campaign performance does not guarantee identical future results. Oxford Financial Ads uses advanced optimization models, but cannot guarantee specific sales or market conversion outcomes with absolute certainty. Clients should allocate marketing budgets based on their business goals and conduct independent market research before launching large-scale campaigns."
   },
   "privacySecurity": {
     "badge": "Important Risk Disclosure",
@@ -1050,8 +1204,8 @@
     "section2Desc": "All strategy executions are governed by audited smart contracts deployed on Arbitrum Layer-2. Automated protocols handle trade execution, position management, and rebalancing according to algorithmic parameters without human intervention or discretionary control.",
     "section3Title": "Complete Wallet Control",
     "section3Desc": "Your connected wallet retains withdrawal rights at all times. You can disconnect, withdraw partial or full balances, and exit strategies according to smart contract parameters. No lock-up periods or withdrawal restrictions beyond standard blockchain confirmation times.",
-    "section4Title": "Market Risk Disclosure",
-    "section4Desc": "All projected performance scenarios are simulations based on historical data and algorithmic models. Past performance does not guarantee future results. Cryptocurrency markets are highly volatile and involve substantial risk of loss. Only allocate capital you can afford to lose.",
+    "section4Title": "Advertising Policy",
+    "section4Desc": "We never guarantee sales, revenue, or business growth based on our advertising services. We also do not make any promises or guarantees based on past performance or previous growth.\n\nHowever, we are committed to promoting your products or brand and maximizing their visibility by reaching millions of potential customers worldwide through our advertising platform.\n\nWe Promote Your Brand. The Market Determines the Results.",
     "featuresTitle": "Additional Features",
     "feature1Title": "Smart Selection",
     "feature1Desc": "View the maximum possible profit per package — e.g., a $100 package progress bar shows 0 to $150.",
@@ -1061,8 +1215,8 @@
     "feature3Desc": "Each package has a badge or medal based on its name — e.g., $10 = 'Micro', $100,000 = 'Sovereign'.",
     "feature4Title": "Expiry & Lock",
     "feature4Desc": "When profit reaches 150%, the package card shows Expired and the withdrawal button is locked until a new package is purchased.",
-    "legalNotice": "Legal Notice",
-    "legalNoticeDesc": "Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating."
+    "legalNotice": "Market Risk Disclosure",
+    "legalNoticeDesc": "Oxford Financial Ads (OFA) is committed to transparency, responsible participation, and sustainable platform growth.\n\nAll earnings, rewards, and business opportunities available on this platform depend on user activity, eligibility, platform policies, and market conditions. Past performance or previous results do not guarantee future outcomes.\n\nDigital advertising, e-commerce, cryptocurrency, and online financial activities involve market fluctuations and financial risk. Every user is encouraged to carefully evaluate all opportunities and participate responsibly.\n\nBefore using any OFA services, please read our Terms & Conditions, Risk Policy, and Privacy Policy carefully.\n\nMake Informed Decisions. Manage Risk Responsibly. Build Your Future with Confidence."
   },
   "dailyTasks": {
     "title": "Captcha Typing",
@@ -1090,7 +1244,9 @@
     "dailyLimitReached": "Daily Limit Reached",
     "comeBack": "Come back tomorrow! Resets in {{time}}",
     "todaysEarnings": "Today's Earnings",
-    "lifetimeEarnings": "Lifetime Earnings"
+    "lifetimeEarnings": "Lifetime Earnings",
+    "expiredDesc": "This task has expired. Please get a new captcha.",
+    "expired": "Task Expired"
   },
   "adsView": {
     "title": "Ad View Tasks",
@@ -1166,7 +1322,42 @@
     "err_emailInvalid": "Invalid email format",
     "err_phoneRequired": "Phone number is required",
     "err_phoneInvalid": "Invalid phone number",
-    "err_addressRequired": "Delivery address is required"
+    "err_addressRequired": "Delivery address is required",
+    "allProducts": "All Products",
+    "apply": "Apply",
+    "calculatingDelivery": "Calculating delivery...",
+    "cartEmpty": "Your cart is empty",
+    "checkout": "Checkout",
+    "checkoutFailed": "Checkout failed",
+    "couponCode": "Coupon Code",
+    "delivery": "Delivery",
+    "deliveryCharge": "Delivery Charge",
+    "deliveryZone": "Delivery Zone",
+    "discount": "Discount",
+    "errGeneric": "Error",
+    "featured": "Featured",
+    "invalidCoupon": "Invalid coupon",
+    "loadingOrders": "Loading orders...",
+    "newest": "Newest",
+    "next": "Next",
+    "noReviews": "No reviews yet",
+    "orderPlaced": "Order placed successfully!",
+    "prev": "Prev",
+    "priceAsc": "Price ↑",
+    "priceDesc": "Price ↓",
+    "proceedCheckout": "Proceed to Checkout",
+    "processing": "Processing...",
+    "productImage": "Product image {{n}}",
+    "productNotFound": "Product not found",
+    "reviews": "Reviews",
+    "searchProducts": "Search products...",
+    "selectZone": "Select a zone (optional)",
+    "shippingAddress": "Shipping Address (optional)",
+    "submitReview": "Submit Review",
+    "subtotal": "Subtotal",
+    "variants": "Variants",
+    "writeReview": "Write a Review",
+    "yourReview": "Your review"
   },
   "seller": {
     "dashboard": "Seller Dashboard",
@@ -1220,7 +1411,7 @@
     "nidPlaceholder": "NID number",
     "nidFront": "NID Front Image *",
     "nidBack": "NID Back Image *",
-    "country": "Country *",
+    "country": "Country",
     "countryPlaceholder": "Bangladesh",
     "divisionState": "Division / State *",
     "divisionPlaceholder": "Dhaka",
@@ -1276,7 +1467,70 @@
     "notSet": "Not set",
     "productsCount": "Products",
     "ordersCount": "Orders",
-    "whatsapp": "WhatsApp"
+    "whatsapp": "WhatsApp",
+    "revenue": "Revenue",
+    "pendingOrders": "Pending Orders",
+    "sku": "SKU",
+    "stockQuantity": "Stock Quantity",
+    "stockQty": "Stock Qty",
+    "stock": "Stock",
+    "discountPrice": "Discount Price",
+    "saveChanges": "Save Changes",
+    "storeSettings": "Store Settings",
+    "storeDescPlaceholder": "Store description",
+    "delivery": "Delivery",
+    "defaultDeliveryCharge": "Default Delivery Charge ($)",
+    "deliveryHint": "Applied when no specific delivery zone matches.",
+    "facebook": "Facebook",
+    "youtube": "YouTube",
+    "tiktok": "TikTok",
+    "website": "Website",
+    "saveSettings": "Save Settings",
+    "vendorEarnings": "Vendor Earnings",
+    "pendingPayout": "Pending Payout",
+    "totalRevenue": "Total Revenue",
+    "requestWithdraw": "Request Withdraw",
+    "withdrawRequested": "Withdraw requested successfully",
+    "deleteStore": "Delete Store",
+    "deleteStoreConfirm": "Are you sure? All products, orders, and store data will be permanently deleted.",
+    "deleteStoreFailed": "Failed to delete store",
+    "errorPrefix": "Error: ",
+    "uploadError": "Upload error: ",
+    "tabOrders": "Orders",
+    "tabStats": "Stats",
+    "tabZones": "Delivery Zones",
+    "addZone": "Add Zone",
+    "zoneNameReq": "Zone Name *",
+    "zoneNameRequired": "Zone name is required",
+    "zoneCreated": "Zone created",
+    "zoneCreateFailed": "Creation failed",
+    "zoneDeleted": "Zone \"{{name}}\" deleted",
+    "zoneDeleteFailed": "Delete failed",
+    "deleteZoneConfirm": "Delete zone \"{{name}}\"?",
+    "noZones": "No delivery zones yet. Add your first zone above.",
+    "noStats": "No stats available",
+    "totalOrders": "Total Orders",
+    "completed": "Completed",
+    "commission": "Commission",
+    "guest": "Guest",
+    "name": "Name",
+    "shipping": "Shipping",
+    "updateStatus": "Update Status",
+    "noteOptional": "Note (optional)",
+    "trackingNumber": "Tracking number",
+    "close": "Close",
+    "manageOrder": "Manage Order",
+    "orderUpdated": "Order #{{id}} updated to {{status}}",
+    "updateFailed": "Update failed",
+    "trackingAdded": "Tracking added to #{{id}}",
+    "trackingFailed": "Failed",
+    "deliveryCharge": "Delivery Charge",
+    "state": "State",
+    "city": "City",
+    "areas": "Areas (comma-sep)",
+    "estDeliveryDays": "Est. delivery days (e.g. 3-5)",
+    "createZone": "Create Zone",
+    "delete": "Delete"
   },
   "matchingBonusInfo": {
     "title": "Matching Bonus Plan",
@@ -1285,8 +1539,8 @@
     "unranked": "Unranked",
     "rate": "Rate",
     "startBuilding": "Start building your team",
-    "yourDeposit": "Your Deposit",
-    "ownDepositDesc": "Your own approved deposits",
+    "yourDeposit": "Deposit Wallet",
+    "ownDepositDesc": "Your deposit wallet balance",
     "teamVolume": "Team Volume",
     "networkTotal": "Total deposits in your network",
     "toNextRank": "{{amount}} USDT to next rank",
@@ -1688,7 +1942,8 @@
     "kycStatus": "KYC Status",
     "memberId": "Member ID",
     "position": "Position",
-    "since": "Since"
+    "since": "Since",
+    "verified": "Verified"
   },
   "investmentDetails": {
     "title": "Investment Details",
@@ -1725,7 +1980,9 @@
     "rejectionReason": "Reason for Rejection",
     "estimatedTime": "Estimated Processing Time",
     "timeValue": "2-3 Business Days",
-    "timeDesc": "We'll notify you via email once your verification is complete"
+    "timeDesc": "We'll notify you via email once your verification is complete",
+    "editButton": "Edit Documents",
+    "resubmitButton": "Resubmit Documents"
   },
   "emailVerification": {
     "title": "Email Verification",
@@ -1784,7 +2041,8 @@
     "collapse": "Collapse",
     "announcement": "Announcement",
     "continue": "Continue",
-    "closeAnnouncement": "Close announcement"
+    "closeAnnouncement": "Close announcement",
+    "scrollToTop": "Scroll to top"
   },
   "roadmap": {
     "badge": "Roadmap",
@@ -1864,7 +2122,12 @@
   },
   "quickShortcuts": {
     "title": "Quick Shortcuts",
-    "soon": "Soon"
+    "soon": "Soon",
+    "p2p": "P2P",
+    "internationalCurrency": "International Currency",
+    "comingSoon": "Coming Soon",
+    "comingSoonDesc": "This feature is coming soon. Stay tuned for future updates!",
+    "gotIt": "Got it"
   },
   "whatsappButton": {
     "chatTitle": "Chat with us on WhatsApp",
@@ -1893,10 +2156,10 @@
     "legalText": "Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating."
   },
   "heroSection": {
-    "badge": "Smart Contract Secured Allocations",
-    "title": "Strategy Participation",
-    "titleHighlight": "Tiers",
-    "subtitle": "Select your capital allocation tier to participate in automated AI-driven trading strategies on Arbitrum Layer-2. All allocations are non-custodial and secured by smart contracts."
+    "badge": "Investment Plans",
+    "title": "Choose Your Perfect",
+    "titleHighlight": "Package",
+    "subtitle": "Tailored investment solutions designed to match your financial goals, risk appetite, and vision for the future."
   },
   "packageModal": {
     "adViewPackage": "Ad View",
@@ -1954,6 +2217,8 @@
     "type_invoice": "Invoice",
     "type_vendor_withdraw": "Vendor Withdraw",
     "type_ecommerce": "Ecommerce Transaction",
+    "type_kyc_fee": "KYC Fee",
+    "type_kyc_refund": "KYC Refund",
     "wallet_captcha": "Captcha Wallet",
     "wallet_arbx_mining": "ARBX Mining Wallet",
     "wallet_ad_view": "Ad View Wallet",
@@ -1980,7 +2245,9 @@
   },
   "homePage": {
     "imageAlt": "Financial Services",
-    "altOurCommitment": "Our Commitment"
+    "altOurCommitment": "Our Commitment",
+    "altGlobalCertifications": "Global Certifications & Commitment",
+    "altHero": "Oxford Financial Ads team"
   },
   "language": {
     "switch": "Switch Language"
@@ -2008,5 +2275,221 @@
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Shift+Z)",
     "footerText": "Supports bold, italic, lists, headings, links, images & more"
+  },
+  "showcase": {
+    "events": {
+      "badge": "Celebrating Milestones & Team Moments",
+      "title": "Celebrating Milestones & Team Moments",
+      "description": "Celebrating milestones, achievements, and memorable moments together. Every event reflects our teamwork, growth, and commitment to building a stronger future."
+    },
+    "community": {
+      "badge": "Community & Team",
+      "title": "Community & Team",
+      "description": "Built on unity, collaboration, and mutual respect, our community and team create new opportunities every day. Working together, learning together, and achieving success together are the driving forces behind our continued growth and progress."
+    },
+    "training": {
+      "badge": "Training & Development",
+      "title": "Training & Development",
+      "description": "We believe that knowledge is the foundation of sustainable success. Through continuous training, skill development, and practical learning, we empower every member to confidently meet the challenges of the future. By fostering continuous learning, professional excellence, and leadership development, we are building a capable and confident team committed to driving innovation, achieving success, and creating long-term growth."
+    },
+    "life": {
+      "badge": "Life at Oxford Financial Ads",
+      "title": "Life at Oxford Financial Ads",
+      "description": "Our workplace is vibrant, collaborative, and positive. Every team member supports one another with a smile, learns together, works together, and shares the joy of every achievement. This spirit of sincerity, mutual respect, and teamwork makes our organization stronger every day."
+    }
+  },
+  "forgotPassword": {
+    "title": "Reset Your Password",
+    "description": "Enter your username, user ID, or registered email, then verify with your account details to reset your password.",
+    "identifier": "Username, User ID, or Email",
+    "identifier_plh": "e.g. user123 or 12345678901",
+    "verification": "Date of Birth or Mobile Number",
+    "verification_plh": "e.g. 1990-01-01 or +8801XXXXXXXXX",
+    "sending": "Verifying...",
+    "submit": "Continue",
+    "successMsg": "If the account exists and your details match, a reset session has been created. You can now set a new password.",
+    "rememberPassword": "Remember your password?",
+    "signIn": "Sign In",
+    "err_identifier": "Please enter your username, user ID, or email",
+    "err_verification": "Please enter your date of birth or mobile number",
+    "err_general": "Something went wrong. Try again.",
+    "success": "Verification successful"
+  },
+  "resetPassword": {
+    "title": "Create New Password",
+    "description": "Enter your new password to complete the reset.",
+    "token": "Reset Token",
+    "token_plh": "Paste your reset token",
+    "newPassword": "New Password",
+    "newPassword_plh": "Enter new password",
+    "requirements": "Password must contain:",
+    "req_chars": "At least 8 characters",
+    "req_upper": "One uppercase letter",
+    "req_lower": "One lowercase letter",
+    "req_number": "One number",
+    "req_special": "One special character",
+    "confirmPassword": "Confirm Password",
+    "confirm_plh": "Confirm new password",
+    "resetting": "Resetting Password...",
+    "submit": "Reset Password",
+    "successTitle": "Password Reset Successfully",
+    "successMsg": "Your password has been successfully reset.",
+    "successDesc": "You can now sign in with your new password.",
+    "signIn": "Sign In",
+    "err_token": "Reset token is required.",
+    "err_fillAll": "Please fill in all fields",
+    "err_requirements": "Password does not meet all requirements",
+    "err_mismatch": "Passwords do not match",
+    "err_general": "Something went wrong"
+  },
+  "liveStats": {
+    "liveOnline": "Live Online",
+    "tasksCompletedToday": "Tasks Completed Today",
+    "earningsPaidToday": "Today's Earnings Paid",
+    "usersOnlineNow": "users online now",
+    "completedToday": "completed today",
+    "paidToday": "paid to users today",
+    "error": "Unable to load live statistics",
+    "retry": "Tap to retry",
+    "ariaLabel": "Live platform statistics"
+  },
+  "kycSuccess": {
+    "userFallback": "User",
+    "verifiedMember": "VERIFIED MEMBER",
+    "congratulations": "Congratulations!",
+    "officiallyVerified": "You're Officially Verified",
+    "kycApproved": "Your <strong>${{fee}} USDT</strong> KYC Verification has been successfully approved.",
+    "trusted": "Trusted",
+    "trustedDesc": "Stronger trust for a secure experience",
+    "secure": "Secure",
+    "secureDesc": "Your account is now more protected",
+    "exclusive": "Exclusive",
+    "exclusiveDesc": "Access premium features and benefits",
+    "clubWelcome": "Welcome to the Verified Members Club.",
+    "clubThanks": "Thank you for being a part of our trusted community.",
+    "securityNote": "Your security is our priority. Thank you for verifying your account."
+  },
+  "registrationPayment": {
+    "completePayment": "Complete Your Payment",
+    "pendingActivation": "Your account is pending payment activation",
+    "depositSubmitted": "Deposit Submitted",
+    "pendingApproval": "Your deposit is pending admin approval. Once approved, your account will be activated and you can access the dashboard.",
+    "err_loadPkg": "Failed to load package details",
+    "selectedPackage": "Selected Package",
+    "investmentAmount": "Investment Amount:",
+    "daily": "Daily:",
+    "duration": "Duration:",
+    "days": "days",
+    "pkgNotFound": "Package details not found. Please contact support.",
+    "selectNetwork": "Select Network",
+    "selectNetwork_plh": "Select a network",
+    "depositAddress": "Deposit Address",
+    "sendExact": "Send exactly <strong>{{amount}} USDT</strong> to the address above. Only send USDT on the {{network}} network.",
+    "amount_plh": "Amount (USDT)",
+    "txid_plh": "Transaction ID (TXID)",
+    "submitting": "Submitting...",
+    "submitPayment": "Submit Payment",
+    "err_fillFields": "Please fill all fields",
+    "err_submission": "Submission failed"
+  },
+  "banking": {
+    "title": "Banking Setup",
+    "subtitle": "Register your banking information for secure withdrawals. Your details are encrypted and stored securely.",
+    "secureTitle": "Secure Banking Registration",
+    "secureDesc": "All information is encrypted and securely stored. The account holder name must match your verified KYC identity. Withdrawals to third-party accounts are not permitted.",
+    "requiredInfo": "Required Banking Information",
+    "accountHolder": "Full Account Holder Name",
+    "bankName": "Bank Name",
+    "accountNumber": "Account Number / IBAN",
+    "branchName": "Branch Name",
+    "swift": "SWIFT / BIC Code",
+    "branchAddress": "Branch Address",
+    "routing": "Routing / ABA Code",
+    "ifApplicable": "if applicable",
+    "country": "Country",
+    "currency": "Currency",
+    "accountType": "Account Type",
+    "declaration": "Important Declaration",
+    "declarationDesc": "By submitting this information, I confirm that all details provided are accurate and complete. I understand that the registered bank account must belong to me as the verified account holder, and withdrawals to third-party accounts are not permitted. I agree to comply with the company's Withdrawal Banking Policy and International Security Standards.",
+    "submit": "Register Banking Information",
+    "submitting": "Submitting...",
+    "requiredField": "This field is required",
+    "invalidSwift": "Invalid SWIFT code",
+    "currencyRequired": "Currency is required",
+    "submitted": "Banking information submitted successfully. Awaiting admin approval.",
+    "approved": "Banking Setup Complete",
+    "approvedDesc": "Your banking information has been verified and approved. Withdrawals will use your registered bank account automatically.",
+    "registeredAccount": "Registered Bank Account",
+    "updateContact": "To update your banking information, please contact Customer Support. Identity verification is required for any changes.",
+    "pendingReview": "Pending Review",
+    "rejected": "Rejected",
+    "pendingDesc": "Your banking information is being reviewed by our compliance team. This typically takes 1-2 business days.",
+    "rejectedDesc": "Your banking information was not approved.{{reason}}",
+    "reason": "Reason:",
+    "adminNote": "Admin Note",
+    "plhHolderName": "Must match your KYC verified name",
+    "plhBankName": "e.g. HSBC, Deutsche Bank",
+    "plhAccountNumber": "e.g. GB29NWBK60161331926819",
+    "plhBranchName": "e.g. Canary Wharf Branch",
+    "plhSwift": "e.g. NWBKGB2L",
+    "plhBranchAddress": "Full branch address",
+    "plhRouting": "e.g. 021000021",
+    "plhCountry": "e.g. United Kingdom",
+    "type": {
+      "savings": "Savings",
+      "current": "Current",
+      "business": "Business"
+    },
+    "cur": {
+      "USD": "USD — US Dollar",
+      "EUR": "EUR — Euro",
+      "GBP": "GBP — British Pound",
+      "CHF": "CHF — Swiss Franc",
+      "AED": "AED — UAE Dirham",
+      "SAR": "SAR — Saudi Riyal",
+      "INR": "INR — Indian Rupee",
+      "BDT": "BDT — Bangladeshi Taka",
+      "other": "Other"
+    }
+  },
+  "orders": {
+    "myOrders": "My Orders",
+    "all": "All",
+    "noOrders": "No orders found",
+    "more": "more",
+    "prev": "Prev",
+    "next": "Next",
+    "order": "Order",
+    "items": "Items",
+    "delivery": "Delivery",
+    "total": "Total",
+    "customer": "Customer",
+    "tracking": "Tracking",
+    "timeline": "Order Timeline",
+    "cancel": "Cancel",
+    "requestReturn": "Request Return",
+    "payment": "Payment",
+    "notFound": "Order not found",
+    "cancelReasonPrompt": "Reason for cancellation (optional):",
+    "cancelled": "Order cancelled",
+    "cancelFailed": "Cancel failed",
+    "returnReasonPrompt": "Reason for return:",
+    "returnSubmitted": "Return request submitted",
+    "returnFailed": "Return request failed",
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "processing": "Processing",
+      "packed": "Packed",
+      "ready_to_ship": "Ready to Ship",
+      "picked_up": "Picked Up",
+      "out_for_delivery": "Out for Delivery",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "failed": "Failed",
+      "shipped": "Shipped"
+    }
   }
 }

@@ -1,5 +1,6 @@
 import { motion } from "motion/react"
 import { ShieldCheck, Crown, Star } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 function PadlockIcon() {
   return (
@@ -34,7 +35,8 @@ function ShieldCheckIcon() {
 }
 
 export default function KycSuccessCard({ user }) {
-  const userName = user?.full_name || user?.name || "User"
+  const { t } = useTranslation()
+  const userName = user?.full_name || user?.name || t("kycSuccess.userFallback")
 
   return (
     <div className="relative w-full max-w-[410px] mx-auto">
@@ -67,7 +69,7 @@ export default function KycSuccessCard({ user }) {
             {/* Verified Member Badge top-right */}
             <div className="absolute top-0 right-0 flex flex-col items-center px-3 py-1.5 rounded-full border border-[#00e1ff] shadow-[0_0_15px_rgba(0,225,255,0.4)]" style={{ background: "rgba(10,18,48,0.85)" }}>
               <span className="text-sm font-bold text-[#00e1ff]">✓</span>
-              <span className="text-[8.5px] font-extrabold text-[#00e1ff] tracking-widest">VERIFIED MEMBER</span>
+              <span className="text-[8.5px] font-extrabold text-[#00e1ff] tracking-widest">{t("kycSuccess.verifiedMember")}</span>
             </div>
           </div>
 
@@ -79,7 +81,7 @@ export default function KycSuccessCard({ user }) {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-[22px] sm:text-[26px] font-extrabold text-[#ffd700] mb-[2px]" style={{ textShadow: "0 0 12px rgba(255,215,0,0.5)" }}
             >
-              Congratulations!
+              {t("kycSuccess.congratulations")}
             </motion.h1>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
@@ -95,7 +97,7 @@ export default function KycSuccessCard({ user }) {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-[13px] sm:text-[15px] font-medium text-[#e2e8f0] mb-1 sm:mb-2"
             >
-              You're Officially Verified
+              {t("kycSuccess.officiallyVerified")}
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}
@@ -117,9 +119,7 @@ export default function KycSuccessCard({ user }) {
             <div className="w-8 sm:w-[42px] h-8 sm:h-[42px] rounded-xl border border-[#0088ff] flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,136,255,0.4)]" style={{ background: "rgba(0,123,255,0.2)" }}>
               <ShieldCheckIcon />
             </div>
-            <p className="text-xs sm:text-[13px] text-[#f1f5f9] leading-snug sm:leading-relaxed">
-              Your <span className="text-[#00ffcc] font-bold">$10</span> KYC Verification has been successfully approved.
-            </p>
+            <p className="text-xs sm:text-[13px] text-[#f1f5f9] leading-snug sm:leading-relaxed" dangerouslySetInnerHTML={{ __html: t("kycSuccess.kycApproved", { fee: "10" }) }} />
           </motion.div>
 
           {/* ===== Three Trust Cards ===== */}
@@ -130,9 +130,9 @@ export default function KycSuccessCard({ user }) {
             className="grid grid-cols-3 gap-1.5 sm:gap-[10px] mb-2 sm:mb-3"
           >
             {[
-              { icon: <PadlockIcon />, color: "rgba(139,92,246,0.4)", title: "Trusted", desc: "Stronger trust for a secure experience" },
-              { icon: <ShieldIcon />, color: "rgba(56,189,248,0.4)", title: "Secure", desc: "Your account is now more protected" },
-              { icon: <DiamondIcon />, color: "rgba(139,92,246,0.4)", title: "Exclusive", desc: "Access premium features and benefits" },
+              { icon: <PadlockIcon />, color: "rgba(139,92,246,0.4)", title: t("kycSuccess.trusted"), desc: t("kycSuccess.trustedDesc") },
+              { icon: <ShieldIcon />, color: "rgba(56,189,248,0.4)", title: t("kycSuccess.secure"), desc: t("kycSuccess.secureDesc") },
+              { icon: <DiamondIcon />, color: "rgba(139,92,246,0.4)", title: t("kycSuccess.exclusive"), desc: t("kycSuccess.exclusiveDesc") },
             ].map((card) => (
               <div key={card.title} className="p-2 sm:p-3 rounded-xl text-center flex flex-col items-center border" style={{ background: "rgba(13,23,53,0.4)", backdropFilter: "blur(10px)", borderColor: card.color }}>
                 <div className="w-6 sm:w-[34px] h-6 sm:h-[34px] rounded-xl flex items-center justify-center mb-1 sm:mb-[6px]" style={{ background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.4)" }}>
@@ -153,8 +153,8 @@ export default function KycSuccessCard({ user }) {
           >
             <span className="text-xl sm:text-[26px] shrink-0" style={{ filter: "drop-shadow(0 0 8px rgba(255,215,0,0.6))" }}>👑</span>
             <div>
-              <h3 className="text-xs sm:text-[13.5px] font-bold text-[#ffd700] mb-[2px]">Welcome to the Verified Members Club.</h3>
-              <p className="text-[9px] sm:text-[10px] text-[#cbd5e1]">Thank you for being a part of our trusted community.</p>
+              <h3 className="text-xs sm:text-[13.5px] font-bold text-[#ffd700] mb-[2px]">{t("kycSuccess.clubWelcome")}</h3>
+              <p className="text-[9px] sm:text-[10px] text-[#cbd5e1]">{t("kycSuccess.clubThanks")}</p>
             </div>
           </motion.div>
 
@@ -165,7 +165,7 @@ export default function KycSuccessCard({ user }) {
             transition={{ duration: 0.6, delay: 0.65 }}
             className="text-center text-[10px] text-[#64748b] tracking-[0.2px]"
           >
-            🔒 Your security is our priority. Thank you for verifying your account.
+            🔒 {t("kycSuccess.securityNote")}
           </motion.div>
         </div>
       </motion.div>

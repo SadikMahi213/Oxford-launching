@@ -65,6 +65,12 @@ class Investment(Base):
         server_default="0"
     )
 
+    captchas_expired_today: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        server_default="0"
+    )
+
     last_captcha_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )

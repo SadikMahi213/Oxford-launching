@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.referral import get_referral_level_rates
 from app.models.user import User
-from app.models.system_config import SystemConfig
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 
@@ -38,13 +37,10 @@ async def apply_cascading_referral_commissions(
 ) -> List[dict]:
     rates = await get_referral_level_rates(db)
     payouts = calculate_cascading_referral_amounts(base_profit, rates)
-    parent_ids = [
-        user.parent_lvl_1_id,
-        user.parent_lvl_2_id,
-        user.parent_lvl_3_id,
-        user.parent_lvl_4_id,
-        user.parent_lvl_5_id,
-    ]
+    parent_ids: list[int | None] = []
+    for lvl in range(1, len(rates) + 1):
+        ancestor_id = getattr(user, f"parent_lvl_{lvl}_id", None)
+        parent_ids.append(ancestor_id)
 
     distributed: List[dict] = []
 

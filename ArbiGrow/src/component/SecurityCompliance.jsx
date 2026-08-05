@@ -28,7 +28,7 @@ export function SecurityCompliance() {
   ];
 
   return (
-    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+    <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-blue-500/3 rounded-full blur-3xl"></div>
@@ -81,14 +81,6 @@ export function SecurityCompliance() {
           ))}
         </div>
 
-        {/* Commitment Divider Image */}
-        <div className="flex justify-center my-8 md:my-12">
-          <img
-            src="/WhatsApp%20Image%202026-06-24%20at%2021.09.06.jpeg"
-            alt={t("homePage.altOurCommitment")}
-            className="w-full max-w-3xl md:max-w-4xl lg:max-w-5xl h-auto object-contain rounded-2xl"
-          />
-        </div>
 
         {/* Commitment Statement */}
         <motion.div

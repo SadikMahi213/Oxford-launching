@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Keyboard, Eye, Database, Palette, Film, Megaphone, Globe, Award } from 'lucide-react';
+import { Keyboard, Eye, Database, Palette, Film, Megaphone, Globe, Award, Store } from 'lucide-react';
 import { useTranslation } from "react-i18next";
 
 export function WhyChooseUs() {
@@ -44,6 +44,11 @@ export function WhyChooseUs() {
       icon: Award,
       title: t("home.whyChooseUs.benefitsTitle"),
       description: t("home.whyChooseUs.benefitsDesc"),
+    },
+    {
+      icon: Store,
+      title: t("home.whyChooseUs.ecommerceTitle"),
+      description: t("home.whyChooseUs.ecommerceDesc"),
     },
   ];
 

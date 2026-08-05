@@ -50,7 +50,7 @@ export function MemberBenefits() {
   ];
 
   return (
-    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+    <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-blue-500/3 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-emerald-500/3 rounded-full blur-3xl"></div>

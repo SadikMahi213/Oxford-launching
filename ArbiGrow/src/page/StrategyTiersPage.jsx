@@ -13,7 +13,7 @@ export default function StrategyTiersPage() {
   return (
     <div className="min-h-screen bg-[#0a0e27]">
       <Navbar />
-      <main className="pt-20 px-6 max-w-7xl mx-auto">
+      <main className="pt-20 pb-20 md:pb-32 px-6 max-w-7xl mx-auto">
         <HeroSection />
         <TierSection onSelect={setSelectedPackage} />
         <ComplianceSection />

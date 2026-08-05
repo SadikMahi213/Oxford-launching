@@ -4,9 +4,10 @@ import Navbar from "../component/Navbar";
 import Button from "../component/Button";
 import { registerUser } from "../api/auth.api.js";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { CheckCircle2, Circle, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Circle, Eye, EyeOff, Rocket } from "lucide-react";
 import api from "../api/axiosInstance.js";
 import { useTranslation } from "react-i18next";
+import loginImg from "../assets/login.jpeg";
 
 const COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -218,15 +219,44 @@ export default function RegisterForm() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-[#0A122C] px-2 xs:px-4 pt-[120px] sm:pt-20 md:pt-28 lg:pt-36 pb-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white">{t("auth.register.title")}</h1>
-            <p className="text-gray-400 mt-2">{t("auth.register.subtitle")}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#0A122C] px-2 xs:px-4 pt-24 pb-12">
+        <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/40 border border-white/10 flex flex-col lg:flex-row">
+          
+          {/* ── LEFT/TOP: Image Panel (top banner on mobile, left half on desktop) */}
+          <div className="w-full h-52 lg:h-auto lg:w-5/12 xl:w-2/5 relative flex-shrink-0">
+            <img
+              src={loginImg}
+              alt={t("app.name")}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            />
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A122C]/90 via-[#0A122C]/40 to-transparent" />
+            {/* Branding text — bottom */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
+              <p className="text-xs font-semibold tracking-[0.25em] text-cyan-400 uppercase mb-1">
+                {t("app.name")}
+              </p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-white leading-tight mb-2">
+                {t("auth.register.joinTitle")}
+              </h2>
+              <p className="text-xs lg:text-sm text-gray-300 leading-relaxed hidden lg:block">
+                {t("auth.register.joinSubtitle")}
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-6">
-            <form className="space-y-6 text-black" onSubmit={handleSubmit}>
+          {/* ── RIGHT/BOTTOM: Form Panel ─────────────────────────── */}
+          <div className="w-full lg:w-7/12 xl:w-3/5 bg-white/5 backdrop-blur-sm p-4 sm:p-8 flex flex-col justify-start max-h-[85vh] lg:max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="text-center mb-8">
+              <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-white/10 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] hover:shadow-[0_0_25px_rgba(34,211,238,0.4)] hover:scale-105 transition-all duration-300 mb-4">
+                <Rocket size={28} strokeWidth={1.5} />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">{t("auth.register.title")}</h1>
+              <p className="text-gray-400 mt-2 text-sm">{t("auth.register.subtitle")}</p>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-4 sm:p-6">
+              <form className="space-y-6 text-black" onSubmit={handleSubmit}>
 
               {/* Package Selection */}
               {packagesLoading ? (
@@ -244,7 +274,7 @@ export default function RegisterForm() {
                     <option value="">{t("auth.register.choosePlan")}</option>
                     {packages.map((pkg) => (
                       <option key={pkg.id} value={pkg.id}>
-                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}/day)
+                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}{t("auth.register.perDay")})
                       </option>
                     ))}
                   </select>
@@ -463,11 +493,11 @@ export default function RegisterForm() {
                 )}
               </div>
 
-              <div className="flex items-start gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   name="agree"
-                  className="mt-1 h-4 w-4 rounded border-gray-300 accent-cyan-500"
+                  className="h-4 w-4 rounded border-gray-300 accent-cyan-500"
                   checked={agree}
                   onChange={handleAgree}
                 />
@@ -498,6 +528,7 @@ export default function RegisterForm() {
             </form>
           </div>
         </div>
+      </div>
       </div>
     </>
   );

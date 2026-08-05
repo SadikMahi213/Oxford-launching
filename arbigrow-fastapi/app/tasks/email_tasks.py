@@ -7,22 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_password_reset_email_task(self, email: str, reset_link: str):
-    from app.utils.email import send_password_reset_email
-    from pydantic import EmailStr
-
-    async def _run():
-        await send_password_reset_email(EmailStr(email), reset_link)
-
-    try:
-        asyncio.run(_run())
-        logger.info("Password reset email sent to %s", email)
-    except Exception as exc:
-        logger.exception("Failed to send password reset email to %s", email)
-        raise self.retry(exc=exc)
-
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_email_verification_task(
     self,
     email: str,

@@ -8,8 +8,17 @@ from app.core.security import get_current_user_id
 from app.models.kyc import KYC, DocumentType, KycPackage, PaymentStatus
 from app.models.user import User
 from app.models.system_config import SystemConfig
-from app.services.b2_service import upload_to_b2
+from app.models.wallet_transaction import WalletTransaction, WalletTransactionType, WalletTransactionStatus
+from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
+
+
+def _resolve_image_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http"):
+        return stored
+    return generate_presigned_url(stored)
 
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
@@ -90,6 +99,44 @@ async def submit_kyc(
         existing_kyc.status = "pending"
         existing_kyc.transaction_id = transaction_id
 
+        # A new review cycle starts: reset the admin-controlled status so the
+        # Admin Panel immediately shows the resubmission as pending instead of
+        # keeping the previous rejected/issue state.
+        if user:
+            user.admin_kyc_status = "pending"
+            if user.account_status == "on_hold":
+                user.account_status = "inactive"
+                user.account_issue = None
+
+        # Re-deduct fee if previous was refunded
+        fee_deducted = "0"
+        if existing_kyc.payment_status == PaymentStatus.refunded and existing_kyc.fee_paid > 0:
+            fee = existing_kyc.fee_paid
+            dep_bal = user.deposit_wallet or Decimal("0")
+            if dep_bal < fee:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient balance. KYC requires {fee} USDT. Your deposit wallet balance is {dep_bal} USDT.",
+                )
+            user.deposit_wallet = (dep_bal - fee).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+            user.kyc_hold = (user.kyc_hold or Decimal("0")) + fee
+            existing_kyc.payment_status = PaymentStatus.paid
+            fee_deducted = str(fee)
+
+            wallet_txn = WalletTransaction(
+                user_id=user_id,
+                type=WalletTransactionType.kyc_fee_hold,
+                wallet_type="deposit_wallet",
+                amount=fee,
+                balance_before=dep_bal,
+                balance_after=user.deposit_wallet,
+                reference_type="kyc",
+                reference_id=existing_kyc.id,
+                description="KYC Fee Placed on Hold",
+                status=WalletTransactionStatus.held,
+            )
+            db.add(wallet_txn)
+
         folder = f"kyc/{user_id}"
         try:
             front_key = await upload_to_b2(front_image, folder)
@@ -114,8 +161,10 @@ async def submit_kyc(
         return {
             "message": "KYC resubmitted successfully",
             "status": existing_kyc.status,
-            "fee_deducted": "0",
+            "fee_deducted": fee_deducted,
             "deposit_wallet_balance": str(user.deposit_wallet) if user else "0",
+            "front_image_url": _resolve_image_url(existing_kyc.front_image_key),
+            "back_image_url": _resolve_image_url(existing_kyc.back_image_key) if existing_kyc.back_image_key else None,
         }
 
     # Check if KYC package is enabled
@@ -163,6 +212,20 @@ async def submit_kyc(
         user.deposit_wallet = (deposit_balance - total_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
+        user.kyc_hold = (user.kyc_hold or Decimal("0")) + total_fee
+
+        wallet_txn = WalletTransaction(
+            user_id=user_id,
+            type=WalletTransactionType.kyc_fee_hold,
+            wallet_type="deposit_wallet",
+            amount=total_fee,
+            balance_before=deposit_balance,
+            balance_after=user.deposit_wallet,
+            reference_type="kyc",
+            description="KYC Fee Placed on Hold",
+            status=WalletTransactionStatus.held,
+        )
+        db.add(wallet_txn)
 
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
@@ -176,13 +239,11 @@ async def submit_kyc(
 
     front_key = None
     back_key = None
-    try:
-        front_key = await upload_to_b2(front_image, folder)
-        if back_image:
-            back_key = await upload_to_b2(back_image, folder)
-    except RuntimeError:
-        front_key = None
-        back_key = None
+    front_key = await upload_to_b2(front_image, folder)
+    if not front_key:
+        raise HTTPException(status_code=500, detail="Failed to upload document image. Please try again.")
+    if back_image:
+        back_key = await upload_to_b2(back_image, folder)
 
     new_kyc = KYC(
         user_id=user_id,
@@ -214,4 +275,6 @@ async def submit_kyc(
         "status": new_kyc.status,
         "fee_deducted": str(total_fee) if total_fee > 0 else "0",
         "deposit_wallet_balance": str(user.deposit_wallet or Decimal("0")),
+        "front_image_url": _resolve_image_url(new_kyc.front_image_key),
+        "back_image_url": _resolve_image_url(new_kyc.back_image_key) if new_kyc.back_image_key else None,
     }

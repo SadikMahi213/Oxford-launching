@@ -111,15 +111,13 @@ async def add_profit(
 
         db.add(history)
 
-        # FETCH ALL PARENTS
+        # FETCH ALL PARENTS (dynamic based on configured levels)
 
-        parent_ids = [
-            user.parent_lvl_1_id,
-            user.parent_lvl_2_id,
-            user.parent_lvl_3_id,
-            user.parent_lvl_4_id,
-            user.parent_lvl_5_id,
-        ]
+        rates = await get_referral_level_rates(db)
+        parent_ids: list[int | None] = []
+        for lvl in range(1, len(rates) + 1):
+            ancestor_id = getattr(user, f"parent_lvl_{lvl}_id", None)
+            parent_ids.append(ancestor_id)
 
         parents_map = {}
         active_parent_ids: set[int] = set()
@@ -146,8 +144,6 @@ async def add_profit(
             active_parent_ids = set(active_result.scalars().all())
 
         # FLAT COMMISSION
-
-        rates = await get_referral_level_rates(db)
 
         for level_idx, parent_id in enumerate(parent_ids):
             if not parent_id:

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
+from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.investments import Investment
 from app.models.captcha import CaptchaChallenge, CaptchaEarning
@@ -31,6 +32,19 @@ CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
+async def _get_captcha_timer_seconds(db) -> int:
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "captcha_timer_seconds")
+    )
+    row = result.scalar_one_or_none()
+    if row and row.value:
+        try:
+            return max(5, min(300, int(row.value)))
+        except (ValueError, TypeError):
+            pass
+    return 60
+
+
 def _generate_captcha_text(length: int = 8) -> str:
     chars = string.ascii_letters + string.digits
     return "".join(secrets.choice(chars) for _ in range(length))
@@ -43,6 +57,7 @@ def _hash_captcha(text: str, salt: str) -> str:
 def _reset_daily_counter_if_needed(investment: Investment, today: date):
     if investment.last_captcha_date is None or investment.last_captcha_date < today:
         investment.captchas_typed_today = 0
+        investment.captchas_expired_today = 0
         investment.last_captcha_date = today
 
 
@@ -105,6 +120,7 @@ async def get_next_captcha(
         captcha_id=challenge.id,
         captcha_image=captcha_image,
         expires_at=expires_at,
+        timer_seconds=await _get_captcha_timer_seconds(db),
     )
 
 
@@ -206,6 +222,57 @@ async def submit_captcha(
     )
 
 
+@router.post("/expire")
+@limiter.limit("30/minute")
+async def expire_captcha(
+    request: Request,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    await check_earning_access_by_id(user_id, db)
+    inv_result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.user_id == user_id,
+                Investment.status == "active",
+            )
+        ).order_by(Investment.id.desc())
+    )
+    all_investments = inv_result.scalars().all()
+    if not all_investments:
+        return {"success": False, "detail": "No active investment"}
+
+    investment = None
+    for inv in all_investments:
+        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg and pkg.task_type == TaskType.captcha:
+            investment = inv
+            break
+    if not investment:
+        return {"success": False, "detail": "No captcha package"}
+
+    today = date.today()
+    _reset_daily_counter_if_needed(investment, today)
+
+    if investment.captchas_expired_today < (investment.daily_captcha_limit or 0):
+        investment.captchas_expired_today += 1
+
+    await db.commit()
+
+    daily_limit = investment.daily_captcha_limit or 0
+    typed_today = investment.captchas_typed_today or 0
+    expired_today = investment.captchas_expired_today or 0
+    remaining = max(0, daily_limit - typed_today - expired_today)
+
+    return {
+        "success": True,
+        "remaining_today": remaining,
+        "typed_today": typed_today,
+        "expired_today": expired_today,
+    }
+
+
 @router.get("/stats", response_model=CaptchaStatsResponse)
 @limiter.limit("30/minute")
 async def get_captcha_stats(
@@ -271,12 +338,14 @@ async def get_captcha_stats(
 
     daily_limit = investment.daily_captcha_limit or 0
     typed_today = investment.captchas_typed_today or 0
-    remaining = max(0, daily_limit - typed_today)
+    expired_today = investment.captchas_expired_today or 0
+    remaining = max(0, daily_limit - typed_today - expired_today)
 
     return CaptchaStatsResponse(
         earn_per_captcha=investment.earn_per_captcha or Decimal("0"),
         daily_limit=daily_limit,
         typed_today=typed_today,
+        expired_today=expired_today,
         remaining=remaining,
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,

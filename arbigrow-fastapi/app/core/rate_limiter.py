@@ -15,10 +15,24 @@ def _user_or_ip_key(request):
             pass
     return get_remote_address(request)
 
-_storage_uri = settings.REDIS_URL if settings.REDIS_URL.startswith("redis://") else None
+import logging
+
+_logger = logging.getLogger(__name__)
+
+# Try Redis; fall back to in-memory if Redis is not running locally
+_storage_uri = None
+if settings.REDIS_URL and settings.REDIS_URL.startswith("redis://"):
+    try:
+        import redis as _redis
+        _client = _redis.from_url(settings.REDIS_URL, socket_connect_timeout=1)
+        _client.ping()
+        _storage_uri = settings.REDIS_URL
+        _logger.info("Rate limiter using Redis storage")
+    except Exception:
+        _logger.warning("Redis not available — rate limiter falling back to in-memory storage")
 
 limiter = Limiter(
     key_func=_user_or_ip_key,
     default_limits=["100/minute"],
-    storage_uri=_storage_uri,
+    storage_uri=_storage_uri,  # None = in-memory
 )

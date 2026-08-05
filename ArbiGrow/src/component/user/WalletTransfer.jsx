@@ -6,18 +6,18 @@ import { walletTransfer } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 
 const FROM_WALLET_OPTIONS = [
-  { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT", description: "Purchase, invest, withdraw" },
-  { value: "referral_wallet", label: "Referral Wallet", icon: Users, currency: "USDT" },
-  { value: "generation_wallet", label: "Generation Wallet", icon: TrendingUp, currency: "USDT" },
-  { value: "matching_bonus_wallet", label: "Matching Bonus Wallet", icon: Award, currency: "USDT" },
-  { value: "ecommerce_wallet", label: "Ecommerce Wallet", icon: ShoppingCart, currency: "USDT" },
-  { value: "captcha_wallet", label: "Captcha Typing Wallet", icon: Keyboard, currency: "USDT" },
-  { value: "ad_view_wallet", label: "Ad View Wallet", icon: Eye, currency: "USDT" },
+  { value: "main_wallet", labelKey: "walletTransfer.walletMain", icon: Wallet, currency: "USDT" },
+  { value: "referral_wallet", labelKey: "walletTransfer.walletReferral", icon: Users, currency: "USDT" },
+  { value: "generation_wallet", labelKey: "walletTransfer.walletGeneration", icon: TrendingUp, currency: "USDT" },
+  { value: "matching_bonus_wallet", labelKey: "walletTransfer.walletMatchingBonus", icon: Award, currency: "USDT" },
+  { value: "ecommerce_wallet", labelKey: "walletTransfer.walletEcommerce", icon: ShoppingCart, currency: "USDT" },
+  { value: "captcha_wallet", labelKey: "walletTransfer.walletCaptcha", icon: Keyboard, currency: "USDT" },
+  { value: "ad_view_wallet", labelKey: "walletTransfer.walletAdView", icon: Eye, currency: "USDT" },
 ];
 
 const TO_WALLET_OPTIONS = [
-  { value: "main_wallet", label: "Main Wallet", icon: Wallet, currency: "USDT", description: "Purchase, invest, withdraw" },
-  { value: "deposit_wallet", label: "Deposit Wallet", icon: Wallet, currency: "USDT", description: "KYC & transfers" },
+  { value: "main_wallet", labelKey: "walletTransfer.walletMain", icon: Wallet, currency: "USDT" },
+  { value: "deposit_wallet", labelKey: "walletTransfer.walletDeposit", icon: Wallet, currency: "USDT" },
 ];
 
 const walletBalances = (user) => ({
@@ -44,6 +44,8 @@ export default function WalletTransfer() {
 
   const fromWalletData = FROM_WALLET_OPTIONS.find((w) => w.value === fromWallet);
   const toWalletData = TO_WALLET_OPTIONS.find((w) => w.value === toWallet);
+
+  const walletLabel = (w) => (w ? t(w.labelKey) : "");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,7 +115,7 @@ export default function WalletTransfer() {
               >
                 {FROM_WALLET_OPTIONS.map((w) => (
                   <option key={w.value} value={w.value} className="bg-gray-900">
-                    {w.label} (${balances[w.value].toFixed(2)})
+                    {walletLabel(w)} (${balances[w.value].toFixed(2)})
                   </option>
                 ))}
               </select>
@@ -128,7 +130,7 @@ export default function WalletTransfer() {
             <div className="md:col-span-2">
               <label className="block text-sm text-gray-400 mb-2">{t('walletTransfer.to')}</label>
               <div className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-between">
-                <span>{toWalletData?.label}</span>
+                <span>{walletLabel(toWalletData)}</span>
                 <span className="text-sm text-gray-400">${balances[toWallet].toFixed(2)}</span>
               </div>
             </div>

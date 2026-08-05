@@ -31,6 +31,7 @@ from app.api.v1 import (
     bank_info,
     withdrawal_method,
     order_management,
+    live_stats,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -66,3 +67,4 @@ api_router.include_router(bank_info.router)
 api_router.include_router(withdrawal_method.router)
 api_router.include_router(marketplace.router)
 api_router.include_router(order_management.router)
+api_router.include_router(live_stats.router)

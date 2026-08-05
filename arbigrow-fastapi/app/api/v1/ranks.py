@@ -39,20 +39,47 @@ async def get_my_rank(
 ):
     """Return the current user's rank info and next rank target.
 
-    Team volume is always calculated live from deposits + investments,
-    and cached back to user.team_volume so other queries stay in sync.
+    Team Volume (own deposit + up to 40 generations of descendants) ALWAYS
+    accumulates and is reported regardless of KYC status. A user whose KYC is
+    not approved still sees their accumulated volume but never a rank: no
+    volume is eligible for rank assignment or matching bonuses until approval.
     """
     from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
+    from app.utils.kyc_helper import is_kyc_approved
 
+    # Lifetime Team Volume = own approved deposits + up to 40 generations of
+    # descendants. It always accumulates and is the value the UI reports.
     personal_volume, team_volume = await get_team_volume(current_user.id, db)
 
-    # Cache live value back to user model for all other queries
-    current_user.team_volume = team_volume
+    if not await is_kyc_approved(current_user, db):
+        return {
+            "user_no": current_user.user_no,
+            "current_rank": None,
+            "next_rank": None,
+            "personal_volume": str(personal_volume),
+            "network_volume": str(max(Decimal("0"), team_volume - personal_volume)),
+            "team_volume": str(team_volume),
+            "kyc_approved_team_volume": None,
+            "post_kyc_team_volume": None,
+            "total_matching_bonus_earned": "0",
+            "remaining_volume": "0",
+            "next_target_volume": "0",
+            "progress": 0.0,
+            "kyc_required": True,
+        }
+
+    # Cache the rank-ELIGIBLE volume (only deposits created at/after KYC
+    # approval) so every other consumer reads the same value the rank engine
+    # uses. Pre-approval deposits stay excluded from rank eligibility.
+    _eligible_personal, eligible_team = await get_team_volume(
+        current_user.id,
+        db,
+        cutover=current_user.kyc_approved_at,
+    )
+    current_user.team_volume = eligible_team
     await db.commit()
 
-    current_rank = None
-    if current_user.admin_kyc_status == "approved":
-        current_rank = await _get_highest_qualified_rank(team_volume, db)
+    current_rank = await _get_highest_qualified_rank(eligible_team, db)
     if not current_rank:
         current_rank = await db.get(Rank, current_user.current_rank_id)
 
@@ -70,7 +97,10 @@ async def get_my_rank(
     # Compute total matching bonus earned
     total_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
-        .where(MatchingBonus.user_id == current_user.id)
+        .where(
+            MatchingBonus.user_id == current_user.id,
+            MatchingBonus.is_reversed == False,
+        )
     )
     total_matching_bonus = total_result.scalar() or Decimal("0")
     next_target = next_rank.target_volume if next_rank else Decimal("0")
@@ -134,10 +164,17 @@ async def get_my_rank_history(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.utils.kyc_helper import is_kyc_approved
+
+    if not await is_kyc_approved(current_user, db):
+        return []
     result = await db.execute(
         select(RankHistory)
         .options(joinedload(RankHistory.user))
-        .where(RankHistory.user_id == current_user.id)
+        .where(
+            RankHistory.user_id == current_user.id,
+            RankHistory.status != "reversed",
+        )
         .order_by(RankHistory.created_at.desc())
     )
     return result.scalars().all()
@@ -150,10 +187,17 @@ async def get_my_matching_bonuses(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from app.utils.kyc_helper import is_kyc_approved
+
+    if not await is_kyc_approved(current_user, db):
+        return []
     result = await db.execute(
         select(MatchingBonus)
-        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))
-        .where(MatchingBonus.user_id == current_user.id)
+        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user), joinedload(MatchingBonus.rank))
+        .where(
+            MatchingBonus.user_id == current_user.id,
+            MatchingBonus.is_reversed == False,
+        )
         .order_by(MatchingBonus.created_at.desc())
         .offset((page - 1) * limit)
         .limit(limit)
@@ -174,7 +218,9 @@ async def get_my_matching_bonuses(
             "reference_id": b.reference_id,
             "reference_type": b.reference_type,
             "description": b.description,
+            "is_reversed": b.is_reversed,
             "created_at": b.created_at.isoformat() if b.created_at else None,
+            "rank_name": b.rank.name if b.rank else None,
         }
         for b in bonuses
     ]

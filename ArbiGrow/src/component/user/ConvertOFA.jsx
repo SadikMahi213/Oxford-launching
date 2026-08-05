@@ -1,12 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Repeat, Coins, Wallet } from "lucide-react";
-import { convertOFAtoUSDT } from "../../api/user.api.js";
+import { convertOFAtoUSDT, getOFAConversionRate } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
-
-const CONVERSION_RATE = 0.0001;
 
 export default function ConvertOFA() {
   const { t } = useTranslation();
@@ -15,10 +13,23 @@ export default function ConvertOFA() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [conversionRate, setConversionRate] = useState(null);
 
   const arbxBalance = Number(user?.arbx_wallet ?? 0);
   const mainBalance = Number(user?.main_wallet ?? 0);
-  const usdtAmount = ofaAmount ? (parseFloat(ofaAmount) * CONVERSION_RATE) : 0;
+  const usdtAmount = ofaAmount ? (parseFloat(ofaAmount) * (conversionRate || 0)) : 0;
+
+  useEffect(() => {
+    let active = true;
+    getOFAConversionRate()
+      .then((res) => {
+        if (active) setConversionRate(Number(res.data?.ofa_to_usdt_rate));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,9 +108,11 @@ export default function ConvertOFA() {
               <span className="text-sm text-gray-400">{t('convertOFA.rate')}</span>
             </div>
             <div className="flex items-center justify-center gap-4 text-lg">
-              <span className="text-yellow-400 font-semibold">100 OFA</span>
+              <span className="text-yellow-400 font-semibold">1 OFA</span>
               <Repeat className="w-5 h-5 text-cyan-400" />
-              <span className="text-green-400 font-semibold">0.01 USDT</span>
+              <span className="text-green-400 font-semibold">
+                {conversionRate != null ? `${conversionRate} USDT` : "—"}
+              </span>
             </div>
           </div>
 

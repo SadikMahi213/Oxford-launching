@@ -34,7 +34,7 @@ async def get_network_analytics(
         )
         SELECT id FROM team_tree
     """)
-    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 40})
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 999})
     team_ids = [row[0] for row in team_rows.fetchall()]
 
     total_network_members = len(team_ids)
@@ -95,7 +95,7 @@ async def get_level_analytics(
         )
         SELECT id, depth FROM team_tree WHERE depth = :lvl
     """)
-    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level, "max_depth": 40})
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level, "max_depth": 999})
     team_data = team_rows.fetchall()
     team_ids = [row[0] for row in team_data]
 

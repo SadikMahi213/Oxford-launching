@@ -3,11 +3,15 @@
 @tailwind utilities;
 
 body {
-  @apply bg-dark-bg text-white min-h-screen;
+  @apply bg-dark-bg text-white min-h-screen overflow-x-hidden w-full;
   font-family: "Poppins", sans-serif;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  @apply overflow-x-hidden w-full;
 }
 
 input::-ms-reveal,

@@ -300,11 +300,17 @@ export default function ProfileCard({ setActivePage }) {
                   {user?.full_name || t("profileCard.user")}
                 </h2>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-400">
-                  {user?.username && (
-                    <span className="flex items-center gap-1">
-                      <span>@{user.username}</span>
-                    </span>
-                  )}
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                    kycRaw === "approved"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                      : kycRaw === "pending"
+                      ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                      : kycRaw === "rejected"
+                      ? "bg-red-500/10 text-red-400 border-red-500/30"
+                      : "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                  }`}>
+                    {kycStatus}
+                  </span>
                   {userId && (
                     <span className="flex items-center gap-1 text-xs text-gray-500">
                       <IdCard className="w-3 h-3" />

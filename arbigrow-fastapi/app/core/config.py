@@ -49,6 +49,7 @@ class Settings(BaseSettings):
 
     MAX_FAILED_ATTEMPTS: int = 5
     SECURITY_LOG_ENABLED: bool = True
+    PASSWORD_RESET_EXPIRE_MINUTES: int = 15
 
     @field_validator("SECRET_KEY")
     @classmethod

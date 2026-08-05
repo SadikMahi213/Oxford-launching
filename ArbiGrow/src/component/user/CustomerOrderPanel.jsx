@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "motion/react"
 import { Package, X, ChevronRight, Clock, Truck, Ban, RotateCcw, MapPin, CreditCard } from "lucide-react"
 import { getMyOrders, getMyOrderDetail, cancelMyOrder, requestReturn } from "../../api/marketplace.api.js"
@@ -19,6 +20,7 @@ const STATUS_COLORS = {
 }
 
 export default function CustomerOrderPanel({ onClose }) {
+  const { t } = useTranslation()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -52,29 +54,29 @@ export default function CustomerOrderPanel({ onClose }) {
   }
 
   const handleCancel = async (id) => {
-    const reason = prompt("Reason for cancellation (optional):")
+    const reason = prompt(t("orders.cancelReasonPrompt"))
     if (reason === null) return
     try {
       await cancelMyOrder(id, reason || "")
-      setMsg("Order cancelled")
+      setMsg(t("orders.cancelled"))
       loadOrders()
       setDetail(null)
-    } catch (e) { setMsg(e.response?.data?.detail || "Cancel failed") }
+    } catch (e) { setMsg(e.response?.data?.detail || t("orders.cancelFailed")) }
   }
 
   const handleReturn = async (id) => {
-    const reason = prompt("Reason for return:")
+    const reason = prompt(t("orders.returnReasonPrompt"))
     if (!reason) return
     try {
       await requestReturn(id, reason)
-      setMsg("Return request submitted")
-    } catch (e) { setMsg(e.response?.data?.detail || "Return request failed") }
+      setMsg(t("orders.returnSubmitted"))
+    } catch (e) { setMsg(e.response?.data?.detail || t("orders.returnFailed")) }
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-white">My Orders</h2>
+        <h2 className="text-sm font-semibold text-white">{t("orders.myOrders")}</h2>
         {onClose && (
           <button onClick={onClose} className="p-1.5 rounded-lg bg-white/[0.04] text-gray-400"><X className="w-4 h-4" /></button>
         )}
@@ -87,14 +89,14 @@ export default function CustomerOrderPanel({ onClose }) {
         {["", "pending", "confirmed", "processing", "shipped", "delivered", "completed", "cancelled"].map((s) => (
           <button key={s} onClick={() => { setStatusFilter(s); setPage(1) }}
             className={`px-2.5 py-1 rounded-lg text-[10px] whitespace-nowrap ${statusFilter === s ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "bg-white/[0.04] text-gray-400"}`}
-          >{s || "All"}</button>
+          >{s ? t(`orders.status.${s}`) : t("orders.all")}</button>
         ))}
       </div>
 
       {loading ? (
         <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : orders.length === 0 ? (
-        <p className="text-xs text-gray-500 text-center py-8">No orders found</p>
+        <p className="text-xs text-gray-500 text-center py-8">{t("orders.noOrders")}</p>
       ) : (
         <div className="space-y-2">
           {orders.map((o) => (
@@ -103,13 +105,13 @@ export default function CustomerOrderPanel({ onClose }) {
             >
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-[10px] text-gray-500">#{o.id}</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_COLORS[o.status] || "bg-gray-500/20 text-gray-400"}`}>{o.status}</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${STATUS_COLORS[o.status] || "bg-gray-500/20 text-gray-400"}`}>{t(`orders.status.${o.status}`, { defaultValue: o.status })}</span>
               </div>
               <div className="text-xs text-gray-300 mb-1">
                 {o.items?.slice(0, 2).map((item, i) => (
                   <span key={i}>{item.product_name} x{item.quantity}{i < Math.min(o.items.length, 2) - 1 ? ", " : ""}</span>
                 ))}
-                {o.items?.length > 2 && <span className="text-gray-500"> +{o.items.length - 2} more</span>}
+                {o.items?.length > 2 && <span className="text-gray-500"> +{o.items.length - 2} {t("orders.more")}</span>}
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">{new Date(o.created_at).toLocaleDateString()}</span>
@@ -123,9 +125,9 @@ export default function CustomerOrderPanel({ onClose }) {
       {/* Pagination */}
       {total > 10 && (
         <div className="flex items-center justify-center gap-2 mt-2">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1 rounded-lg bg-white/[0.04] text-xs text-gray-400 disabled:opacity-30">Prev</button>
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1 rounded-lg bg-white/[0.04] text-xs text-gray-400 disabled:opacity-30">{t("orders.prev")}</button>
           <span className="text-xs text-gray-500">{page}/{Math.ceil(total / 10)}</span>
-          <button disabled={page >= Math.ceil(total / 10)} onClick={() => setPage(page + 1)} className="px-3 py-1 rounded-lg bg-white/[0.04] text-xs text-gray-400 disabled:opacity-30">Next</button>
+          <button disabled={page >= Math.ceil(total / 10)} onClick={() => setPage(page + 1)} className="px-3 py-1 rounded-lg bg-white/[0.04] text-xs text-gray-400 disabled:opacity-30">{t("orders.next")}</button>
         </div>
       )}
 
@@ -145,13 +147,13 @@ export default function CustomerOrderPanel({ onClose }) {
               ) : detail ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-white">Order #{detail.id}</h3>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[detail.status] || "bg-gray-500/20 text-gray-400"}`}>{detail.status}</span>
+                    <h3 className="text-base font-bold text-white">{t("orders.order")} #{detail.id}</h3>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[detail.status] || "bg-gray-500/20 text-gray-400"}`}>{t(`orders.status.${detail.status}`, { defaultValue: detail.status })}</span>
                   </div>
 
                   {/* Items */}
                   <div className="space-y-2">
-                    <p className="text-xs text-gray-500 font-medium">Items</p>
+                    <p className="text-xs text-gray-500 font-medium">{t("orders.items")}</p>
                     {detail.items?.map((item) => (
                       <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.03]">
                         <span className="text-xs text-gray-300">{item.product_name} x{item.quantity}</span>
@@ -160,16 +162,16 @@ export default function CustomerOrderPanel({ onClose }) {
                     ))}
                     <div className="border-t border-white/[0.06] pt-2 space-y-1">
                       {detail.delivery_charge > 0 && (
-                        <div className="flex justify-between text-xs"><span className="text-gray-500">Delivery</span><span className="text-gray-300">${detail.delivery_charge.toFixed(2)}</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-gray-500">{t("orders.delivery")}</span><span className="text-gray-300">${detail.delivery_charge.toFixed(2)}</span></div>
                       )}
-                      <div className="flex justify-between text-sm"><span className="text-gray-400">Total</span><span className="text-white font-bold">${detail.total.toFixed(2)}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-400">{t("orders.total")}</span><span className="text-white font-bold">${detail.total.toFixed(2)}</span></div>
                     </div>
                   </div>
 
                   {/* Customer Info */}
                   {detail.customer_name && (
                     <div className="p-3 rounded-xl bg-white/[0.03] text-xs space-y-1">
-                      <p className="text-gray-400 font-medium">Customer</p>
+                      <p className="text-gray-400 font-medium">{t("orders.customer")}</p>
                       <p className="text-white">{detail.customer_name}</p>
                       {detail.customer_phone && <p className="text-gray-400">{detail.customer_phone}</p>}
                       {detail.customer_address && (
@@ -185,14 +187,14 @@ export default function CustomerOrderPanel({ onClose }) {
                   {detail.tracking_number && (
                     <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs flex items-center gap-2">
                       <Truck className="w-4 h-4 text-blue-400" />
-                      <span className="text-blue-300">Tracking: {detail.tracking_number}</span>
+                      <span className="text-blue-300">{t("orders.tracking")}: {detail.tracking_number}</span>
                     </div>
                   )}
 
                   {/* Timeline */}
                   {detail.timeline?.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs text-gray-500 font-medium">Order Timeline</p>
+                      <p className="text-xs text-gray-500 font-medium">{t("orders.timeline")}</p>
                       <div className="space-y-1.5">
                         {detail.timeline.map((t, i) => (
                           <div key={i} className="flex items-start gap-2 text-xs">
@@ -216,12 +218,12 @@ export default function CustomerOrderPanel({ onClose }) {
                   <div className="flex gap-2">
                     {["pending", "confirmed"].includes(detail.status) && (
                       <button onClick={() => handleCancel(detail.id)} className="flex-1 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-medium flex items-center justify-center gap-1">
-                        <Ban className="w-3.5 h-3.5" /> Cancel
+                        <Ban className="w-3.5 h-3.5" /> {t("orders.cancel")}
                       </button>
                     )}
                     {["delivered", "completed"].includes(detail.status) && (
                       <button onClick={() => handleReturn(detail.id)} className="flex-1 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium flex items-center justify-center gap-1">
-                        <RotateCcw className="w-3.5 h-3.5" /> Request Return
+                        <RotateCcw className="w-3.5 h-3.5" /> {t("orders.requestReturn")}
                       </button>
                     )}
                   </div>
@@ -229,11 +231,11 @@ export default function CustomerOrderPanel({ onClose }) {
                   {/* Payment Info */}
                   <div className="text-[10px] text-gray-500 flex items-center gap-1">
                     <CreditCard className="w-3 h-3" />
-                    Payment: {detail.payment_method}
+                    {t("orders.payment")}: {detail.payment_method}
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-gray-500 text-center py-8">Order not found</p>
+                <p className="text-xs text-gray-500 text-center py-8">{t("orders.notFound")}</p>
               )}
             </motion.div>
           </motion.div>

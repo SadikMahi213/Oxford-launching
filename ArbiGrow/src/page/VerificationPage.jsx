@@ -267,8 +267,12 @@ export default function VerificationPage({ embedded, onSuccess }) {
     try {
       const response = await submitKYC(formData);
 
-      // console.log("KYC Response:", response?.data);
-      if (response?.data?.message == "KYC submitted successfully") {
+      const kycMessage = response?.data?.message || "";
+      const kycSucceeded =
+        kycMessage === "KYC submitted successfully" ||
+        kycMessage === "KYC resubmitted successfully";
+
+      if (kycSucceeded) {
         try {
           const meRes = await refreshUserStore();
           if (meRes?.data?.user) {

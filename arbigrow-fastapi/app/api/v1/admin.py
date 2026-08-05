@@ -11,6 +11,8 @@ from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
 from app.models.user import User
 from app.models.kyc import KYC, KYCStatus, KycPackage, PaymentStatus
+from app.models.wallet_transaction import WalletTransaction, WalletTransactionType, WalletTransactionStatus
+from app.models.company_wallet import CompanyWallet
 from app.models.investments import Investment
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -38,6 +40,14 @@ from app.models.system_config import SystemConfig
 from app.models.mining_log import MiningLog
 from app.models.visitor_log import VisitorLog
 from app.services.b2_service import generate_presigned_url
+
+
+def _resolve_image_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http"):
+        return stored
+    return generate_presigned_url(stored)
 from app.utils.format_decimal import format_decimal
 from app.utils.is_system_active import FEATURE_CONFIG_KEYS
 from app.core.referral import get_referral_level_rates
@@ -580,7 +590,7 @@ async def get_user_details(
         )
         SELECT id, depth FROM team_tree
     """)
-    team_rows = await db.execute(team_stmt, {"user_id": user.id, "max_depth": 40})
+    team_rows = await db.execute(team_stmt, {"user_id": user.id, "max_depth": 999})
     team_data = team_rows.fetchall()
 
     bonus_eligible_ids = {row[0] for row in team_data if row[1] <= 5}
@@ -799,8 +809,8 @@ async def get_user_details(
                 "name": kyc.package.name,
                 "price": str(kyc.package.price),
             } if kyc and kyc.package else None,
-            "front_image_url": generate_presigned_url(kyc.front_image_key) if kyc else None,
-            "back_image_url": generate_presigned_url(kyc.back_image_key) if kyc else None,
+            "front_image_url": _resolve_image_url(kyc.front_image_key) if kyc else None,
+            "back_image_url": _resolve_image_url(kyc.back_image_key) if kyc else None,
         } if kyc else None,
         "referrers": referrers,
         "referral_tree": {
@@ -855,12 +865,16 @@ async def update_kyc_status(
     if requested_status not in {"pending", "approved", "rejected", "issue"}:
         raise HTTPException(status_code=400, detail="Invalid KYC status")
 
-    user_result = await db.execute(select(User).where(User.id == user_id))
+    user_result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    result = await db.execute(select(KYC).where(KYC.user_id == user_id))
+    result = await db.execute(
+        select(KYC).where(KYC.user_id == user_id).with_for_update()
+    )
     kyc = result.scalar_one_or_none()
     previous_status = kyc.status if kyc else None
 
@@ -873,13 +887,65 @@ async def update_kyc_status(
             )
         user.account_status = "on_hold"
         user.account_issue = issue_note
+
+        # Refund hold on issue
+        hold_amount = user.kyc_hold or Decimal("0")
+        refunded = Decimal("0")
+        refund_txn = None
+        refunded_at = None
+        if hold_amount > 0:
+            user.kyc_hold = Decimal("0")
+            user.deposit_wallet = ((user.deposit_wallet or Decimal("0")) + hold_amount).quantize(
+                WALLET_PRECISION, rounding=ROUND_HALF_UP
+            )
+            if kyc:
+                kyc.payment_status = PaymentStatus.refunded
+                kyc.fee_refunded = True
+                kyc.fee_refunded_at = datetime.now(timezone.utc)
+                refunded_at = kyc.fee_refunded_at
+            else:
+                refunded_at = datetime.now(timezone.utc)
+            wallet_txn = WalletTransaction(
+                user_id=user_id,
+                type=WalletTransactionType.kyc_fee_refund,
+                wallet_type="kyc_hold",
+                amount=hold_amount,
+                balance_before=hold_amount,
+                balance_after=Decimal("0"),
+                reference_type="kyc",
+                reference_id=kyc.id if kyc else None,
+                description="KYC Rejected - Fee Refunded",
+                status=WalletTransactionStatus.refunded,
+            )
+            db.add(wallet_txn)
+            refunded = hold_amount
+            refund_txn = wallet_txn
+
         await db.commit()
         await db.refresh(user)
 
+        message = f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}"
+        notif_metadata = None
+        if refunded > 0 and refund_txn is not None:
+            ts = refunded_at or datetime.now(timezone.utc)
+            message += (
+                f" Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+                f" (Ref #{refund_txn.id}) at {ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
+            )
+            notif_metadata = {
+                "refund_amount": str(refunded),
+                "refund_wallet": "deposit_wallet",
+                "refund_wallet_label": "Deposit Wallet",
+                "refund_txn_id": refund_txn.id,
+                "refund_kyc_id": kyc.id if kyc else None,
+                "refunded_at": ts.isoformat(),
+            }
+
         await notify_admin(
             db=db, type="kyc_rejected",
-            message=f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}",
+            message=message,
             user_id=user.id, request=request,
+            metadata_dict=notif_metadata,
         )
 
         return {
@@ -901,6 +967,69 @@ async def update_kyc_status(
     user.account_status = "active" if new_kyc_status == KYCStatus.approved else "inactive"
     user.account_issue = None
     was_approved = new_kyc_status == KYCStatus.approved
+    was_rejected = new_kyc_status in (KYCStatus.rejected,)
+    was_reset = new_kyc_status == KYCStatus.pending and previous_status and previous_status.value != "pending"
+
+    # Handle KYC hold: release on approve, refund on reject/reset
+    hold_amount = user.kyc_hold or Decimal("0")
+    refunded = Decimal("0")
+    refund_txn = None
+    refunded_at = None
+    if hold_amount > 0:
+        if was_approved:
+            # Release hold to company wallet
+            user.kyc_hold = Decimal("0")
+            company = await db.execute(select(CompanyWallet).limit(1))
+            company_wallet = company.scalar_one_or_none()
+            if not company_wallet:
+                company_wallet = CompanyWallet(total_kyc_collected=Decimal("0"))
+                db.add(company_wallet)
+            company_wallet.total_kyc_collected = (company_wallet.total_kyc_collected + hold_amount).quantize(
+                WALLET_PRECISION, rounding=ROUND_HALF_UP
+            )
+            if kyc:
+                kyc.payment_status = PaymentStatus.paid
+            wallet_txn = WalletTransaction(
+                user_id=user_id,
+                type=WalletTransactionType.kyc_fee_release,
+                wallet_type="kyc_hold",
+                amount=hold_amount,
+                balance_before=hold_amount,
+                balance_after=Decimal("0"),
+                reference_type="kyc",
+                reference_id=kyc.id if kyc else None,
+                description="KYC Approved - Hold Released",
+                status=WalletTransactionStatus.completed,
+            )
+            db.add(wallet_txn)
+        elif was_rejected or was_reset:
+            # Refund hold back to user deposit wallet
+            user.kyc_hold = Decimal("0")
+            user.deposit_wallet = ((user.deposit_wallet or Decimal("0")) + hold_amount).quantize(
+                WALLET_PRECISION, rounding=ROUND_HALF_UP
+            )
+            if kyc:
+                kyc.payment_status = PaymentStatus.refunded
+                kyc.fee_refunded = True
+                kyc.fee_refunded_at = datetime.now(timezone.utc)
+            txn_type = WalletTransactionType.kyc_fee_reset_refund if was_reset else WalletTransactionType.kyc_fee_refund
+            desc = "KYC Reset - Amount Returned to Wallet" if was_reset else "KYC Rejected - Fee Refunded"
+            wallet_txn = WalletTransaction(
+                user_id=user_id,
+                type=txn_type,
+                wallet_type="kyc_hold",
+                amount=hold_amount,
+                balance_before=hold_amount,
+                balance_after=Decimal("0"),
+                reference_type="kyc",
+                reference_id=kyc.id if kyc else None,
+                description=desc,
+                status=WalletTransactionStatus.refunded,
+            )
+            db.add(wallet_txn)
+            refunded = hold_amount
+            refund_txn = wallet_txn
+            refunded_at = kyc.fee_refunded_at if (kyc and kyc.fee_refunded_at) else datetime.now(timezone.utc)
 
     # KYC Snapshot: capture lifetime team volume on first approval
     if was_approved and not user.kyc_approved_team_volume:
@@ -923,7 +1052,7 @@ async def update_kyc_status(
                 user_id=user.id,
                 db=db,
                 source_user_id=user.id,
-                skip_bonus=False,
+                skip_bonus=True,
                 use_snapshot_volume=True,
                 snapshot_volume=user.kyc_approved_team_volume,
             )
@@ -940,15 +1069,44 @@ async def update_kyc_status(
                 next_id = par.parent_lvl_1_id if par else None
             await db.commit()
         except Exception:
-            logging.getLogger(__name__).exception(
-                "Rank evaluation failed for KYC-approved user_id=%s", user_id
-            )
+            logger.warning("Rank evaluation failed for user_id=%s during KYC approval (non-blocking)", user_id, exc_info=True)
+    elif was_rejected or was_reset:
+        # KYC gate: a rejected/reset user must never keep any rank entitlement.
+        # Strip current rank, team volume, matching bonuses, and rank history.
+        try:
+            from app.services.rank_service import enforce_kyc_rank_gate
+            await enforce_kyc_rank_gate(user, db)
+            await db.commit()
+            await db.refresh(user)
+        except Exception:
+            logger.warning("KYC rank enforcement failed for user_id=%s (non-blocking)", user_id, exc_info=True)
 
     notif_type = "kyc_approved" if was_approved else "kyc_rejected"
+
+    message = f"User #{user_id} KYC was {new_kyc_status.value} by admin"
+    notif_metadata = None
+    if (was_rejected or was_reset) and refunded > 0:
+        ts = refunded_at or datetime.now(timezone.utc)
+        message = (
+            f"User #{user_id} KYC was {new_kyc_status.value} by admin. "
+            f"Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+            f" (Ref #{refund_txn.id if refund_txn else 'N/A'}) at "
+            f"{ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
+        )
+        notif_metadata = {
+            "refund_amount": str(refunded),
+            "refund_wallet": "deposit_wallet",
+            "refund_wallet_label": "Deposit Wallet",
+            "refund_txn_id": refund_txn.id if refund_txn else None,
+            "refund_kyc_id": kyc.id if kyc else None,
+            "refunded_at": ts.isoformat(),
+        }
+
     await notify_admin(
         db=db, type=notif_type,
-        message=f"User #{user_id} KYC was {new_kyc_status.value} by admin",
+        message=message,
         user_id=user_id, request=request,
+        metadata_dict=notif_metadata,
     )
 
     return {
@@ -987,7 +1145,7 @@ async def update_user_wallets(
         "main_wallet", "deposit_wallet", "withdraw_wallet",
         "referral_wallet", "generation_wallet", "arbx_wallet",
         "arbx_mining_wallet", "captcha_wallet", "ad_view_wallet",
-        "ecommerce_wallet",
+        "ecommerce_wallet", "matching_bonus_wallet",
     }
 
     for field, raw_value in update_fields.items():
@@ -1020,6 +1178,7 @@ async def update_user_wallets(
             "arbx_mining_wallet": format_decimal(user.arbx_mining_wallet),
             "captcha_wallet": format_decimal(user.captcha_wallet),
             "ad_view_wallet": format_decimal(user.ad_view_wallet),
+            "matching_bonus_wallet": format_decimal(user.matching_bonus_wallet),
         },
     }
 
@@ -1089,12 +1248,97 @@ async def delete_user(
     await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
     from app.models.bank_info import BankInfo
     await db.execute(delete(BankInfo).where(BankInfo.user_id == user_id))
-    await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(
-        select(Order.id).where(Order.user_id == user_id).scalar_subquery()
-    )))
-    await db.execute(delete(Order).where(Order.user_id == user_id))
-    await db.execute(delete(Seller).where(Seller.user_id == user_id))
-    await db.execute(delete(Announcement).where(Announcement.user_id == user_id))
+    from app.models.cart import Cart, CartItem
+    cart_result = await db.execute(
+        select(Cart.id).where(Cart.user_id == user_id)
+    )
+    cart_ids = [row[0] for row in cart_result.all()]
+    if cart_ids:
+        await db.execute(delete(CartItem).where(CartItem.cart_id.in_(cart_ids)))
+        await db.execute(delete(Cart).where(Cart.id.in_(cart_ids)))
+
+    from app.models.wishlist import WishlistItem
+    from app.models.compare import CompareItem
+    from app.models.coupon import CouponUsage
+    from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
+    from app.models.ofa_coin_transaction import OFACoinTransaction
+    from app.models.product_review import ProductReview
+    from app.models.product_view import ProductView
+    from app.models.return_request import ReturnRequest
+    from app.models.vendor_withdraw import VendorWithdraw
+    await db.execute(delete(WishlistItem).where(WishlistItem.user_id == user_id))
+    await db.execute(delete(CompareItem).where(CompareItem.user_id == user_id))
+    await db.execute(delete(CouponUsage).where(CouponUsage.user_id == user_id))
+    await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.user_id == user_id))
+    await db.execute(delete(OFACoinTransaction).where(OFACoinTransaction.user_id == user_id))
+    await db.execute(delete(ProductReview).where(ProductReview.user_id == user_id))
+    await db.execute(delete(ProductView).where(ProductView.user_id == user_id))
+    await db.execute(delete(ReturnRequest).where(ReturnRequest.user_id == user_id))
+    await db.execute(delete(VendorWithdraw).where(VendorWithdraw.user_id == user_id))
+
+    user_order_result = await db.execute(
+        select(Order.id).where(Order.user_id == user_id)
+    )
+    user_order_ids = [row[0] for row in user_order_result.all()]
+
+    from app.models.order_attachment import OrderAttachment
+    from app.models.order_status_log import OrderStatusLog
+    from app.models.product import Product
+    seller_result = await db.execute(
+        select(Seller.id).where(Seller.user_id == user_id)
+    )
+    seller_ids = [row[0] for row in seller_result.all()]
+
+    product_ids: list[int] = []
+    if seller_ids:
+        product_result = await db.execute(
+            select(Product.id).where(Product.seller_id.in_(seller_ids))
+        )
+        product_ids = [row[0] for row in product_result.all()]
+
+    all_order_ids = list(dict.fromkeys(user_order_ids))
+    if seller_ids:
+        seller_order_result = await db.execute(
+            select(Order.id).where(Order.seller_id.in_(seller_ids))
+        )
+        all_order_ids = list(
+            dict.fromkeys(all_order_ids + [row[0] for row in seller_order_result.all()])
+        )
+
+    if all_order_ids:
+        await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(all_order_ids)))
+        await db.execute(delete(OrderAttachment).where(OrderAttachment.order_id.in_(all_order_ids)))
+        await db.execute(delete(OrderStatusLog).where(OrderStatusLog.order_id.in_(all_order_ids)))
+        await db.execute(delete(CouponUsage).where(CouponUsage.order_id.in_(all_order_ids)))
+        await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.order_id.in_(all_order_ids)))
+        await db.execute(delete(ReturnRequest).where(ReturnRequest.order_id.in_(all_order_ids)))
+        await db.execute(delete(ProductReview).where(ProductReview.order_id.in_(all_order_ids)))
+        await db.execute(delete(Order).where(Order.id.in_(all_order_ids)))
+
+    if product_ids:
+        from app.models.product_tag import ProductTag
+        from app.models.flash_deal import FlashDealProduct
+        from app.models.product_attribute_value import ProductAttributeValue
+        from app.models.product_variant import ProductVariant
+        await db.execute(delete(CartItem).where(CartItem.product_id.in_(product_ids)))
+        await db.execute(delete(WishlistItem).where(WishlistItem.product_id.in_(product_ids)))
+        await db.execute(delete(CompareItem).where(CompareItem.product_id.in_(product_ids)))
+        await db.execute(delete(ProductReview).where(ProductReview.product_id.in_(product_ids)))
+        await db.execute(delete(ProductView).where(ProductView.product_id.in_(product_ids)))
+        await db.execute(delete(ProductTag).where(ProductTag.product_id.in_(product_ids)))
+        await db.execute(delete(FlashDealProduct).where(FlashDealProduct.product_id.in_(product_ids)))
+        await db.execute(delete(ProductAttributeValue).where(ProductAttributeValue.product_id.in_(product_ids)))
+        await db.execute(delete(ProductVariant).where(ProductVariant.product_id.in_(product_ids)))
+        await db.execute(delete(OrderItem).where(OrderItem.product_id.in_(product_ids)))
+        await db.execute(delete(Product).where(Product.id.in_(product_ids)))
+
+    if seller_ids:
+        from app.models.seller_delivery_zone import SellerDeliveryZone
+        await db.execute(delete(SellerDeliveryZone).where(SellerDeliveryZone.seller_id.in_(seller_ids)))
+        await db.execute(delete(VendorWithdraw).where(VendorWithdraw.seller_id.in_(seller_ids)))
+        await db.execute(delete(Seller).where(Seller.id.in_(seller_ids)))
+
+    await db.execute(delete(Announcement).where(Announcement.created_by == user_id))
 
     await db.execute(
         update(User)
@@ -1128,7 +1372,7 @@ async def delete_user(
     await notify_admin(
         db=db, type="user_deleted",
         message=f"User #{user_id} was deleted by admin",
-        user_id=user_id, request=request,
+        request=request,
     )
 
     return {"message": "User deleted successfully"}
@@ -1245,7 +1489,7 @@ async def get_mining_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     config = {}
-    for key in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus"):
+    for key in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus", "captcha_timer_seconds"):
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
         config[key] = row.value if row else None
@@ -1259,7 +1503,7 @@ async def update_mining_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    if key not in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus"):
+    if key not in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus", "captcha_timer_seconds"):
         raise HTTPException(status_code=400, detail="Invalid mining config key")
     if key == "mining_enabled" and value.lower() not in ("true", "false"):
         raise HTTPException(status_code=400, detail="mining_enabled must be 'true' or 'false'")
@@ -1291,6 +1535,13 @@ async def update_mining_config(
                 raise HTTPException(status_code=400, detail="Signup bonus must be between 0 and 100000")
         except Exception:
             raise HTTPException(status_code=400, detail="ofa_signup_bonus must be a number")
+    if key == "captcha_timer_seconds":
+        try:
+            timer = int(value)
+            if timer < 5 or timer > 300:
+                raise HTTPException(status_code=400, detail="Captcha timer must be between 5 and 300 seconds")
+        except Exception:
+            raise HTTPException(status_code=400, detail="captcha_timer_seconds must be a number")
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
     config = result.scalar_one_or_none()
     if not config:
@@ -1978,6 +2229,7 @@ async def get_realtime_stats(
 
     total_matching_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+        .where(MatchingBonus.is_reversed == False)
     )
     total_matching = Decimal(str(total_matching_result.scalar() or 0))
 

@@ -81,13 +81,13 @@ async def _apply_referral_cascade(
     profit_amount: Decimal,
     now_utc: datetime,
 ) -> None:
-    parent_ids = [
-        source_user.parent_lvl_1_id,
-        source_user.parent_lvl_2_id,
-        source_user.parent_lvl_3_id,
-        source_user.parent_lvl_4_id,
-        source_user.parent_lvl_5_id,
-    ]
+    rates = await get_referral_level_rates(db)
+
+    # Build parent ancestry chain dynamically from configured levels
+    parent_ids: list[int | None] = []
+    for lvl in range(1, len(rates) + 1):
+        ancestor_id = getattr(source_user, f"parent_lvl_{lvl}_id", None)
+        parent_ids.append(ancestor_id)
 
     active_parent_ids = set()
     parent_rows_result = await db.execute(
@@ -107,8 +107,6 @@ async def _apply_referral_cascade(
         .distinct()
     )
     active_parent_ids = set(active_result.scalars().all())
-
-    rates = await get_referral_level_rates(db)
 
     for level_idx, parent_id in enumerate(parent_ids):
         if not parent_id:
@@ -255,6 +253,17 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 return False
 
             # Check if investment is already completed
+            # Guard: paid packages snapshot with missing expected_profit (legacy
+            # registration rows) must not be falsely completed; keep them active
+            # so the dashboard can still detect the active package.
+            if (
+                investment.expected_profit <= 0
+                and investment.invested_amount > 0
+                and (investment.daily_payment or 0) > 0
+            ):
+                await db.rollback()
+                return False
+
             remaining_profit = _to_wallet_precision(
                 investment.expected_profit - investment.profit_earned
             )

@@ -161,13 +161,23 @@ export default function ProfileIdentityCard() {
 
         <div className="flex items-center gap-2 mb-1">
           <h2 className="text-base font-bold text-white">{user?.full_name || t("profileIdentity.user")}</h2>
-          {kycRaw === "approved" && <img src={verifiedBadge} alt="Verified" className="w-5 h-5 md:w-4 md:h-4 object-contain shrink-0 rounded-full bg-white self-center" />}
+          {kycRaw === "approved" && <img src={verifiedBadge} alt={t("profileIdentity.verified")} className="w-5 h-5 md:w-4 md:h-4 object-contain shrink-0 rounded-full bg-white self-center" />}
         </div>
-        <p className="text-xs text-gray-500 mb-4">@{user?.username || "username"}</p>
+        <p className={`text-xs mb-4 font-medium ${
+          kycRaw === "approved"
+            ? "text-emerald-400"
+            : kycRaw === "pending"
+            ? "text-yellow-400"
+            : kycRaw === "rejected"
+            ? "text-red-400"
+            : "text-gray-400"
+        }`}>
+          {getKycStatus()}
+        </p>
 
         {kycRaw === "rejected" && user?.kyc_note && (
           <div className="w-full mb-4 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-            <p className="text-[10px] font-semibold text-red-300 mb-0.5">Rejection Reason:</p>
+            <p className="text-[10px] font-semibold text-red-300 mb-0.5">{t("profile.rejectionReason")}</p>
             <p className="text-xs text-red-200/90">{user.kyc_note}</p>
           </div>
         )}
@@ -226,7 +236,7 @@ export default function ProfileIdentityCard() {
               <Award className="w-3.5 h-3.5 text-blue-400" />
               <p className="text-[9px] text-gray-500 uppercase tracking-wider">{t("profileIdentity.position")}</p>
             </div>
-            <p className="text-sm font-bold text-white truncate">{currentRank?.name || t("profileCard.member")}</p>
+            <p className="text-sm font-bold text-white truncate">{user?.kyc_status === "approved" ? (currentRank?.name || t("profileCard.member")) : t("profileCard.member")}</p>
           </div>
           <div className="bg-white/[0.04] backdrop-blur-sm rounded-xl border border-white/[0.06] p-3">
             <div className="flex items-center gap-1.5 mb-1">

@@ -144,6 +144,10 @@ export const convertOFAtoUSDT = (payload) => {
   return api.post("v1/user/convert-ofa-to-usdt", payload, authHeaders());
 };
 
+export const getOFAConversionRate = () => {
+  return api.get("v1/user/conversion-rate", authHeaders());
+};
+
 export const updateProfileImage = (payload) => {
   return api.post("v1/user/profile-image", payload, authHeaders());
 };
@@ -201,3 +205,6 @@ export const getMyInvoiceHistory = (invoiceType) => {
 };
 export const getVendorWithdraws = () => api.get("v1/marketplace/vendor/withdraws", authHeaders());
 export const getEcommerceWalletTransactions = () => api.get("v1/marketplace/wallet-transactions", authHeaders());
+export const getMyWalletTransactions = () => api.get("v1/user/wallet-transactions", authHeaders());
+
+export const getLiveStats = () => api.get("v1/live-stats/");

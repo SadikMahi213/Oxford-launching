@@ -76,7 +76,7 @@ export function PrivacySecurity() {
   ];
 
   return (
-    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+    <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-[600px] h-[600px] bg-blue-500/4 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-[500px] h-[500px] bg-cyan-500/3 rounded-full blur-3xl"></div>
@@ -131,7 +131,7 @@ export function PrivacySecurity() {
                     <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors duration-300">
                       {item.title}
                     </h3>
-                    <p className="text-sm text-gray-400 leading-relaxed">
+                    <p className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap">
                       {item.description}
                     </p>
                   </div>
@@ -188,7 +188,7 @@ export function PrivacySecurity() {
               <p className="text-sm font-semibold text-amber-300 mb-2">
                 {t("privacySecurity.legalNotice")}
               </p>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-400 leading-relaxed whitespace-pre-wrap">
                 {t("privacySecurity.legalNoticeDesc")}
               </p>
             </div>

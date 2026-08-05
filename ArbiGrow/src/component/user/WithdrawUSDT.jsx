@@ -181,7 +181,7 @@ export default function WithdrawPage() {
     setFeedback(null);
     const kycStatus = user?.kyc_status;
     if (!kycStatus || kycStatus !== "approved") {
-      setFeedback({ type: "error", message: "KYC verification required. Please complete KYC verification before withdrawing." });
+      setFeedback({ type: "error", message: t('withdraw.err_kyc') });
       return;
     }
     const nextFieldErrors = {};
@@ -211,7 +211,7 @@ export default function WithdrawPage() {
     }
     if (selectedMethod?.method_type === "mobile") {
       const dest = destinationAddress.trim();
-      if (!dest || dest.length < 5) nextFieldErrors.destination = "Invalid mobile number";
+      if (!dest || dest.length < 5) nextFieldErrors.destination = t('withdraw.err_mobile');
     }
 
     if (Object.values(nextFieldErrors).some(Boolean)) {
@@ -241,7 +241,7 @@ export default function WithdrawPage() {
       }
 
       if (selectedMethod.method_type === "bank" && !hasApprovedBank) {
-        setFeedback({ type: "error", message: "Please complete your Banking Setup before requesting a withdrawal." });
+        setFeedback({ type: "error", message: t('withdraw.err_banking') });
         setIsSubmitting(false);
         return;
       }
@@ -324,7 +324,7 @@ export default function WithdrawPage() {
               onChange={(e) => { setSelectedMethodId(e.target.value); setFieldErrors((p) => ({ ...p, method: "", destination: "" })); setDestinationAddress(""); }}
               className={`w-full appearance-none rounded-xl border bg-[#0A122C] px-4 py-3 text-white ${fieldErrors.method ? "border-red-500/60" : "border-white/10"}`}
             >
-              <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>Select withdrawal method</option>
+              <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>{t('withdraw.selectMethod_plh')}</option>
               {methods.map((m) => (
                 <option key={m.id} value={m.id} style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
                   {m.display_name}
@@ -346,32 +346,32 @@ export default function WithdrawPage() {
           {selectedMethod?.method_type === "bank" && hasApprovedBank && (
             <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 p-4">
               <div className="flex items-center gap-2 text-sm text-gray-300 font-semibold mb-2">
-                <Building2 className="w-4 h-4 text-cyan-400" /> Destination Bank Account
+                <Building2 className="w-4 h-4 text-cyan-400" /> {t('withdraw.destinationBankAccount')}
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-gray-500">Bank:</span><span className="text-white">{bankInfo.bank_name}</span>
-                <span className="text-gray-500">Account:</span><span className="text-white">{bankInfo.account_number}</span>
-                <span className="text-gray-500">Holder:</span><span className="text-white">{bankInfo.account_holder_name}</span>
-                <span className="text-gray-500">SWIFT:</span><span className="text-white">{bankInfo.swift_code}</span>
+                <span className="text-gray-500">{t('withdraw.bankLabel')}</span><span className="text-white">{bankInfo.bank_name}</span>
+                <span className="text-gray-500">{t('withdraw.accountLabel')}</span><span className="text-white">{bankInfo.account_number}</span>
+                <span className="text-gray-500">{t('withdraw.holderLabel')}</span><span className="text-white">{bankInfo.account_holder_name}</span>
+                <span className="text-gray-500">{t('withdraw.swiftLabel')}</span><span className="text-white">{bankInfo.swift_code}</span>
               </div>
             </div>
           )}
 
           {selectedMethod?.method_type === "bank" && !hasApprovedBank && (
             <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
-              <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Please complete your <strong>Banking Setup</strong> before requesting a withdrawal.</p>
+              <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> <span dangerouslySetInnerHTML={{ __html: t('withdraw.bankingWarning') }} /></p>
             </div>
           )}
 
           {/* Network address input */}
           {selectedMethod?.method_type === "network" && (
             <div>
-              <label className="mb-1 block text-sm text-gray-400">Destination Address</label>
+              <label className="mb-1 block text-sm text-gray-400">{t('withdraw.destinationAddress')}</label>
               <input
                 value={destinationAddress}
                 onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
                 className={`w-full rounded-xl border bg-white/5 px-4 py-3 font-mono text-sm ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
-                placeholder="Enter your wallet address"
+                placeholder={t('withdraw.networkAddress_plh')}
               />
               {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
             </div>
@@ -381,31 +381,31 @@ export default function WithdrawPage() {
           {selectedMethod?.method_type === "mobile" && (
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm text-gray-400">Mobile Number</label>
+                <label className="mb-1 block text-sm text-gray-400">{t('withdraw.mobileNumber')}</label>
                 <input
                   value={destinationAddress}
                   onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
                   className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
-                  placeholder="e.g. 01XXXXXXXXX"
+                  placeholder={t('withdraw.mobile_plh')}
                 />
                 {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
               </div>
               <div>
-                <label className="mb-1 block text-sm text-gray-400">Account Type</label>
+                <label className="mb-1 block text-sm text-gray-400">{t('withdraw.accountType')}</label>
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setAccountType("personal")}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "personal" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
                   >
-                    <Smartphone className="inline-block w-4 h-4 mr-1" /> Personal
+                    <Smartphone className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountPersonal')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setAccountType("agent")}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "agent" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
                   >
-                    <Building2 className="inline-block w-4 h-4 mr-1" /> Agent
+                    <Building2 className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountAgent')}
                   </button>
                 </div>
               </div>

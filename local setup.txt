@@ -1,0 +1,191 @@
+Here is the complete **local Windows setup guide** for Oxford Financial Ads (ArbiGrow).
+
+---
+
+## LOCAL SETUP GUIDE — Windows
+
+### Prerequisites
+
+| Tool | Required For | Download |
+|---|---|---|
+| **Git** | Version control | https://git-scm.com |
+| **Node.js 20+** | Frontend | https://nodejs.org (v20 LTS) |
+| **Python 3.12** | Backend | https://python.org → ensure "Add to PATH" |
+| **PostgreSQL 16+** | Database | https://postgresql.org |
+| **Redis** | Celery + caching | Via WSL or https://github.com/microsoftarchive/redis/releases |
+| **Visual Studio Build Tools** | psycopg2 / bcrypt | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
+
+---
+
+### 1. Clone the Repository
+
+```powershell
+git clone <your-repo-url> G:\Oxforf\ArbiGrow
+cd G:\Oxforf\ArbiGrow
+```
+
+---
+
+### 2. PostgreSQL Setup
+
+**Option A — Local install:**
+- During install, set password (e.g. `postgres`)
+- Open pgAdmin or psql and create the database:
+
+```sql
+CREATE DATABASE arbigrow;
+```
+
+**Option B — Neon (cloud, free):**
+- Sign up at https://neon.tech
+- Create a project → copy the connection string
+
+Connection string format:
+```
+postgresql+asyncpg://user:password@host/database
+```
+
+---
+
+### 3. Redis Setup (for Celery + caching)
+
+**Windows:** Download from https://github.com/microsoftarchive/redis/releases (MSI installer)
+- Installs as a Windows service, runs on `localhost:6379`
+- Or use WSL: `wsl sudo apt install redis-server`
+
+---
+
+### 4. Backend Setup
+
+```powershell
+cd G:\Oxforf\ArbiGrow\arbigrow-fastapi
+
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install Playwright browsers (for PDF invoice generation)
+playwright install chromium
+```
+
+**Create `.env` file** in `arbigrow-fastapi\`:
+```ini
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_PASSWORD@localhost:5432/arbigrow
+SECRET_KEY=generate-a-random-64-char-string-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REDIS_URL=redis://localhost:6379/0
+```
+
+Generate a secret key:
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+**Run migrations:**
+```powershell
+alembic upgrade head
+```
+
+**Seed the database** (creates admin + test users + packages):
+```powershell
+python seed.py
+```
+- Admin: `admin@oxfordfinancialads.com` / `Admin@123`
+- Test: `john@example.com` / `Test@123`
+
+**Seed ranks** (21-level matching bonus system):
+```powershell
+python -c "from app.seed_ranks import seed_ranks; import asyncio; asyncio.run(seed_ranks())"
+```
+
+**Start backend server:**
+```powershell
+python run.py
+```
+Runs at `http://localhost:8000`. API docs at `http://localhost:8000/docs`.
+
+---
+
+### 5. Frontend Setup
+
+**Open a new terminal:**
+
+```powershell
+cd G:\Oxforf\ArbiGrow\ArbiGrow
+
+# Install dependencies
+npm install
+```
+
+**Create `.env` file** in `ArbiGrow\`:
+```ini
+VITE_BACKEND_URL=http://localhost:8000
+```
+
+**Start dev server:**
+```powershell
+npm run dev
+```
+Runs at `http://localhost:5173`. Proxies `/api` to the backend automatically.
+
+---
+
+### 6. Optional: Celery Worker (for daily ROI tasks)
+
+```powershell
+# In the backend directory with venv active
+celery -A app.core.celery_app worker -l info -P solo
+```
+
+---
+
+### 7. Verify Everything Works
+
+| Component | URL | Test |
+|---|---|---|
+| Frontend | http://localhost:5173 | Homepage loads, no console errors |
+| Backend API | http://localhost:8000/docs | Swagger UI loads |
+| API Health | http://localhost:8000/api/v1/health | Returns `{"status":"ok"}` |
+| Platform Stats | http://localhost:5173 | Stats cards show seeded data |
+| Registration | Visit frontend → Register | Creates account in local DB |
+
+---
+
+### Troubleshooting
+
+| Issue | Fix |
+|---|---|
+| `pip install` fails (bcrypt/cryptography) | Install VS Build Tools, or use `pip install --prefer-binary` |
+| `Can't connect to PostgreSQL` | Ensure PostgreSQL service is running (`net start postgresql-x64-16`) |
+| `alembic upgrade head` fails | Check `DATABASE_URL` in `.env` — use correct password/database name |
+| `Redis connection refused` | Start Redis service or skip Celery (backend runs without it) |
+| `Cross-Origin Request Blocked` | Ensure `VITE_BACKEND_URL` points to `http://localhost:8000` |
+| Port 5173 in use | `npx vite --port 5174` |
+| Port 8000 in use | `python run.py` → edit port or kill the process |
+
+---
+
+### Quick Start (without Redis / Celery)
+
+If you want just the frontend + backend without Redis:
+
+1. Skip Redis installation
+2. Backend will start fine (Celery tasks will fail silently for scheduled jobs)
+3. All HTTP endpoints, auth, deposits, withdrawals, captcha, etc. work independently of Celery
+
+---
+
+### Docker Alternative
+
+If you prefer Docker Desktop (not local installs):
+
+```powershell
+# There is no docker-compose.yml in the repo — you'd need to create one.
+# The Dockerfiles exist for both frontend and backend in their respective directories.
+```
+
+The production deployment uses a separate `docker-compose.yml` on the server that is not in this repo. For local Docker setup, you'd need to create one uniting the two Dockerfiles with a PostgreSQL + Redis service.

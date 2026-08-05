@@ -47,7 +47,6 @@ async def get_deposit_invoice(
         tx_data={
             "network": deposit.network_name,
             "transaction_hash": deposit.txid,
-            "transaction_id": deposit.txid or "",
             "main_wallet_balance": float(current_user.main_wallet or 0),
             "wallet_name": "Deposit Wallet",
             "wallet_balance": float(current_user.deposit_wallet or 0),
@@ -82,7 +81,6 @@ async def get_withdrawal_invoice(
         tx_data={
             "network": withdrawal.network_name,
             "destination": withdrawal.destination_address,
-            "transaction_id": withdrawal.txid or "",
             "main_wallet_balance": float(current_user.main_wallet or 0),
             "wallet_name": "Deposit Wallet",
             "wallet_balance": float(current_user.deposit_wallet or 0),

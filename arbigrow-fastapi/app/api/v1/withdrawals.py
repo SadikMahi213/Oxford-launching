@@ -206,19 +206,32 @@ async def create_withdrawal_request(
 
 @router.get("/my")
 async def get_my_withdrawals(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    offset = (page - 1) * limit
+
+    total_result = await db.execute(
+        select(func.count(Withdrawal.id)).where(Withdrawal.user_id == current_user.id)
+    )
+    total = total_result.scalar() or 0
+
     result = await db.execute(
         select(Withdrawal)
         .where(Withdrawal.user_id == current_user.id)
         .order_by(Withdrawal.created_at.desc())
-        .limit(100)
+        .offset(offset)
+        .limit(limit)
     )
 
     withdrawals = result.scalars().all()
 
     return {
+        "page": page,
+        "limit": limit,
+        "total": total,
         "data": [_serialize_withdrawal(withdrawal) for withdrawal in withdrawals]
     }
 
@@ -307,6 +320,13 @@ async def update_withdrawal_status(
         user.withdraw_wallet = _to_wallet_precision(
             Decimal(str(user.withdraw_wallet or 0)) + amount
         )
+        source_balance = Decimal(str(getattr(user, withdrawal.source_wallet, "0") or 0))
+        if source_balance < amount:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient balance in {withdrawal.source_wallet}. Available: {source_balance}, Requested: {amount}",
+            )
+        setattr(user, withdrawal.source_wallet, _to_wallet_precision(source_balance - amount))
 
     withdrawal.status = data.status
     withdrawal.approved_by = admin.id
@@ -343,7 +363,6 @@ async def update_withdrawal_status(
                 tx_data={
                     "network": withdrawal.network_name,
                     "destination": withdrawal.destination_address,
-                    "transaction_id": str(withdrawal.id),
                     "previous_balance": max(0, float(user.withdraw_wallet) - float(withdrawal.amount)),
                     "current_balance": float(user.withdraw_wallet),
                     "main_wallet_balance": float(user.main_wallet or 0),

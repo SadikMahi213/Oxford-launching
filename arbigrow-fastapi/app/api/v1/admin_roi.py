@@ -125,6 +125,17 @@ async def apply_roi_to_all_active_investments(
     rates = await get_referral_level_rates(db)
 
     for investment in investments:
+        # Guard: paid packages snapshot with missing roi_percent (legacy
+        # registration rows) must not be falsely completed; keep them active
+        # so the dashboard can still detect the active package.
+        if (
+            investment.roi_percent <= 0
+            and investment.invested_amount > 0
+            and (investment.daily_payment or 0) > 0
+        ):
+            skipped += 1
+            continue
+
         remaining_percentage = investment.roi_percent - investment.profit_percentage_paid
         if remaining_percentage <= 0:
             if investment.status != "completed":
@@ -166,13 +177,10 @@ async def apply_roi_to_all_active_investments(
             )
         )
 
-        parent_ids = [
-            user.parent_lvl_1_id,
-            user.parent_lvl_2_id,
-            user.parent_lvl_3_id,
-            user.parent_lvl_4_id,
-            user.parent_lvl_5_id,
-        ]
+        parent_ids: list[int | None] = []
+        for lvl in range(1, len(rates) + 1):
+            ancestor_id = getattr(user, f"parent_lvl_{lvl}_id", None)
+            parent_ids.append(ancestor_id)
 
         parent_result = await db.execute(
             select(User)

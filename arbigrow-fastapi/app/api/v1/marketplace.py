@@ -1,6 +1,7 @@
 import json, math, re
 from datetime import datetime, timezone
 from decimal import Decimal
+from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, delete, desc, asc
@@ -36,6 +37,32 @@ from app.models.seller_delivery_zone import SellerDeliveryZone
 from app.models.vendor_withdraw import VendorWithdraw
 from app.models.product_view import ProductView
 from app.services.b2_service import upload_to_b2, generate_presigned_url
+
+
+def _b2_object_key_from_url(url: str) -> str | None:
+    """Extract the B2 object key from a presigned URL if it belongs to our bucket."""
+    try:
+        parsed = urlsplit(url)
+        path = parsed.path.lstrip("/")
+        bucket = (settings.B2_BUCKET_NAME or "").strip()
+        if bucket and path.startswith(bucket + "/"):
+            return path[len(bucket) + 1:]
+    except Exception:
+        return None
+    return None
+
+
+def _resolve_image_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http"):
+        # Stored value may be a stale presigned URL from our own bucket; regenerate a fresh one.
+        key = _b2_object_key_from_url(stored)
+        if key:
+            return generate_presigned_url(key)
+        return stored
+    return generate_presigned_url(stored)
+
 
 router = APIRouter(prefix="/marketplace", tags=["Marketplace"])
 
@@ -97,8 +124,8 @@ def _seller_to_dict(seller):
         "division_state": seller.division_state,
         "district_city": seller.district_city,
         "full_address": seller.full_address,
-        "store_logo_url": generate_presigned_url(seller.store_logo_key),
-        "store_banner_url": generate_presigned_url(seller.store_banner_key),
+        "store_logo_url": _resolve_image_url(seller.store_logo_key),
+        "store_banner_url": _resolve_image_url(seller.store_banner_key),
         "facebook_url": seller.facebook_url,
         "youtube_url": seller.youtube_url,
         "tiktok_url": seller.tiktok_url,
@@ -116,7 +143,7 @@ def _product_to_dict(product, include_variants=True):
         "name": product.name,
         "description": product.description,
         "price": float(product.price),
-        "image_urls": product.get_image_urls(),
+        "image_urls": _presign_product_images(product),
         "category": product.category,
         "is_active": product.is_active,
         "created_at": str(product.created_at),
@@ -130,7 +157,7 @@ def _product_to_dict(product, include_variants=True):
 
 def _presign_product_images(product):
     urls = product.get_image_urls()
-    return [generate_presigned_url(u) if u and not u.startswith("http") else u for u in urls]
+    return [_resolve_image_url(u) for u in urls if _resolve_image_url(u)]
 
 # ──────────────────────────────────────────────────────────────────
 #  CATEGORIES
@@ -149,7 +176,7 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
                 "slug": c.slug,
                 "description": c.description,
                 "icon": c.icon,
-                "image_url": generate_presigned_url(c.image_key),
+                "image_url": _resolve_image_url(c.image_key),
                 "sort_order": c.sort_order,
             }
             for c in cats
@@ -160,7 +187,7 @@ async def list_categories(db: AsyncSession = Depends(get_db)):
 async def admin_list_categories(db: AsyncSession = Depends(get_db), admin: User = Depends(get_current_admin_user)):
     r = await db.execute(select(Category).order_by(Category.sort_order))
     cats = r.scalars().all()
-    return {"categories": [{"id": c.id, "parent_id": c.parent_id, "name": c.name, "slug": c.slug, "description": c.description, "icon": c.icon, "image_url": generate_presigned_url(c.image_key), "sort_order": c.sort_order, "is_active": c.is_active} for c in cats]}
+    return {"categories": [{"id": c.id, "parent_id": c.parent_id, "name": c.name, "slug": c.slug, "description": c.description, "icon": c.icon, "image_url": _resolve_image_url(c.image_key), "sort_order": c.sort_order, "is_active": c.is_active} for c in cats]}
 
 @router.post("/admin/categories")
 async def create_category(data: dict = Body(...), db: AsyncSession = Depends(get_db), admin: User = Depends(get_current_admin_user)):
@@ -204,12 +231,12 @@ async def upload_category_image(file: UploadFile = File(...), db: AsyncSession =
 @router.get("/brands")
 async def list_brands(db: AsyncSession = Depends(get_db)):
     r = await db.execute(select(Brand).where(Brand.is_active == True).order_by(Brand.sort_order))
-    return {"brands": [{"id": b.id, "name": b.name, "slug": b.slug, "description": b.description, "logo_url": generate_presigned_url(b.logo_key), "website_url": b.website_url} for b in r.scalars().all()]}
+    return {"brands": [{"id": b.id, "name": b.name, "slug": b.slug, "description": b.description, "logo_url": _resolve_image_url(b.logo_key), "website_url": b.website_url} for b in r.scalars().all()]}
 
 @router.get("/admin/brands")
 async def admin_list_brands(db: AsyncSession = Depends(get_db), admin: User = Depends(get_current_admin_user)):
     r = await db.execute(select(Brand).order_by(Brand.sort_order))
-    return {"brands": [{"id": b.id, "name": b.name, "slug": b.slug, "description": b.description, "logo_url": generate_presigned_url(b.logo_key), "website_url": b.website_url, "is_active": b.is_active} for b in r.scalars().all()]}
+    return {"brands": [{"id": b.id, "name": b.name, "slug": b.slug, "description": b.description, "logo_url": _resolve_image_url(b.logo_key), "website_url": b.website_url, "is_active": b.is_active} for b in r.scalars().all()]}
 
 @router.post("/admin/brands")
 async def create_brand(data: dict = Body(...), db: AsyncSession = Depends(get_db), admin: User = Depends(get_current_admin_user)):
@@ -387,7 +414,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
 
     # Get variants
     vr = await db.execute(select(ProductVariant).where(ProductVariant.product_id == p.id, ProductVariant.is_active == True).order_by(ProductVariant.sort_order))
-    d["variants"] = [{"id": v.id, "name": v.name, "sku": v.sku, "price": float(v.price), "compare_at_price": float(v.compare_at_price) if v.compare_at_price else None, "stock": v.stock, "low_stock_threshold": v.low_stock_threshold, "weight": float(v.weight) if v.weight else None, "image_url": generate_presigned_url(v.image_key), "is_default": v.is_default} for v in vr.scalars().all()]
+    d["variants"] = [{"id": v.id, "name": v.name, "sku": v.sku, "price": float(v.price), "compare_at_price": float(v.compare_at_price) if v.compare_at_price else None, "stock": v.stock, "low_stock_threshold": v.low_stock_threshold, "weight": float(v.weight) if v.weight else None, "image_url": _resolve_image_url(v.image_key), "is_default": v.is_default} for v in vr.scalars().all()]
 
     # Tags
     tr = await db.execute(select(ProductTag).where(ProductTag.product_id == p.id))
@@ -413,7 +440,7 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_db)):
     # Seller info
     sr = await db.execute(select(Seller).where(Seller.id == p.seller_id))
     seller = sr.scalar_one_or_none()
-    d["seller"] = {"id": seller.id, "store_name": seller.store_name, "store_logo_url": generate_presigned_url(seller.store_logo_key), "whatsapp_number": seller.whatsapp_number} if seller else None
+    d["seller"] = {"id": seller.id, "store_name": seller.store_name, "store_logo_url": _resolve_image_url(seller.store_logo_key), "whatsapp_number": seller.whatsapp_number} if seller else None
 
     return {"product": d}
 
@@ -985,7 +1012,7 @@ async def get_active_deals(db: AsyncSession = Depends(get_db)):
                 products.append({"product_id": p.id, "name": p.name, "deal_price": float(dp.deal_price) if dp.deal_price else float(p.price), "original_price": float(p.price), "image_urls": _presign_product_images(p), "sold_count": dp.sold_count, "quantity_limit": dp.quantity_limit})
         result.append({
             "id": deal.id, "title": deal.title, "description": deal.description,
-            "banner_url": generate_presigned_url(deal.banner_key),
+            "banner_url": _resolve_image_url(deal.banner_key),
             "discount_type": deal.discount_type, "discount_value": float(deal.discount_value),
             "start_date": str(deal.start_date), "end_date": str(deal.end_date),
             "products": products,

@@ -201,6 +201,7 @@ async def seed_database(force: bool = False, user_count: int = DEFAULT_USERS):
 
             kyc = KYC(
                 user_id=user.id,
+                full_name=f"{user.first_name} {user.last_name}" if hasattr(user, 'first_name') and user.first_name else user.full_name or "Seed User",
                 country=kyc_countries[i % len(kyc_countries)],
                 phone_number=f"+1{_random(rng, 200_000_0000, 999_999_9999)}",
                 document_type=DocumentType.passport if i % 2 == 0 else DocumentType.nid,

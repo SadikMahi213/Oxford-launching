@@ -21,6 +21,7 @@ import {
 
 // ── Reviews Section (standalone with own state) ──────────────
 const ReviewsSection = ({ productId }) => {
+  const { t } = useTranslation()
   const [reviews, setReviews] = useState([])
   const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", comment: "" })
   useEffect(() => {
@@ -28,13 +29,13 @@ const ReviewsSection = ({ productId }) => {
   }, [productId])
 
   const submitReview = async () => {
-    try { await createReview(productId, reviewForm); setReviewForm({ rating: 5, title: "", comment: "" }); getProductReviews(productId, 1, 5).then((r) => setReviews(r.data.reviews || [])).catch(() => {}) } catch (e) { alert(e.response?.data?.detail || "Error") }
+    try { await createReview(productId, reviewForm); setReviewForm({ rating: 5, title: "", comment: "" }); getProductReviews(productId, 1, 5).then((r) => setReviews(r.data.reviews || [])).catch(() => {}) } catch (e) { alert(e.response?.data?.detail || t("marketplace.errGeneric")) }
   }
 
   return (
     <div className="border-t border-white/[0.06] pt-4 space-y-3">
-      <h3 className="text-sm font-semibold text-white">Reviews</h3>
-      {reviews.length === 0 && <p className="text-xs text-gray-500">No reviews yet</p>}
+      <h3 className="text-sm font-semibold text-white">{t("marketplace.reviews")}</h3>
+      {reviews.length === 0 && <p className="text-xs text-gray-500">{t("marketplace.noReviews")}</p>}
       {reviews.map((r) => (
         <div key={r.id} className="p-3 rounded-xl bg-white/[0.02] space-y-1">
           <div className="flex items-center gap-1">
@@ -45,7 +46,7 @@ const ReviewsSection = ({ productId }) => {
         </div>
       ))}
       <div className="space-y-2 pt-2">
-        <h4 className="text-xs text-gray-400 font-medium">Write a Review</h4>
+        <h4 className="text-xs text-gray-400 font-medium">{t("marketplace.writeReview")}</h4>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((s) => (
             <button key={s} onClick={() => setReviewForm({ ...reviewForm, rating: s })}>
@@ -53,9 +54,9 @@ const ReviewsSection = ({ productId }) => {
             </button>
           ))}
         </div>
-        <input value={reviewForm.title} onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })} placeholder="Title" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" />
-        <textarea value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} placeholder="Your review" rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 resize-none" />
-        <button onClick={submitReview} className="w-full py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-medium">Submit Review</button>
+        <input value={reviewForm.title} onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })} placeholder={t("marketplace.title")} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500" />
+        <textarea value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} placeholder={t("marketplace.yourReview")} rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 resize-none" />
+        <button onClick={submitReview} className="w-full py-2 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-medium">{t("marketplace.submitReview")}</button>
       </div>
     </div>
   )
@@ -92,7 +93,9 @@ const ProductCard = ({ product, openProduct, toggleWishlist, inWishlist }) => (
 )
 
 // ── Product Detail Modal ─────────────────────────────────────
-const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDetail, productDetail, detailLoading, qty, setQty, addItem, selectedImageIdx, setSelectedImageIdx }) => (
+const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDetail, productDetail, detailLoading, qty, setQty, addItem, selectedImageIdx, setSelectedImageIdx }) => {
+  const { t } = useTranslation()
+  return (
   <AnimatePresence>
     {selectedProduct && (
       <motion.div
@@ -136,7 +139,7 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {productDetail.image_urls.map((url, i) => (
                       <button key={i} onClick={() => setSelectedImageIdx(i)} className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === selectedImageIdx ? "border-cyan-400 opacity-100" : "border-transparent opacity-60 hover:opacity-80"}`}>
-                        <img src={url} alt={`Product image ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+                        <img src={url} alt={t("marketplace.productImage", { n: i + 1 })} loading="lazy" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -174,7 +177,7 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
               {/* Variants */}
               {productDetail.variants?.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-2">Variants</p>
+                  <p className="text-xs text-gray-500 mb-2">{t("marketplace.variants")}</p>
                   <div className="flex flex-wrap gap-2">
                     {productDetail.variants.map((v) => (
                       <button key={v.id} className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-gray-300 hover:border-cyan-500/40">
@@ -210,7 +213,7 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
                   onClick={() => { addItem(productDetail.id); setSelectedProduct(null) }}
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold hover:opacity-90 transition-all"
                 >
-                  Add to Cart
+                  {t("marketplace.addToCart")}
                 </button>
               </div>
 
@@ -218,16 +221,19 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
               <ReviewsSection productId={productDetail.id} />
             </div>
           ) : (
-            <div className="py-10 text-center text-gray-500 text-sm">Product not found</div>
+            <div className="py-10 text-center text-gray-500 text-sm">{t("marketplace.productNotFound")}</div>
           )}
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
-)
+  )
+}
 
 // ── Cart Drawer ─────────────────────────────────────────────
-const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckoutForm }) => (
+const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckoutForm }) => {
+  const { t } = useTranslation()
+  return (
   <AnimatePresence>
     {view === "cart" && (
       <motion.div
@@ -242,11 +248,11 @@ const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckou
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">Cart ({cart.itemCount})</h2>
+            <h2 className="text-sm font-semibold text-white">{t("marketplace.cart")} ({cart.itemCount})</h2>
             <button onClick={() => setView("shop")} className="p-1.5 rounded-lg bg-white/[0.04] text-gray-400"><X className="w-4 h-4" /></button>
           </div>
           <div className="p-4 space-y-3">
-            {cart.items.length === 0 && <p className="text-xs text-gray-500 text-center py-8">Your cart is empty</p>}
+            {cart.items.length === 0 && <p className="text-xs text-gray-500 text-center py-8">{t("marketplace.cartEmpty")}</p>}
             {cart.items.map((item) => (
               <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                 <div className="w-14 h-14 rounded-xl bg-white/[0.04] overflow-hidden flex-shrink-0">
@@ -268,11 +274,11 @@ const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckou
           {cart.items.length > 0 && (
             <div className="sticky bottom-0 p-4 border-t border-white/[0.06] bg-[#0a0b1e] space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Total</span>
+                <span className="text-gray-400">{t("marketplace.total")}</span>
                 <span className="text-white font-bold">${cart.total.toFixed(2)}</span>
               </div>
               <button onClick={() => setShowCheckoutForm(true)} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold">
-                Proceed to Checkout
+                {t("marketplace.proceedCheckout")}
               </button>
             </div>
           )}
@@ -280,10 +286,13 @@ const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckou
       </motion.div>
     )}
   </AnimatePresence>
-)
+  )
+}
 
 // ── Checkout Modal ───────────────────────────────────────────
-const CheckoutModal = ({ showCheckoutForm, setShowCheckoutForm, customer, setCustomer, couponCode, setCouponCode, applyCoupon, couponValid, couponDiscount, checkoutMsg, cart, placeOrder, processing, deliveryZones, selectedZoneId, setSelectedZoneId, deliveryCharge, deliveryLoading }) => (
+const CheckoutModal = ({ showCheckoutForm, setShowCheckoutForm, customer, setCustomer, couponCode, setCouponCode, applyCoupon, couponValid, couponDiscount, checkoutMsg, cart, placeOrder, processing, deliveryZones, selectedZoneId, setSelectedZoneId, deliveryCharge, deliveryLoading }) => {
+  const { t } = useTranslation()
+  return (
   <AnimatePresence>
     {showCheckoutForm && (
       <motion.div
@@ -296,80 +305,84 @@ const CheckoutModal = ({ showCheckoutForm, setShowCheckoutForm, customer, setCus
           className="w-full sm:max-w-md max-h-[85vh] overflow-y-auto bg-gradient-to-b from-[#0f1128] to-[#0a0b1e] rounded-t-2xl sm:rounded-2xl border border-white/[0.06] p-5"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-sm font-semibold text-white mb-4">Checkout</h2>
+          <h2 className="text-sm font-semibold text-white mb-4">{t("marketplace.checkout")}</h2>
           <div className="space-y-3">
-            <input value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} placeholder="Full Name" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
-            <input value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} placeholder="Email" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
-            <input value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} placeholder="Phone" className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
-            <textarea value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })} placeholder="Delivery Address" rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 resize-none" />
-            <textarea value={customer.shipping_address} onChange={(e) => setCustomer({ ...customer, shipping_address: e.target.value })} placeholder="Shipping Address (optional)" rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 resize-none" />
+            <input value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} placeholder={t("marketplace.fullName")} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
+            <input value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} placeholder={t("marketplace.email")} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
+            <input value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} placeholder={t("marketplace.phone")} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500" />
+            <textarea value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })} placeholder={t("marketplace.deliveryAddress")} rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 resize-none" />
+            <textarea value={customer.shipping_address} onChange={(e) => setCustomer({ ...customer, shipping_address: e.target.value })} placeholder={t("marketplace.shippingAddress")} rows={2} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-500 resize-none" />
 
             {/* Delivery Zone */}
             <div>
-              <label className="text-xs text-gray-400 mb-1 block">Delivery Zone</label>
+              <label className="text-xs text-gray-400 mb-1 block">{t("marketplace.deliveryZone")}</label>
               <select value={selectedZoneId || ""} onChange={(e) => setSelectedZoneId(e.target.value || null)} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/40">
-                <option value="">Select a zone (optional)</option>
+                <option value="">{t("marketplace.selectZone")}</option>
                 {deliveryZones.map((z) => (
                   <option key={z.id} value={z.id}>{z.zone_name}{z.country ? ` (${z.country})` : ""}</option>
                 ))}
               </select>
             </div>
 
-            {deliveryLoading && <p className="text-xs text-gray-500">Calculating delivery...</p>}
+            {deliveryLoading && <p className="text-xs text-gray-500">{t("marketplace.calculatingDelivery")}</p>}
             {deliveryCharge > 0 && !deliveryLoading && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Delivery Charge</span>
+                <span className="text-gray-400">{t("marketplace.deliveryCharge")}</span>
                 <span className="text-white">${deliveryCharge.toFixed(2)}</span>
               </div>
             )}
 
             {/* Coupon */}
             <div className="flex items-center gap-2">
-              <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Coupon Code" className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 uppercase" />
-              <button onClick={applyCoupon} className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">Apply</button>
+              <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder={t("marketplace.couponCode")} className="flex-1 bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 uppercase" />
+              <button onClick={applyCoupon} className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-medium">{t("marketplace.apply")}</button>
             </div>
-            {couponValid && <p className="text-xs text-green-400">Discount: -${couponDiscount.toFixed(2)}</p>}
+            {couponValid && <p className="text-xs text-green-400">{t("marketplace.discount")}: -${couponDiscount.toFixed(2)}</p>}
 
             <div className="flex items-center justify-between text-sm border-t border-white/[0.06] pt-3">
-              <span className="text-gray-400">Subtotal</span>
+              <span className="text-gray-400">{t("marketplace.subtotal")}</span>
               <span className="text-gray-300">${Math.max(0, cart.total - couponDiscount).toFixed(2)}</span>
             </div>
             {deliveryCharge > 0 && !deliveryLoading && (
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Delivery</span>
+                <span className="text-gray-400">{t("marketplace.delivery")}</span>
                 <span className="text-gray-300">${deliveryCharge.toFixed(2)}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-sm border-t border-white/[0.06] pt-2">
-              <span className="text-gray-400 font-semibold">Total</span>
+              <span className="text-gray-400 font-semibold">{t("marketplace.total")}</span>
               <span className="text-white font-bold">${Math.max(0, cart.total - couponDiscount + deliveryCharge).toFixed(2)}</span>
             </div>
 
             {checkoutMsg && <p className={`text-xs ${checkoutMsg.includes("success") ? "text-green-400" : "text-red-400"}`}>{checkoutMsg}</p>}
             <button onClick={placeOrder} disabled={processing} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-semibold disabled:opacity-50">
-              {processing ? "Processing..." : "Place Order"}
+              {processing ? t("marketplace.processing") : t("marketplace.placeOrder")}
             </button>
           </div>
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
-)
+  )
+}
 
 // ── Orders View ──────────────────────────────────────────────
 const OrdersView = ({ orders: _o }) => {
+  const { t } = useTranslation()
   const [panelKey, setPanelKey] = useState(0)
   // Import CustomerOrderPanel lazily via dynamic import
   const [Panel, setPanel] = useState(null)
   useEffect(() => {
     import("./CustomerOrderPanel.jsx").then(m => setPanel(() => m.default)).catch(() => {})
   }, [])
-  if (!Panel) return <div className="text-xs text-gray-500 text-center py-8">Loading orders...</div>
+  if (!Panel) return <div className="text-xs text-gray-500 text-center py-8">{t("marketplace.loadingOrders")}</div>
   return <Panel key={panelKey} onClose={() => {}} />
 }
 
 // ── Shop View ────────────────────────────────────────────────
-const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch, featured, products, totalPages, page, ProductCardComponent, openProduct, toggleWishlist, inWishlist, loading }) => (
+const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch, featured, products, totalPages, page, ProductCardComponent, openProduct, toggleWishlist, inWishlist, loading }) => {
+  const { t } = useTranslation()
+  return (
   <div className="space-y-4">
     {/* Search & Filters */}
     <form onSubmit={handleSearch} className="flex gap-2">
@@ -377,13 +390,13 @@ const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch,
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input
           value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search products..." className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/40"
+          placeholder={t("marketplace.searchProducts")} className="w-full bg-white/[0.04] border border-white/[0.06] rounded-xl pl-10 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/40"
         />
       </div>
       <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1) }} className="bg-white/[0.04] border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs text-gray-300 focus:outline-none focus:border-cyan-500/40">
-        <option value="newest">Newest</option>
-        <option value="price_asc">Price ↑</option>
-        <option value="price_desc">Price ↓</option>
+        <option value="newest">{t("marketplace.newest")}</option>
+        <option value="price_asc">{t("marketplace.priceAsc")}</option>
+        <option value="price_desc">{t("marketplace.priceDesc")}</option>
       </select>
     </form>
 
@@ -392,7 +405,7 @@ const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch,
       <section>
         <div className="flex items-center gap-2 mb-3">
           <Zap className="w-4 h-4 text-amber-400" />
-          <h2 className="text-sm font-semibold text-white">Featured</h2>
+          <h2 className="text-sm font-semibold text-white">{t("marketplace.featured")}</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {featured.slice(0, 4).map((p) => <ProductCardComponent key={p.id} product={p} openProduct={openProduct} toggleWishlist={toggleWishlist} inWishlist={inWishlist} />)}
@@ -402,13 +415,13 @@ const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch,
 
     {/* All Products */}
     <section>
-      <h2 className="text-sm font-semibold text-white mb-3">All Products</h2>
+      <h2 className="text-sm font-semibold text-white mb-3">{t("marketplace.allProducts")}</h2>
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : products.length === 0 ? (
-        <p className="text-gray-500 text-center py-8 text-sm">No products found</p>
+        <p className="text-gray-500 text-center py-8 text-sm">{t("marketplace.noProducts")}</p>
       ) : (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {products.map((p) => <ProductCardComponent key={p.id} product={p} openProduct={openProduct} toggleWishlist={toggleWishlist} inWishlist={inWishlist} />)}
@@ -416,14 +429,15 @@ const ShopView = ({ search, setSearch, sortBy, setSortBy, setPage, handleSearch,
       )}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-4">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-gray-300 disabled:opacity-30">Prev</button>
+          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-gray-300 disabled:opacity-30">{t("marketplace.prev")}</button>
           <span className="text-xs text-gray-500">{page}/{totalPages}</span>
-          <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-gray-300 disabled:opacity-30">Next</button>
+          <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-gray-300 disabled:opacity-30">{t("marketplace.next")}</button>
         </div>
       )}
     </section>
   </div>
-)
+  )
+}
 
 // ── Main Component ──────────────────────────────────────────
 export default function MarketplacePage() {
@@ -586,7 +600,7 @@ export default function MarketplacePage() {
       const r = await validateCoupon(couponCode, cart.total)
       setCouponDiscount(r.data.discount || 0)
       setCouponValid(true)
-    } catch (e) { setCouponDiscount(0); setCouponValid(false); alert(e.response?.data?.detail || "Invalid coupon") }
+    } catch (e) { setCouponDiscount(0); setCouponValid(false); alert(e.response?.data?.detail || t("marketplace.invalidCoupon")) }
   }
 
   const placeOrder = async () => {
@@ -601,12 +615,12 @@ export default function MarketplacePage() {
         coupon_code: couponValid ? couponCode : null,
         zone_id: selectedZoneId,
       })
-      setCheckoutMsg("Order placed successfully!")
+      setCheckoutMsg(t("marketplace.orderPlaced"))
       setShowCheckoutForm(false)
       setCart({ items: [], total: 0, itemCount: 0 })
       setCouponCode(""); setCouponDiscount(0); setCouponValid(false)
     } catch (e) {
-      setCheckoutMsg(e.response?.data?.detail || "Checkout failed")
+      setCheckoutMsg(e.response?.data?.detail || t("marketplace.checkoutFailed"))
     }
     setProcessing(false)
   }
@@ -631,7 +645,7 @@ export default function MarketplacePage() {
           {view !== "shop" && view !== "orders" && (
             <button onClick={() => setView("shop")} className="p-1.5 rounded-lg bg-white/[0.04] text-gray-400"><ArrowLeft className="w-4 h-4" /></button>
           )}
-          <h1 className="text-base font-bold text-white">Marketplace</h1>
+          <h1 className="text-base font-bold text-white">{t("marketplace.title")}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setView("orders")} className={`p-2 rounded-xl ${view === "orders" ? "bg-cyan-500/20 text-cyan-400" : "bg-white/[0.04] text-gray-400"}`}>

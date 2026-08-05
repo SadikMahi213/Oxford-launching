@@ -12,7 +12,7 @@ export default function Founders() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+    <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/4 w-[600px] h-[600px] bg-blue-500/3 rounded-full blur-3xl"></div>
         <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-500/3 rounded-full blur-3xl"></div>
@@ -39,7 +39,7 @@ export default function Founders() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-4 md:gap-8 max-w-5xl mx-auto mt-14">
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-12">
           {FOUNDER_DATA.map((founder, index) => (
             <motion.div
               key={index}
@@ -49,41 +49,41 @@ export default function Founders() {
               transition={{ duration: 0.6, delay: index * 0.15 }}
               className="group relative"
             >
-              <div className="relative rounded-3xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden hover:border-cyan-500/30 transition-all duration-500">
-                <div className="absolute -inset-[1px] bg-gradient-to-br from-blue-500/0 to-cyan-500/0 group-hover:from-blue-500/20 group-hover:to-cyan-500/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative rounded-2xl bg-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden hover:border-cyan-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-cyan-500/10">
+                {/* Subtle top glow on hover */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                <div className="relative">
-                  <div className="relative aspect-[4/5] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0e27] via-transparent to-transparent z-10"></div>
-
+                <div className="p-4 pb-0">
+                  <div className="relative aspect-square rounded-xl overflow-hidden bg-[#0A122C]">
                     <img
                       src={founder.image}
                       alt={t(founder.nameKey)}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
-
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 w-[90%]">
-                      <div className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold shadow-lg text-center leading-tight">
-                        {t(founder.titleKey)}
-                      </div>
-                    </div>
+                    {/* Subtle vignette at the bottom of the image */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A122C] via-transparent to-transparent opacity-60"></div>
                   </div>
+                </div>
 
-                  <div className="p-6 text-center">
-                    <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors duration-300">
-                      {t(founder.nameKey)}
-                    </h3>
+                <div className="p-6 text-center">
+                  <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors duration-300">
+                    {t(founder.nameKey)}
+                  </h3>
+                  
+                  {/* Clean title text instead of overlapping pill */}
+                  <p className="text-xs font-semibold text-cyan-400 uppercase tracking-widest mb-5">
+                    {t(founder.titleKey)}
+                  </p>
 
-                    <a
-                      href={founder.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 transition-all duration-300 mt-4 group/icon"
-                      aria-label={t("founder.ariaTwitter")}
-                    >
-                      <Twitter className="w-5 h-5 text-cyan-400 group-hover/icon:scale-110 transition-transform duration-300" />
-                    </a>
-                  </div>
+                  <a
+                    href={founder.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-cyan-500/20 hover:border-cyan-500/40 hover:text-cyan-400 transition-all duration-300 group/icon text-gray-400"
+                    aria-label={t("founder.ariaTwitter")}
+                  >
+                    <Twitter className="w-4 h-4 group-hover/icon:scale-110 transition-transform duration-300" />
+                  </a>
                 </div>
               </div>
             </motion.div>

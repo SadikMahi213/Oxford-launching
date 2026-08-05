@@ -91,7 +91,7 @@ export default function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled ? "py-3" : "py-5"
+          isScrolled ? "py-2" : "py-3"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
@@ -102,32 +102,32 @@ export default function Navbar() {
                 : "bg-gradient-to-r from-[#0a0e27]/40 via-[#0a0e27]/60 to-[#0a0e27]/40 backdrop-blur-md border border-white/5"
             }`}
           >
-            <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center justify-between px-4 py-3">
               {/* Logo */}
-              <a
+                <a
                 href="#home"
                 onClick={(e) => {
                   e.preventDefault();
                   navigate("/");
                   scrollToSection("#home");
                 }}
-                className="flex items-center gap-2 group relative z-10"
+                className="flex items-center gap-1.5 md:gap-2 group relative z-10 min-w-0"
               >
                 <img
                   src={logo}
                   alt={t("nav.logoAlt")}
-                  className="w-12 h-12 object-contain"
+                  className="w-8 h-8 md:w-12 md:h-12 object-contain flex-shrink-0"
                 />
                 <div>
                   <div
-                    className="text-lg xs:text-2xl font-bold cursor-pointer"
+                    className="text-sm md:text-lg font-bold cursor-pointer whitespace-nowrap"
                     onClick={() => navigate("/")}
                   >
                     <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
                       {t("nav.brandName")}
                     </span>
                   </div>
-                  <div className="text-[9px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-1 hidden xs:block">
+                  <div className="text-[9px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-1">
                     {t("nav.tagline")}
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export default function Navbar() {
                         {t("nav.brandName")}
                       </div>
                       <div className="text-[8px] text-cyan-400/80 uppercase tracking-wider">
-                        {t("nav.taglineMobile")}
+                        {t("nav.tagline")}
                       </div>
                     </div>
                   </div>

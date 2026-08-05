@@ -17,10 +17,19 @@ from app.models.package import TaskType
 from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
+from app.services.b2_service import generate_presigned_url
 
 router = APIRouter(prefix="/ads", tags=["Ads"])
 
 WALLET_PRECISION = Decimal("0.00000000000001")
+
+
+def _resolve_thumbnail_url(stored: str | None) -> str | None:
+    if not stored:
+        return None
+    if stored.startswith("http://") or stored.startswith("https://"):
+        return stored
+    return generate_presigned_url(stored, expires_in=604800)
 
 
 def _get_ad_investment(investments: list[Investment]) -> Investment | None:
@@ -93,7 +102,7 @@ async def start_ad(
             "ad_id": active_session.ad_id,
             "video_id": ad_info.video_id if ad_info else None,
             "title": ad_info.title if ad_info else None,
-            "thumbnail": ad_info.thumbnail if ad_info else None,
+            "thumbnail": _resolve_thumbnail_url(ad_info.thumbnail) if ad_info else None,
             "duration_seconds": package.ad_duration_seconds,
             "required_watch_seconds": ad_info.required_watch_seconds if ad_info else package.ad_duration_seconds,
             "started_at": active_session.started_at.isoformat(),
@@ -128,7 +137,7 @@ async def start_ad(
         "ad_id": selected_ad.id,
         "video_id": selected_ad.video_id,
         "title": selected_ad.title,
-        "thumbnail": selected_ad.thumbnail,
+        "thumbnail": _resolve_thumbnail_url(selected_ad.thumbnail),
         "duration_seconds": package.ad_duration_seconds,
         "required_watch_seconds": selected_ad.required_watch_seconds,
         "started_at": ad_view.started_at.isoformat(),

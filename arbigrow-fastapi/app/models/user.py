@@ -249,4 +249,11 @@ class User(Base):
         nullable=False
     )
 
+    kyc_hold: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=True,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
     kyc = relationship("KYC", back_populates="user", uselist=False)

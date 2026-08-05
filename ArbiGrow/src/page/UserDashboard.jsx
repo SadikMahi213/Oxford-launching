@@ -23,7 +23,7 @@ import {
   getTransferHistory, getMyInvestments, getMyMatchingBonuses,
   getMyCaptchaEarnings, getMyMiningHistory, getMyAdViewHistory,
   getMyInvoiceHistory, getVendorWithdraws, getEcommerceWalletTransactions,
-  refreshUserStore,
+  getMyWalletTransactions, refreshUserStore,
 } from "../api/user.api.js";
 
 const LazyReferralPage = React.lazy(() => import("../component/user/ReferralPage.jsx"));
@@ -280,7 +280,7 @@ export function UserDashboard() {
     if (v === "processing") return "Processing";
     return "Pending";
   };
-  const _normalizeTransactions = (deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs) => {
+  const _normalizeTransactions = (deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs) => {
     const rows = [];
     deps.forEach((d) =>
       rows.push({
@@ -494,7 +494,7 @@ export function UserDashboard() {
     invoices.forEach((inv) =>
       rows.push({
         id: `inv_${inv.id}`,
-        transactionId: _genTransactionId("INV", inv.id, inv.created_at, inv.invoice_number),
+        transactionId: inv.transaction_id || _genTransactionId("INV", inv.id, inv.created_at, inv.invoice_number),
         date: _fmtDate(inv.created_at),
         type: `Invoice (${inv.invoice_type})`,
         typeLabel: t("dashboard.type_invoice"),
@@ -542,6 +542,28 @@ export function UserDashboard() {
         _ts: new Date(tx.created_at).getTime(),
       }),
     );
+    wallet_txs.forEach((wtx) => {
+      const isRefund =
+        wtx.type === "kyc_fee_refund" || wtx.type === "kyc_fee_reset_refund";
+      if (!isRefund && wtx.type !== "kyc_fee_hold") return;
+      rows.push({
+        id: `kyt_${wtx.id}`,
+        transactionId: _genTransactionId("KYC", wtx.id, wtx.created_at, wtx.type),
+        date: _fmtDate(wtx.created_at),
+        type: isRefund ? "KYC Refund" : "KYC Fee",
+        typeLabel: isRefund
+          ? t("dashboard.type_kyc_refund")
+          : t("dashboard.type_kyc_fee"),
+        wallet: "Deposit Wallet",
+        walletLabel: t("dashboard.wallet_deposit"),
+        amount: _fmtAmount(wtx.amount),
+        amountDirection: isRefund ? "credit" : "debit",
+        currency: wtx.currency || "USDT",
+        status: "Completed",
+        statusLabel: t("dashboard.status_completed"),
+        _ts: new Date(wtx.created_at).getTime(),
+      });
+    });
     return rows.sort((a, b) => b._ts - a._ts);
   };
 
@@ -552,7 +574,7 @@ export function UserDashboard() {
     if (activePage !== "transactions" || transactionsLoaded) return;
     const load = async () => {
       setTransactionsLoading(true);
-      const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes] = await Promise.all([
+      const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes, wtxRes] = await Promise.all([
         _safeFetch(getMyDeposits, { data: [] }),
         _safeFetch(getMyWithdrawals, { data: [] }),
         _safeFetch(getMyEarningsHistory, { data: [] }),
@@ -566,6 +588,7 @@ export function UserDashboard() {
         _safeFetch(getMyInvoiceHistory, { data: { invoices: [] } }),
         _safeFetch(getVendorWithdraws, { data: { withdraws: [] } }),
         _safeFetch(getEcommerceWalletTransactions, { data: [] }),
+        _safeFetch(getMyWalletTransactions, { data: [] }),
       ]);
       const deps = depRes?.data?.data || [];
       const wdws = wdwRes?.data?.data || [];
@@ -580,7 +603,8 @@ export function UserDashboard() {
       const invoices = invoiceRes?.data?.invoices || [];
       const vendor_withdraws = vendorRes?.data?.withdraws || [];
       const ecom_txs = ecomRes?.data?.data || [];
-      setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs));
+      const wallet_txs = wtxRes?.data?.data || [];
+      setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs));
       setTransactionsLoaded(true);
       setTransactionsLoading(false);
     };
@@ -659,12 +683,14 @@ export function UserDashboard() {
       icon: GitBranch,
       description: t("userDashboard.sidebar.genBonuses_desc"),
     },
-    {
-      id: "matching-bonus",
-      label: t("userDashboard.sidebar.matchingBonus"),
-      icon: Trophy,
-      description: t("userDashboard.sidebar.matchingBonus_desc"),
-    },
+    ...(user?.kyc_status === "approved"
+      ? [{
+          id: "matching-bonus",
+          label: t("userDashboard.sidebar.matchingBonus"),
+          icon: Trophy,
+          description: t("userDashboard.sidebar.matchingBonus_desc"),
+        }]
+      : []),
     {
       id: "transfer",
       label: t("userDashboard.sidebar.walletTransfer"),

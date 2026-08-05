@@ -61,7 +61,7 @@ export function SecurityStandards() {
   ];
 
   return (
-    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+    <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-10 left-10 w-[600px] h-[600px] bg-blue-500/4 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-cyan-500/3 rounded-full blur-3xl"></div>
