@@ -739,7 +739,8 @@
     "convert": "Converter para USDT",
     "err_amount": "Insira uma quantidade válida de OFA",
     "err_balance": "Saldo OFA insuficiente",
-    "err_failed": "Falha na conversão"
+    "err_failed": "Falha na conversão",
+    "err_kyc": "A verificação KYC é obrigatória antes de converter tokens OFA. Conclua sua verificação KYC para desbloquear a conversão de tokens."
   },
   "notFound": {
     "code": "404",

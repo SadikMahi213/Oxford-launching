@@ -739,7 +739,8 @@
     "convert": "I-convert sa USDT",
     "err_amount": "Maglagay ng wastong OFA amount",
     "err_balance": "Hindi sapat ang OFA balance",
-    "err_failed": "Bigo ang conversion"
+    "err_failed": "Bigo ang conversion",
+    "err_kyc": "Kinakailangan ang pag-verify ng KYC bago i-convert ang OFA Tokens. Pakikompletuhin ang pag-verify ng KYC upang ma-unlock ang token conversion."
   },
   "notFound": {
     "code": "404",

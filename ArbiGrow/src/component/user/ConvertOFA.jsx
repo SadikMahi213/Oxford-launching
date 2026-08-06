@@ -18,6 +18,7 @@ export default function ConvertOFA() {
   const arbxBalance = Number(user?.arbx_wallet ?? 0);
   const mainBalance = Number(user?.main_wallet ?? 0);
   const usdtAmount = ofaAmount ? (parseFloat(ofaAmount) * (conversionRate || 0)) : 0;
+  const kycApproved = user?.kyc_status === "approved";
 
   useEffect(() => {
     let active = true;
@@ -35,6 +36,12 @@ export default function ConvertOFA() {
     e.preventDefault();
     setMessage("");
     setIsSuccess(false);
+
+    if (!kycApproved) {
+      setMessage(t('convertOFA.err_kyc'));
+      setIsSuccess(false);
+      return;
+    }
 
     if (!ofaAmount || parseFloat(ofaAmount) <= 0) {
       setMessage(t('convertOFA.err_amount'));
@@ -139,6 +146,12 @@ export default function ConvertOFA() {
             </div>
           )}
 
+          {!kycApproved && (
+            <p className="text-center text-sm text-red-400">
+              {t('convertOFA.err_kyc')}
+            </p>
+          )}
+
           {message && (
             <p className={`text-center text-sm ${isSuccess ? "text-green-400" : "text-red-400"}`}>
               {message}
@@ -147,7 +160,7 @@ export default function ConvertOFA() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !kycApproved}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {loading ? t('convertOFA.converting') : t('convertOFA.convert')}

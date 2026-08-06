@@ -739,7 +739,8 @@
     "convert": "Đổi Sang USDT",
     "err_amount": "Nhập số lượng OFA hợp lệ",
     "err_balance": "Số dư OFA không đủ",
-    "err_failed": "Chuyển đổi thất bại"
+    "err_failed": "Chuyển đổi thất bại",
+    "err_kyc": "Cần xác minh KYC trước khi đổi token OFA. Vui lòng hoàn tất xác minh KYC để mở khóa tính năng chuyển đổi token."
   },
   "notFound": {
     "code": "404",

@@ -739,7 +739,8 @@
     "convert": "Tukar ke USDT",
     "err_amount": "Masukkan jumlah OFA yang sah",
     "err_balance": "Baki OFA tidak mencukupi",
-    "err_failed": "Penukaran gagal"
+    "err_failed": "Penukaran gagal",
+    "err_kyc": "Pengesahan KYC diperlukan sebelum menukar token OFA. Sila lengkapkan pengesahan KYC untuk membuka kunci penukaran token."
   },
   "notFound": {
     "code": "404",

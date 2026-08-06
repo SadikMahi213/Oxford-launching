@@ -24,6 +24,7 @@ from app.api.v1.deps import get_current_user, check_earning_access
 from app.utils.is_system_active import is_system_active
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
+from app.utils.kyc_helper import check_kyc_approved
 
 from app.core.referral import get_referral_level_rates
 
@@ -858,6 +859,7 @@ async def convert_ofa_to_usdt(
     current_user: User = Depends(get_current_user),
 ):
     check_earning_access(current_user)
+    await check_kyc_approved(current_user, db)
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
     cfg = result.scalar_one_or_none()
     OFA_TO_USDT_RATE = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
