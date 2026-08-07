@@ -1,10 +1,10 @@
-"""Regression tests: Matching Bonus shares the 40-generation scope.
+"""Regression tests: Team Volume and Matching Bonus share the 10-generation scope.
 
 Business rule (production change):
-  * Team Volume for rank qualification uses 40 generations (UNCHANGED).
-  * Matching Bonus uses the SAME 40-generation descendant scope. The separate
-    10-generation cap was removed, so descendants in generations 11-40 DO drive
-    matching-bonus payouts, exactly like Team Volume.
+  * Team Volume = Own approved deposits + descendants up to 10 generations.
+  * Matching Bonus uses the SAME 10-generation descendant scope (single source
+    of truth: NETWORK_GENERATION_LIMIT = 10). Descendants in generations 11+
+    never drive Team Volume or matching-bonus payouts.
 
 Run with: python test_matching_bonus_10gen.py
 """
@@ -163,44 +163,45 @@ def _run_volume(mode, self_sum=Decimal("500"), desc_rows=None, team_sum=Decimal(
     return asyncio.run(run()), db
 
 
-def test_team_volume_still_capped_at_40_generations():
+def test_team_volume_capped_at_10_generations():
     _, db = _run_volume("team")
     cte_stmt, params = db.calls[1]
-    assert params["max_depth"] == 40, "Team Volume recursion must stay at 40 generations"
+    assert params["max_depth"] == 10, "Team Volume recursion must cap at 10 generations"
 
 
-def test_matching_bonus_volume_uses_40_generations():
+def test_matching_bonus_volume_capped_at_10_generations():
     _, db = _run_volume("matching")
     cte_stmt, params = db.calls[1]
-    assert params["max_depth"] == 40, "Matching Bonus volume must use the 40-generation scope"
+    assert params["max_depth"] == 10, "Matching Bonus volume must use the 10-generation scope"
 
 
 def test_matching_volume_includes_self_deposit():
     (personal, matching), _ = _run_volume("matching", self_sum=Decimal("500"),
                                           desc_rows=[(2,)], team_sum=Decimal("700"))
     assert personal == Decimal("500")
-    assert matching == Decimal("1200"), "Matching volume must include own deposit + full 40 gens"
+    assert matching == Decimal("1200"), "Matching volume must include own deposit + descendants (10 gens)"
 
 
-def test_default_team_volume_max_depth_is_40():
+def test_default_team_volume_max_depth_is_10():
     import inspect
     import app.services.rank_service as rs
     sig = inspect.signature(rs.get_team_volume)
-    assert sig.parameters["max_depth"].default == 40, (
-        "default team volume depth must remain 40 so existing callers are unchanged"
+    assert sig.parameters["max_depth"].default == 10, (
+        "default team volume depth must be NETWORK_GENERATION_LIMIT (10)"
     )
 
 
-def test_matching_depth_matches_team_volume():
+def test_network_generation_limit_is_single_source():
     import app.services.rank_service as rs
-    assert rs.MATCHING_BONUS_MAX_DEPTH == 40
-    assert rs.TEAM_VOLUME_MAX_DEPTH == 40
-    assert rs.MATCHING_BONUS_MAX_DEPTH == rs.TEAM_VOLUME_MAX_DEPTH, (
-        "Matching Bonus must share the same generation limit as Team Volume"
+    assert rs.NETWORK_GENERATION_LIMIT == 10
+    assert rs.MATCHING_BONUS_MAX_DEPTH == 10
+    assert rs.TEAM_VOLUME_MAX_DEPTH == 10
+    assert rs.MATCHING_BONUS_MAX_DEPTH == rs.TEAM_VOLUME_MAX_DEPTH == rs.NETWORK_GENERATION_LIMIT, (
+        "Matching Bonus and Team Volume must both derive from NETWORK_GENERATION_LIMIT"
     )
 
 
-# --- Rank qualification and bonus payout share the 40-gen scope ------------
+# --- Rank qualification and bonus payout share the 10-gen scope ------------
 
 
 def _eval(user, *, team_volume, matching_volume, ranks, configs, kyc_approved=True,
@@ -234,8 +235,8 @@ def _eval(user, *, team_volume, matching_volume, ranks, configs, kyc_approved=Tr
     return asyncio.run(run()), db, user
 
 
-def test_bonus_paid_across_full_40_gen_scope():
-    """40-gen volume reaches rank 4 and matching volume (same 40-gen scope)
+def test_bonus_paid_across_full_10_gen_scope():
+    """10-gen volume reaches rank 4 and matching volume (same 10-gen scope)
     also reaches rank 4: every rank <= 4 pays a bonus."""
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
@@ -251,10 +252,10 @@ def test_bonus_paid_across_full_40_gen_scope():
         ranks=ranks, configs=configs,
     )
     assert result["rank_upgraded"] is True
-    assert result["new_rank"] == 4, "rank qualification must stay 40-gen (reaches rank 4)"
+    assert result["new_rank"] == 4, "rank qualification uses the 10-gen volume (reaches rank 4)"
     paid = result["bonuses_paid"]
     assert {p["rank_id"] for p in paid} == {1, 2, 3, 4}, (
-        "bonus must be paid for all ranks in the shared 40-gen scope"
+        "bonus must be paid for all ranks in the shared 10-gen scope"
     )
 
 
@@ -274,7 +275,7 @@ def test_bonus_capped_by_matching_supported_rank():
         user, team_volume=Decimal("8000"), matching_volume=Decimal("2000"),
         ranks=ranks, configs=configs,
     )
-    assert result["new_rank"] == 4, "rank qualification must stay 40-gen (reaches rank 4)"
+    assert result["new_rank"] == 4, "rank qualification uses the 10-gen volume (reaches rank 4)"
     paid = result["bonuses_paid"]
     assert {p["rank_id"] for p in paid} == {1, 2}, (
         "bonus must be capped at the rank supported by the matching volume"
@@ -309,7 +310,7 @@ def test_no_bonus_when_matching_volume_supports_no_rank():
 
 
 def test_catchup_bonus_paid_when_current_rank_in_scope():
-    """Current rank (rank 3) achieved via the 40-gen scope and matching volume
+    """Current rank (rank 3) achieved via the 10-gen scope and matching volume
     supports it: the catch-up bonus for rank 3 IS paid."""
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
@@ -323,7 +324,7 @@ def test_catchup_bonus_paid_when_current_rank_in_scope():
         ranks=ranks, configs=configs,
     )
     assert [p["rank_id"] for p in result["bonuses_paid"]] == [3], (
-        "catch-up bonus must be paid for a rank within the shared 40-gen scope"
+        "catch-up bonus must be paid for a rank within the shared 10-gen scope"
     )
 
 
@@ -348,7 +349,7 @@ def test_catchup_bonus_paid_when_current_rank_within_scope():
 
 def test_skip_bonus_path_does_not_compute_matching_volume():
     """The KYC-approval snapshot path (skip_bonus=True) must not query the
-    matching volume at all and must still assign the 40-gen rank."""
+    matching volume at all and must still assign the 10-gen rank."""
     import app.services.rank_service as rs
     ranks = [_Rank(1, "Rank 1", "1000", sort_order=1)]
     configs = [_Config(60, 1, "matching", "10")]
@@ -386,4 +387,4 @@ if __name__ == "__main__":
             fn()
             passed.append(name)
             print(f"PASS {name}")
-    print(f"\nALL {len(passed)} MATCHING-BONUS-40GEN REGRESSION TESTS PASSED")
+    print(f"\nALL {len(passed)} MATCHING-BONUS-10GEN REGRESSION TESTS PASSED")

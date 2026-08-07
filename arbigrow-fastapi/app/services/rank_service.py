@@ -15,10 +15,14 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 REVERSAL_REASON = "Reversed: user not KYC-verified at time of rank/bonus assignment."
 
-# Team Volume and Matching Bonus share the same descendant scope (40 generations).
-TEAM_VOLUME_MAX_DEPTH = 40
-# Matching Bonus uses the same generation limit as Team Volume.
-MATCHING_BONUS_MAX_DEPTH = TEAM_VOLUME_MAX_DEPTH
+# Single source of truth: how many descendant generations count toward volume.
+# Team Volume and Matching Bonus MUST always use the same limit.
+NETWORK_GENERATION_LIMIT = 10
+
+# Aliases kept for readability at call sites; both derive from the single
+# source above so the two can never drift apart.
+TEAM_VOLUME_MAX_DEPTH = NETWORK_GENERATION_LIMIT
+MATCHING_BONUS_MAX_DEPTH = NETWORK_GENERATION_LIMIT
 
 
 async def get_team_volume(
@@ -26,15 +30,15 @@ async def get_team_volume(
     db: AsyncSession,
     *,
     cutover: datetime | None = None,
-    max_depth: int = TEAM_VOLUME_MAX_DEPTH,
+    max_depth: int = NETWORK_GENERATION_LIMIT,
 ) -> tuple[Decimal, Decimal]:
     """Calculate personal deposit and total team volume.
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
       - team_volume    = personal_volume + descendants' approved deposits
-        (up to ``max_depth`` generations; default 40 matches the documented
-        business formula for Team Volume / rank qualification)
+        (up to ``max_depth`` generations; default ``NETWORK_GENERATION_LIMIT``
+        (10) matches the documented business formula for Team Volume)
 
     When ``cutover`` (the user's ``kyc_approved_at``) is provided, only deposits
     created at or after the cutover count. Deposits made before KYC approval are
@@ -93,15 +97,14 @@ async def get_matching_bonus_volume(
     """Calculate the volume that counts toward Matching Bonus payouts.
 
     Identical to :func:`get_team_volume`; aggregates descendants up to
-    ``MATCHING_BONUS_MAX_DEPTH`` generations, which is the same value as
-    ``TEAM_VOLUME_MAX_DEPTH`` (40). Matching Bonus and Team Volume share the
-    same descendant scope.
+    ``NETWORK_GENERATION_LIMIT`` generations. Matching Bonus and Team Volume
+    share the same descendant scope (single source of truth).
     """
     return await get_team_volume(
         user_id,
         db,
         cutover=cutover,
-        max_depth=MATCHING_BONUS_MAX_DEPTH,
+        max_depth=NETWORK_GENERATION_LIMIT,
     )
 
 
@@ -371,15 +374,15 @@ async def evaluate_and_process_rank(
     if personal_volume <= 0 and not use_snapshot_volume:
         return result
 
-    # Step 2: Find highest qualified rank (40-generation Team Volume)
+    # Step 2: Find highest qualified rank (10-generation Team Volume)
     qualified_rank = await _get_highest_qualified_rank(team_volume, db)
     if not qualified_rank:
         return result
 
-    # Matching Bonus uses the same 40-generation descendant scope as Team Volume,
-    # so the matching volume (and the rank it supports) equals the team-volume
-    # rank. Compute the matching volume and the highest rank it supports;
-    # bonuses are capped at that rank.
+    # Matching Bonus uses the same 10-generation descendant scope as Team Volume
+    # (single NETWORK_GENERATION_LIMIT), so the matching volume (and the rank it
+    # supports) equals the team-volume rank. Compute the matching volume and the
+    # highest rank it supports; bonuses are capped at that rank.
     matching_rank_sort = 0
     matching_volume = Decimal("0")
     if not skip_bonus:
@@ -405,7 +408,7 @@ async def evaluate_and_process_rank(
         #      to a higher rank, so the normal bonus-distribution path is skipped.
         # Without this, the bonus for the KYC-assigned rank is never paid.
         # The bonus is only owed while the current rank is within the matching
-        # bonus scope (same 40-generation limit as Team Volume).
+        # bonus scope (same 10-generation limit as Team Volume).
         if (
             not skip_bonus
             and user.current_rank_id

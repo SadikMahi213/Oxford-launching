@@ -39,7 +39,7 @@ async def get_my_rank(
 ):
     """Return the current user's rank info and next rank target.
 
-    Team Volume (own deposit + up to 40 generations of descendants) ALWAYS
+    Team Volume (own deposit + up to 10 generations of descendants) ALWAYS
     accumulates and is reported regardless of KYC status. A user whose KYC is
     not approved still sees their accumulated volume but never a rank: no
     volume is eligible for rank assignment or matching bonuses until approval.
@@ -47,7 +47,7 @@ async def get_my_rank(
     from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
     from app.utils.kyc_helper import is_kyc_approved
 
-    # Lifetime Team Volume = own approved deposits + up to 40 generations of
+    # Lifetime Team Volume = own approved deposits + up to 10 generations of
     # descendants. It always accumulates and is the value the UI reports.
     personal_volume, team_volume = await get_team_volume(current_user.id, db)
 

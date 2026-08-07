@@ -55,7 +55,7 @@ class _Rank:
         self.updated_at = None
 
 
-# --- get_team_volume (scenarios 1, 2, and 40-generation cap) ----------------
+# --- get_team_volume (scenarios 1, 2, and 10-generation cap) ----------------
 
 
 class _VolDB:
@@ -101,10 +101,10 @@ def test_scenario2_own_plus_downline_is_team_volume():
     assert team == Decimal("1200"), "Team Volume = own deposit + descendants"
 
 
-def test_team_volume_recursion_capped_at_40_generations():
+def test_team_volume_recursion_capped_at_10_generations():
     _, db = _run_volume(self_sum=Decimal("500"), desc_rows=[(2,)], team_sum=Decimal("1"))
     cte_stmt, params = db.calls[1]  # second statement is the recursive CTE
-    assert params["max_depth"] == 40, "descendant recursion must cap at 40 generations"
+    assert params["max_depth"] == 10, "descendant recursion must cap at 10 generations"
     assert "999" not in str(params)
 
 
