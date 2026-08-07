@@ -15,10 +15,10 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 REVERSAL_REASON = "Reversed: user not KYC-verified at time of rank/bonus assignment."
 
-# Team Volume always aggregates descendants up to 40 generations.
+# Team Volume and Matching Bonus share the same descendant scope (40 generations).
 TEAM_VOLUME_MAX_DEPTH = 40
-# Matching Bonus only considers the first 10 generations.
-MATCHING_BONUS_MAX_DEPTH = 10
+# Matching Bonus uses the same generation limit as Team Volume.
+MATCHING_BONUS_MAX_DEPTH = TEAM_VOLUME_MAX_DEPTH
 
 
 async def get_team_volume(
@@ -92,10 +92,10 @@ async def get_matching_bonus_volume(
 ) -> tuple[Decimal, Decimal]:
     """Calculate the volume that counts toward Matching Bonus payouts.
 
-    Identical to :func:`get_team_volume` but only aggregates descendants up to
-    ``MATCHING_BONUS_MAX_DEPTH`` (10) generations. Team Volume for rank
-    qualification keeps the full 40-generation depth; this separate measure
-    ensures generations 11-40 never contribute to matching bonus amounts.
+    Identical to :func:`get_team_volume`; aggregates descendants up to
+    ``MATCHING_BONUS_MAX_DEPTH`` generations, which is the same value as
+    ``TEAM_VOLUME_MAX_DEPTH`` (40). Matching Bonus and Team Volume share the
+    same descendant scope.
     """
     return await get_team_volume(
         user_id,
@@ -376,10 +376,10 @@ async def evaluate_and_process_rank(
     if not qualified_rank:
         return result
 
-    # Matching Bonus only considers the first 10 generations. Team Volume for rank
-    # qualification keeps the full 40-generation depth, but bonus payouts must not
-    # be driven by descendants in generations 11-40. Compute a separate matching
-    # volume and the highest rank it supports; bonuses are capped at that rank.
+    # Matching Bonus uses the same 40-generation descendant scope as Team Volume,
+    # so the matching volume (and the rank it supports) equals the team-volume
+    # rank. Compute the matching volume and the highest rank it supports;
+    # bonuses are capped at that rank.
     matching_rank_sort = 0
     matching_volume = Decimal("0")
     if not skip_bonus:
@@ -405,7 +405,7 @@ async def evaluate_and_process_rank(
         #      to a higher rank, so the normal bonus-distribution path is skipped.
         # Without this, the bonus for the KYC-assigned rank is never paid.
         # The bonus is only owed while the current rank is within the matching
-        # bonus cap (first 10 generations).
+        # bonus scope (same 40-generation limit as Team Volume).
         if (
             not skip_bonus
             and user.current_rank_id
@@ -503,7 +503,7 @@ async def evaluate_and_process_rank(
             continue
 
         # Distribute bonuses for this rank (skip if skip_bonus=True, e.g. from KYC approval,
-        # or when the rank is beyond the matching bonus cap of the first 10 generations).
+        # or when the rank is beyond the matching bonus scope).
         if not skip_bonus and rank.sort_order <= matching_rank_sort:
             await _distribute_rank_bonuses(
                 user_id=user_id,

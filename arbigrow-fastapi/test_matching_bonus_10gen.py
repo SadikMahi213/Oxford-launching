@@ -1,9 +1,10 @@
-"""Regression tests: Matching Bonus is limited to the first 10 generations.
+"""Regression tests: Matching Bonus shares the 40-generation scope.
 
-Business rule (strict production change):
-  * Team Volume for rank qualification stays at 40 generations (UNCHANGED).
-  * Matching Bonus only considers the first 10 generations. Descendants in
-    generations 11-40 must never drive a matching-bonus payout.
+Business rule (production change):
+  * Team Volume for rank qualification uses 40 generations (UNCHANGED).
+  * Matching Bonus uses the SAME 40-generation descendant scope. The separate
+    10-generation cap was removed, so descendants in generations 11-40 DO drive
+    matching-bonus payouts, exactly like Team Volume.
 
 Run with: python test_matching_bonus_10gen.py
 """
@@ -150,12 +151,12 @@ class _VolDB:
         return None
 
 
-def _run_volume(depth, self_sum=Decimal("500"), desc_rows=None, team_sum=Decimal("1")):
+def _run_volume(mode, self_sum=Decimal("500"), desc_rows=None, team_sum=Decimal("1")):
     import app.services.rank_service as rs
     db = _VolDB(self_sum, desc_rows or [(2,)], team_sum)
 
     async def run():
-        if depth == 40:
+        if mode == "team":
             return await rs.get_team_volume(1, db)
         return await rs.get_matching_bonus_volume(1, db)
 
@@ -163,22 +164,22 @@ def _run_volume(depth, self_sum=Decimal("500"), desc_rows=None, team_sum=Decimal
 
 
 def test_team_volume_still_capped_at_40_generations():
-    _, db = _run_volume(40)
+    _, db = _run_volume("team")
     cte_stmt, params = db.calls[1]
     assert params["max_depth"] == 40, "Team Volume recursion must stay at 40 generations"
 
 
-def test_matching_bonus_volume_capped_at_10_generations():
-    _, db = _run_volume(10)
+def test_matching_bonus_volume_uses_40_generations():
+    _, db = _run_volume("matching")
     cte_stmt, params = db.calls[1]
-    assert params["max_depth"] == 10, "Matching Bonus volume must cap at 10 generations"
+    assert params["max_depth"] == 40, "Matching Bonus volume must use the 40-generation scope"
 
 
 def test_matching_volume_includes_self_deposit():
-    (personal, matching), _ = _run_volume(10, self_sum=Decimal("500"),
+    (personal, matching), _ = _run_volume("matching", self_sum=Decimal("500"),
                                           desc_rows=[(2,)], team_sum=Decimal("700"))
     assert personal == Decimal("500")
-    assert matching == Decimal("1200"), "Matching volume must include own deposit + first 10 gens"
+    assert matching == Decimal("1200"), "Matching volume must include own deposit + full 40 gens"
 
 
 def test_default_team_volume_max_depth_is_40():
@@ -190,13 +191,16 @@ def test_default_team_volume_max_depth_is_40():
     )
 
 
-def test_matching_depth_constant_is_10():
+def test_matching_depth_matches_team_volume():
     import app.services.rank_service as rs
-    assert rs.MATCHING_BONUS_MAX_DEPTH == 10
+    assert rs.MATCHING_BONUS_MAX_DEPTH == 40
     assert rs.TEAM_VOLUME_MAX_DEPTH == 40
+    assert rs.MATCHING_BONUS_MAX_DEPTH == rs.TEAM_VOLUME_MAX_DEPTH, (
+        "Matching Bonus must share the same generation limit as Team Volume"
+    )
 
 
-# --- Rank qualification stays 40-gen, bonus payout capped at 10-gen ---------
+# --- Rank qualification and bonus payout share the 40-gen scope ------------
 
 
 def _eval(user, *, team_volume, matching_volume, ranks, configs, kyc_approved=True,
@@ -230,9 +234,33 @@ def _eval(user, *, team_volume, matching_volume, ranks, configs, kyc_approved=Tr
     return asyncio.run(run()), db, user
 
 
-def test_bonus_paid_only_within_10_gen_rank_cap():
-    """40-gen volume reaches rank 4, but 10-gen volume only reaches rank 2:
-    rank qualification upgrades to rank 4, yet only ranks <= 2 pay a bonus."""
+def test_bonus_paid_across_full_40_gen_scope():
+    """40-gen volume reaches rank 4 and matching volume (same 40-gen scope)
+    also reaches rank 4: every rank <= 4 pays a bonus."""
+    ranks = [
+        _Rank(1, "Rank 1", "1000", sort_order=1),
+        _Rank(2, "Rank 2", "2000", sort_order=2),
+        _Rank(3, "Rank 3", "4000", sort_order=3),
+        _Rank(4, "Rank 4", "8000", sort_order=4),
+    ]
+    configs = [_Config(10, 1, "matching", "10"), _Config(11, 2, "matching", "10"),
+               _Config(12, 3, "matching", "10"), _Config(13, 4, "matching", "10")]
+    user = _User(1)
+    result, db, user = _eval(
+        user, team_volume=Decimal("8000"), matching_volume=Decimal("8000"),
+        ranks=ranks, configs=configs,
+    )
+    assert result["rank_upgraded"] is True
+    assert result["new_rank"] == 4, "rank qualification must stay 40-gen (reaches rank 4)"
+    paid = result["bonuses_paid"]
+    assert {p["rank_id"] for p in paid} == {1, 2, 3, 4}, (
+        "bonus must be paid for all ranks in the shared 40-gen scope"
+    )
+
+
+def test_bonus_capped_by_matching_supported_rank():
+    """Mechanism guard: if matching volume were lower than team volume, bonus
+    payout is still capped at the highest rank the matching volume supports."""
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
@@ -246,15 +274,14 @@ def test_bonus_paid_only_within_10_gen_rank_cap():
         user, team_volume=Decimal("8000"), matching_volume=Decimal("2000"),
         ranks=ranks, configs=configs,
     )
-    assert result["rank_upgraded"] is True
     assert result["new_rank"] == 4, "rank qualification must stay 40-gen (reaches rank 4)"
     paid = result["bonuses_paid"]
     assert {p["rank_id"] for p in paid} == {1, 2}, (
-        "bonus must be capped at the 10-gen rank (rank 2), not the 40-gen rank (rank 4)"
+        "bonus must be capped at the rank supported by the matching volume"
     )
 
 
-def test_bonus_paid_full_when_10_gen_supports_all_ranks():
+def test_bonus_paid_full_when_matching_supports_all_ranks():
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
@@ -281,9 +308,9 @@ def test_no_bonus_when_matching_volume_supports_no_rank():
     )
 
 
-def test_catchup_bonus_uses_matching_volume_and_respects_cap():
-    """Current rank (rank 3) achieved via 40-gen, but only rank 2 is within the
-    10-gen cap: the catch-up bonus for rank 3 must NOT be paid."""
+def test_catchup_bonus_paid_when_current_rank_in_scope():
+    """Current rank (rank 3) achieved via the 40-gen scope and matching volume
+    supports it: the catch-up bonus for rank 3 IS paid."""
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
@@ -292,15 +319,15 @@ def test_catchup_bonus_uses_matching_volume_and_respects_cap():
     configs = [_Config(40, 3, "matching", "10")]
     user = _User(1, rank_id=3)
     result, _, _ = _eval(
-        user, team_volume=Decimal("4000"), matching_volume=Decimal("2000"),
+        user, team_volume=Decimal("5000"), matching_volume=Decimal("5000"),
         ranks=ranks, configs=configs,
     )
-    assert result["bonuses_paid"] == [], (
-        "catch-up bonus for a rank beyond the 10-gen cap must not be paid"
+    assert [p["rank_id"] for p in result["bonuses_paid"]] == [3], (
+        "catch-up bonus must be paid for a rank within the shared 40-gen scope"
     )
 
 
-def test_catchup_bonus_paid_when_current_rank_within_cap():
+def test_catchup_bonus_paid_when_current_rank_within_scope():
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
@@ -312,7 +339,7 @@ def test_catchup_bonus_paid_when_current_rank_within_cap():
         ranks=ranks, configs=configs,
     )
     assert [p["rank_id"] for p in result["bonuses_paid"]] == [2], (
-        "catch-up bonus must pay when the current rank is within the 10-gen cap"
+        "catch-up bonus must pay when the current rank is within the matching scope"
     )
     assert result["bonuses_paid"][0]["eligible_amount"] == "1000", (
         "catch-up eligible must be matching_volume - target (3000 - 2000)"
@@ -359,4 +386,4 @@ if __name__ == "__main__":
             fn()
             passed.append(name)
             print(f"PASS {name}")
-    print(f"\nALL {len(passed)} MATCHING-BONUS-10GEN REGRESSION TESTS PASSED")
+    print(f"\nALL {len(passed)} MATCHING-BONUS-40GEN REGRESSION TESTS PASSED")

@@ -246,7 +246,7 @@ def test_post_kyc_deposit_triggers_bonuses_and_rank_upgrade():
     user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
     # Post-approval deposit drives team volume from the cutover. The volume is
     # handed to the rank qualification check TWICE now: once for the 40-gen Team
-    # Volume (rank upgrade) and once for the 10-gen matching volume (bonus cap).
+    # Volume (rank upgrade) and once for the matching volume (same 40-gen scope).
     result, db, gtv, seen = _run_eval(
         user, kyc_approved=True, personal=Decimal("500"), team=Decimal("50000"),
         qualified_rank=RANKS[3],
