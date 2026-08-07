@@ -420,7 +420,7 @@
       "fromUser": "उपयोगकर्ता",
       "level": "स्तर",
       "status": "स्थिति",
-      "received": "प्राप्त"
+      "received": "प्राप्त", "type": "प्रकार", "details": "विवरण", "typeDeposit": "डिपॉजिट", "typeKycRefund": "KYC रिफंड"
     },
     "historyTypes": {
       "deposit": "जमा इतिहास",
@@ -1786,7 +1786,7 @@
     "nextTarget": "अगला लक्ष्य",
     "noBonuses": "अभी कोई मैचिंग बोनस नहीं",
     "noRankHistory": "अभी कोई रैंक इतिहास नहीं",
-    "ownDepositDesc": "आपकी जमा वॉलेट शेष राशि",
+    "ownDepositDesc": "कुल स्वीकृत डिपॉजिट (कभी कम नहीं होता)",
     "page": "पृष्ठ {{page}} / {{totalPages}}",
     "progressTo": "प्रगति",
     "rank": "रैंक",
@@ -1809,7 +1809,7 @@
     "unknown": "अज्ञात",
     "unranked": "बिना रैंक",
     "volumeRequired": "आवश्यक वॉल्यूम",
-    "yourDeposit": "जमा वॉलेट"
+    "yourDeposit": "व्यक्तिगत वॉल्यूम"
   },
   "ourInvestors": {
     "subtitle": "अग्रणी उद्यम पूंजी फर्मों और रणनीतिक भागीदारों द्वारा समर्थित",
@@ -2331,7 +2331,7 @@
     "from": "से: {{name}}",
     "loading": "लोड हो रहा है...",
     "noTransfers": "अभी कोई स्थानांतरण नहीं",
-    "received": "प्राप्त ({{count}})",
+    "received": "प्राप्त ({{count}})", "type": "प्रकार", "details": "विवरण", "typeDeposit": "डिपॉजिट", "typeKycRefund": "KYC रिफंड",
     "sent": "भेजे ({{count}})",
     "subtitle": "अपने भेजे और प्राप्त स्थानांतरण देखें",
     "title": "स्थानांतरण इतिहास",

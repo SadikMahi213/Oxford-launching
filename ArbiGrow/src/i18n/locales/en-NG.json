@@ -420,7 +420,7 @@
       "fromUser": "From User",
       "level": "Level",
       "status": "Status",
-      "received": "don receive"
+      "received": "don receive", "type": "Type", "details": "Details", "typeDeposit": "Deposit", "typeKycRefund": "KYC Refund"
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -1704,7 +1704,7 @@
     "nextTarget": "Next Target",
     "noBonuses": "No matching bonuses yet",
     "noRankHistory": "No rank history yet",
-    "ownDepositDesc": "Your deposit wallet balance",
+    "ownDepositDesc": "Total approved deposits (never decreases)",
     "page": "Page {{page}} of {{totalPages}}",
     "progressTo": "Progress to",
     "rank": "Rank",
@@ -1727,7 +1727,7 @@
     "unknown": "Unknown",
     "unranked": "Unranked",
     "volumeRequired": "Volume Required",
-    "yourDeposit": "Deposit Wallet"
+    "yourDeposit": "Personal Volume"
   },
   "ourInvestors": {
     "subtitle": "Backed by leading venture capital firms and strategic partners",
@@ -2249,7 +2249,7 @@
     "from": "From: {{name}}",
     "loading": "Loading...",
     "noTransfers": "No transfers yet",
-    "received": "Received ({{count}})",
+    "received": "Received ({{count}})", "type": "Type", "details": "Details", "typeDeposit": "Deposit", "typeKycRefund": "KYC Refund",
     "sent": "Sent ({{count}})",
     "subtitle": "View your sent and received transfers",
     "title": "Transfer History",

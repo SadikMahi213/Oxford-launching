@@ -420,7 +420,7 @@
       "fromUser": "Dari Pengguna",
       "level": "Level",
       "status": "Status",
-      "received": "diterima"
+      "received": "diterima", "type": "Tipe", "details": "Detail", "typeDeposit": "Deposit", "typeKycRefund": "Pengembalian KYC"
     },
     "historyTypes": {
       "deposit": "Riwayat Deposit",
@@ -1786,7 +1786,7 @@
     "nextTarget": "Target Berikutnya",
     "noBonuses": "Belum ada bonus pencocokan",
     "noRankHistory": "Belum ada riwayat peringkat",
-    "ownDepositDesc": "Saldo dompet deposit Anda",
+    "ownDepositDesc": "Total deposit disetujui (tidak pernah berkurang)",
     "page": "Halaman {{page}} dari {{totalPages}}",
     "progressTo": "Progres ke",
     "rank": "Peringkat",
@@ -1809,7 +1809,7 @@
     "unknown": "Tidak Diketahui",
     "unranked": "Tanpa Peringkat",
     "volumeRequired": "Volume Diperlukan",
-    "yourDeposit": "Dompet Deposit"
+    "yourDeposit": "Volume Pribadi"
   },
   "ourInvestors": {
     "subtitle": "Didukung oleh perusahaan modal ventura terkemuka dan mitra strategis",
@@ -2331,7 +2331,7 @@
     "from": "Dari: {{name}}",
     "loading": "Memuat...",
     "noTransfers": "Belum ada transfer",
-    "received": "Diterima ({{count}})",
+    "received": "Diterima ({{count}})", "type": "Tipe", "details": "Detail", "typeDeposit": "Deposit", "typeKycRefund": "Pengembalian KYC",
     "sent": "Dikirim ({{count}})",
     "subtitle": "Lihat transfer yang Anda kirim dan terima",
     "title": "Riwayat Transfer",

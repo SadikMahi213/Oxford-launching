@@ -75,6 +75,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
   const nextRank = rankInfo?.next_rank;
   const currentRank = rankInfo?.current_rank;
+  const personalVolume = parseFloat(rankInfo?.personal_volume || 0);
   const teamVolume = parseFloat(rankInfo?.team_volume || 0);
   const totalMatchingBonus = parseFloat(rankInfo?.total_matching_bonus_earned || 0);
   const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
@@ -171,7 +172,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {t("matchingBonusInfo.yourDeposit")}
                 </div>
                 <div className="text-xl font-bold text-emerald-400">
-                  {Number(user?.deposit_wallet ?? 0).toFixed(2)} USDT
+                  {personalVolume.toFixed(2)} USDT
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {t("matchingBonusInfo.ownDepositDesc")}

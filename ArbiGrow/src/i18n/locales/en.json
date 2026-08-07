@@ -406,7 +406,7 @@
       "fromUser": "From User",
       "level": "Level",
       "status": "Status",
-      "received": "received"
+      "received": "received", "type": "Type", "details": "Details", "typeDeposit": "Deposit", "typeKycRefund": "KYC Refund"
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -1540,8 +1540,8 @@
     "unranked": "Unranked",
     "rate": "Rate",
     "startBuilding": "Start building your team",
-    "yourDeposit": "Deposit Wallet",
-    "ownDepositDesc": "Your deposit wallet balance",
+    "yourDeposit": "Personal Volume",
+    "ownDepositDesc": "Total approved deposits (never decreases)",
     "teamVolume": "Team Volume",
     "networkTotal": "Total deposits in your network",
     "toNextRank": "{{amount}} USDT to next rank",
@@ -1619,7 +1619,7 @@
     "loading": "Loading...",
     "noTransfers": "No transfers yet",
     "sent": "Sent ({{count}})",
-    "received": "Received ({{count}})",
+    "received": "Received ({{count}})", "type": "Type", "details": "Details", "typeDeposit": "Deposit", "typeKycRefund": "KYC Refund",
     "all": "All",
     "to": "To: {{name}}",
     "from": "From: {{name}}",

@@ -420,7 +420,7 @@
       "fromUser": "Daripada Pengguna",
       "level": "Tahap",
       "status": "Status",
-      "received": "diterima"
+      "received": "diterima", "type": "Jenis", "details": "Butiran", "typeDeposit": "Deposit", "typeKycRefund": "Bayaran Balik KYC"
     },
     "historyTypes": {
       "deposit": "Sejarah Deposit",
@@ -1786,7 +1786,7 @@
     "nextTarget": "Sasaran Seterusnya",
     "noBonuses": "Belum ada bonus padanan",
     "noRankHistory": "Belum ada sejarah pangkat",
-    "ownDepositDesc": "Baki dompet deposit anda",
+    "ownDepositDesc": "Jumlah deposit diluluskan (tidak pernah berkurang)",
     "page": "Halaman {{page}} daripada {{totalPages}}",
     "progressTo": "Progres ke",
     "rank": "Pangkat",
@@ -1809,7 +1809,7 @@
     "unknown": "Tidak Diketahui",
     "unranked": "Tiada Pangkat",
     "volumeRequired": "Volume Diperlukan",
-    "yourDeposit": "Dompet Deposit"
+    "yourDeposit": "Jumlah Peribadi"
   },
   "ourInvestors": {
     "subtitle": "Disokong oleh firma modal teroka terkemuka dan rakan strategik",
@@ -2331,7 +2331,7 @@
     "from": "Dari: {{name}}",
     "loading": "Memuatkan...",
     "noTransfers": "Belum ada pemindahan",
-    "received": "Diterima ({{count}})",
+    "received": "Diterima ({{count}})", "type": "Jenis", "details": "Butiran", "typeDeposit": "Deposit", "typeKycRefund": "Bayaran Balik KYC",
     "sent": "Dihantar ({{count}})",
     "subtitle": "Lihat pemindahan yang anda hantar dan terima",
     "title": "Sejarah Pemindahan",

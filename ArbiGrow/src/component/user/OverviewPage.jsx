@@ -15,7 +15,7 @@ import {
   getMyDeposits, getMyWithdrawals, refreshUserStore,
   startMining, claimMining, getMiningStatus,
   getMyEarningsHistory, getMatchingWallet, getMyMatchingBonuses,
-  getNetworkAnalytics, getReferralNetwork,
+  getNetworkAnalytics, getReferralNetwork, getMyWalletTransactions,
 } from "../../api/user.api.js";
 import { MarketsCrawl } from "./overview/MarketsCrawl.jsx";
 import { QuickShortcuts } from "./overview/QuickShortcuts.jsx";
@@ -31,6 +31,7 @@ const OverviewPage = ({ setActivePage }) => {
   const { user, setUser, logout } = useUserStore();
 
   const [depositHistory, setDepositHistory] = useState([]);
+  const [walletTxs, setWalletTxs] = useState([]);
   const [withdrawalHistory, setWithdrawalHistory] = useState([]);
   const [earningsHistory, setEarningsHistory] = useState([]);
   const [matchingBonusHistory, setMatchingBonusHistory] = useState([]);
@@ -74,7 +75,7 @@ const OverviewPage = ({ setActivePage }) => {
     const loadData = async () => {
       try {
         await syncUserFromServer();
-        const [depositRes, withdrawalRes, earningsRes, matchingWalletRes, networkRes, referralRes] =
+        const [depositRes, withdrawalRes, earningsRes, matchingWalletRes, networkRes, referralRes, walletTxRes] =
           await Promise.allSettled([
             getMyDeposits({ page: 1, limit: 200 }),
             getMyWithdrawals({ page: 1, limit: 200 }),
@@ -82,11 +83,16 @@ const OverviewPage = ({ setActivePage }) => {
             getMatchingWallet(),
             getNetworkAnalytics(),
             getReferralNetwork(),
+            getMyWalletTransactions(),
           ]);
 
         if (depositRes.status === "fulfilled") {
           const data = Array.isArray(depositRes.value?.data?.data) ? depositRes.value.data.data : [];
           setDepositHistory(data);
+        }
+        if (walletTxRes.status === "fulfilled") {
+          const data = Array.isArray(walletTxRes.value?.data?.data) ? walletTxRes.value.data.data : [];
+          setWalletTxs(data);
         }
         if (withdrawalRes.status === "fulfilled") {
           const data = Array.isArray(withdrawalRes.value?.data?.data) ? withdrawalRes.value.data.data : [];
@@ -287,11 +293,25 @@ const OverviewPage = ({ setActivePage }) => {
     } catch (e) {}
   };
 
+  const kycRefundItems = (walletTxs || [])
+    .filter((wtx) => wtx.type === "kyc_fee_refund" || wtx.type === "kyc_fee_reset_refund")
+    .map((wtx) => ({
+      id: `wtx_${wtx.id}`,
+      created_at: wtx.created_at,
+      amount: parseFloat(wtx.amount || 0),
+      status: "Completed",
+      _isKycRefund: true,
+      description: wtx.description || "KYC Refund",
+    }));
+
   const historyItems =
-    walletHistoryModal === "deposit" ? depositHistory
-    : walletHistoryModal === "withdrawal" ? withdrawalHistory
-    : walletHistoryModal === "matching" ? matchingBonusHistory
-    : earningsHistory.filter((e) => e.wallet_type === walletHistoryModal);
+    walletHistoryModal === "deposit"
+      ? [...depositHistory, ...kycRefundItems].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        )
+      : walletHistoryModal === "withdrawal" ? withdrawalHistory
+      : walletHistoryModal === "matching" ? matchingBonusHistory
+      : earningsHistory.filter((e) => e.wallet_type === walletHistoryModal);
 
   const handleWalletCardClick = (wallet) => {
     if (wallet.historyType === "deposit") setWalletHistoryModal("deposit");
@@ -433,9 +453,10 @@ const OverviewPage = ({ setActivePage }) => {
                       <thead>
                         <tr className="border-b border-white/10">
                           <th className="p-4 text-left text-sm text-gray-400">{t("overview.history.date")}</th>
+                          {walletHistoryModal === "deposit" && <th className="p-4 text-left text-sm text-gray-400">{t("overview.history.type")}</th>}
                           <th className="p-4 text-left text-sm text-gray-400">{t("overview.history.amount")}</th>
                           {walletHistoryModal === "deposit" ? (
-                            <><th className="p-4 text-left text-sm text-gray-400">{t("overview.history.network")}</th><th className="p-4 text-left text-sm text-gray-400">{t("overview.history.txid")}</th></>
+                            <><th className="p-4 text-left text-sm text-gray-400">{t("overview.history.details")}</th></>
                           ) : walletHistoryModal === "withdrawal" ? (
                             <><th className="p-4 text-left text-sm text-gray-400">{t("overview.history.sourceWallet")}</th><th className="p-4 text-left text-sm text-gray-400">{t("overview.history.destination")}</th></>
                           ) : walletHistoryModal === "matching" ? (
@@ -453,11 +474,16 @@ const OverviewPage = ({ setActivePage }) => {
                         {historyItems.map((item) => (
                           <tr key={item.id} className="border-b border-white/5 hover:bg-white/5">
                             <td className="p-4 text-gray-400">{formatDate(item.created_at)}</td>
+                            {walletHistoryModal === "deposit" && (
+                              <td className="p-4 text-gray-400">
+                                {item._isKycRefund ? t("overview.history.typeKycRefund") : t("overview.history.typeDeposit")}
+                              </td>
+                            )}
                             <td className="p-4 font-semibold text-white">
                               {walletHistoryModal === "matching" ? `+${parseFloat(item.bonus_amount || 0).toFixed(2)} USDT` : `${formatAmount(item.amount)} USDT`}
                             </td>
                             {walletHistoryModal === "deposit" ? (
-                              <><td className="p-4 text-gray-400">{item.network_name || "-"}</td><td className="p-4 text-gray-400 font-mono text-xs">{item.txid || "-"}</td></>
+                              <td className="p-4 text-gray-400">{item._isKycRefund ? item.description : `${item.network_name || "-"} • ${item.txid || "-"}`}</td>
                             ) : walletHistoryModal === "withdrawal" ? (
                               <><td className="p-4 text-gray-400">{walletLabelMap[item.source_wallet] || item.source_wallet || "-"}</td><td className="p-4 text-gray-400 font-mono text-xs break-all">{item.destination_address || "-"}</td></>
                             ) : walletHistoryModal === "matching" ? (

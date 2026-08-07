@@ -420,7 +420,7 @@
       "fromUser": "Từ Người Dùng",
       "level": "Cấp",
       "status": "Trạng Thái",
-      "received": "đã nhận"
+      "received": "đã nhận", "type": "Loại", "details": "Chi tiết", "typeDeposit": "Nạp tiền", "typeKycRefund": "Hoàn phí KYC"
     },
     "historyTypes": {
       "deposit": "Lịch Sử Nạp Tiền",
@@ -1786,7 +1786,7 @@
     "nextTarget": "Mục Tiêu Tiếp Theo",
     "noBonuses": "Chưa có thưởng khớp",
     "noRankHistory": "Chưa có lịch sử cấp bậc",
-    "ownDepositDesc": "Số dư ví nạp tiền của bạn",
+    "ownDepositDesc": "Tổng số tiền gửi được phê duyệt (không bao giờ giảm)",
     "page": "Trang {{page}} / {{totalPages}}",
     "progressTo": "Tiến trình đến",
     "rank": "Cấp Bậc",
@@ -1809,7 +1809,7 @@
     "unknown": "Không Rõ",
     "unranked": "Chưa Xếp Hạng",
     "volumeRequired": "Khối Lượng Yêu Cầu",
-    "yourDeposit": "Ví Nạp Tiền"
+    "yourDeposit": "Khối Lượng Cá Nhân"
   },
   "ourInvestors": {
     "subtitle": "Được hậu thuẫn bởi các công ty vốn đầu tư mạo hiểm hàng đầu và đối tác chiến lược",
@@ -2331,7 +2331,7 @@
     "from": "Từ: {{name}}",
     "loading": "Đang tải...",
     "noTransfers": "Chưa có giao dịch chuyển tiền",
-    "received": "Đã Nhận ({{count}})",
+    "received": "Đã Nhận ({{count}})", "type": "Loại", "details": "Chi tiết", "typeDeposit": "Nạp tiền", "typeKycRefund": "Hoàn phí KYC",
     "sent": "Đã Gửi ({{count}})",
     "subtitle": "Xem các khoản chuyển đã gửi và đã nhận của bạn",
     "title": "Lịch Sử Chuyển Tiền",

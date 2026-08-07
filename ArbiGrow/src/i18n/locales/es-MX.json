@@ -420,7 +420,7 @@
       "fromUser": "De Usuario",
       "level": "Nivel",
       "status": "Estado",
-      "received": "recibido"
+      "received": "recibido", "type": "Tipo", "details": "Detalles", "typeDeposit": "Depósito", "typeKycRefund": "Reembolso KYC"
     },
     "historyTypes": {
       "deposit": "Historial de Depósitos",
@@ -1786,7 +1786,7 @@
     "nextTarget": "Siguiente Objetivo",
     "noBonuses": "Aún no hay bonos de emparejamiento",
     "noRankHistory": "Aún no hay historial de rangos",
-    "ownDepositDesc": "El saldo de tu cartera de depósito",
+    "ownDepositDesc": "Total de depósitos aprobados (nunca disminuye)",
     "page": "Página {{page}} de {{totalPages}}",
     "progressTo": "Progreso hacia",
     "rank": "Rango",
@@ -1809,7 +1809,7 @@
     "unknown": "Desconocido",
     "unranked": "Sin Rango",
     "volumeRequired": "Volumen Requerido",
-    "yourDeposit": "Cartera de Depósito"
+    "yourDeposit": "Volumen Personal"
   },
   "ourInvestors": {
     "subtitle": "Respaldado por firmas líderes de capital de riesgo y socios estratégicos",
@@ -2331,7 +2331,7 @@
     "from": "De: {{name}}",
     "loading": "Cargando...",
     "noTransfers": "Aún no hay transferencias",
-    "received": "Recibidas ({{count}})",
+    "received": "Recibidas ({{count}})", "type": "Tipo", "details": "Detalles", "typeDeposit": "Depósito", "typeKycRefund": "Reembolso KYC",
     "sent": "Enviadas ({{count}})",
     "subtitle": "Consulta tus transferencias enviadas y recibidas",
     "title": "Historial de Transferencias",

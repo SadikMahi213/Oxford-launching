@@ -420,7 +420,7 @@
       "fromUser": "صارف",
       "level": "سطح",
       "status": "حیثیت",
-      "received": "وصول شدہ"
+      "received": "وصول شدہ", "type": "قسم", "details": "تفصیل", "typeDeposit": "ڈپازٹ", "typeKycRefund": "KYC رقم واپسی"
     },
     "historyTypes": {
       "deposit": "ڈپازٹ کی تاریخ",
@@ -1786,7 +1786,7 @@
     "nextTarget": "اگلا ہدف",
     "noBonuses": "ابھی کوئی میچنگ بونس نہیں",
     "noRankHistory": "ابھی کوئی رینک تاریخ نہیں",
-    "ownDepositDesc": "آپ کا ڈپازٹ والیٹ بیلنس",
+    "ownDepositDesc": "کل منظور شدہ ڈپازٹ (کبھی کم نہیں ہوتا)",
     "page": "صفحہ {{page}} / {{totalPages}}",
     "progressTo": "پیش رفت",
     "rank": "رینک",
@@ -1809,7 +1809,7 @@
     "unknown": "نامعلوم",
     "unranked": "بغیر رینک",
     "volumeRequired": "مطلوبہ والیوم",
-    "yourDeposit": "ڈپازٹ والیٹ"
+    "yourDeposit": "ذاتی حجم"
   },
   "ourInvestors": {
     "subtitle": "معروف وینچر کیپیٹل فرموں اور اسٹریٹجک شراکت داروں کی حمایت سے",
@@ -2331,7 +2331,7 @@
     "from": "سے: {{name}}",
     "loading": "لوڈ ہو رہا ہے...",
     "noTransfers": "ابھی کوئی منتقلی نہیں",
-    "received": "موصول ({{count}})",
+    "received": "موصول ({{count}})", "type": "قسم", "details": "تفصیل", "typeDeposit": "ڈپازٹ", "typeKycRefund": "KYC رقم واپسی",
     "sent": "بھیجی گئی ({{count}})",
     "subtitle": "اپنی بھیجی اور موصول ہونے والی منتقلیاں دیکھیں",
     "title": "منتقلی کی تاریخ",

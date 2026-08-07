@@ -420,7 +420,7 @@
       "fromUser": "Mula sa User",
       "level": "Level",
       "status": "Status",
-      "received": "natanggap"
+      "received": "natanggap", "type": "Uri", "details": "Detalye", "typeDeposit": "Deposito", "typeKycRefund": "KYC Refund"
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -1784,7 +1784,7 @@
     "nextTarget": "Susunod na Target",
     "noBonuses": "Wala pang matching bonuses",
     "noRankHistory": "Wala pang kasaysayan ng rank",
-    "ownDepositDesc": "Balanse ng iyong deposit wallet",
+    "ownDepositDesc": "Kabuuang naaprubahang deposito (hindi bumababa)",
     "page": "Pahina {{page}} ng {{totalPages}}",
     "progressTo": "Progreso papunta sa",
     "rank": "Rank",
@@ -1807,7 +1807,7 @@
     "unknown": "Hindi Alam",
     "unranked": "Walang Rank",
     "volumeRequired": "Kinakailangang Volume",
-    "yourDeposit": "Deposit Wallet"
+    "yourDeposit": "Personal na Dami"
   },
   "ourInvestors": {
     "subtitle": "Suportado ng mga nangungunang venture capital firm at strategic partners",
@@ -2329,7 +2329,7 @@
     "from": "Mula: {{name}}",
     "loading": "Naglo-load...",
     "noTransfers": "Wala pang transfer",
-    "received": "Natanggap ({{count}})",
+    "received": "Natanggap ({{count}})", "type": "Uri", "details": "Detalye", "typeDeposit": "Deposito", "typeKycRefund": "KYC Refund",
     "sent": "Naipadala ({{count}})",
     "subtitle": "Tingnan ang iyong mga ipinadala at natanggap na transfer",
     "title": "Kasaysayan ng Transfer",
