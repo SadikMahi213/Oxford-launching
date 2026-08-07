@@ -248,7 +248,7 @@ const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckou
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">{t("marketplace.cart")} ({cart.itemCount})</h2>
+            <h2 className="text-sm font-semibold text-white">{t("marketplace.cart", { count: cart.itemCount })}</h2>
             <button onClick={() => setView("shop")} className="p-1.5 rounded-lg bg-white/[0.04] text-gray-400"><X className="w-4 h-4" /></button>
           </div>
           <div className="p-4 space-y-3">
@@ -545,7 +545,7 @@ export default function MarketplacePage() {
   const loadCartData = async () => {
     try {
       const r = await getCart()
-      if (r.data.cart) setCart(r.data)
+      if (r.data.cart) setCart({ ...r.data, itemCount: r.data.item_count })
     } catch (e) {}
   }
 

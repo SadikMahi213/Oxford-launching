@@ -15,19 +15,26 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
 REVERSAL_REASON = "Reversed: user not KYC-verified at time of rank/bonus assignment."
 
+# Team Volume always aggregates descendants up to 40 generations.
+TEAM_VOLUME_MAX_DEPTH = 40
+# Matching Bonus only considers the first 10 generations.
+MATCHING_BONUS_MAX_DEPTH = 10
+
 
 async def get_team_volume(
     user_id: int,
     db: AsyncSession,
     *,
     cutover: datetime | None = None,
+    max_depth: int = TEAM_VOLUME_MAX_DEPTH,
 ) -> tuple[Decimal, Decimal]:
     """Calculate personal deposit and total team volume.
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
       - team_volume    = personal_volume + descendants' approved deposits
-        (up to 40 generations, matching the documented business formula)
+        (up to ``max_depth`` generations; default 40 matches the documented
+        business formula for Team Volume / rank qualification)
 
     When ``cutover`` (the user's ``kyc_approved_at``) is provided, only deposits
     created at or after the cutover count. Deposits made before KYC approval are
@@ -57,7 +64,7 @@ async def get_team_volume(
         )
         SELECT id FROM team_tree
     """)
-    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": 40})
+    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": max_depth})
     descendant_ids = [row[0] for row in descendant_result.fetchall()]
 
     team_volume = self_volume
@@ -75,6 +82,27 @@ async def get_team_volume(
 
     team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
     return self_volume, team_volume
+
+
+async def get_matching_bonus_volume(
+    user_id: int,
+    db: AsyncSession,
+    *,
+    cutover: datetime | None = None,
+) -> tuple[Decimal, Decimal]:
+    """Calculate the volume that counts toward Matching Bonus payouts.
+
+    Identical to :func:`get_team_volume` but only aggregates descendants up to
+    ``MATCHING_BONUS_MAX_DEPTH`` (10) generations. Team Volume for rank
+    qualification keeps the full 40-generation depth; this separate measure
+    ensures generations 11-40 never contribute to matching bonus amounts.
+    """
+    return await get_team_volume(
+        user_id,
+        db,
+        cutover=cutover,
+        max_depth=MATCHING_BONUS_MAX_DEPTH,
+    )
 
 
 async def get_rank_eligible_volume(
@@ -343,10 +371,22 @@ async def evaluate_and_process_rank(
     if personal_volume <= 0 and not use_snapshot_volume:
         return result
 
-    # Step 2: Find highest qualified rank
+    # Step 2: Find highest qualified rank (40-generation Team Volume)
     qualified_rank = await _get_highest_qualified_rank(team_volume, db)
     if not qualified_rank:
         return result
+
+    # Matching Bonus only considers the first 10 generations. Team Volume for rank
+    # qualification keeps the full 40-generation depth, but bonus payouts must not
+    # be driven by descendants in generations 11-40. Compute a separate matching
+    # volume and the highest rank it supports; bonuses are capped at that rank.
+    matching_rank_sort = 0
+    matching_volume = Decimal("0")
+    if not skip_bonus:
+        _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
+        matching_qualified_rank = await _get_highest_qualified_rank(matching_volume, db)
+        if matching_qualified_rank:
+            matching_rank_sort = matching_qualified_rank.sort_order
 
     # Step 3: Determine current rank sort order
     current_rank_sort = 0
@@ -364,9 +404,12 @@ async def evaluate_and_process_rank(
         #   2. A later deposit triggers rank evaluation but doesn't push the user
         #      to a higher rank, so the normal bonus-distribution path is skipped.
         # Without this, the bonus for the KYC-assigned rank is never paid.
+        # The bonus is only owed while the current rank is within the matching
+        # bonus cap (first 10 generations).
         if (
             not skip_bonus
             and user.current_rank_id
+            and current_rank_sort <= matching_rank_sort
             and not await _has_rank_bonus_been_paid(user_id, user.current_rank_id, db)
         ):
             current_rank = await db.get(Rank, user.current_rank_id)
@@ -379,7 +422,7 @@ async def evaluate_and_process_rank(
                     )
                 ).scalars().all()
                 if bonus_configs_for_current:
-                    eligible_for_current = team_volume - current_rank.target_volume
+                    eligible_for_current = matching_volume - current_rank.target_volume
                     if eligible_for_current > 0:
                         cfg_list = [
                             (c.bonus_type, c.bonus_percent)
@@ -459,8 +502,9 @@ async def evaluate_and_process_rank(
             last_achieved_rank = rank
             continue
 
-        # Distribute bonuses for this rank (skip if skip_bonus=True, e.g. from KYC approval)
-        if not skip_bonus:
+        # Distribute bonuses for this rank (skip if skip_bonus=True, e.g. from KYC approval,
+        # or when the rank is beyond the matching bonus cap of the first 10 generations).
+        if not skip_bonus and rank.sort_order <= matching_rank_sort:
             await _distribute_rank_bonuses(
                 user_id=user_id,
                 source_user_id=source_user_id,
