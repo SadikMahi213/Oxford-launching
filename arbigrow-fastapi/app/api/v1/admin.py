@@ -1852,7 +1852,7 @@ async def get_mining_stats(
                 "email": u.email,
                 "mining_active": u.mining_active,
                 "daily_mined": float(u.daily_mined or 0),
-                "arbx_mining_wallet": float(u.arbx_mining_wallet or 0),
+                "arbx_wallet": float(u.arbx_wallet or 0),
                 "mining_started_at": u.mining_started_at.isoformat() if u.mining_started_at else None,
                 "last_mine_time": u.last_mine_time.isoformat() if u.last_mine_time else None,
             }

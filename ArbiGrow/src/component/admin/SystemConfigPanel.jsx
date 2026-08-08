@@ -398,7 +398,7 @@ const SystemConfigPanel = () => {
                     </div>
                     <div className="text-right">
                       <span className="text-cyan-400">{m.daily_mined} OFA mined</span>
-                      <span className="text-gray-500 ml-2">Wallet: {m.arbx_mining_wallet}</span>
+                      <span className="text-gray-500 ml-2">Wallet: {m.arbx_wallet}</span>
                     </div>
                   </div>
                 ))}

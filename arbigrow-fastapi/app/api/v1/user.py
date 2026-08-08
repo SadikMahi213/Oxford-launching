@@ -358,7 +358,7 @@ async def start_mining(
         "mining_started_at": locked_user.mining_started_at.isoformat() if locked_user.mining_started_at else None,
         "daily_mined": float(locked_user.daily_mined or 0),
         "daily_cap": float(cap),
-        "arbx_mining_wallet": float(locked_user.arbx_mining_wallet or 0),
+        "arbx_wallet": float(locked_user.arbx_wallet or 0),
     }
 
 
@@ -413,8 +413,8 @@ async def claim_mining(
             final_accrued = per_second_rate * Decimal(str(final_elapsed))
             final_reward = min(final_accrued, remaining).quantize(WALLET_PRECISION)
             if final_reward > 0:
-                bal_before = locked_user.arbx_mining_wallet or Decimal("0")
-                locked_user.arbx_mining_wallet = bal_before + final_reward
+                bal_before = locked_user.arbx_wallet or Decimal("0")
+                locked_user.arbx_wallet = bal_before + final_reward
                 locked_user.daily_mined = daily_mined + final_reward
                 db.add(MiningLog(
                     user_id=locked_user.id,
@@ -428,8 +428,8 @@ async def claim_mining(
                     tx_type=OFATransactionType.mining_reward,
                     amount=final_reward,
                     balance_before=bal_before,
-                    balance_after=locked_user.arbx_mining_wallet,
-                    target_wallet="arbx_mining_wallet",
+                    balance_after=locked_user.arbx_wallet,
+                    target_wallet="arbx_wallet",
                     reference_type="mining_log",
                     idempotency_key=idempotency_key,
                     description="Daily mining reward (cycle end)",
@@ -450,7 +450,7 @@ async def claim_mining(
             "daily_mined": float(locked_user.daily_mined),
             "daily_cap": float(cap),
             "remaining_today": float(cap),
-            "arbx_mining_wallet": float(locked_user.arbx_mining_wallet or 0),
+            "arbx_wallet": float(locked_user.arbx_wallet or 0),
             "mining_active": locked_user.mining_active,
         }
 
@@ -474,8 +474,8 @@ async def claim_mining(
     if reward <= 0:
         raise HTTPException(status_code=400, detail="No rewards to claim yet.")
 
-    bal_before = locked_user.arbx_mining_wallet or Decimal("0")
-    locked_user.arbx_mining_wallet = bal_before + reward
+    bal_before = locked_user.arbx_wallet or Decimal("0")
+    locked_user.arbx_wallet = bal_before + reward
     locked_user.daily_mined = daily_mined + reward
     locked_user.last_mine_time = now_utc
 
@@ -492,8 +492,8 @@ async def claim_mining(
         tx_type=OFATransactionType.mining_reward,
         amount=reward,
         balance_before=bal_before,
-        balance_after=locked_user.arbx_mining_wallet,
-        target_wallet="arbx_mining_wallet",
+        balance_after=locked_user.arbx_wallet,
+        target_wallet="arbx_wallet",
         reference_type="mining_log",
         idempotency_key=idempotency_key,
         description="Daily mining reward",
@@ -514,7 +514,7 @@ async def claim_mining(
         "daily_mined": float(locked_user.daily_mined),
         "daily_cap": float(cap),
         "remaining_today": float(cap - locked_user.daily_mined),
-        "arbx_mining_wallet": float(locked_user.arbx_mining_wallet or 0),
+        "arbx_wallet": float(locked_user.arbx_wallet or 0),
         "mining_active": locked_user.mining_active,
     }
 
@@ -545,7 +545,7 @@ async def get_mining_status(
         "daily_mined": float(current_user.daily_mined or 0),
         "daily_cap": float(cap),
         "remaining_today": float(cap - Decimal(str(current_user.daily_mined or 0))),
-        "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+        "arbx_wallet": float(current_user.arbx_wallet or 0),
         "cycle_end": cycle_end.isoformat() if cycle_end else None,
         "time_remaining_seconds": time_remaining,
     }

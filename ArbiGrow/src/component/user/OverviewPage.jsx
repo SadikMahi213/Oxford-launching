@@ -165,7 +165,7 @@ const OverviewPage = ({ setActivePage }) => {
       return;
     }
     const dailyCap = Number(user?.mining_daily_cap) || capRef.current || 100;
-    miningBaseRef.current = Number(user.arbx_mining_wallet) || 0;
+    miningBaseRef.current = Number(user.arbx_wallet) || 0;
     miningStartRef.current = new Date(user.mining_started_at).getTime();
     capRef.current = dailyCap;
     const initElapsed = (Date.now() - miningStartRef.current) / 1000;
@@ -236,7 +236,7 @@ const OverviewPage = ({ setActivePage }) => {
         setUser({
           is_mining: true,
           mining_started_at: statusRes.data.mining_started_at,
-          arbx_mining_wallet: statusRes.data.arbx_mining_wallet ?? user.arbx_mining_wallet,
+          arbx_wallet: statusRes.data.arbx_wallet ?? user.arbx_wallet,
         });
         const timeLeft = statusRes.data.time_remaining_seconds;
         setRemainingTime(timeLeft != null ? timeLeft * 1000 : MINING_CYCLE_MS);
@@ -270,7 +270,7 @@ const OverviewPage = ({ setActivePage }) => {
       setUser({
         is_mining: false,
         mining_started_at: null,
-        arbx_mining_wallet: response?.data?.arbx_mining_wallet ?? user?.arbx_mining_wallet,
+        arbx_wallet: response?.data?.arbx_wallet ?? user?.arbx_wallet,
       });
       setRemainingTime(null);
       syncUserFromServer().catch(() => null);
@@ -659,7 +659,7 @@ const OverviewPage = ({ setActivePage }) => {
               <div className="text-2xl font-bold text-yellow-400 font-mono tracking-wider mt-1.5">
                 {isMiningActive && simulatedMiningBalance !== null
                   ? (() => { const s = simulatedMiningBalance.toFixed(8); return <>{s.slice(0, -3)}<span className="text-yellow-300/70 animate-pulse">{s.slice(-3)}</span></>; })()
-                  : Number(user.arbx_mining_wallet || 0).toFixed(8)} <span className="text-xs font-sans text-yellow-400/80">{t("overview.wallets.ofaToken")}</span>
+                  : Number(user.arbx_wallet || 0).toFixed(8)} <span className="text-xs font-sans text-yellow-400/80">{t("overview.wallets.ofaToken")}</span>
               </div>
               <div className="text-xs text-gray-400 mt-1">{t("overview.mining.continuous")}</div>
 
