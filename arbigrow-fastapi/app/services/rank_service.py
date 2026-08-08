@@ -411,50 +411,72 @@ async def evaluate_and_process_rank(
             previous_rank_id = current_rank.id
 
     if qualified_rank.sort_order <= current_rank_sort:
-        # Even when no rank upgrade is needed, the user may still be owed a matching
-        # bonus for their current rank.  This happens when:
+        # Even when no rank upgrade is needed, the user may still be owed matching
+        # bonuses for ranks they hold but were never paid.  This happens when:
         #   1. KYC approval assigned a rank with skip_bonus=True (no bonus paid).
         #   2. A later deposit triggers rank evaluation but doesn't push the user
         #      to a higher rank, so the normal bonus-distribution path is skipped.
         # Without this, the bonus for the KYC-assigned rank is never paid.
-        # The bonus is only owed while the current rank is within the matching
-        # bonus scope (same 10-generation limit as Team Volume).
-        if (
-            not skip_bonus
-            and user.current_rank_id
-            and current_rank_sort <= matching_rank_sort
-            and not await _has_rank_bonus_been_paid(user_id, user.current_rank_id, db)
-        ):
-            current_rank = await db.get(Rank, user.current_rank_id)
-            if current_rank:
-                bonus_configs_for_current = (
-                    await db.execute(
+        # Pay EVERY unpaid rank from the lowest upward, up to the highest rank the
+        # matching volume supports (same 10-generation limit as Team Volume), so
+        # an owed rank is never skipped just because a higher rank was assigned.
+        if not skip_bonus:
+            catchup_limit = min(current_rank_sort, matching_rank_sort)
+            if catchup_limit > 0:
+                catchup_ranks_result = await db.execute(
+                    select(Rank)
+                    .where(
+                        Rank.is_active == True,
+                        Rank.sort_order <= catchup_limit,
+                    )
+                    .order_by(Rank.sort_order.asc())
+                )
+                catchup_ranks = [
+                    r for r in catchup_ranks_result.scalars().all()
+                    if r.sort_order <= catchup_limit
+                ]
+                catchup_ids = [r.id for r in catchup_ranks]
+                if catchup_ids:
+                    config_rows = await db.execute(
                         select(RankBonusConfig)
-                        .where(RankBonusConfig.rank_id == current_rank.id)
+                        .where(RankBonusConfig.rank_id.in_(catchup_ids))
                         .order_by(RankBonusConfig.sort_order)
                     )
-                ).scalars().all()
-                if bonus_configs_for_current:
-                    eligible_for_current = matching_volume - current_rank.target_volume
-                    if eligible_for_current > 0:
-                        cfg_list = [
-                            (c.bonus_type, c.bonus_percent)
-                            for c in bonus_configs_for_current
-                        ]
+                    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
+                    for c in config_rows.scalars().all():
+                        bonus_map.setdefault(c.rank_id, []).append((c.bonus_type, c.bonus_percent))
+
+                    previous_target = Decimal("0")
+                    for rank in catchup_ranks:
+                        if await _has_rank_bonus_been_paid(user_id, rank.id, db):
+                            previous_target = rank.target_volume
+                            continue
+
+                        eligible = (rank.target_volume - previous_target).quantize(
+                            WALLET_PRECISION, rounding=ROUND_HALF_UP
+                        )
+                        previous_target = rank.target_volume
+                        if eligible <= 0:
+                            continue
+
+                        configs = bonus_map.get(rank.id, [])
+                        if not configs:
+                            continue
+
                         await _distribute_rank_bonuses(
                             user_id=user_id,
                             source_user_id=source_user_id,
-                            rank=current_rank,
-                            eligible_amount=eligible_for_current,
+                            rank=rank,
+                            eligible_amount=eligible,
                             db=db,
-                            bonus_configs=cfg_list,
+                            bonus_configs=configs,
                             reference_id=reference_id,
                             reference_type=reference_type,
                         )
                         result["bonuses_paid"].append({
-                            "rank_id": current_rank.id,
-                            "rank_name": current_rank.name,
-                            "eligible_amount": str(eligible_for_current),
+                            "rank_id": rank.id,
+                            "rank_name": rank.name,
+                            "eligible_amount": str(eligible),
                         })
         return result
 

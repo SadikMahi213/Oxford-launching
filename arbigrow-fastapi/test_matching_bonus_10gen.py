@@ -342,8 +342,8 @@ def test_catchup_bonus_paid_when_current_rank_within_scope():
     assert [p["rank_id"] for p in result["bonuses_paid"]] == [2], (
         "catch-up bonus must pay when the current rank is within the matching scope"
     )
-    assert result["bonuses_paid"][0]["eligible_amount"] == "1000", (
-        "catch-up eligible must be matching_volume - target (3000 - 2000)"
+    assert Decimal(result["bonuses_paid"][0]["eligible_amount"]) == Decimal("1000"), (
+        "catch-up eligible must be the tier delta (target2 - target1 = 2000 - 1000)"
     )
 
 
