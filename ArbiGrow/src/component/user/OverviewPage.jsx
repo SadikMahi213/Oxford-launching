@@ -361,9 +361,11 @@ const OverviewPage = ({ setActivePage }) => {
                 {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)}</> : <>{wallet.balance.toFixed(7)}</>}
               </div>
               <div className="text-[11px] text-gray-500 mb-3">{t("overview.wallets.usable")}</div>
-              <div className="mt-auto">
-                <span className={`text-[10px] ${wallet.footerColor} font-semibold`}>{t("overview.wallets.clickHistory")}</span>
-              </div>
+              {wallet.historyType && (
+                <div className="mt-auto">
+                  <span className={`text-[10px] ${wallet.footerColor} font-semibold`}>{t("overview.wallets.clickHistory")}</span>
+                </div>
+              )}
             </div>
           </motion.div>
         ))}

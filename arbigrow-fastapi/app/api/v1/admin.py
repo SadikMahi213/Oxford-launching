@@ -1052,9 +1052,11 @@ async def update_kyc_status(
                 user_id=user.id,
                 db=db,
                 source_user_id=user.id,
-                skip_bonus=True,
+                skip_bonus=False,
                 use_snapshot_volume=True,
                 snapshot_volume=user.kyc_approved_team_volume,
+                reference_id=kyc.id if kyc else None,
+                reference_type="kyc",
             )
             # Also trigger rank evaluation for ALL ancestors
             next_id = user.parent_lvl_1_id
@@ -1064,6 +1066,8 @@ async def update_kyc_status(
                     db=db,
                     source_user_id=user.id,
                     skip_bonus=True,
+                    reference_id=kyc.id if kyc else None,
+                    reference_type="kyc",
                 )
                 par = await db.get(User, next_id)
                 next_id = par.parent_lvl_1_id if par else None

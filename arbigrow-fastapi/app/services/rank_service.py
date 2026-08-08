@@ -370,7 +370,8 @@ async def evaluate_and_process_rank(
     # Users with zero personal deposit are not eligible for matching bonuses.
     # Exception: the KYC-approval path assigns a rank ONCE from the full
     # historical snapshot volume (use_snapshot_volume=True) even when the user
-    # has no post-approval personal deposits yet, because bonuses are skipped.
+    # has no post-approval personal deposits yet, because the eligible matching
+    # bonus for that rank is paid from the snapshot volume on approval.
     if personal_volume <= 0 and not use_snapshot_volume:
         return result
 
@@ -383,10 +384,19 @@ async def evaluate_and_process_rank(
     # (single NETWORK_GENERATION_LIMIT), so the matching volume (and the rank it
     # supports) equals the team-volume rank. Compute the matching volume and the
     # highest rank it supports; bonuses are capped at that rank.
+    #
+    # KYC-approval path (use_snapshot_volume=True with skip_bonus=False): the
+    # accumulated eligible volume that just assigned the rank is the matching
+    # bonus basis. The post-cutover matching volume is zero at approval time
+    # (the user has no post-approval deposits yet), so it must NOT be used here
+    # or the KYC-assigned rank would never pay its matching bonus.
     matching_rank_sort = 0
     matching_volume = Decimal("0")
     if not skip_bonus:
-        _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
+        if use_snapshot_volume and snapshot_volume is not None:
+            matching_volume = snapshot_volume
+        else:
+            _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
         matching_qualified_rank = await _get_highest_qualified_rank(matching_volume, db)
         if matching_qualified_rank:
             matching_rank_sort = matching_qualified_rank.sort_order
@@ -505,8 +515,9 @@ async def evaluate_and_process_rank(
             last_achieved_rank = rank
             continue
 
-        # Distribute bonuses for this rank (skip if skip_bonus=True, e.g. from KYC approval,
-        # or when the rank is beyond the matching bonus scope).
+        # Distribute bonuses for this rank (skip only when skip_bonus=True, e.g.
+        # for ancestor re-evaluation during KYC approval, or when the rank is
+        # beyond the matching bonus scope).
         if not skip_bonus and rank.sort_order <= matching_rank_sort:
             await _distribute_rank_bonuses(
                 user_id=user_id,
