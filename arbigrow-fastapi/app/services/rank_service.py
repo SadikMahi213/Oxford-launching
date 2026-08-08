@@ -385,18 +385,17 @@ async def evaluate_and_process_rank(
     # supports) equals the team-volume rank. Compute the matching volume and the
     # highest rank it supports; bonuses are capped at that rank.
     #
-    # KYC-approval path (use_snapshot_volume=True with skip_bonus=False): the
-    # accumulated eligible volume that just assigned the rank is the matching
-    # bonus basis. The post-cutover matching volume is zero at approval time
-    # (the user has no post-approval deposits yet), so it must NOT be used here
-    # or the KYC-assigned rank would never pay its matching bonus.
+    # Business policy: pre-KYC volume NEVER generates a matching bonus ("Matching
+    # Bonus generated from previous 100,000 = 0"). The matching volume is ALWAYS
+    # the post-cutover eligible volume (deposits created at/after kyc_approved_at)
+    # -- never the historical snapshot. So even when KYC approval assigns a rank
+    # from the snapshot (use_snapshot_volume=True), the matching basis stays the
+    # post-cutover volume, which is zero at approval time and only grows with
+    # future post-approval deposits.
     matching_rank_sort = 0
     matching_volume = Decimal("0")
     if not skip_bonus:
-        if use_snapshot_volume and snapshot_volume is not None:
-            matching_volume = snapshot_volume
-        else:
-            _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
+        _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
         matching_qualified_rank = await _get_highest_qualified_rank(matching_volume, db)
         if matching_qualified_rank:
             matching_rank_sort = matching_qualified_rank.sort_order

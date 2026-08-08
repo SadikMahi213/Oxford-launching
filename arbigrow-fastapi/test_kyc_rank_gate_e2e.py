@@ -7,14 +7,14 @@ Business policy exercised against the real orchestration in
      not-submitted KYC included) - deposits are always recorded.
   2. Until KYC is APPROVED a user may NEVER hold a rank, receive a matching
      bonus, or be upgraded - regardless of how large the team volume is.
-  3. On KYC approval the FULL historical team volume assigns the rank and pays
-     the eligible matching bonus for that rank exactly ONCE (snapshot path,
-     skip_bonus=False), even if the user has no post-approval personal
-     deposits yet. Re-running the approval never pays a duplicate bonus.
+  3. On KYC approval the FULL historical team volume assigns the rank ONCE
+     (snapshot path, skip_bonus=True), but that pre-KYC volume pays $0 bonus:
+     "Matching Bonus generated from previous 100,000 = 0." No historical
+     bonus is created simply because KYC was approved. Re-running approval
+     never re-assigns or duplicates anything.
   4. After KYC approval, only post-approval deposits drive matching bonuses
      and future rank upgrades (cutover = kyc_approved_at).
-  5. Pre-approval volume NEVER generates a bonus except the single snapshot
-     bonus paid at approval time.
+  5. Pre-approval volume NEVER generates a bonus.
 
 Run with: python test_kyc_rank_gate_e2e.py
 """
@@ -216,43 +216,102 @@ def test_pending_with_large_team_volume_no_rank_no_bonus():
     assert gtv.await_count == 0
 
 
-# --- Scenario 3: KYC approval assigns rank AND pays matching bonus ONCE -------
+# --- Scenario 3: KYC approval assigns rank from snapshot, pays $0 bonus ----
 
-def test_kyc_approval_assigns_rank_and_pays_bonus_from_snapshot():
+def test_kyc_approval_assigns_rank_from_snapshot_without_pre_kyc_bonus():
     user = _FakeUser(3)
     user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
     # The deposit happened BEFORE approval, so post-cutover personal volume is 0.
     # The snapshot path must assign the rank from the full historical team volume
-    # AND pay the eligible matching bonus for that rank exactly once.
+    # BUT pay NO matching bonus for that pre-KYC volume (policy: "Matching Bonus
+    # generated from previous 100,000 = 0").
     result, db, gtv, seen = _run_eval(
         user, kyc_approved=True, personal=Decimal("0"), team=Decimal("0"),
-        snapshot_volume=Decimal("50000"), use_snapshot_volume=True, skip_bonus=False,
+        snapshot_volume=Decimal("50000"), use_snapshot_volume=True, skip_bonus=True,
         qualified_rank=RANKS[3],
     )
-    assert seen == [Decimal("50000"), Decimal("50000")], (
-        "rank qualification + matching bonus must both use the full historical snapshot"
+    assert seen == [Decimal("50000")], (
+        "rank qualification uses the full historical snapshot (no matching volume)"
     )
     assert result["rank_upgraded"] is True
     assert result["new_rank"] == 4
     assert user.current_rank_id == 4
     assert user.team_volume == Decimal("50000")
     bonuses, histories = _split_added(db)
-    assert len(bonuses) == 4, "each newly achieved rank pays a matching bonus"
-    assert all(not b.is_reversed for b in bonuses)
-    assert sum(b.bonus_amount for b in bonuses) == Decimal("2000")  # 10% of each tier delta
-    assert user.matching_bonus_wallet == Decimal("2000")
-    assert len(result["bonuses_paid"]) == 4
+    assert bonuses == [], "pre-KYC snapshot volume must NOT generate a matching bonus"
+    assert user.matching_bonus_wallet == Decimal("0")
+    assert result["bonuses_paid"] == []
     assert len(histories) == 4, "each newly achieved rank gets a rank history entry"
     assert all(h.status == "achieved" for h in histories)
 
 
-# --- Scenario 3b: re-running KYC approval must NOT duplicate the bonus ---------
+# --- Scenario 3a: KYC approval with NO team volume --------------------------
+
+def test_kyc_approval_with_zero_team_volume_no_rank_no_bonus():
+    user = _FakeUser(31)
+    user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
+    result, db, gtv, seen = _run_eval(
+        user, kyc_approved=True, personal=Decimal("0"), team=Decimal("0"),
+        snapshot_volume=Decimal("0"), use_snapshot_volume=True, skip_bonus=True,
+        qualified_rank=None,
+    )
+    assert result["rank_upgraded"] is False
+    assert result["new_rank"] is None
+    assert result["bonuses_paid"] == []
+    assert user.current_rank_id is None
+    assert user.matching_bonus_wallet == Decimal("0")
+    bonuses, histories = _split_added(db)
+    assert bonuses == [] and histories == []
+
+
+# --- Scenario 3c: controlled case (pre-KYC 190, threshold 200) --------------
+
+def test_controlled_pre_kyc_190_no_rank_then_post_kyc_10_still_no_rank():
+    """The exact acceptance scenario:
+
+    Pre-KYC Team Volume = 190, rank threshold = 200, KYC approved.
+    Rank calc is allowed but 190 < 200 -> no rank, no bonus, wallet stays 0.
+    Then a post-KYC deposit of 10 makes lifetime = 200, but the eligible
+    post-KYC volume is only 10 -> the user must NOT receive the rank merely
+    because lifetime reached 200.
+    """
+    user = _FakeUser(32)
+    user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    # (a) KYC approval with the pre-KYC snapshot = 190. No rank (below 200).
+    result, db, gtv, seen = _run_eval(
+        user, kyc_approved=True, personal=Decimal("0"), team=Decimal("0"),
+        snapshot_volume=Decimal("190"), use_snapshot_volume=True, skip_bonus=True,
+        qualified_rank=None,
+    )
+    assert result["rank_upgraded"] is False
+    assert result["bonuses_paid"] == []
+    assert user.matching_bonus_wallet == Decimal("0")
+    bonuses, histories = _split_added(db)
+    assert bonuses == [] and histories == []
+    assert seen == [Decimal("190")], "rank qualification uses the snapshot once"
+
+    # (b) Post-KYC eligible volume = 10 (lifetime is now 200). The cutover path
+    # only sees the post-approval 10, so no rank and no retroactive bonus.
+    result2, db2, _, seen2 = _run_eval(
+        user, kyc_approved=True, personal=Decimal("10"), team=Decimal("10"),
+        qualified_rank=None,
+    )
+    assert result2["rank_upgraded"] is False
+    assert result2["bonuses_paid"] == []
+    assert user.matching_bonus_wallet == Decimal("0")
+    bonuses2, histories2 = _split_added(db2)
+    assert bonuses2 == [] and histories2 == []
+    assert seen2 == [Decimal("10")], "post-KYC volume (not lifetime) drives rank eligibility"
+
+
+# --- Scenario 3b: re-running KYC approval must not duplicate anything -------
 
 def test_kyc_approval_retry_does_not_duplicate_bonus():
     user = _FakeUser(30)
     user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
-    # First approval already assigned rank 4 and paid its bonus; the retry must
-    # not credit anything again (rank is unchanged, bonus already paid).
+    # First approval already assigned rank 4 (no bonus); the retry must not
+    # re-assign or credit anything again (rank is unchanged).
     db = _FakeDB(user)
     gtv = AsyncMock(return_value=(Decimal("0"), Decimal("0")))
 
@@ -260,7 +319,7 @@ def test_kyc_approval_retry_does_not_duplicate_bonus():
         return RANKS[3]
 
     async def fake_has_paid(uid, rank_id, d):
-        return True  # bonus already paid during the first approval
+        return True  # bonus would be considered already paid (or N/A)
 
     async def run():
         import app.services.rank_service as rs
@@ -279,7 +338,7 @@ def test_kyc_approval_retry_does_not_duplicate_bonus():
                 source_user_id=user.id,
                 reference_id=100,
                 reference_type="kyc",
-                skip_bonus=False,
+                skip_bonus=True,
                 use_snapshot_volume=True,
                 snapshot_volume=Decimal("50000"),
             )

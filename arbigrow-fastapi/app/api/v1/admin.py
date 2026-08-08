@@ -1048,11 +1048,17 @@ async def update_kyc_status(
     if was_approved:
         try:
             from app.services.rank_service import evaluate_and_process_rank
+            # Business policy: KYC approval assigns the rank from the full
+            # historical snapshot volume, but that pre-KYC volume generates NO
+            # matching bonus ("Matching Bonus generated from previous 100,000 =
+            # 0"). skip_bonus=True assigns the rank yet pays nothing here; only
+            # post-approval (cutover) deposits drive future bonuses via the
+            # catch-up path in evaluate_and_process_rank.
             await evaluate_and_process_rank(
                 user_id=user.id,
                 db=db,
                 source_user_id=user.id,
-                skip_bonus=False,
+                skip_bonus=True,
                 use_snapshot_volume=True,
                 snapshot_volume=user.kyc_approved_team_volume,
                 reference_id=kyc.id if kyc else None,

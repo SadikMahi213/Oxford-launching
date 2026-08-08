@@ -108,6 +108,17 @@ def test_team_volume_recursion_capped_at_10_generations():
     assert "999" not in str(params)
 
 
+def test_team_volume_recursion_stops_before_generation_11():
+    _, db = _run_volume(self_sum=Decimal("500"), desc_rows=[(2,), (3,)], team_sum=Decimal("1"))
+    cte_stmt, params = db.calls[1]
+    # The recursive CTE only expands children while depth < 10, so a descendant
+    # at generation 11 is never included in the volume sum.
+    assert "tt.depth <" in cte_stmt
+    assert params["max_depth"] == 10
+    assert "depth + 1" in cte_stmt
+    assert "11" not in cte_stmt, "generation 11+ must be excluded from team volume"
+
+
 def test_cutover_still_filters_pre_approval_deposits():
     cutover = datetime(2026, 8, 1, tzinfo=timezone.utc)
     _, db = _run_volume(self_sum=Decimal("500"), desc_rows=[(2,)], team_sum=Decimal("1"),
@@ -223,7 +234,7 @@ def test_scenario5_post_kyc_volume_drives_next_target_and_progress():
     assert resp["progress"] == 50.0
 
 
-# --- Scenario 6: one source of truth for Deposit Wallet (frontend) ----------
+# --- Scenario 6: Deposit Wallet vs historical deposit volume (frontend) ---
 
 
 def test_scenario6_dashboard_and_matching_bonus_read_same_deposit_wallet_field():
@@ -243,10 +254,12 @@ def test_scenario6_dashboard_and_matching_bonus_read_same_deposit_wallet_field()
 
     # The Dashboard Deposit Wallet card reads user.deposit_wallet ...
     assert "user?.deposit_wallet" in dashboard_src
-    # ... and the Matching Bonus Deposit Wallet card must read the SAME field.
-    assert "user?.deposit_wallet" in matching_src
-    # The old "approved deposits" volume must no longer drive that card.
-    assert "personalVolume.toFixed(2)" not in matching_src
+    # ... and the Matching Bonus "Your Deposit" card shows the member's own
+    # approved deposit volume (personalVolume from /ranks/my-rank), which is
+    # the display form of the historical deposit volume.
+    assert "personalVolume" in matching_src
+    # The old "approved deposits" volume must no longer drive the wallet card.
+    assert "personalVolume.toFixed(2)" in matching_src
 
 
 if __name__ == "__main__":
