@@ -228,6 +228,16 @@ class User(Base):
         Numeric(24, 14), nullable=True, default=None
     )
 
+    # Highest rank threshold that matching bonus has already been paid up to.
+    # Combined with the permanent kyc_approved_team_volume floor, this prevents
+    # re-paying bonus on volume that was already bonused.
+    bonused_up_to: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14),
+        nullable=False,
+        default=Decimal("0.00000000000000"),
+        server_default="0"
+    )
+
     # ancestry cache (up to 5 generations)
     parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     parent_lvl_2_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -223,6 +223,49 @@ async def _has_rank_bonus_been_paid(
     return result.first() is not None
 
 
+def _snapshot_floor(user: User) -> Decimal:
+    """The permanent KYC snapshot volume that must never generate bonus again.
+
+    kyc_approved_team_volume is captured at first KYC approval and never changes,
+    so every bonus band starts at or above it. Pre-KYC volume is never bonused.
+    """
+    return getattr(user, "kyc_approved_team_volume", None) or Decimal("0")
+
+
+def _bonused_floor(user: User) -> Decimal:
+    """The highest rank threshold whose matching bonus has already been paid."""
+    return getattr(user, "bonused_up_to", None) or Decimal("0")
+
+
+def _compute_band_eligible(
+    user: User,
+    rank: Rank,
+    previous_target: Decimal,
+) -> Decimal:
+    """Eligible matching-bonus volume for a single rank band.
+
+    The band spans from the highest of the previous rank target, the permanent
+    KYC snapshot floor, and the already-bonused threshold up to this rank's
+    target. This guarantees pre-KYC / already-bonused volume is never counted
+    twice and the delta is exact.
+    """
+    band_start = max(previous_target, _snapshot_floor(user), _bonused_floor(user))
+    band_end = rank.target_volume
+    eligible = max(Decimal("0"), band_end - band_start)
+    return eligible.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+
+
+def _advance_bonused_up_to(user: User, rank: Rank) -> None:
+    """Record that matching bonus has now been paid up to this rank's target.
+
+    Only called after a successful bonus distribution, so a failed/zero-payout
+    or rolled-back evaluation never advances the floor.
+    """
+    current = _bonused_floor(user)
+    if rank.target_volume > current:
+        user.bonused_up_to = rank.target_volume
+
+
 async def _create_bonus_entries(
     user_id: int,
     source_user_id: int | None,
@@ -277,8 +320,13 @@ async def _distribute_rank_bonuses(
     bonus_configs: list[tuple[str, Decimal]],
     reference_id: int | None = None,
     reference_type: str | None = None,
-):
-    """Distribute all bonus types for a newly achieved rank."""
+) -> bool:
+    """Distribute all bonus types for a newly achieved rank.
+
+    Returns True when at least one bonus ledger entry was actually created
+    (i.e. a real payout happened). Callers should only advance the
+    ``bonused_up_to`` floor when this returns True.
+    """
     total_pct = sum(p for _, p in bonus_configs)
     if total_pct > rank.max_matching_percent:
         scale = rank.max_matching_percent / total_pct
@@ -287,8 +335,9 @@ async def _distribute_rank_bonuses(
             for bt, p in bonus_configs
         ]
 
+    created = False
     for bonus_type, percent in bonus_configs:
-        await _create_bonus_entries(
+        entry = await _create_bonus_entries(
             user_id=user_id,
             source_user_id=source_user_id,
             rank=rank,
@@ -299,6 +348,10 @@ async def _distribute_rank_bonuses(
             reference_id=reference_id,
             reference_type=reference_type,
         )
+        if entry is not None:
+            created = True
+
+    return created
 
 
 async def _create_rank_history(
@@ -451,9 +504,7 @@ async def evaluate_and_process_rank(
                             previous_target = rank.target_volume
                             continue
 
-                        eligible = (rank.target_volume - previous_target).quantize(
-                            WALLET_PRECISION, rounding=ROUND_HALF_UP
-                        )
+                        eligible = _compute_band_eligible(user, rank, previous_target)
                         previous_target = rank.target_volume
                         if eligible <= 0:
                             continue
@@ -462,7 +513,7 @@ async def evaluate_and_process_rank(
                         if not configs:
                             continue
 
-                        await _distribute_rank_bonuses(
+                        distributed = await _distribute_rank_bonuses(
                             user_id=user_id,
                             source_user_id=source_user_id,
                             rank=rank,
@@ -472,6 +523,8 @@ async def evaluate_and_process_rank(
                             reference_id=reference_id,
                             reference_type=reference_type,
                         )
+                        if distributed:
+                            _advance_bonused_up_to(user, rank)
                         result["bonuses_paid"].append({
                             "rank_id": rank.id,
                             "rank_name": rank.name,
@@ -520,10 +573,10 @@ async def evaluate_and_process_rank(
             last_achieved_rank = rank
             continue
 
-        # Calculate eligible amount for this rank
-        eligible = (rank.target_volume - previous_target).quantize(
-            WALLET_PRECISION, rounding=ROUND_HALF_UP
-        )
+        # Calculate eligible amount for this rank (snapshot-in-band: the band
+        # never includes the permanent KYC snapshot floor or already-bonused
+        # volume, so pre-KYC volume generates zero bonus).
+        eligible = _compute_band_eligible(user, rank, previous_target)
         if eligible <= 0:
             previous_target = rank.target_volume
             last_achieved_rank = rank
@@ -540,7 +593,7 @@ async def evaluate_and_process_rank(
         # for ancestor re-evaluation during KYC approval, or when the rank is
         # beyond the matching bonus scope).
         if not skip_bonus and rank.sort_order <= matching_rank_sort:
-            await _distribute_rank_bonuses(
+            distributed = await _distribute_rank_bonuses(
                 user_id=user_id,
                 source_user_id=source_user_id,
                 rank=rank,
@@ -550,6 +603,8 @@ async def evaluate_and_process_rank(
                 reference_id=reference_id,
                 reference_type=reference_type,
             )
+            if distributed:
+                _advance_bonused_up_to(user, rank)
             result["bonuses_paid"].append({
                 "rank_id": rank.id,
                 "rank_name": rank.name,
