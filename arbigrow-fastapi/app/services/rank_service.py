@@ -366,15 +366,26 @@ async def _legacy_evaluate_and_process_rank(
     use_snapshot_volume: bool = False,
     snapshot_volume: Decimal | None = None,
 ) -> dict:
+    """Compatibility entry point for obsolete callers.
+
+    The former implementation incorrectly capped matching payout by the rank
+    reached using only post-KYC volume.  Delegate to the authoritative
+    snapshot-and-band evaluator below so an accidental legacy call can never
+    silently produce a zero payout again.
     """
-    Main entry point called after a deposit approval, KYC approval, or investment purchase.
-    
-    1. Calculates team volume (or uses snapshot from KYC approval)
-    2. Checks if user qualifies for a new rank
-    3. Distributes matching bonuses for any newly achieved ranks (unless skip_bonus=True)
-    4. Saves rank history
-    5. Updates user's current_rank_id
-    """
+    return await evaluate_and_process_rank(
+        user_id=user_id,
+        db=db,
+        source_user_id=source_user_id,
+        reference_id=reference_id,
+        reference_type=reference_type,
+        skip_bonus=skip_bonus,
+        use_snapshot_volume=use_snapshot_volume,
+        snapshot_volume=snapshot_volume,
+    )
+
+    # Deprecated implementation retained below temporarily for source-history
+    # context only. It is unreachable; all calls are routed above.
     result = {"rank_upgraded": False, "bonuses_paid": [], "previous_rank": None, "new_rank": None}
 
     user_result = await db.execute(

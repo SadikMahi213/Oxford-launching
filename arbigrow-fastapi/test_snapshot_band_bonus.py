@@ -456,6 +456,38 @@ def test_t11_snapshot_1200_to_team_2400_pays_gold_band_48_usdt():
     assert user.bonused_up_to == Decimal("2400")
 
 
+# T12: the reported production case. The user was already Gold at the 1,100
+# KYC snapshot; reaching 2,400 pays the full Gold band delta, not zero.
+def test_t12_snapshot_1100_to_team_2400_pays_gold_band_52_usdt():
+    ranks = _make_ranks()
+    configs = [
+        _Config(1, 1, "matching", "2"),
+        _Config(2, 2, "matching", "3"),
+        _Config(3, 3, "matching", "4"),
+        _Config(4, 4, "matching", "5"),
+    ]
+    user = _User(1, rank_id=3, kyc_snapshot="1100", bonused_up_to="1100")
+    result, db, user = _eval(
+        user, ranks=ranks, configs=configs,
+        team_volume=Decimal("2400"), matching_volume=Decimal("1300"),
+    )
+    assert result["rank_upgraded"] is True
+    assert user.current_rank_id == 4
+    assert result["bonuses_paid"] == [{
+        "rank_id": 3,
+        "rank_name": "Gold",
+        "eligible_amount": "1300.00000000000000",
+    }]
+    bonus_amounts = [
+        bonus.bonus_amount
+        for bonus in db.added_bonuses
+        if hasattr(bonus, "bonus_amount")
+    ]
+    assert bonus_amounts == [Decimal("52")]
+    assert user.matching_bonus_wallet == Decimal("52")
+    assert user.bonused_up_to == Decimal("2400")
+
+
 if __name__ == "__main__":
     passed = []
     for name, fn in sorted(globals().items()):
