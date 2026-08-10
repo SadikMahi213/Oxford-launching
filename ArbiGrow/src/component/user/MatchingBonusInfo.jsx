@@ -81,6 +81,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
   const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
   const nextTargetVolume = parseFloat(rankInfo?.next_target_volume || 0);
   const progress = rankInfo?.progress ?? 100;
+  const isKycApproved = user?.kyc_status === "approved" && !rankInfo?.kyc_required;
 
   const getBonusPercent = (rank, type) => {
     if (!rank?.bonus_configs) return 0;
@@ -310,10 +311,10 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   <tbody>
                     {ranks.map((r, idx) => {
                       const isCurrent =
-                        currentRank?.id === r.id;
+                        isKycApproved && currentRank?.id === r.id;
                       const isAchieved =
-                        parseFloat(r.target_volume) <= teamVolume;
-                      const isNext = nextRank?.id === r.id;
+                        isKycApproved && parseFloat(r.target_volume) <= teamVolume;
+                      const isNext = isKycApproved && nextRank?.id === r.id;
                       const bonusMap = {};
                       (r.bonus_configs || []).forEach((bc) => {
                         bonusMap[bc.bonus_type] = parseFloat(bc.bonus_percent);
@@ -420,15 +421,13 @@ export default function MatchingBonusInfo({ setActivePage }) {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {ranks.slice(0, 21).map((r, idx) => {
-                  const prevVolume =
-                    idx > 0
-                      ? parseFloat(ranks[idx - 1].target_volume)
-                      : 0;
-                  const currVolume = parseFloat(r.target_volume);
-                  const rangeLabel =
-                    idx === 0
-                      ? `0 - ${currVolume.toLocaleString()} USDT`
-                      : `${(prevVolume + 1).toLocaleString()} - ${currVolume.toLocaleString()} USDT`;
+                  const bandStart = parseFloat(r.target_volume);
+                  const nextBandStart = ranks[idx + 1]
+                    ? parseFloat(ranks[idx + 1].target_volume)
+                    : null;
+                  const rangeLabel = nextBandStart === null
+                    ? `${bandStart.toLocaleString()}+ USDT`
+                    : `${bandStart.toLocaleString()} - ${nextBandStart.toLocaleString()} USDT`;
                   return (
                     <div
                       key={r.id}

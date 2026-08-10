@@ -423,6 +423,39 @@ def test_t10_snapshot_250_to_team_750_uses_starter_then_silver_rates():
     assert user.bonused_up_to == Decimal("750")
 
 
+# T11: exact production report. A 1,200 KYC snapshot is Gold Leader. When a
+# later approved deposit brings Team Volume to the Platinum threshold (2,400),
+# the entire 1,200 post-KYC delta belongs to Gold's 4% band.
+def test_t11_snapshot_1200_to_team_2400_pays_gold_band_48_usdt():
+    ranks = _make_ranks()
+    configs = [
+        _Config(1, 1, "matching", "2"),
+        _Config(2, 2, "matching", "3"),
+        _Config(3, 3, "matching", "4"),
+        _Config(4, 4, "matching", "5"),
+    ]
+    user = _User(1, kyc_snapshot="1200", bonused_up_to="1200")
+    result, db, user = _eval(
+        user, ranks=ranks, configs=configs,
+        team_volume=Decimal("2400"), matching_volume=Decimal("1200"),
+    )
+    assert result["rank_upgraded"] is True
+    assert user.current_rank_id == 4  # Platinum at the exact 2,400 threshold
+    assert result["bonuses_paid"] == [{
+        "rank_id": 3,
+        "rank_name": "Gold",
+        "eligible_amount": "1200.00000000000000",
+    }]
+    bonus_amounts = [
+        bonus.bonus_amount
+        for bonus in db.added_bonuses
+        if hasattr(bonus, "bonus_amount")
+    ]
+    assert bonus_amounts == [Decimal("48")]
+    assert user.matching_bonus_wallet == Decimal("48")
+    assert user.bonused_up_to == Decimal("2400")
+
+
 if __name__ == "__main__":
     passed = []
     for name, fn in sorted(globals().items()):
