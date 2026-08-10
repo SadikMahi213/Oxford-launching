@@ -415,17 +415,27 @@ async def evaluate_and_process_rank(
         team_volume = snapshot_volume
         personal_volume, _ = await get_team_volume(user_id, db, cutover=cutover)
     else:
-        personal_volume, team_volume = await get_team_volume(user_id, db, cutover=cutover)
+        personal_volume, fresh_team_volume = await get_team_volume(user_id, db, cutover=cutover)
+        # A KYC-approved user's rank-eligible Team Volume is the ACCUMULATED
+        # total: the permanent pre-approval snapshot floor (kyc_approved_team_volume)
+        # plus all post-approval volume. The cutover already excludes pre-approval
+        # deposits, so adding the floor never double-counts. This is what lets a
+        # KYC-approved user cross a threshold on a new deposit (e.g. 180 snapshot
+        # + 20 deposit = 200 = Starter) and have the rank persisted.
+        team_volume = _snapshot_floor(user) + fresh_team_volume
 
     # Update user's team_volume (even if personal_volume is 0)
     user.team_volume = team_volume
 
-    # Users with zero personal deposit are not eligible for matching bonuses.
-    # Exception: the KYC-approval path assigns a rank ONCE from the full
-    # historical snapshot volume (use_snapshot_volume=True) even when the user
-    # has no post-approval personal deposits yet, because the eligible matching
-    # bonus for that rank is paid from the snapshot volume on approval.
-    if personal_volume <= 0 and not use_snapshot_volume:
+    # Skip evaluation only when no post-approval volume has accumulated beyond
+    # the snapshot floor - nothing has changed since the KYC snapshot assigned
+    # the rank, so a rank decision cannot change. This also lets a downline
+    # deposit upgrade a KYC-approved ancestor (personal_volume may be 0) as long
+    # as post-approval team volume moved. The snapshot path
+    # (use_snapshot_volume=True) always evaluates because it assigns the rank
+    # ONCE from the full historical snapshot on approval, even when the user has
+    # no post-approval personal deposits yet.
+    if not use_snapshot_volume and team_volume <= _snapshot_floor(user):
         return result
 
     # Step 2: Find highest qualified rank (10-generation Team Volume)

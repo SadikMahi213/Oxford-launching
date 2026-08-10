@@ -12,8 +12,12 @@ Business policy exercised against the real orchestration in
      "Matching Bonus generated from previous 100,000 = 0." No historical
      bonus is created simply because KYC was approved. Re-running approval
      never re-assigns or duplicates anything.
-  4. After KYC approval, only post-approval deposits drive matching bonuses
-     and future rank upgrades (cutover = kyc_approved_at).
+  4. After KYC approval, RANK eligibility uses the ACCUMULATED volume: the
+     permanent pre-approval snapshot floor (kyc_approved_team_volume) plus
+     post-approval deposits. A KYC-approved user is upgraded the moment their
+     lifetime Team Volume crosses a threshold (e.g. 180 snapshot + 20 deposit
+     = 200 = Starter). Matching bonuses still use only post-approval (cutover)
+     volume, so pre-KYC volume never generates a bonus.
   5. Pre-approval volume NEVER generates a bonus.
 
 Run with: python test_kyc_rank_gate_e2e.py
@@ -87,6 +91,36 @@ class _FakeUser:
         self.kyc_approved_at = None
 
 
+def _sort_order_bounds(stmt):
+    """Return the sort_order bounds from a Rank select, or None.
+
+    Upgrade query:  sort_order > lower AND sort_order <= upper  -> (lower, upper)
+    Catch-up query: sort_order <= limit                          -> (None, limit)
+    """
+    import sqlalchemy.sql.elements as el
+
+    values = []
+    seen = set()
+
+    def walk(node):
+        if id(node) in seen:
+            return
+        seen.add(id(node))
+        if isinstance(node, el.BindParameter):
+            values.append(node.value)
+            return
+        for child in getattr(node, "get_children", lambda: [])():
+            walk(child)
+
+    walk(stmt)
+    ints = [v for v in values if isinstance(v, int)]
+    if not ints:
+        return None
+    if len(ints) == 1:
+        return (None, ints[0])
+    return (ints[0], ints[1])
+
+
 class _FakeDB:
     """Routes the real SQLAlchemy statements issued by evaluate_and_process_rank."""
 
@@ -104,7 +138,17 @@ class _FakeDB:
         if entity == User:
             return _Row(self.user)
         if entity == Rank:
-            return _Row(None, RANKS)
+            bounds = _sort_order_bounds(stmt)
+            ranks = RANKS
+            if bounds:
+                lower, upper = bounds
+                ranks = [
+                    r for r in RANKS
+                    if r.is_active
+                    and (lower is None or r.sort_order > lower)
+                    and (upper is None or r.sort_order <= upper)
+                ]
+            return _Row(None, ranks)
         if entity == RankBonusConfig:
             return _Row(None, CONFIGS)
         if entity == MatchingBonus:
@@ -264,19 +308,22 @@ def test_kyc_approval_with_zero_team_volume_no_rank_no_bonus():
     assert bonuses == [] and histories == []
 
 
-# --- Scenario 3c: controlled case (pre-KYC 190, threshold 200) --------------
+# --- Scenario 3c: snapshot 190 + post-KYC 10 = 200 -> Starter ---------------
 
-def test_controlled_pre_kyc_190_no_rank_then_post_kyc_10_still_no_rank():
-    """The exact acceptance scenario:
+def test_snapshot_floor_plus_post_kyc_volume_grants_rank():
+    """The exact acceptance scenario (reported bug, now fixed):
 
     Pre-KYC Team Volume = 190, rank threshold = 200, KYC approved.
-    Rank calc is allowed but 190 < 200 -> no rank, no bonus, wallet stays 0.
-    Then a post-KYC deposit of 10 makes lifetime = 200, but the eligible
-    post-KYC volume is only 10 -> the user must NOT receive the rank merely
-    because lifetime reached 200.
+    (a) KYC approval snapshot path evaluates 190 < 200 -> no rank yet.
+    (b) A post-KYC deposit of 10 accumulates on top of the permanent snapshot
+        floor: accumulated rank-eligible volume = 190 + 10 = 200 -> Starter is
+        assigned AND persisted (current_rank_id). The rank now agrees with the
+        lifetime Team Volume the API displays. Only the post-KYC 10 generates a
+        matching bonus (10% = 1); the pre-KYC 190 never does.
     """
     user = _FakeUser(32)
     user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
+    user.kyc_approved_team_volume = Decimal("190")
 
     # (a) KYC approval with the pre-KYC snapshot = 190. No rank (below 200).
     result, db, gtv, seen = _run_eval(
@@ -291,18 +338,25 @@ def test_controlled_pre_kyc_190_no_rank_then_post_kyc_10_still_no_rank():
     assert bonuses == [] and histories == []
     assert seen == [Decimal("190")], "rank qualification uses the snapshot once"
 
-    # (b) Post-KYC eligible volume = 10 (lifetime is now 200). The cutover path
-    # only sees the post-approval 10, so no rank and no retroactive bonus.
+    # (b) Post-KYC deposit of 10. Rank qualification sees the accumulated
+    # volume (snapshot floor 190 + post-approval 10 = 200) -> Starter.
     result2, db2, _, seen2 = _run_eval(
         user, kyc_approved=True, personal=Decimal("10"), team=Decimal("10"),
-        qualified_rank=None,
+        qualified_rank=RANKS[0],
     )
-    assert result2["rank_upgraded"] is False
-    assert result2["bonuses_paid"] == []
-    assert user.matching_bonus_wallet == Decimal("0")
+    assert seen2 == [Decimal("200"), Decimal("10")], (
+        "rank qualification uses accumulated volume (snapshot floor + post-KYC)"
+    )
+    assert result2["rank_upgraded"] is True
+    assert result2["new_rank"] == 1
+    assert user.current_rank_id == 1
+    assert user.team_volume == Decimal("200")
     bonuses2, histories2 = _split_added(db2)
-    assert bonuses2 == [] and histories2 == []
-    assert seen2 == [Decimal("10")], "post-KYC volume (not lifetime) drives rank eligibility"
+    assert len(bonuses2) == 1 and bonuses2[0].rank_id == 1 and not bonuses2[0].is_reversed, (
+        "Starter must pay a bonus only on the post-KYC 10 (10% = 1)"
+    )
+    assert user.matching_bonus_wallet == Decimal("1")
+    assert len(histories2) == 1
 
 
 # --- Scenario 3b: re-running KYC approval must not duplicate anything -------
