@@ -115,12 +115,13 @@ async def get_rank_eligible_volume(
     """Return the team volume that may count toward a user's rank.
 
     A user is only eligible once their KYC status is ``approved``. Until then the
-    eligible volume is zero. Once approved, only deposits created at/after
-    ``kyc_approved_at`` count, so pre-approval deposits never qualify.
+    eligible volume is zero. Once approved, rank qualification always uses the
+    lifetime Team Volume.  The KYC snapshot is a matching-bonus exclusion only;
+    it must never remove pre-KYC volume from rank qualification.
     """
     if not await is_kyc_approved(user, db):
         return Decimal("0"), Decimal("0")
-    return await get_team_volume(user.id, db, cutover=user.kyc_approved_at)
+    return await get_team_volume(user.id, db)
 
 
 async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
@@ -237,33 +238,16 @@ def _bonused_floor(user: User) -> Decimal:
     return getattr(user, "bonused_up_to", None) or Decimal("0")
 
 
-def _compute_band_eligible(
-    user: User,
-    rank: Rank,
-    previous_target: Decimal,
-) -> Decimal:
-    """Eligible matching-bonus volume for a single rank band.
+def _advance_bonused_up_to(user: User, volume: Decimal) -> None:
+    """Advance the exact, contiguous matching-bonus watermark.
 
-    The band spans from the highest of the previous rank target, the permanent
-    KYC snapshot floor, and the already-bonused threshold up to this rank's
-    target. This guarantees pre-KYC / already-bonused volume is never counted
-    twice and the delta is exact.
-    """
-    band_start = max(previous_target, _snapshot_floor(user), _bonused_floor(user))
-    band_end = rank.target_volume
-    eligible = max(Decimal("0"), band_end - band_start)
-    return eligible.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
-
-
-def _advance_bonused_up_to(user: User, rank: Rank) -> None:
-    """Record that matching bonus has now been paid up to this rank's target.
-
-    Only called after a successful bonus distribution, so a failed/zero-payout
-    or rolled-back evaluation never advances the floor.
+    This is deliberately a volume value rather than a rank threshold: a deposit
+    can end inside a band, and that partial band must not be paid again on the
+    next approval event.
     """
     current = _bonused_floor(user)
-    if rank.target_volume > current:
-        user.bonused_up_to = rank.target_volume
+    if volume > current:
+        user.bonused_up_to = volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
 
 
 async def _create_bonus_entries(
@@ -371,7 +355,7 @@ async def _create_rank_history(
     db.add(history)
 
 
-async def evaluate_and_process_rank(
+async def _legacy_evaluate_and_process_rank(
     user_id: int,
     db: AsyncSession,
     *,
@@ -534,7 +518,7 @@ async def evaluate_and_process_rank(
                             reference_type=reference_type,
                         )
                         if distributed:
-                            _advance_bonused_up_to(user, rank)
+                            _advance_bonused_up_to(user, rank.target_volume)
                         result["bonuses_paid"].append({
                             "rank_id": rank.id,
                             "rank_name": rank.name,
@@ -614,7 +598,7 @@ async def evaluate_and_process_rank(
                 reference_type=reference_type,
             )
             if distributed:
-                _advance_bonused_up_to(user, rank)
+                _advance_bonused_up_to(user, rank.target_volume)
             result["bonuses_paid"].append({
                 "rank_id": rank.id,
                 "rank_name": rank.name,
@@ -640,5 +624,148 @@ async def evaluate_and_process_rank(
         user.current_rank_id = last_achieved_rank.id
         result["new_rank"] = last_achieved_rank.id
         result["rank_upgraded"] = True
+
+    return result
+
+
+async def evaluate_and_process_rank(
+    user_id: int,
+    db: AsyncSession,
+    *,
+    source_user_id: int | None = None,
+    reference_id: int | None = None,
+    reference_type: str | None = None,
+    skip_bonus: bool = False,
+    use_snapshot_volume: bool = False,
+    snapshot_volume: Decimal | None = None,
+) -> dict:
+    """Refresh rank and credit only newly bonus-eligible Team Volume.
+
+    Rank and bonus processing intentionally have separate inputs:
+
+    * ``team_volume`` is lifetime volume (self + 10 generations) and is the
+      sole basis for the user's current rank.
+    * matching bonus starts at the frozen KYC snapshot and ends at the current
+      lifetime volume.  ``bonused_up_to`` is an exact watermark, not a rank
+      threshold, so a partial band is credited once and only once.
+    """
+    result = {
+        "rank_upgraded": False,
+        "bonuses_paid": [],
+        "previous_rank": None,
+        "new_rank": None,
+    }
+
+    user_result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = user_result.scalar_one_or_none()
+    if not user or await enforce_kyc_rank_gate(user, db):
+        return result
+
+    # KYC approval supplies the already-captured lifetime snapshot. Every
+    # normal deposit event recomputes lifetime Team Volume; never apply a KYC
+    # date cutover here, as that would make rank and dashboard totals diverge.
+    if use_snapshot_volume and snapshot_volume is not None:
+        team_volume = Decimal(snapshot_volume)
+    else:
+        _, team_volume = await get_team_volume(user_id, db)
+    team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+    user.team_volume = team_volume
+
+    # Rank is always refreshed first and is completely independent of whether a
+    # matching-bonus row can be created.
+    qualified_rank = await _get_highest_qualified_rank(team_volume, db)
+    previous_rank_id = user.current_rank_id
+    desired_rank_id = qualified_rank.id if qualified_rank else None
+    if desired_rank_id != previous_rank_id:
+        user.current_rank_id = desired_rank_id
+        result["previous_rank"] = previous_rank_id
+        result["new_rank"] = desired_rank_id
+        result["rank_upgraded"] = bool(qualified_rank)
+        if qualified_rank:
+            await _create_rank_history(
+                user_id=user_id,
+                rank_id=qualified_rank.id,
+                previous_rank_id=previous_rank_id,
+                team_volume=team_volume,
+                db=db,
+            )
+
+    # KYC approval establishes the rank from the snapshot but must never pay
+    # for historical volume. The KYC handler initializes the watermark to the
+    # same snapshot before calling this path.
+    if skip_bonus:
+        return result
+
+    floor = max(_snapshot_floor(user), _bonused_floor(user))
+    if team_volume <= floor:
+        return result
+
+    ranks_result = await db.execute(
+        select(Rank)
+        .where(Rank.is_active == True)
+        .order_by(Rank.target_volume.asc(), Rank.sort_order.asc())
+    )
+    ranks = ranks_result.scalars().all()
+    if not ranks:
+        return result
+
+    rank_ids = [rank.id for rank in ranks]
+    config_rows = await db.execute(
+        select(RankBonusConfig)
+        .where(RankBonusConfig.rank_id.in_(rank_ids))
+        .order_by(RankBonusConfig.sort_order)
+    )
+    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
+    for config in config_rows.scalars().all():
+        bonus_map.setdefault(config.rank_id, []).append(
+            (config.bonus_type, config.bonus_percent)
+        )
+
+    # Each Rank describes the band ending at its target. For example, the
+    # Platinum (2400) rate covers 1000 -> 2400; Team Manager (10000) covers
+    # 2400 -> 10000. A deposit ending inside a band receives that partial band.
+    previous_target = Decimal("0")
+    for rank in ranks:
+        band_start = previous_target
+        band_end = rank.target_volume
+        previous_target = band_end
+
+        payout_from = max(floor, band_start)
+        payout_to = min(team_volume, band_end)
+        if payout_to <= payout_from:
+            continue
+
+        eligible_amount = (payout_to - payout_from).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
+        configs = bonus_map.get(rank.id, [])
+        if not configs:
+            # Do not move the watermark past an unpayable segment. That keeps
+            # the ledger and watermark gapless and makes a configuration repair
+            # safely retryable.
+            break
+
+        distributed = await _distribute_rank_bonuses(
+            user_id=user_id,
+            source_user_id=source_user_id,
+            rank=rank,
+            eligible_amount=eligible_amount,
+            db=db,
+            bonus_configs=configs,
+            reference_id=reference_id,
+            reference_type=reference_type,
+        )
+        if not distributed:
+            break
+
+        _advance_bonused_up_to(user, payout_to)
+        floor = payout_to
+        result["bonuses_paid"].append({
+            "rank_id": rank.id,
+            "rank_name": rank.name,
+            "eligible_amount": str(eligible_amount),
+        })
 
     return result

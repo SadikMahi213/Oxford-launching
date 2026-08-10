@@ -259,9 +259,8 @@ def test_bonus_paid_across_full_10_gen_scope():
     )
 
 
-def test_bonus_capped_by_matching_supported_rank():
-    """Mechanism guard: if matching volume were lower than team volume, bonus
-    payout is still capped at the highest rank the matching volume supports."""
+def test_bonus_uses_lifetime_team_volume_not_post_kyc_volume():
+    """A separate post-KYC volume must not cap the lifetime Team Volume bands."""
     ranks = [
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
@@ -277,8 +276,8 @@ def test_bonus_capped_by_matching_supported_rank():
     )
     assert result["new_rank"] == 4, "rank qualification uses the 10-gen volume (reaches rank 4)"
     paid = result["bonuses_paid"]
-    assert {p["rank_id"] for p in paid} == {1, 2}, (
-        "bonus must be capped at the rank supported by the matching volume"
+    assert {p["rank_id"] for p in paid} == {1, 2, 3, 4}, (
+        "all lifetime Team Volume bands must be paid"
     )
 
 
@@ -296,7 +295,7 @@ def test_bonus_paid_full_when_matching_supports_all_ranks():
     assert {p["rank_id"] for p in result["bonuses_paid"]} == {1, 2}
 
 
-def test_no_bonus_when_matching_volume_supports_no_rank():
+def test_bonus_is_paid_even_before_a_rank_is_achieved():
     ranks = [_Rank(1, "Rank 1", "1000", sort_order=1)]
     configs = [_Config(30, 1, "matching", "10")]
     user = _User(1)
@@ -304,9 +303,8 @@ def test_no_bonus_when_matching_volume_supports_no_rank():
         user, team_volume=Decimal("5000"), matching_volume=Decimal("900"),
         ranks=ranks, configs=configs,
     )
-    assert result["bonuses_paid"] == [], (
-        "matching volume below the first rank target must pay nothing"
-    )
+    assert [p["rank_id"] for p in result["bonuses_paid"]] == [1]
+    assert Decimal(result["bonuses_paid"][0]["eligible_amount"]) == Decimal("1000")
 
 
 def test_catchup_bonus_paid_when_current_rank_in_scope():
@@ -317,14 +315,15 @@ def test_catchup_bonus_paid_when_current_rank_in_scope():
         _Rank(2, "Rank 2", "2000", sort_order=2),
         _Rank(3, "Rank 3", "4000", sort_order=3),
     ]
-    configs = [_Config(40, 3, "matching", "10")]
+    configs = [_Config(40, 1, "matching", "10"), _Config(41, 2, "matching", "10"),
+               _Config(42, 3, "matching", "10")]
     user = _User(1, rank_id=3)
     result, _, _ = _eval(
         user, team_volume=Decimal("5000"), matching_volume=Decimal("5000"),
         ranks=ranks, configs=configs,
     )
-    assert [p["rank_id"] for p in result["bonuses_paid"]] == [3], (
-        "catch-up bonus must be paid for a rank within the shared 10-gen scope"
+    assert [p["rank_id"] for p in result["bonuses_paid"]] == [1, 2, 3], (
+        "all unbonused lifetime bands must be paid in order"
     )
 
 
@@ -333,17 +332,17 @@ def test_catchup_bonus_paid_when_current_rank_within_scope():
         _Rank(1, "Rank 1", "1000", sort_order=1),
         _Rank(2, "Rank 2", "2000", sort_order=2),
     ]
-    configs = [_Config(50, 2, "matching", "10")]
+    configs = [_Config(50, 1, "matching", "10"), _Config(51, 2, "matching", "10")]
     user = _User(1, rank_id=2)
     result, _, _ = _eval(
         user, team_volume=Decimal("3000"), matching_volume=Decimal("3000"),
         ranks=ranks, configs=configs,
     )
-    assert [p["rank_id"] for p in result["bonuses_paid"]] == [2], (
-        "catch-up bonus must pay when the current rank is within the matching scope"
+    assert [p["rank_id"] for p in result["bonuses_paid"]] == [1, 2], (
+        "unbonused bands must be paid in order"
     )
-    assert Decimal(result["bonuses_paid"][0]["eligible_amount"]) == Decimal("1000"), (
-        "catch-up eligible must be the tier delta (target2 - target1 = 2000 - 1000)"
+    assert Decimal(result["bonuses_paid"][1]["eligible_amount"]) == Decimal("1000"), (
+        "the second tier must contain its exact 1000-volume delta"
     )
 
 

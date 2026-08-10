@@ -331,9 +331,10 @@ def test_t6_snapshot_225_catchup_pays_held_ranks():
     assert user.bonused_up_to == Decimal("2400")
 
 
-# T7: snapshot 225, matching volume capped at 900 -> only Silver (275) is paid,
-# Gold's 500 is computed but capped by the matching scope.
-def test_t7_matching_volume_cap_limits_payout():
+# T7: Team Volume is the only volume basis. A separate post-KYC/matching-volume
+# figure must never cap a band payout, because the frozen snapshot is already
+# the permanent exclusion boundary.
+def test_t7_snapshot_floor_not_post_kyc_volume_caps_payout():
     ranks = _make_ranks()[:3]
     configs = _make_configs(ranks)
     user = _User(1, kyc_snapshot="225", bonused_up_to="225")
@@ -343,14 +344,12 @@ def test_t7_matching_volume_cap_limits_payout():
     )
     paid = result["bonuses_paid"]
     paid_ids = [p["rank_id"] for p in paid]
-    assert paid_ids == [2], (
-        "matching volume 900 supports only Silver; Gold must be capped, got %r"
-        % paid_ids
+    assert paid_ids == [2, 3], (
+        "lifetime Team Volume 1000 must pay Silver and Gold, got %r" % paid_ids
     )
     assert paid[0]["eligible_amount"] == "275.00000000000000"
-    assert user.bonused_up_to == Decimal("500"), (
-        "only the paid Silver band may advance the floor"
-    )
+    assert paid[1]["eligible_amount"] == "500.00000000000000"
+    assert user.bonused_up_to == Decimal("1000")
 
 
 # T8: double evaluation must not pay a second bonus
@@ -375,6 +374,26 @@ def test_t8_double_evaluation_no_new_bonus():
         "bonus already paid for every rank; re-evaluation must not re-pay"
     )
     assert user2.bonused_up_to == Decimal("2400")
+
+
+# T9: a deposit may end inside the next rank band. Its partial amount must be
+# paid at that band's rate and the watermark must stop at the exact volume, not
+# at the next rank threshold.
+def test_t9_partial_current_band_uses_exact_snapshot_and_watermark():
+    ranks = _make_ranks() + [_Rank(5, "Team Manager", "10000", sort_order=5)]
+    configs = _make_configs(ranks)
+    user = _User(1, kyc_snapshot="1200", bonused_up_to="1200")
+    result, _, user = _eval(
+        user, ranks=ranks, configs=configs,
+        team_volume=Decimal("2700"), matching_volume=Decimal("1500"),
+    )
+    paid = {row["rank_name"]: Decimal(row["eligible_amount"])
+            for row in result["bonuses_paid"]}
+    assert paid == {
+        "Platinum": Decimal("1200"),
+        "Team Manager": Decimal("300"),
+    }, paid
+    assert user.bonused_up_to == Decimal("2700")
 
 
 if __name__ == "__main__":

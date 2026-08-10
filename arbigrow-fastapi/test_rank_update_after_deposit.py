@@ -239,7 +239,11 @@ def _eval(user, *, personal, team, matching, kyc_approved=True,
     real implementations so outcomes match the live rank ladder.
     """
     db = _FakeDB(user, bonus_rows=bonus_rows)
-    gtv = AsyncMock(return_value=(Decimal(personal), Decimal(team)))
+    # ``team`` represents the new post-snapshot movement in these scenarios.
+    # The live service now returns lifetime Team Volume directly, so model that
+    # here instead of expecting rank_service to add the snapshot itself.
+    lifetime_team = Decimal(team) + (user.kyc_approved_team_volume or Decimal("0"))
+    gtv = AsyncMock(return_value=(Decimal(personal), lifetime_team))
     gmbv = AsyncMock(return_value=(Decimal(personal), Decimal(matching)))
     snap = Decimal(snapshot_volume) if snapshot_volume is not None else None
 
@@ -310,12 +314,10 @@ def test_reported_scenario_180_snapshot_plus_20_deposit_upgrades_to_starter():
         "RankHistory must record the accumulated volume that earned the rank"
     )
 
-    # Matching volume (20) is below the first rank threshold, so no bonus is
-    # paid - the same scope-cap rule as a team-volume-only deposit. Pre-KYC
-    # volume (180) generates no bonus either.
-    assert bonuses == [], "no bonus when matching volume supports no rank"
-    assert result["bonuses_paid"] == []
-    assert user.matching_bonus_wallet == Decimal("0")
+    # The 20 volume after the exact snapshot lies inside the Starter band and
+    # is paid immediately; pre-KYC volume remains excluded.
+    assert [b.eligible_amount for b in bonuses] == [Decimal("20")]
+    assert user.matching_bonus_wallet == Decimal("2")
 
 
 def test_displayed_volume_and_rank_now_agree():
@@ -400,15 +402,15 @@ def test_large_jump_assigns_highest_eligible_rank_and_pays_bands_once():
     assert user.team_volume == Decimal("10100")
 
     paid = result["bonuses_paid"]
-    assert [p["rank_id"] for p in paid] == [1, 2, 3], (
-        "Starter/Silver/Gold must each pay their band"
+    assert [p["rank_id"] for p in paid] == [1, 2, 3, 4], (
+        "every crossed band, including the partial Global band, must pay"
     )
     eligible = [Decimal(p["eligible_amount"]) for p in paid]
-    assert eligible == [Decimal("100"), Decimal("300"), Decimal("500")], (
-        "bands are snapshot-in-band deltas 100/300/500, got %r" % eligible
+    assert eligible == [Decimal("100"), Decimal("300"), Decimal("500"), Decimal("9100")], (
+        "bands are exact snapshot-to-current deltas, got %r" % eligible
     )
-    assert user.matching_bonus_wallet == Decimal("90"), "10% of 900"
-    assert user.bonused_up_to == Decimal("1000")
+    assert user.matching_bonus_wallet == Decimal("1000"), "10% of 10,000"
+    assert user.bonused_up_to == Decimal("10100")
 
     # Re-run with the same volume: every rank's bonus is already paid, so no
     # duplicate payouts and no re-upgrade.
@@ -419,8 +421,8 @@ def test_large_jump_assigns_highest_eligible_rank_and_pays_bands_once():
     assert result2["bonuses_paid"] == [], (
         "re-evaluation must not pay a second bonus"
     )
-    assert user2.matching_bonus_wallet == Decimal("90")
-    assert user2.bonused_up_to == Decimal("1000")
+    assert user2.matching_bonus_wallet == Decimal("1000")
+    assert user2.bonused_up_to == Decimal("10100")
 
 
 # --- No post-approval movement is skipped (guard) ---------------------------
@@ -477,10 +479,7 @@ def test_kyc_approval_snapshot_path_unchanged():
     assert user.team_volume == Decimal("50000")
     bonuses, histories = _split_added(db)
     assert bonuses == [], "pre-KYC snapshot volume must generate no bonus"
-    assert histories == [], (
-        "bands are 0 once the snapshot floor is stored, so no history rows "
-        "(pre-existing behavior)"
-    )
+    assert len(histories) == 1 and histories[0].rank_id == 4
 
 
 if __name__ == "__main__":

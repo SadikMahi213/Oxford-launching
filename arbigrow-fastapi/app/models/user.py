@@ -228,9 +228,9 @@ class User(Base):
         Numeric(24, 14), nullable=True, default=None
     )
 
-    # Highest rank threshold that matching bonus has already been paid up to.
-    # Combined with the permanent kyc_approved_team_volume floor, this prevents
-    # re-paying bonus on volume that was already bonused.
+    # Exact lifetime Team Volume that matching bonus has already been paid up
+    # to. Combined with the permanent KYC snapshot, this prevents a partial
+    # band or a duplicate deposit event from paying the same volume twice.
     bonused_up_to: Mapped[Decimal] = mapped_column(
         Numeric(24, 14),
         nullable=False,

@@ -1032,10 +1032,14 @@ async def update_kyc_status(
             refunded_at = kyc.fee_refunded_at if (kyc and kyc.fee_refunded_at) else datetime.now(timezone.utc)
 
     # KYC Snapshot: capture lifetime team volume on first approval
-    if was_approved and not user.kyc_approved_team_volume:
+    if was_approved and user.kyc_approved_team_volume is None:
         from app.services.rank_service import get_team_volume
         _total_personal, total_team = await get_team_volume(user.id, db)
         user.kyc_approved_team_volume = total_team
+        # The first bonus watermark is the exact frozen snapshot, including a
+        # legitimate zero-volume snapshot. Historical volume must never be
+        # deferred into the first post-KYC deposit payout.
+        user.bonused_up_to = total_team
 
     if was_approved and not user.kyc_approved_at:
         user.kyc_approved_at = datetime.now(timezone.utc)
@@ -1048,12 +1052,10 @@ async def update_kyc_status(
     if was_approved:
         try:
             from app.services.rank_service import evaluate_and_process_rank
-            # Business policy: KYC approval assigns the rank from the full
-            # historical snapshot volume, but that pre-KYC volume generates NO
-            # matching bonus ("Matching Bonus generated from previous 100,000 =
-            # 0"). skip_bonus=True assigns the rank yet pays nothing here; only
-            # post-approval (cutover) deposits drive future bonuses via the
-            # catch-up path in evaluate_and_process_rank.
+            # KYC approval assigns the rank from the full historical snapshot,
+            # but pays no bonus for it. Future payout starts strictly after the
+            # frozen snapshot volume and uses the exact ``bonused_up_to``
+            # watermark maintained by evaluate_and_process_rank.
             await evaluate_and_process_rank(
                 user_id=user.id,
                 db=db,

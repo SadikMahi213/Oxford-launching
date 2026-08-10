@@ -68,18 +68,13 @@ async def get_my_rank(
             "kyc_required": True,
         }
 
-    # Cache the rank-ELIGIBLE volume (only deposits created at/after KYC
-    # approval) so every other consumer reads the same value the rank engine
-    # uses. Pre-approval deposits stay excluded from rank eligibility.
-    _eligible_personal, eligible_team = await get_team_volume(
-        current_user.id,
-        db,
-        cutover=current_user.kyc_approved_at,
-    )
-    current_user.team_volume = eligible_team
+    # Rank and dashboard values are based on lifetime Team Volume. The frozen
+    # KYC snapshot excludes historical volume from matching bonuses only; it
+    # must not alter rank calculation or the volume shown to the user.
+    current_user.team_volume = team_volume
     await db.commit()
 
-    current_rank = await _get_highest_qualified_rank(eligible_team, db)
+    current_rank = await _get_highest_qualified_rank(team_volume, db)
     if not current_rank:
         current_rank = await db.get(Rank, current_user.current_rank_id)
 

@@ -1541,7 +1541,7 @@
     "rate": "Rate",
     "startBuilding": "Start building your team",
     "yourDeposit": "Personal Volume",
-    "ownDepositDesc": "Total approved deposits (never decreases)",
+    "ownDepositDesc": "Total approved deposits",
     "teamVolume": "Team Volume",
     "networkTotal": "Total deposits in your network",
     "toNextRank": "{{amount}} USDT to next rank",

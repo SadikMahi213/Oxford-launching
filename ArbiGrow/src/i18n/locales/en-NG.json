@@ -1704,7 +1704,7 @@
     "nextTarget": "Next Target",
     "noBonuses": "No matching bonuses yet",
     "noRankHistory": "No rank history yet",
-    "ownDepositDesc": "Total approved deposits (never decreases)",
+    "ownDepositDesc": "Total approved deposits",
     "page": "Page {{page}} of {{totalPages}}",
     "progressTo": "Progress to",
     "rank": "Rank",
