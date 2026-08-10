@@ -314,10 +314,10 @@ def test_reported_scenario_180_snapshot_plus_20_deposit_upgrades_to_starter():
         "RankHistory must record the accumulated volume that earned the rank"
     )
 
-    # The 20 volume after the exact snapshot lies inside the Starter band and
-    # is paid immediately; pre-KYC volume remains excluded.
-    assert [b.eligible_amount for b in bonuses] == [Decimal("20")]
-    assert user.matching_bonus_wallet == Decimal("2")
+    # Starter begins at 200. Reaching its exact starting threshold assigns the
+    # rank but creates no band volume yet; pre-KYC volume remains excluded.
+    assert bonuses == []
+    assert user.matching_bonus_wallet == Decimal("0")
 
 
 def test_displayed_volume_and_rank_now_agree():
@@ -402,14 +402,14 @@ def test_large_jump_assigns_highest_eligible_rank_and_pays_bands_once():
     assert user.team_volume == Decimal("10100")
 
     paid = result["bonuses_paid"]
-    assert [p["rank_id"] for p in paid] == [1, 2, 3, 4], (
-        "every crossed band, including the partial Global band, must pay"
+    assert [p["rank_id"] for p in paid] == [1, 2, 3], (
+        "every crossed rank band must pay"
     )
     eligible = [Decimal(p["eligible_amount"]) for p in paid]
-    assert eligible == [Decimal("100"), Decimal("300"), Decimal("500"), Decimal("9100")], (
+    assert eligible == [Decimal("300"), Decimal("500"), Decimal("9100")], (
         "bands are exact snapshot-to-current deltas, got %r" % eligible
     )
-    assert user.matching_bonus_wallet == Decimal("1000"), "10% of 10,000"
+    assert user.matching_bonus_wallet == Decimal("990"), "10% of 9,900"
     assert user.bonused_up_to == Decimal("10100")
 
     # Re-run with the same volume: every rank's bonus is already paid, so no
@@ -421,7 +421,7 @@ def test_large_jump_assigns_highest_eligible_rank_and_pays_bands_once():
     assert result2["bonuses_paid"] == [], (
         "re-evaluation must not pay a second bonus"
     )
-    assert user2.matching_bonus_wallet == Decimal("1000")
+    assert user2.matching_bonus_wallet == Decimal("990")
     assert user2.bonused_up_to == Decimal("10100")
 
 

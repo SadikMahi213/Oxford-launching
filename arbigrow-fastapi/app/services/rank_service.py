@@ -723,14 +723,18 @@ async def evaluate_and_process_rank(
             (config.bonus_type, config.bonus_percent)
         )
 
-    # Each Rank describes the band ending at its target. For example, the
-    # Platinum (2400) rate covers 1000 -> 2400; Team Manager (10000) covers
-    # 2400 -> 10000. A deposit ending inside a band receives that partial band.
-    previous_target = Decimal("0")
-    for rank in ranks:
-        band_start = previous_target
-        band_end = rank.target_volume
-        previous_target = band_end
+    # A rank's percentage applies *after* that rank has been achieved, until
+    # the next rank's target. For example, Starter (200) pays 2% from
+    # 200 -> 500; Silver (500) pays 3% from 500 -> 1000. No matching bonus is
+    # paid for volume below the first rank target. A deposit ending inside a
+    # band receives that exact partial band at the current rank's percentage.
+    for index, rank in enumerate(ranks):
+        band_start = rank.target_volume
+        band_end = (
+            ranks[index + 1].target_volume
+            if index + 1 < len(ranks)
+            else team_volume
+        )
 
         payout_from = max(floor, band_start)
         payout_to = min(team_volume, band_end)

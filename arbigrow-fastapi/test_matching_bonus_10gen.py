@@ -254,8 +254,8 @@ def test_bonus_paid_across_full_10_gen_scope():
     assert result["rank_upgraded"] is True
     assert result["new_rank"] == 4, "rank qualification uses the 10-gen volume (reaches rank 4)"
     paid = result["bonuses_paid"]
-    assert {p["rank_id"] for p in paid} == {1, 2, 3, 4}, (
-        "bonus must be paid for all ranks in the shared 10-gen scope"
+    assert {p["rank_id"] for p in paid} == {1, 2, 3}, (
+        "bonus must be paid for every crossed rank band"
     )
 
 
@@ -276,7 +276,7 @@ def test_bonus_uses_lifetime_team_volume_not_post_kyc_volume():
     )
     assert result["new_rank"] == 4, "rank qualification uses the 10-gen volume (reaches rank 4)"
     paid = result["bonuses_paid"]
-    assert {p["rank_id"] for p in paid} == {1, 2, 3, 4}, (
+    assert {p["rank_id"] for p in paid} == {1, 2, 3}, (
         "all lifetime Team Volume bands must be paid"
     )
 
@@ -292,19 +292,18 @@ def test_bonus_paid_full_when_matching_supports_all_ranks():
         user, team_volume=Decimal("2000"), matching_volume=Decimal("2000"),
         ranks=ranks, configs=configs,
     )
-    assert {p["rank_id"] for p in result["bonuses_paid"]} == {1, 2}
+    assert {p["rank_id"] for p in result["bonuses_paid"]} == {1}
 
 
-def test_bonus_is_paid_even_before_a_rank_is_achieved():
+def test_no_bonus_is_paid_before_starter_rank_is_achieved():
     ranks = [_Rank(1, "Rank 1", "1000", sort_order=1)]
     configs = [_Config(30, 1, "matching", "10")]
     user = _User(1)
     result, _, _ = _eval(
-        user, team_volume=Decimal("5000"), matching_volume=Decimal("900"),
+        user, team_volume=Decimal("900"), matching_volume=Decimal("900"),
         ranks=ranks, configs=configs,
     )
-    assert [p["rank_id"] for p in result["bonuses_paid"]] == [1]
-    assert Decimal(result["bonuses_paid"][0]["eligible_amount"]) == Decimal("1000")
+    assert result["bonuses_paid"] == []
 
 
 def test_catchup_bonus_paid_when_current_rank_in_scope():

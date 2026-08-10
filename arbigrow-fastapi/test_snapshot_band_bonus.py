@@ -225,8 +225,9 @@ def _paid_eligibles(result):
     return [p["eligible_amount"] for p in result["bonuses_paid"]]
 
 
-# T1: snapshot 225 at Silver -> eligible 275 (NOT 300), bonus 8.25 @ 3%
-def test_t1_snapshot_225_silver_band_is_275():
+# T1: snapshot 225 is inside the Starter band (200 -> 500), so only its
+# remaining 275 volume earns the Starter percentage.
+def test_t1_snapshot_225_starter_band_is_275():
     ranks = _make_ranks()
     configs = _make_configs(ranks)
     user = _User(1, kyc_snapshot="225", bonused_up_to="225")
@@ -235,18 +236,18 @@ def test_t1_snapshot_225_silver_band_is_275():
         team_volume=Decimal("500"), matching_volume=Decimal("500"),
     )
     paid = result["bonuses_paid"]
-    silver = [p for p in paid if p["rank_id"] == 2]
-    assert silver, "Silver bonus must be paid"
-    assert silver[0]["eligible_amount"] == "275.00000000000000", (
-        "Silver band must be 500 - max(200, 225, 225) = 275, got %s"
-        % silver[0]["eligible_amount"]
+    starter = [p for p in paid if p["rank_id"] == 1]
+    assert starter, "Starter bonus must be paid"
+    assert starter[0]["eligible_amount"] == "275.00000000000000", (
+        "Starter band must be 500 - max(200, 225, 225) = 275, got %s"
+        % starter[0]["eligible_amount"]
     )
     assert user.bonused_up_to == Decimal("500"), (
         "bonused_up_to must advance to Silver target after payout"
     )
 
 
-# T2: snapshot 225 reaching Platinum -> bands [0, 275, 500, 1400]
+# T2: snapshot 225 reaching Platinum -> Starter/Silver/Gold bands [275, 500, 1400]
 def test_t2_snapshot_225_all_bands_exact():
     ranks = _make_ranks()
     configs = _make_configs(ranks)
@@ -259,14 +260,14 @@ def test_t2_snapshot_225_all_bands_exact():
     assert eligible == [Decimal("275"), Decimal("500"), Decimal("1400")], (
         "Silver/Gold/Platinum bands must be [275, 500, 1400], got %r" % eligible
     )
-    # Starter band is entirely below the 225 snapshot floor -> no bonus row.
-    assert all(p["rank_id"] != 1 for p in result["bonuses_paid"]), (
-        "Starter must generate no bonus (band 0)"
+    # Platinum starts at 2400, so it has no volume to pay at the exact boundary.
+    assert all(p["rank_id"] != 4 for p in result["bonuses_paid"]), (
+        "Platinum must generate no bonus at its starting boundary"
     )
     assert user.bonused_up_to == Decimal("2400")
 
 
-# T3: no snapshot, full volume from 0 -> bands [200, 300, 500, 1400]
+# T3: no snapshot: no bonus before Starter is achieved at 200.
 def test_t3_no_snapshot_bands_are_rank_deltas():
     ranks = _make_ranks()
     configs = _make_configs(ranks)
@@ -276,13 +277,12 @@ def test_t3_no_snapshot_bands_are_rank_deltas():
         team_volume=Decimal("2400"), matching_volume=Decimal("2400"),
     )
     eligible = [Decimal(p["eligible_amount"]) for p in result["bonuses_paid"]]
-    assert eligible == [Decimal("200"), Decimal("300"),
-                        Decimal("500"), Decimal("1400")], (
-        "full-delta bands must be [200, 300, 500, 1400], got %r" % eligible
+    assert eligible == [Decimal("300"), Decimal("500"), Decimal("1400")], (
+        "rank bands must be [300, 500, 1400], got %r" % eligible
     )
 
 
-# T4: snapshot 200 reaching Gold -> bands [0, 300, 500]
+# T4: snapshot 200 reaching Gold's band -> Starter/Silver/Gold [300, 500, 500]
 def test_t4_snapshot_200_gold_bands():
     ranks = _make_ranks()[:3]
     configs = _make_configs(ranks)
@@ -292,8 +292,8 @@ def test_t4_snapshot_200_gold_bands():
         team_volume=Decimal("1500"), matching_volume=Decimal("1500"),
     )
     eligible = [Decimal(p["eligible_amount"]) for p in result["bonuses_paid"]]
-    assert eligible == [Decimal("300"), Decimal("500")], (
-        "Silver/Gold bands must be [300, 500], got %r" % eligible
+    assert eligible == [Decimal("300"), Decimal("500"), Decimal("500")], (
+        "Starter/Silver/Gold bands must be [300, 500, 500], got %r" % eligible
     )
 
 
@@ -344,8 +344,8 @@ def test_t7_snapshot_floor_not_post_kyc_volume_caps_payout():
     )
     paid = result["bonuses_paid"]
     paid_ids = [p["rank_id"] for p in paid]
-    assert paid_ids == [2, 3], (
-        "lifetime Team Volume 1000 must pay Silver and Gold, got %r" % paid_ids
+    assert paid_ids == [1, 2], (
+        "lifetime Team Volume 1000 must pay Starter and Silver, got %r" % paid_ids
     )
     assert paid[0]["eligible_amount"] == "275.00000000000000"
     assert paid[1]["eligible_amount"] == "500.00000000000000"
@@ -390,10 +390,37 @@ def test_t9_partial_current_band_uses_exact_snapshot_and_watermark():
     paid = {row["rank_name"]: Decimal(row["eligible_amount"])
             for row in result["bonuses_paid"]}
     assert paid == {
-        "Platinum": Decimal("1200"),
-        "Team Manager": Decimal("300"),
+        "Gold": Decimal("1200"),
+        "Platinum": Decimal("300"),
     }, paid
     assert user.bonused_up_to == Decimal("2700")
+
+
+# T10: user-reported scenario. Starter's rate applies from 200 -> 500 and
+# Silver's rate from 500 -> 1000, so a 250 snapshot followed by 500 volume
+# earns 250 at 2% and 250 at 3%.
+def test_t10_snapshot_250_to_team_750_uses_starter_then_silver_rates():
+    ranks = _make_ranks()
+    configs = [
+        _Config(1, 1, "matching", "2"),
+        _Config(2, 2, "matching", "3"),
+        _Config(3, 3, "matching", "4"),
+        _Config(4, 4, "matching", "5"),
+    ]
+    user = _User(1, kyc_snapshot="250", bonused_up_to="250")
+    result, db, user = _eval(
+        user, ranks=ranks, configs=configs,
+        team_volume=Decimal("750"), matching_volume=Decimal("500"),
+    )
+    assert [Decimal(row["eligible_amount"]) for row in result["bonuses_paid"]] == [
+        Decimal("250"), Decimal("250"),
+    ]
+    assert [bonus.bonus_amount for bonus in db.added_bonuses if hasattr(bonus, "bonus_amount")] == [
+        Decimal("5"), Decimal("7.5"),
+    ]
+    assert user.matching_bonus_wallet == Decimal("12.5")
+    assert user.current_rank_id == 2  # Silver Leader
+    assert user.bonused_up_to == Decimal("750")
 
 
 if __name__ == "__main__":
