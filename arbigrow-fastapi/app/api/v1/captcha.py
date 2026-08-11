@@ -1,11 +1,10 @@
 import hashlib
 import secrets
-import string
 from datetime import datetime, timedelta, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -31,6 +30,11 @@ CAPTCHA_EXPIRY_MINUTES = 2
 CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
+# Controlled, unambiguous uppercase alphanumeric charset.
+# Uppercase-only so validation can safely be case-insensitive, and
+# characters that are easily confused (O/0, I/1/l, S/5, B/8) are excluded.
+CAPTCHA_CHARSET = "ACDEFGHJKLMNPQRTUVWXYZ234679"
+
 
 async def _get_captcha_timer_seconds(db) -> int:
     result = await db.execute(
@@ -45,9 +49,17 @@ async def _get_captcha_timer_seconds(db) -> int:
     return 60
 
 
-def _generate_captcha_text(length: int = 8) -> str:
-    chars = string.ascii_letters + string.digits
-    return "".join(secrets.choice(chars) for _ in range(length))
+def _generate_captcha_text(length: int = 6) -> str:
+    return "".join(secrets.choice(CAPTCHA_CHARSET) for _ in range(length))
+
+
+def _normalize_captcha_input(value: str) -> str:
+    """Trim whitespace and normalize case before comparing.
+
+    Generated captchas are uppercase-only, so uppercasing user input makes
+    validation case-insensitive without weakening it.
+    """
+    return (value or "").strip().upper()
 
 
 def _hash_captcha(text: str, salt: str) -> str:
@@ -103,6 +115,19 @@ async def get_next_captcha(
     salt = secrets.token_hex(8)
     text_hash = _hash_captcha(captcha_text, salt)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=CAPTCHA_EXPIRY_MINUTES)
+
+    # Refresh behavior: once a new captcha is issued, any previously issued
+    # (still unused) captcha for this user must no longer be accepted.
+    await db.execute(
+        update(CaptchaChallenge)
+        .where(
+            and_(
+                CaptchaChallenge.user_id == user_id,
+                CaptchaChallenge.is_used == False,
+            )
+        )
+        .values(is_used=True)
+    )
 
     challenge = CaptchaChallenge(
         user_id=user_id,
@@ -183,7 +208,7 @@ async def submit_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
-    expected_hash = _hash_captcha(body.user_input.strip(), challenge.salt)
+    expected_hash = _hash_captcha(_normalize_captcha_input(body.user_input), challenge.salt)
     is_correct = expected_hash == challenge.captcha_text_hash
 
     challenge.is_used = True
@@ -191,7 +216,7 @@ async def submit_captcha(
     earning = CaptchaEarning(
         user_id=user_id,
         captcha_text_original=challenge.captcha_text_hash,
-        user_input=body.user_input.strip(),
+        user_input=_normalize_captcha_input(body.user_input),
         is_correct=is_correct,
         amount_earned=Decimal("0"),
     )

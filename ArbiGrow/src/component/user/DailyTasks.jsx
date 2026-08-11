@@ -244,14 +244,25 @@ export default function DailyTasks() {
             {/* Captcha display */}
             {captcha && !result && !expired && (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-black/40 border border-white/10 text-center">
-                  <img
-                    src={`data:image/png;base64,${captcha.captcha_image}`}
-                    alt="captcha"
-                    className="mx-auto rounded-lg select-none"
-                    style={{ maxWidth: "100%", height: "auto" }}
-                    draggable={false}
-                  />
+                <div className="flex items-center justify-center gap-3">
+                  <div className="p-3 rounded-xl bg-black/40 border border-white/10 text-center flex-1 max-w-[340px]">
+                    <img
+                      src={`data:image/png;base64,${captcha.captcha_image}`}
+                      alt="captcha"
+                      className="mx-auto rounded-lg select-none w-full"
+                      style={{ maxWidth: "100%", height: "auto" }}
+                      draggable={false}
+                    />
+                  </div>
+                  <button
+                    onClick={fetchCaptcha}
+                    disabled={loading || submitting}
+                    title={t('dailyTasks.getNewCaptcha')}
+                    aria-label={t('dailyTasks.getNewCaptcha')}
+                    className="shrink-0 p-3 rounded-xl bg-white/5 border border-white/10 text-gray-300 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+                  </button>
                 </div>
 
                 <input
@@ -262,7 +273,11 @@ export default function DailyTasks() {
                   disabled={submitting}
                   placeholder={t('dailyTasks.captchaPlaceholder')}
                   autoFocus
-                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-lg tracking-widest"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-xl tracking-widest uppercase"
                 />
 
                 <button
