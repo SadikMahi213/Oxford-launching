@@ -175,6 +175,54 @@ def test_endpoint_empty():
     assert resp["data"] == []
 
 
+def test_endpoint_returns_refund_deep_in_history_with_limit_100():
+    # Regression: the frontend now fetches wallet transactions with
+    # page=1&limit=100. A KYC refund older than the default 20-row page
+    # must still be reachable in a single request (no hidden truncation).
+    refund = _wt(
+        150,
+        7,
+        WalletTransactionType.kyc_fee_refund,
+        Decimal("2"),
+        ref_id=99,
+        before=Decimal("2"),
+        after=Decimal("0"),
+        created=TS.replace(hour=1),
+    )
+    filler = [
+        _wt(
+            150 - i,
+            7,
+            WalletTransactionType.kyc_fee_hold,
+            Decimal("2"),
+            status=WalletTransactionStatus.held,
+            created=TS.replace(hour=2 + (i % 22), minute=i % 60),
+        )
+        for i in range(30)
+    ]
+    # newest-first ordering: the refund is the oldest row (index 30 of 31)
+    rows = [refund] + filler
+    resp, _ = _call_endpoint(rows, total=len(rows), page=1, limit=100)
+    assert resp["total"] == 31
+    assert len(resp["data"]) == 31
+    refund_row = next(
+        (r for r in resp["data"] if r["type"] == "kyc_fee_refund"),
+        None,
+    )
+    assert refund_row is not None, "KYC refund must not be truncated at limit=100"
+    assert refund_row["id"] == 150
+    assert refund_row["amount"] == 2.0
+
+
+def test_endpoint_default_limit_does_not_truncate_frontend_fetch():
+    # The frontend never relies on the 20-row default: it explicitly
+    # requests limit=100. Sanity check the server accepts that upper bound.
+    rows = [_wt(i, 7, WalletTransactionType.kyc_fee_refund, Decimal("1"), created=TS.replace(hour=i % 24)) for i in range(1, 101)]
+    resp, _ = _call_endpoint(rows, total=100, page=1, limit=100)
+    assert resp["total"] == 100
+    assert len(resp["data"]) == 100
+
+
 # ── Refund write-path tests ───────────────────────────────────────────────
 
 
