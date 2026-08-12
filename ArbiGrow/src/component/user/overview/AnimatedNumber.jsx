@@ -10,6 +10,7 @@ function useAnimatedValue(target, duration = 800) {
     const diff = target - start
     if (Math.abs(diff) < 0.5) {
       prevRef.current = target
+      rafRef.current = requestAnimationFrame(() => setDisplay(target))
       return
     }
     const startTime = performance.now()
