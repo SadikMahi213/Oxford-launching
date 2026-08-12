@@ -2383,9 +2383,10 @@
     "sent": "Dihantar!"
   },
   "liveStats": {
+    "livePlatformActivity": "Aktiviti Platform Langsung",
     "liveOnline": "Dalam Talian Langsung",
     "tasksCompletedToday": "Tugasan Selesai Hari Ini",
-    "earningsPaidToday": "Pendapatan Dibayar Hari Ini",
+    "platformEarningsActivity": "Aktiviti Pendapatan Platform",
     "usersOnlineNow": "pengguna dalam talian sekarang",
     "completedToday": "selesai hari ini",
     "paidToday": "dibayar kepada pengguna hari ini",

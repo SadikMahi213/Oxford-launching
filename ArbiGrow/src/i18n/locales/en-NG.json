@@ -2383,9 +2383,10 @@
     "titleHighlight": "Absolute Asset Protection"
   },
   "liveStats": {
+    "livePlatformActivity": "Live Platform Activity",
     "liveOnline": "Live Online",
     "tasksCompletedToday": "Tasks Don Today",
-    "earningsPaidToday": "Today Earning Wey Don Pay",
+    "platformEarningsActivity": "Platform Earning Aktiviti",
     "usersOnlineNow": "users online now",
     "completedToday": "don finish today",
     "paidToday": "don pay users today",

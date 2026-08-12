@@ -2381,9 +2381,10 @@
     "sent": "Naipadala!"
   },
   "liveStats": {
+    "livePlatformActivity": "Live na Aktibidad ng Platform",
     "liveOnline": "Live Online",
     "tasksCompletedToday": "Mga Gawain Natapos Ngayon",
-    "earningsPaidToday": "Mga Kita Na-Bayad Ngayon",
+    "platformEarningsActivity": "Aktibidad ng Kita ng Platform",
     "usersOnlineNow": "mga user online ngayon",
     "completedToday": "natapos ngayon",
     "paidToday": "binayaran sa mga user ngayon",

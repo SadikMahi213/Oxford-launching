@@ -2344,9 +2344,10 @@
     "sent": "পাঠানো হয়েছে!"
   },
   "liveStats": {
+    "livePlatformActivity": "লাইভ প্ল্যাটফর্ম কার্যকলাপ",
     "liveOnline": "লাইভ অনলাইন",
     "tasksCompletedToday": "আজ সম্পন্ন কাজ",
-    "earningsPaidToday": "আজ পরিশোধিত আয়",
+    "platformEarningsActivity": "প্ল্যাটফর্ম আয় কার্যকলাপ",
     "usersOnlineNow": "এখন অনলাইন ব্যবহারকারী",
     "completedToday": "আজ সম্পন্ন হয়েছে",
     "paidToday": "আজ ব্যবহারকারীদের পরিশোধ",

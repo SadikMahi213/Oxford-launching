@@ -2383,9 +2383,10 @@
     "sent": "Đã gửi!"
   },
   "liveStats": {
+    "livePlatformActivity": "Hoạt động Nền tảng Trực tiếp",
     "liveOnline": "Trực tuyến",
     "tasksCompletedToday": "Nhiệm vụ Hoàn thành Hôm nay",
-    "earningsPaidToday": "Thu nhập Đã trả Hôm nay",
+    "platformEarningsActivity": "Hoạt động Thu nhập Nền tảng",
     "usersOnlineNow": "người dùng trực tuyến hiện tại",
     "completedToday": "hoàn thành hôm nay",
     "paidToday": "đã trả cho người dùng hôm nay",

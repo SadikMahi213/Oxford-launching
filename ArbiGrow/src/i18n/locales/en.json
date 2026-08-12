@@ -2344,9 +2344,10 @@
     "err_general": "Something went wrong"
   },
   "liveStats": {
+    "livePlatformActivity": "Live Platform Activity",
     "liveOnline": "Live Online",
     "tasksCompletedToday": "Tasks Completed Today",
-    "earningsPaidToday": "Today's Earnings Paid",
+    "platformEarningsActivity": "Platform Earnings Activity",
     "usersOnlineNow": "users online now",
     "completedToday": "completed today",
     "paidToday": "paid to users today",

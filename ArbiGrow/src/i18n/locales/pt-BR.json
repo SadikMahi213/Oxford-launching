@@ -2383,9 +2383,10 @@
     "sent": "Enviado!"
   },
   "liveStats": {
+    "livePlatformActivity": "Atividade da Plataforma ao Vivo",
     "liveOnline": "Online ao Vivo",
     "tasksCompletedToday": "Tarefas Concluídas Hoje",
-    "earningsPaidToday": "Ganhos Pagos Hoje",
+    "platformEarningsActivity": "Atividade de Ganhos da Plataforma",
     "usersOnlineNow": "usuários online agora",
     "completedToday": "concluído hoje",
     "paidToday": "pago aos usuários hoje",

@@ -2383,9 +2383,10 @@
     "sent": "بھیج دیا گیا!"
   },
   "liveStats": {
+    "livePlatformActivity": "لائیو پلیٹ فارم سرگرمی",
     "liveOnline": "لائیو آن لائن",
     "tasksCompletedToday": "آج مکمل شدہ کام",
-    "earningsPaidToday": "آج ادا کی گئی کمائی",
+    "platformEarningsActivity": "پلیٹ فارم آمدنی کی سرگرمی",
     "usersOnlineNow": "ابھی آن لائن صارفین",
     "completedToday": "آج مکمل ہوا",
     "paidToday": "آج صارفین کو ادائیگی",

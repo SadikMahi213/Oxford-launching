@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Users, CheckCircle2, DollarSign } from "lucide-react"
-import { useLiveStatsStore, liveStatsActions } from "../../../store/liveStatsStore.js"
+import { Users, CheckCircle2, BarChart3 } from "lucide-react"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
+import { useLiveActivity } from "./liveActivitySimulation.js"
 import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js"
 
 const SPIN_KEYFRAMES = `
@@ -40,9 +40,9 @@ const CIRCULAR_STATS = [
     text: "#60a5fa",
   },
   {
-    key: "earnings_paid_today",
-    labelKey: "liveStats.earningsPaidToday",
-    icon: DollarSign,
+    key: "platform_earnings_activity",
+    labelKey: "liveStats.platformEarningsActivity",
+    icon: BarChart3,
     format: fmtEarnings,
     ring: "rgba(251,191,36,0.9)",
     ringSoft: "rgba(251,191,36,0.25)",
@@ -83,14 +83,9 @@ const OFACryptocurrency = () => {
   const coinRef = useRef(null)
   const [mounted, setMounted] = useState(false)
 
-  const data = useLiveStatsStore((s) => s.data)
+  const stats = useLiveActivity()
 
   useEffect(() => { setMounted(true) }, [])
-
-  useEffect(() => {
-    liveStatsActions.subscribe()
-    return () => liveStatsActions.unsubscribe()
-  }, [])
 
   useEffect(() => {
     const card = cardRef.current
@@ -183,10 +178,16 @@ const OFACryptocurrency = () => {
           {t("overview.ofaCoin.description")}
         </p>
 
+        {/* Live Platform Activity */}
+        <div className="flex items-center justify-center gap-1.5 mt-5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)] animate-pulse" />
+          <span className="text-[9px] text-gray-400 uppercase tracking-wider">{t("liveStats.livePlatformActivity")}</span>
+        </div>
+
         {/* Three Circular Statistics */}
-        <div className="grid grid-cols-3 gap-2 mt-5">
+        <div className="grid grid-cols-3 gap-2 mt-2">
           {CIRCULAR_STATS.map((stat) => (
-            <CircularStat key={stat.key} stat={stat} value={data ? data[stat.key] : 0} />
+            <CircularStat key={stat.key} stat={stat} value={stats[stat.key]} />
           ))}
         </div>
 

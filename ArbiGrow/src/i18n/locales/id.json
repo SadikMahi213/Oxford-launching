@@ -2383,9 +2383,10 @@
     "sent": "Terkirim!"
   },
   "liveStats": {
+    "livePlatformActivity": "Aktivitas Platform Langsung",
     "liveOnline": "Online Langsung",
     "tasksCompletedToday": "Tugas Selesai Hari Ini",
-    "earningsPaidToday": "Pendapatan Dibayar Hari Ini",
+    "platformEarningsActivity": "Aktivitas Pendapatan Platform",
     "usersOnlineNow": "pengguna online sekarang",
     "completedToday": "selesai hari ini",
     "paidToday": "dibayar ke pengguna hari ini",
