@@ -1659,13 +1659,21 @@
     "titleHighlight": "Tuân Thủ"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "kiếm được {{amount}} từ nhiệm vụ captcha",
+      "withdrawal": "Rút {{amount}}",
+      "signup": "đã tham gia nền tảng",
+      "invest": "bắt đầu kiếm lợi nhuận hằng ngày",
+      "captcha": "hoàn thành xác minh captcha"
+    },
     "from": "từ",
     "hoursAgo": "{{count}} giờ trước",
     "justNow": "Vừa xong",
     "minutesAgo": "{{count}} phút trước",
     "pausedAdmin": "Hoạt động bị tạm dừng bởi quản trị viên",
     "pausedWeekend": "Hoạt động tạm dừng vào cuối tuần (giờ Anh)",
-    "title": "Hoạt Động Trực Tiếp Toàn Cầu"
+    "title": "Hoạt Động Trực Tiếp Toàn Cầu",
+    "simulatedNotice": "Hoạt động demo — dữ liệu mô phỏng để minh họa"
   },
   "market": {
     "connecting": "Đang kết nối tới Binance..."

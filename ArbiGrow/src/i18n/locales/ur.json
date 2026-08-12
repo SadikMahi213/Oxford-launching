@@ -1659,13 +1659,21 @@
     "titleHighlight": "تعمیل"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "کیپچا کام سے {{amount}} کمائے",
+      "withdrawal": "{{amount}} کی نکلوانی",
+      "signup": "پلیٹ فارم میں شامل ہوئے",
+      "invest": "روزانہ منافع کمانا شروع کیا",
+      "captcha": "کیپچا تصدیق مکمل کی"
+    },
     "from": "سے",
     "hoursAgo": "{{count}} گھنٹے پہلے",
     "justNow": "ابھی",
     "minutesAgo": "{{count}} منٹ پہلے",
     "pausedAdmin": "ایڈمن نے سرگرمی روکی",
     "pausedWeekend": "ہفتے کے آخر میں سرگرمی روکی گئی (UK وقت)",
-    "title": "عالمی لائیو سرگرمی"
+    "title": "عالمی لائیو سرگرمی",
+    "simulatedNotice": "ڈیمو سرگرمی — وضاحت کے لیے نقلی ڈیٹا"
   },
   "market": {
     "connecting": "Binance سے منسلک ہو رہا ہے..."

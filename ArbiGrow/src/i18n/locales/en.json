@@ -2236,13 +2236,21 @@
     "subtitle": "Backed by leading venture capital firms and strategic partners"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "earned {{amount}} from captcha task",
+      "withdrawal": "Withdrawal of {{amount}}",
+      "signup": "joined the platform",
+      "invest": "started earning daily returns",
+      "captcha": "completed a captcha task"
+    },
     "title": "Global Live Activity",
     "justNow": "Just now",
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "from": "from",
     "pausedWeekend": "Activity paused on weekends (UK time)",
-    "pausedAdmin": "Activity paused by admin"
+    "pausedAdmin": "Activity paused by admin",
+    "simulatedNotice": "Demo activity · simulated data, not real transactions"
   },
   "homePage": {
     "imageAlt": "Financial Services",

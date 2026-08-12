@@ -1657,13 +1657,21 @@
     "titleHighlight": "Pagsunod"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "nakakuha ng {{amount}} mula sa captcha task",
+      "withdrawal": "Pag-withdraw ng {{amount}}",
+      "signup": "sumali sa platform",
+      "invest": "nagsimulang kumita ng araw-araw na returns",
+      "captcha": "nakumpleto ang captcha verification"
+    },
     "from": "mula",
     "hoursAgo": "{{count}}h ang nakalipas",
     "justNow": "Kakayan lang",
     "minutesAgo": "{{count}}m ang nakalipas",
     "pausedAdmin": "Na-pause ang aktibidad ng admin",
     "pausedWeekend": "Na-pause ang aktibidad tuwing weekend (oras sa UK)",
-    "title": "Pandaigdigang Live Activity"
+    "title": "Pandaigdigang Live Activity",
+    "simulatedNotice": "Demo activity — simulated data para sa ilustrasyon"
   },
   "market": {
     "connecting": "Kumukonekta sa Binance..."

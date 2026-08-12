@@ -61,6 +61,16 @@
   -webkit-text-fill-color: transparent;
 }
 
+.live-feed-simulated {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(148, 163, 184, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .live-feed-scroll {
   height: 132px;
   overflow: hidden;

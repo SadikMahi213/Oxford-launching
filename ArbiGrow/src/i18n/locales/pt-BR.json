@@ -1659,13 +1659,21 @@
     "titleHighlight": "Conformidade"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "ganhou {{amount}} em tarefas de captcha",
+      "withdrawal": "Saque de {{amount}}",
+      "signup": "entrou na plataforma",
+      "invest": "começou a ganhar retornos diários",
+      "captcha": "concluiu uma verificação de captcha"
+    },
     "from": "de",
     "hoursAgo": "{{count}} h atrás",
     "justNow": "Agora mesmo",
     "minutesAgo": "{{count}} min atrás",
     "pausedAdmin": "Atividade pausada pelo administrador",
     "pausedWeekend": "Atividade pausada nos fins de semana (horário do Reino Unido)",
-    "title": "Atividade Global ao Vivo"
+    "title": "Atividade Global ao Vivo",
+    "simulatedNotice": "Atividade de demonstração — dados simulados para ilustração"
   },
   "market": {
     "connecting": "Conectando à Binance..."

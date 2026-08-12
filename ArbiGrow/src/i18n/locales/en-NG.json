@@ -1577,13 +1577,21 @@
     "titleHighlight": "Compliance"
   },
   "liveActivityFeed": {
+    "actions": {
+      "earn": "earned {{amount}} from captcha task",
+      "withdrawal": "Withdrawal of {{amount}}",
+      "signup": "joined the platform",
+      "invest": "started earning daily returns",
+      "captcha": "completed a captcha task"
+    },
     "from": "from",
     "hoursAgo": "{{count}}h ago",
     "justNow": "Just now",
     "minutesAgo": "{{count}}m ago",
     "pausedAdmin": "Activity paused by admin",
     "pausedWeekend": "Activity paused on weekends (UK time)",
-    "title": "Global Live Activity"
+    "title": "Global Live Activity",
+    "simulatedNotice": "Demo activity · simulated data, not real transactions"
   },
   "market": {
     "connecting": "Connecting to Binance..."
