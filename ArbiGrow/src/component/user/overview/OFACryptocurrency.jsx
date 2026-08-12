@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Users, CheckCircle2, Zap } from "lucide-react"
+import { Users, CheckCircle2, DollarSign } from "lucide-react"
+import { useLiveStatsStore, liveStatsActions } from "../../../store/liveStatsStore.js"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
-import { useLiveActivity } from "./liveActivitySimulation.js"
-import { fmtLiveOnline, fmtTasks } from "./liveStatsFormat.js"
+import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js"
 
 const SPIN_KEYFRAMES = `
 @keyframes ofa-float {
@@ -40,10 +40,10 @@ const CIRCULAR_STATS = [
     text: "#60a5fa",
   },
   {
-    key: "platform_activity_today",
-    labelKey: "liveStats.platformActivityToday",
-    icon: Zap,
-    format: fmtTasks,
+    key: "earnings_paid_today",
+    labelKey: "liveStats.earningsPaidToday",
+    icon: DollarSign,
+    format: fmtEarnings,
     ring: "rgba(251,191,36,0.9)",
     ringSoft: "rgba(251,191,36,0.25)",
     text: "#fbbf24",
@@ -83,9 +83,14 @@ const OFACryptocurrency = () => {
   const coinRef = useRef(null)
   const [mounted, setMounted] = useState(false)
 
-  const stats = useLiveActivity()
+  const data = useLiveStatsStore((s) => s.data)
 
   useEffect(() => { setMounted(true) }, [])
+
+  useEffect(() => {
+    liveStatsActions.subscribe()
+    return () => liveStatsActions.unsubscribe()
+  }, [])
 
   useEffect(() => {
     const card = cardRef.current
@@ -181,7 +186,7 @@ const OFACryptocurrency = () => {
         {/* Three Circular Statistics */}
         <div className="grid grid-cols-3 gap-2 mt-5">
           {CIRCULAR_STATS.map((stat) => (
-            <CircularStat key={stat.key} stat={stat} value={stats[stat.key]} />
+            <CircularStat key={stat.key} stat={stat} value={data ? data[stat.key] : 0} />
           ))}
         </div>
 
