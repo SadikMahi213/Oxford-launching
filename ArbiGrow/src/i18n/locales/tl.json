@@ -1663,7 +1663,24 @@
     "minutesAgo": "{{count}}m ang nakalipas",
     "pausedAdmin": "Na-pause ang aktibidad ng admin",
     "pausedWeekend": "Na-pause ang aktibidad tuwing weekend (oras sa UK)",
-    "title": "Pandaigdigang Live Activity"
+    "title": "Pandaigdigang Live Activity",
+    "simulatedNotice": "Simulated na aktibidad · hindi totoong transaksyong pinansyal",
+    "types": {
+      "withdraw": "Aktibidad ng pag-withdraw — {{amount}}",
+      "deposit": "Aktibidad ng deposito — {{amount}}",
+      "captcha": "nakakumpleto ng Captcha typing at nakakuha ng {{amount}}",
+      "ads": "nakakumpleto ng aktibidad sa Ads at nakakuha ng {{amount}}",
+      "ecommerce": "nakakumpleto ng benta sa e-commerce at nakakuha ng {{amount}}",
+      "mining": "nakakumpleto ng OFA Mining at nakakuha ng {{amount}}",
+      "task": "nakakumpleto ng {{activity}} task at nakakuha ng {{amount}}",
+      "signup": "sumali sa platform"
+    },
+    "tasks": {
+      "dataEntry": "Data Entry",
+      "graphics": "Graphic Design",
+      "videoEditing": "Video Editing",
+      "digitalMarketing": "Digital Marketing"
+    }
   },
   "market": {
     "connecting": "Kumukonekta sa Binance..."

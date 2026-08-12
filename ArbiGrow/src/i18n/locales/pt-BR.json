@@ -1665,7 +1665,24 @@
     "minutesAgo": "{{count}} min atrás",
     "pausedAdmin": "Atividade pausada pelo administrador",
     "pausedWeekend": "Atividade pausada nos fins de semana (horário do Reino Unido)",
-    "title": "Atividade Global ao Vivo"
+    "title": "Atividade Global ao Vivo",
+    "simulatedNotice": "Atividade simulada · não são transações financeiras reais",
+    "types": {
+      "withdraw": "Atividade de saque — {{amount}}",
+      "deposit": "Atividade de depósito — {{amount}}",
+      "captcha": "concluiu uma tarefa de Captcha e ganhou {{amount}}",
+      "ads": "concluiu uma atividade de anúncios e ganhou {{amount}}",
+      "ecommerce": "concluiu uma venda de e-commerce e ganhou {{amount}}",
+      "mining": "concluiu Mineração OFA e ganhou {{amount}}",
+      "task": "concluiu uma tarefa de {{activity}} e ganhou {{amount}}",
+      "signup": "entrou na plataforma"
+    },
+    "tasks": {
+      "dataEntry": "Entrada de dados",
+      "graphics": "Design gráfico",
+      "videoEditing": "Edição de vídeo",
+      "digitalMarketing": "Marketing digital"
+    }
   },
   "market": {
     "connecting": "Conectando à Binance..."

@@ -61,6 +61,16 @@
   -webkit-text-fill-color: transparent;
 }
 
+.live-feed-simulated {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(148, 163, 184, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .live-feed-scroll {
   height: 132px;
   overflow: hidden;
@@ -109,6 +119,11 @@
 .feed-icon.signup { background: rgba(168, 85, 247, 0.14); border-color: rgba(168, 85, 247, 0.25); }
 .feed-icon.invest { background: rgba(251, 191, 36, 0.14); border-color: rgba(251, 191, 36, 0.25); }
 .feed-icon.captcha { background: rgba(52, 211, 153, 0.14); border-color: rgba(52, 211, 153, 0.25); }
+.feed-icon.deposit { background: rgba(16, 185, 129, 0.14); border-color: rgba(16, 185, 129, 0.25); }
+.feed-icon.ads { background: rgba(249, 115, 22, 0.14); border-color: rgba(249, 115, 22, 0.25); }
+.feed-icon.ecommerce { background: rgba(236, 72, 153, 0.14); border-color: rgba(236, 72, 153, 0.25); }
+.feed-icon.mining { background: rgba(234, 179, 8, 0.14); border-color: rgba(234, 179, 8, 0.25); }
+.feed-icon.task { background: rgba(99, 102, 241, 0.14); border-color: rgba(99, 102, 241, 0.25); }
 
 .feed-flag {
   flex-shrink: 0;

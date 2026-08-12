@@ -1665,7 +1665,24 @@
     "minutesAgo": "{{count}} phút trước",
     "pausedAdmin": "Hoạt động bị tạm dừng bởi quản trị viên",
     "pausedWeekend": "Hoạt động tạm dừng vào cuối tuần (giờ Anh)",
-    "title": "Hoạt Động Trực Tiếp Toàn Cầu"
+    "title": "Hoạt Động Trực Tiếp Toàn Cầu",
+    "simulatedNotice": "Hoạt động mô phỏng · không phải giao dịch tài chính thực",
+    "types": {
+      "withdraw": "Hoạt động rút tiền — {{amount}}",
+      "deposit": "Hoạt động nạp tiền — {{amount}}",
+      "captcha": "đã hoàn thành tác vụ Captcha và kiếm được {{amount}}",
+      "ads": "đã hoàn thành hoạt động quảng cáo và kiếm được {{amount}}",
+      "ecommerce": "đã hoàn thành giao dịch thương mại điện tử và kiếm được {{amount}}",
+      "mining": "đã hoàn thành Khai thác OFA và kiếm được {{amount}}",
+      "task": "đã hoàn thành tác vụ {{activity}} và kiếm được {{amount}}",
+      "signup": "đã tham gia nền tảng"
+    },
+    "tasks": {
+      "dataEntry": "Nhập liệu",
+      "graphics": "Thiết kế đồ họa",
+      "videoEditing": "Biên tập video",
+      "digitalMarketing": "Tiếp thị kỹ thuật số"
+    }
   },
   "market": {
     "connecting": "Đang kết nối tới Binance..."

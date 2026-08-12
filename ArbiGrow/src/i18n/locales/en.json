@@ -2242,7 +2242,24 @@
     "hoursAgo": "{{count}}h ago",
     "from": "from",
     "pausedWeekend": "Activity paused on weekends (UK time)",
-    "pausedAdmin": "Activity paused by admin"
+    "pausedAdmin": "Activity paused by admin",
+    "simulatedNotice": "Simulated activity · not real financial transactions",
+    "types": {
+      "withdraw": "Withdrawal activity — {{amount}}",
+      "deposit": "Deposit activity — {{amount}}",
+      "captcha": "completed Captcha Typing and earned {{amount}}",
+      "ads": "completed an Ads activity and earned {{amount}}",
+      "ecommerce": "completed an e-commerce sale and earned {{amount}}",
+      "mining": "completed OFA Mining and earned {{amount}}",
+      "task": "completed a {{activity}} task and earned {{amount}}",
+      "signup": "joined the platform"
+    },
+    "tasks": {
+      "dataEntry": "Data Entry",
+      "graphics": "Graphics Design",
+      "videoEditing": "Video Editing",
+      "digitalMarketing": "Digital Marketing"
+    }
   },
   "homePage": {
     "imageAlt": "Financial Services",

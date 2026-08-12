@@ -1665,7 +1665,24 @@
     "minutesAgo": "{{count}} minit lalu",
     "pausedAdmin": "Aktiviti dijeda oleh pentadbir",
     "pausedWeekend": "Aktiviti dijeda pada hujung minggu (waktu UK)",
-    "title": "Aktiviti Langsung Global"
+    "title": "Aktiviti Langsung Global",
+    "simulatedNotice": "Aktiviti simulasi · bukan transaksi kewangan sebenar",
+    "types": {
+      "withdraw": "Aktiviti pengeluaran — {{amount}}",
+      "deposit": "Aktiviti deposit — {{amount}}",
+      "captcha": "menyelesaikan tugasan Captcha dan memperoleh {{amount}}",
+      "ads": "menyelesaikan aktiviti iklan dan memperoleh {{amount}}",
+      "ecommerce": "menyelesaikan jualan e-dagang dan memperoleh {{amount}}",
+      "mining": "menyelesaikan Perlombongan OFA dan memperoleh {{amount}}",
+      "task": "menyelesaikan tugasan {{activity}} dan memperoleh {{amount}}",
+      "signup": "menyertai platform"
+    },
+    "tasks": {
+      "dataEntry": "Pemasukan Data",
+      "graphics": "Rekaan Grafik",
+      "videoEditing": "Suntingan Video",
+      "digitalMarketing": "Pemasaran Digital"
+    }
   },
   "market": {
     "connecting": "Menyambung ke Binance..."
