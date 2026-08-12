@@ -2385,7 +2385,7 @@
   "liveStats": {
     "liveOnline": "En Línea",
     "tasksCompletedToday": "Tareas Completadas Hoy",
-    "earningsPaidToday": "Ganancias Pagadas Hoy",
+    "platformActivityToday": "Actividad de la Plataforma Hoy",
     "usersOnlineNow": "usuarios en línea ahora",
     "completedToday": "completado hoy",
     "paidToday": "pagado a usuarios hoy",
