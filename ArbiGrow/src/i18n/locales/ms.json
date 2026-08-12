@@ -1659,21 +1659,13 @@
     "titleHighlight": "Pematuhan"
   },
   "liveActivityFeed": {
-    "actions": {
-      "earn": "memperoleh {{amount}} daripada tugasan captcha",
-      "withdrawal": "Pengeluaran sebanyak {{amount}}",
-      "signup": "menyertai platform",
-      "invest": "mula memperoleh pulangan harian",
-      "captcha": "menyelesaikan pengesahan captcha"
-    },
     "from": "dari",
     "hoursAgo": "{{count}} jam lalu",
     "justNow": "Baru sahaja",
     "minutesAgo": "{{count}} minit lalu",
     "pausedAdmin": "Aktiviti dijeda oleh pentadbir",
     "pausedWeekend": "Aktiviti dijeda pada hujung minggu (waktu UK)",
-    "title": "Aktiviti Langsung Global",
-    "simulatedNotice": "Aktiviti demo — data simulasi untuk ilustrasi"
+    "title": "Aktiviti Langsung Global"
   },
   "market": {
     "connecting": "Menyambung ke Binance..."

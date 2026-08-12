@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { countries } from "./countries";
+import { countryNames } from "./countryNames";
 import "./LiveActivityFeed.css";
 
-const WITHDRAWAL_MIN = 10;
-const WITHDRAWAL_MAX = 700;
-
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 const pickBiased = () => {
   const weights = countries.map((c) => (c.code === "PH" ? 50 : 1));
@@ -20,11 +18,11 @@ const pickBiased = () => {
 };
 
 const ACTIVITY_TYPES = [
-  { type: "earn", icon: "💰", actionKey: "liveActivityFeed.actions.earn", weight: 40 },
-  { type: "withdraw", icon: "💸", actionKey: "liveActivityFeed.actions.withdrawal", weight: 15 },
-  { type: "signup", icon: "🎉", actionKey: "liveActivityFeed.actions.signup", weight: 15 },
-  { type: "invest", icon: "📈", actionKey: "liveActivityFeed.actions.invest", weight: 15 },
-  { type: "captcha", icon: "🔐", actionKey: "liveActivityFeed.actions.captcha", weight: 15 },
+  { type: "earn", icon: "💰", action: "earned OFA from captcha task", weight: 40 },
+  { type: "withdraw", icon: "💸", action: "withdrawn OFA to wallet", weight: 15 },
+  { type: "signup", icon: "🎉", action: "joined Oxford Financial Ads", weight: 15 },
+  { type: "invest", icon: "📈", action: "started earning daily returns", weight: 15 },
+  { type: "captcha", icon: "🔐", action: "completed captcha verification", weight: 15 },
 ];
 
 const weightedPick = (items) => {
@@ -40,10 +38,8 @@ const weightedPick = (items) => {
 const generateRandomAmount = (type) => {
   switch (type) {
     case "earn": return `${(Math.random() * 5 + 0.5).toFixed(2)} OFA`;
-    case "withdraw": {
-      const raw = Number((WITHDRAWAL_MIN + Math.random() * (WITHDRAWAL_MAX - WITHDRAWAL_MIN)).toFixed(2));
-      return `$${clamp(raw, WITHDRAWAL_MIN, WITHDRAWAL_MAX).toFixed(2)}`;
-    }
+    case "withdraw": return `${(Math.random() * 20 + 1).toFixed(2)} OFA`;
+    case "invest": return `$${(Math.random() * 500 + 50).toFixed(0)}`;
     default: return null;
   }
 };
@@ -68,19 +64,18 @@ function isWeekendUK() {
 
 function generateItem(id, minutesAgo = 0, t) {
   const country = pickBiased();
+  const names = countryNames[country.code] || countryNames["US"];
+  const firstName = pick(names.first);
+  const lastName = pick(names.last);
   const activity = weightedPick(ACTIVITY_TYPES);
   const amount = generateRandomAmount(activity.type);
   const timestamp = new Date(Date.now() - minutesAgo * 60000);
 
   return {
     id,
-    name: `Member #${100000 + Math.floor(Math.random() * 900000)}`,
+    name: `${firstName} ${lastName}`,
     country,
-    activity: {
-      type: activity.type,
-      icon: activity.icon,
-      action: t(activity.actionKey),
-    },
+    activity,
     amount,
     timestamp,
     displayTime: minutesAgo === 0 ? t("liveActivityFeed.justNow") : timeAgo(minutesAgo, t),
@@ -126,7 +121,6 @@ const LiveActivityFeed = ({
       <div className="live-feed-header">
         <div className="live-feed-dot" />
         <span className="live-feed-title">{t("liveActivityFeed.title")}</span>
-        <span className="live-feed-simulated">{t("liveActivityFeed.simulatedNotice")}</span>
       </div>
 
       <div className="live-feed-scroll" ref={scrollRef}>
@@ -149,12 +143,12 @@ const LiveActivityFeed = ({
                 <div className="feed-name">{item.name} <span className="feed-country">{t("liveActivityFeed.from")} {item.country.name}</span></div>
                 <div className="feed-action">
                   {(() => {
-                    const parts = item.activity.action.split("{{amount}}");
+                    const parts = item.activity.action.split("OFA");
                     if (parts.length === 1) return item.activity.action;
                     return (
                       <>
                         {parts[0]}
-                        <span className="highlight">{item.amount || ""}</span>
+                        <span className="highlight">{item.amount || "OFA"}</span>
                         {parts[1]}
                       </>
                     );
