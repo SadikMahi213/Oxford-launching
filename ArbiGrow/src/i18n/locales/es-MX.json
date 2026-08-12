@@ -1666,7 +1666,7 @@
     "pausedAdmin": "Actividad en pausa por el administrador",
     "pausedWeekend": "Actividad en pausa los fines de semana (hora del Reino Unido)",
     "title": "Actividad Global en Vivo",
-    "simulatedNotice": "Actividad simulada · no son transacciones financieras reales",
+    "platformActivity": "Actividad de la Plataforma",
     "types": {
       "withdraw": "Actividad de retiro — {{amount}}",
       "deposit": "Actividad de depósito — {{amount}}",

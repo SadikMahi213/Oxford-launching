@@ -1666,7 +1666,7 @@
     "pausedAdmin": "Hoạt động bị tạm dừng bởi quản trị viên",
     "pausedWeekend": "Hoạt động tạm dừng vào cuối tuần (giờ Anh)",
     "title": "Hoạt Động Trực Tiếp Toàn Cầu",
-    "simulatedNotice": "Hoạt động mô phỏng · không phải giao dịch tài chính thực",
+    "platformActivity": "Hoạt động Nền tảng",
     "types": {
       "withdraw": "Hoạt động rút tiền — {{amount}}",
       "deposit": "Hoạt động nạp tiền — {{amount}}",

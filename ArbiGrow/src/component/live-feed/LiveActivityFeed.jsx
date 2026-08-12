@@ -288,6 +288,8 @@ const LiveActivityFeed = ({
   const [isPaused, setIsPaused] = useState(paused);
   const isPausedFinal = paused || isPaused || isWeekendUK();
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   // Initialize cursor + user-rotation cooldown from the mounted seed. Runs once
   // after mount (never during render).
   useEffect(() => {
@@ -357,61 +359,69 @@ const LiveActivityFeed = ({
   }, [isPausedFinal, appendNewEvent, pruneExpired, newInterval]);
 
   useEffect(() => {
+    if (isPausedFinal || items.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % items.length);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [items.length, isPausedFinal]);
+
+  useEffect(() => {
     const checkWeekend = setInterval(() => {
       setIsPaused(isWeekendUK());
     }, 60000);
     return () => clearInterval(checkWeekend);
   }, []);
 
+  const item = items.length > 0 ? items[currentIndex % items.length] : null;
+  const actionText = item?.activity?.actionKey
+    ? t(item.activity.actionKey, {
+        amount: AMOUNT_SENTINEL,
+        activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
+      })
+    : "";
+  const [before, ...after] = actionText ? actionText.split(AMOUNT_SENTINEL) : [];
+
   return (
     <div className="live-feed-container">
       <div className="live-feed-header">
         <div className="live-feed-dot" />
         <span className="live-feed-title">{t("liveActivityFeed.title")}</span>
-        <span className="live-feed-simulated">{t("liveActivityFeed.simulatedNotice")}</span>
+        <span className="live-feed-simulated">{t("liveActivityFeed.platformActivity")}</span>
       </div>
 
       <div className="live-feed-scroll">
         <div
           className={`live-feed-scroll-inner ${isPausedFinal ? "paused" : ""}`}
         >
-          {items.map((item) => {
-            const actionText = item.activity.actionKey
-              ? t(item.activity.actionKey, {
-                  amount: AMOUNT_SENTINEL,
-                  activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
-                })
-              : "";
-            const [before, ...after] = actionText.split(AMOUNT_SENTINEL);
-            return (
-              <div className="live-feed-item" key={item.id}>
-                <div className={`feed-icon ${item.activity.type}`}>
-                  {item.activity.icon}
-                </div>
-                <span className="feed-flag">
-                  <img
-                    src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
-                    alt={item.country.name}
-                    className="flag-img"
-                  />
-                </span>
-                <div className="feed-info">
-                  <div className="feed-name">
-                    {item.name}{" "}
-                    <span className="feed-country">
-                      {t("liveActivityFeed.from")} {item.country.name}
-                    </span>
-                  </div>
-                  <div className="feed-action">
-                    {before}
-                    {item.amount ? <span className="highlight">{item.amount}</span> : null}
-                    {after.join(AMOUNT_SENTINEL)}
-                  </div>
-                </div>
-                <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
+          {item && (
+            <div className="live-feed-item" key={`${item.id}-${currentIndex}`}>
+              <div className={`feed-icon ${item.activity.type}`}>
+                {item.activity.icon}
               </div>
-            );
-          })}
+              <span className="feed-flag">
+                <img
+                  src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
+                  alt={item.country.name}
+                  className="flag-img"
+                />
+              </span>
+              <div className="feed-info">
+                <div className="feed-name">
+                  {item.name}{" "}
+                  <span className="feed-country">
+                    {t("liveActivityFeed.from")} {item.country.name}
+                  </span>
+                </div>
+                <div className="feed-action">
+                  {before}
+                  {item.amount ? <span className="highlight">{item.amount}</span> : null}
+                  {after.join(AMOUNT_SENTINEL)}
+                </div>
+              </div>
+              <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
+            </div>
+          )}
         </div>
       </div>
 

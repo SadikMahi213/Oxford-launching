@@ -1666,7 +1666,7 @@
     "pausedAdmin": "Aktivitas dijeda oleh admin",
     "pausedWeekend": "Aktivitas dijeda pada akhir pekan (waktu UK)",
     "title": "Aktivitas Langsung Global",
-    "simulatedNotice": "Aktivitas simulasi · bukan transaksi keuangan nyata",
+    "platformActivity": "Aktivitas Platform",
     "types": {
       "withdraw": "Aktivitas penarikan — {{amount}}",
       "deposit": "Aktivitas deposit — {{amount}}",

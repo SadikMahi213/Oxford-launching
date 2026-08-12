@@ -1664,7 +1664,7 @@
     "pausedAdmin": "Na-pause ang aktibidad ng admin",
     "pausedWeekend": "Na-pause ang aktibidad tuwing weekend (oras sa UK)",
     "title": "Pandaigdigang Live Activity",
-    "simulatedNotice": "Simulated na aktibidad · hindi totoong transaksyong pinansyal",
+    "platformActivity": "Aktibidad ng Platform",
     "types": {
       "withdraw": "Aktibidad ng pag-withdraw — {{amount}}",
       "deposit": "Aktibidad ng deposito — {{amount}}",

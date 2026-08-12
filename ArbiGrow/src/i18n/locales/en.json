@@ -2243,7 +2243,7 @@
     "from": "from",
     "pausedWeekend": "Activity paused on weekends (UK time)",
     "pausedAdmin": "Activity paused by admin",
-    "simulatedNotice": "Simulated activity · not real financial transactions",
+    "platformActivity": "Platform Activity",
     "types": {
       "withdraw": "Withdrawal activity — {{amount}}",
       "deposit": "Deposit activity — {{amount}}",
