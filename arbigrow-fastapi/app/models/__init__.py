@@ -54,3 +54,10 @@ from app.models.withdrawal_method import WithdrawalMethod
 from app.models.wallet_transaction import WalletTransaction
 from app.models.company_wallet import CompanyWallet
 from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
+from app.models.token_blacklist import TokenBlacklist
+from app.models.refresh_token import RefreshToken
+from app.models.security_log import SecurityLog
+from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
+from app.models.order_attachment import OrderAttachment
+from app.models.wallet_audit_log import WalletAuditLog
+from app.models.delivery_zone import DeliveryZone

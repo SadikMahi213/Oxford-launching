@@ -842,6 +842,12 @@
         "missing_info": "Kulang ang kinakailangang impormasyon. Mangyaring kumpletuhin ang lahat ng field.",
         "approved_std": "Naaprubahan na ang iyong KYC verification. Maaari mo nang ma-access ang lahat ng feature ng platform."
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "Kabuuang Bonus sa Pagpaparehistro na Ibinigay",
+      "totalMiningOFADistributed": "Kabuuang Token OFA sa Pagmimina na Ibinigay",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

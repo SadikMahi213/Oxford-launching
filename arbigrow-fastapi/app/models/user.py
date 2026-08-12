@@ -206,6 +206,13 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
+    # Activity heartbeat: updated on each authenticated request (throttled) so
+    # the admin dashboard can count real members currently online (not just
+    # anonymous visitor sessions).
+    last_active_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Pending package for registration (paid packages require payment before activation)

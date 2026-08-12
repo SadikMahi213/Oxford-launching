@@ -842,6 +842,12 @@
         "missing_info": "Thiếu thông tin bắt buộc. Vui lòng hoàn thành tất cả các trường.",
         "approved_std": "Xác minh KYC của bạn đã được duyệt. Bạn có thể truy cập tất cả các tính năng của nền tảng."
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "Tổng Thưởng Đăng Ký Đã Phân Phối",
+      "totalMiningOFADistributed": "Tổng Token OFA Khai Thác Đã Phân Phối",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

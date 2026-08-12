@@ -842,6 +842,12 @@
         "missing_info": "Maklumat yang diperlukan tiada. Sila lengkapkan semua medan.",
         "approved_std": "Pengesahan KYC anda telah diluluskan. Anda kini boleh mengakses semua ciri platform."
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "Jumlah Bonus Pendaftaran Diagihkan",
+      "totalMiningOFADistributed": "Jumlah Token OFA Perlombongan Diagihkan",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

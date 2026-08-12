@@ -842,6 +842,12 @@
         "missing_info": "आवश्यक जानकारी अनुपलब्ध है। कृपया सभी फ़ील्ड पूरा करें।",
         "approved_std": "आपका KYC सत्यापन अनुमोदित हो गया है। अब आप सभी प्लेटफ़ॉर्म सुविधाओं का उपयोग कर सकते हैं।"
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "कुल साइनअप बोनस वितरित",
+      "totalMiningOFADistributed": "कुल माइनिंग OFA टोकन वितरित",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

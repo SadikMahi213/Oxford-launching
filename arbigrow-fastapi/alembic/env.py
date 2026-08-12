@@ -40,6 +40,9 @@ from app.models import (
     FlashDeal, FlashDealProduct,
     VendorWithdraw, ProductView,
     WithdrawalMethod,
+    TokenBlacklist, RefreshToken, SecurityLog,
+    EcommerceWalletTransaction, OrderAttachment,
+    WalletAuditLog, DeliveryZone,
 )
 
 config = context.config

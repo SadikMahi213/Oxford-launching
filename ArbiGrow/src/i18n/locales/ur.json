@@ -842,6 +842,12 @@
         "missing_info": "مطلوبہ معلومات غائب ہیں۔ براہ کرم تمام فیلڈز مکمل کریں۔",
         "approved_std": "آپ کی KYC تصدیق منظور ہو گئی ہے۔ اب آپ پلیٹ فارم کی تمام سہولیات استعمال کر سکتے ہیں۔"
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "کل سائن اپ بونس تقسیم کیا گیا",
+      "totalMiningOFADistributed": "کل مائننگ OFA ٹوکن تقسیم کیے گئے",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

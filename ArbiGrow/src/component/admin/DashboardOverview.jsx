@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 import {
   Users, UserCheck, UserX, Store, Banknote, ArrowUpFromLine,
   ArrowRightLeft, CreditCard, Package, ShoppingCart, Gift,
@@ -31,6 +32,7 @@ export default function DashboardOverview() {
   const navigate = useNavigate();
   const token = useUserStore((state) => state.token);
   const logout = useUserStore((state) => state.logout);
+  const { t } = useTranslation();
 
   const [realtime, setRealtime] = useState(null);
   const [rtLoading, setRtLoading] = useState(true);
@@ -132,6 +134,7 @@ export default function DashboardOverview() {
             <StatCard key="captcha" icon={Shapes} label="Captcha Typing Distribution" value={`$${toAmount(realtime.total_captcha_distribution).toLocaleString()}`} delay={0.15} iconColor="text-indigo-400" />,
             <StatCard key="adview" icon={Tv} label="Ad View Distribution" value={`$${toAmount(realtime.total_ad_view_distribution).toLocaleString()}`} delay={0.2} iconColor="text-sky-400" />,
             <StatCard key="free-package" icon={Gem} label="Total Free Package Distribution USD" value={`$${toAmount(realtime.total_free_package_distribution).toLocaleString()}`} delay={0.25} iconColor="text-teal-400" />,
+            <StatCard key="signup-bonus" icon={Gift} label={t("admin.overview.totalSignupBonusDistributed", "Total Signup Bonus Distributed")} value={`${toAmount(realtime.total_signup_bonus_distributed ?? 0).toLocaleString()} OFA`} delay={0.3} iconColor="text-emerald-400" />,
           ])}
 
           {/* ── Free User Earnings ───────────────────────── */}
@@ -173,7 +176,7 @@ export default function DashboardOverview() {
                   ${toAmount(realtime.total_distribution ?? 0).toLocaleString()}
                 </div>
                 <div className="text-xs text-amber-500/70 mt-1">
-                  Package Commission + Referral Bonus + Matching Bonus + Generation Bonus + Rank and Leadership Bonus + Rewards and Incentives
+                  {t("admin.overview.totalDistributionSubtitle", "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives")}
                 </div>
               </motion.div>
 
@@ -198,12 +201,27 @@ export default function DashboardOverview() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <Gem className="w-4 h-4 text-emerald-400" />
+                  <span>{t("admin.overview.totalMiningOFADistributed", "Total Mining OFA Tokens Distributed")}</span>
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {toAmount(realtime.total_mining_ofa_distributed ?? 0).toLocaleString()} <span className="text-base text-emerald-400/70">OFA</span>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0 }}
                 className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
                   <Wifi className="w-4 h-4 text-cyan-400" />
-                  <span>Online Users (Live)</span>
+                  <span>{t("admin.overview.onlineMembersLive", "Online Members (Live)")}</span>
                 </div>
                 <div className="text-2xl font-bold text-white">{realtime.online_users_live ?? 0}</div>
               </motion.div>

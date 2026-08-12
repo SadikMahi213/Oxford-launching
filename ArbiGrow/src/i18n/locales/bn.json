@@ -842,6 +842,12 @@
         "missing_info": "প্রয়োজনীয় তথ্য অনুপস্থিত। অনুগ্রহ করে সব ক্ষেত্র পূরণ করুন।",
         "approved_std": "আপনার কেওয়াইসি যাচাইকরণ অনুমোদিত হয়েছে। আপনি এখন সব প্ল্যাটফর্ম সুবিধা ব্যবহার করতে পারবেন।"
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "মোট সাইনআপ বোনাস বিতরণ করা হয়েছে",
+      "totalMiningOFADistributed": "মোট মাইনিং OFA টোকেন বিতরণ করা হয়েছে",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {

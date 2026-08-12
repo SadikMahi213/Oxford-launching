@@ -38,7 +38,7 @@ from app.schemas.admin import (
 )
 from app.models.system_config import SystemConfig
 from app.models.mining_log import MiningLog
-from app.models.visitor_log import VisitorLog
+from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
 from app.services.b2_service import generate_presigned_url
 
 
@@ -2213,7 +2213,11 @@ async def get_realtime_stats(
     total_deposited = Decimal(str(approved_deposits_result.scalar() or 0))
 
     approved_withdrawals_result = await db.execute(
-        select(func.coalesce(func.sum(Withdrawal.amount), 0)).where(Withdrawal.status == "approved")
+        select(
+            func.coalesce(
+                func.sum(Withdrawal.amount - func.coalesce(Withdrawal.charge, 0)), 0
+            )
+        ).where(Withdrawal.status == "approved")
     )
     total_withdrawn = Decimal(str(approved_withdrawals_result.scalar() or 0))
 
@@ -2223,7 +2227,9 @@ async def get_realtime_stats(
     users_with_deposits = users_with_deposits_result.scalar() or 0
 
     total_transferred_result = await db.execute(
-        select(func.coalesce(func.sum(TransferLog.amount), 0))
+        select(func.coalesce(func.sum(TransferLog.amount), 0)).where(
+            TransferLog.status == "completed"
+        )
     )
     total_transferred = Decimal(str(total_transferred_result.scalar() or 0))
 
@@ -2254,6 +2260,17 @@ async def get_realtime_stats(
         select(func.coalesce(func.sum(MiningLog.amount), 0))
     )
     total_mining = Decimal(str(total_mining_result.scalar() or 0))
+
+    # Total OFA signup bonus distributed (uniform + package signup bonuses).
+    # Authoritative ledger: ofa_coin_transactions.signup_bonus / package_signup_bonus.
+    signup_bonus_result = await db.execute(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.tx_type.in_(
+                [OFATransactionType.signup_bonus, OFATransactionType.package_signup_bonus]
+            )
+        )
+    )
+    total_signup_bonus_distributed = Decimal(str(signup_bonus_result.scalar() or 0))
 
     total_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -2289,31 +2306,21 @@ async def get_realtime_stats(
     total_ecommerce_sellers = total_ecommerce_sellers_result.scalar() or 0
 
     # ── Balance Area ────────────────────────────────────
-    # Base kyc_fee per paid record + optional package price
-    kyc_fee_cfg_result = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "kyc_fee")
+    # Authoritative: sum the fee actually collected and never refunded.
+    # fee_paid is stored per record (already includes any package add-on), so
+    # no live-config multiplication is needed here.
+    kyc_purchases_result = await db.execute(
+        select(func.coalesce(func.sum(KYC.fee_paid), 0)).where(
+            KYC.payment_status == PaymentStatus.paid,
+            KYC.fee_refunded == False,
+        )
     )
-    kyc_fee_cfg = kyc_fee_cfg_result.scalar_one_or_none()
-    kyc_fee = Decimal(kyc_fee_cfg.value) if kyc_fee_cfg else Decimal("0")
-
-    paid_kyc_count_result = await db.execute(
-        select(func.count(KYC.id))
-        .where(KYC.payment_status == PaymentStatus.paid)
-    )
-    paid_kyc_count = paid_kyc_count_result.scalar() or 0
-
-    kyc_package_total_result = await db.execute(
-        select(func.coalesce(func.sum(KycPackage.price), 0))
-        .select_from(KYC)
-        .join(KycPackage, KYC.kyc_package_id == KycPackage.id)
-        .where(KYC.payment_status == PaymentStatus.paid)
-    )
-    kyc_package_total = Decimal(str(kyc_package_total_result.scalar() or 0))
-
-    total_kyc_purchases_usd = paid_kyc_count * kyc_fee + kyc_package_total
+    total_kyc_purchases_usd = Decimal(str(kyc_purchases_result.scalar() or 0))
 
     total_paid_package_investment_result = await db.execute(
-        select(func.coalesce(func.sum(Investment.invested_amount), 0))
+        select(func.coalesce(func.sum(Investment.invested_amount), 0)).where(
+            Investment.status == "active"
+        )
     )
     total_paid_package_investment = Decimal(str(total_paid_package_investment_result.scalar() or 0))
 
@@ -2332,7 +2339,16 @@ async def get_realtime_stats(
     total_free_package_distribution = Decimal(str(free_package_result.scalar() or 0))
 
     # ── Free Package User Earnings ──────────────────────
-    free_pkg_users_subq = select(Investment.user_id).where(Investment.invested_amount == 0).subquery()
+    # Paid users = at least one paid package. Free users = free package but
+    # NO paid package. Using mutually-exclusive sets prevents double counting
+    # the same earning records for users who hold both a free and a paid package.
+    paid_pkg_users_subq = select(Investment.user_id).where(Investment.invested_amount > 0).subquery()
+    free_pkg_users_subq = (
+        select(Investment.user_id)
+        .where(Investment.invested_amount == 0)
+        .where(Investment.user_id.not_in(select(paid_pkg_users_subq.c.user_id)))
+        .subquery()
+    )
 
     free_pkg_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -2348,8 +2364,6 @@ async def get_realtime_stats(
     total_free_user_earnings = total_free_package_captcha_earnings + total_free_package_ad_earnings
 
     # ── Paid Package User Earnings ──────────────────────
-    paid_pkg_users_subq = select(Investment.user_id).where(Investment.invested_amount > 0).subquery()
-
     paid_pkg_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
         .where(CaptchaEarning.user_id.in_(select(paid_pkg_users_subq.c.user_id)))
@@ -2367,8 +2381,8 @@ async def get_realtime_stats(
     from datetime import datetime, timezone, timedelta
     five_min_ago = datetime.now(timezone.utc) - timedelta(minutes=5)
     online_result = await db.execute(
-        select(func.count(func.distinct(VisitorLog.session_id)))
-        .where(VisitorLog.visited_at >= five_min_ago)
+        select(func.count(User.id))
+        .where(User.last_active_at >= five_min_ago)
     )
     online_users_live = online_result.scalar() or 0
 
@@ -2407,5 +2421,7 @@ async def get_realtime_stats(
         "company_running_profit": format_decimal(company_running_profit),
         "total_distribution": format_decimal(total_distributed),
         "total_mining_ofa": format_decimal(total_mining),
+        "total_signup_bonus_distributed": format_decimal(total_signup_bonus_distributed),
+        "total_mining_ofa_distributed": format_decimal(total_mining),
     }
 

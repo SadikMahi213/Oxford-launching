@@ -1,12 +1,18 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
 from app.models.user import User
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+
+
+# Heartbeat throttle: only persist last_active_at at most once per minute per
+# user to avoid a write on every authenticated request.
+_HEARTBEAT_INTERVAL = timedelta(minutes=1)
 
 
 def check_earning_access(user: User) -> None:
@@ -52,6 +58,17 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found"
         )
+
+    # Activity heartbeat: stamp last_active_at (throttled) so the dashboard can
+    # report real members currently online. Best-effort: never fail the request
+    # if the write does not succeed.
+    now = datetime.now(timezone.utc)
+    if user.last_active_at is None or (now - user.last_active_at) > _HEARTBEAT_INTERVAL:
+        try:
+            user.last_active_at = now
+            await db.commit()
+        except SQLAlchemyError:
+            await db.rollback()
 
     return user
 

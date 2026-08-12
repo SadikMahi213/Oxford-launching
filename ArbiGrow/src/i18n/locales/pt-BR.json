@@ -842,6 +842,12 @@
         "missing_info": "Informações obrigatórias estão faltando. Preencha todos os campos.",
         "approved_std": "Sua verificação KYC foi aprovada. Agora você pode acessar todos os recursos da plataforma."
       }
+    },
+    "overview": {
+      "totalSignupBonusDistributed": "Total de Bônus de Inscrição Distribuído",
+      "totalMiningOFADistributed": "Total de Tokens OFA de Mineração Distribuídos",
+      "onlineMembersLive": "Online Members (Live)",
+      "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"
     }
   },
   "common": {
