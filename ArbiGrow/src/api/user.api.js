@@ -212,3 +212,14 @@ export const getMyWalletTransactions = () =>
   });
 
 export const getLiveStats = () => api.get("v1/live-stats/");
+
+export const getLedgerTransactions = (params = {}) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      query.append(key, String(value));
+    }
+  });
+  const qs = query.toString();
+  return api.get(`v1/ledger/transactions${qs ? `?${qs}` : ""}`, authHeaders());
+};

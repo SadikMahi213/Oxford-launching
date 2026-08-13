@@ -303,7 +303,9 @@
       "whitepaper_desc": "Documentación del proyecto",
       "soon": "Próximamente",
       "banking": "Configuración Bancaria",
-      "banking_desc": "Registrar datos bancarios"
+      "banking_desc": "Registrar datos bancarios",
+      "ledger": "OFA Earning & Transaction Ledger",
+      "ledger_desc": "Unified earnings, bonuses, deposits & withdrawals."
     }
   },
   "overview": {
@@ -420,7 +422,11 @@
       "fromUser": "De Usuario",
       "level": "Nivel",
       "status": "Estado",
-      "received": "recibido", "type": "Tipo", "details": "Detalles", "typeDeposit": "Depósito", "typeKycRefund": "Reembolso KYC"
+      "received": "recibido",
+      "type": "Tipo",
+      "details": "Detalles",
+      "typeDeposit": "Depósito",
+      "typeKycRefund": "Reembolso KYC"
     },
     "historyTypes": {
       "deposit": "Historial de Depósitos",
@@ -1116,7 +1122,7 @@
       "service10Desc": "Conecta con una comunidad global y crece.",
       "platformTitle": "Una Plataforma. Posibilidades Infinitas.",
       "platformText": "OFA reúne ganancias, aprendizaje, trabajo en equipo y emprendimiento en una plataforma segura, moderna y transparente. Ya sea que estés comenzando o construyendo un equipo internacional, todo lo que necesitas está aquí — diseñado para el crecimiento y construido sobre la confianza.",
-"whyTitle": "Por Qué OFA",
+      "whyTitle": "Por Qué OFA",
       "whySubtitle": "Una plataforma confiable construida para tu crecimiento.",
       "why1Title": "Oportunidad Global",
       "why1Desc": "Trabaja con una comunidad mundial y oportunidades sin fronteras.",
@@ -2354,7 +2360,11 @@
     "from": "De: {{name}}",
     "loading": "Cargando...",
     "noTransfers": "Aún no hay transferencias",
-    "received": "Recibidas ({{count}})", "type": "Tipo", "details": "Detalles", "typeDeposit": "Depósito", "typeKycRefund": "Reembolso KYC",
+    "received": "Recibidas ({{count}})",
+    "type": "Tipo",
+    "details": "Detalles",
+    "typeDeposit": "Depósito",
+    "typeKycRefund": "Reembolso KYC",
     "sent": "Enviadas ({{count}})",
     "subtitle": "Consulta tus transferencias enviadas y recibidas",
     "title": "Historial de Transferencias",
@@ -2554,6 +2564,84 @@
       "refunded": "Reembolsado",
       "failed": "Fallido",
       "shipped": "Enviado"
+    }
+  },
+  "ledger": {
+    "title": "OFA Earning & Transaction Ledger",
+    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "availableBalances": "Available Balances",
+    "loading": "Loading…",
+    "noRecords": "No records found.",
+    "loadError": "Unable to load ledger records.",
+    "col": {
+      "date": "Date",
+      "category": "Category",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "status": "Status",
+      "reference": "Reference"
+    },
+    "pageInfo": "Page {{page}} of {{totalPages}} · {{total}} records",
+    "filter": {
+      "allCategories": "All Categories",
+      "allTypes": "All Types",
+      "allCurrencies": "All Currencies",
+      "allStatuses": "All Statuses",
+      "search": "Search reference…"
+    },
+    "category": {
+      "daily_earning": "Daily Earning",
+      "ad_view": "Ad View Earning",
+      "captcha": "CAPTCHA Earning",
+      "referral_bonus": "Referral Bonus",
+      "team_bonus": "Team Bonus",
+      "matching_bonus": "Matching Bonus",
+      "mining": "Mining Reward",
+      "signup_bonus": "Signup Bonus",
+      "package_bonus": "Package Bonus",
+      "ecommerce_bonus": "E-commerce Bonus",
+      "ofa_conversion": "OFA to USDT Conversion",
+      "manual_adjustment": "Manual Adjustment",
+      "kyc_fee": "KYC Fee",
+      "refund": "Refund",
+      "withdrawal": "Withdrawal",
+      "service_fee": "Service Fee",
+      "deposit": "Deposit",
+      "ecommerce": "E-commerce",
+      "transfer": "Transfer"
+    },
+    "type": {
+      "earning": "Earning",
+      "deduction": "Deduction",
+      "adjustment": "Adjustment"
+    },
+    "currency": {
+      "USD": "USD",
+      "USDT": "USDT",
+      "OFA": "OFA"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "reversed": "Reversed",
+      "held": "Held",
+      "refunded": "Refunded"
+    },
+    "balance": {
+      "main_wallet": "Main Wallet",
+      "deposit_wallet": "Deposit Wallet",
+      "withdraw_wallet": "Withdraw Wallet",
+      "referral_wallet": "Referral Wallet",
+      "generation_wallet": "Generation Wallet",
+      "captcha_wallet": "CAPTCHA Wallet",
+      "ad_view_wallet": "Ad View Wallet",
+      "ecommerce_wallet": "E-commerce Wallet",
+      "matching_bonus_wallet": "Matching Bonus Wallet",
+      "arbx_wallet": "ArbX Wallet",
+      "arbx_mining_wallet": "ArbX Mining Wallet",
+      "ofa_balance": "OFA Balance"
     }
   }
 }

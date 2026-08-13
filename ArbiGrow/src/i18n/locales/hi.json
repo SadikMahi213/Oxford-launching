@@ -303,7 +303,9 @@
       "whitepaper_desc": "परियोजना दस्तावेज़ीकरण",
       "soon": "जल्द",
       "banking": "बैंकिंग सेटअप",
-      "banking_desc": "बैंक विवरण पंजीकृत करें"
+      "banking_desc": "बैंक विवरण पंजीकृत करें",
+      "ledger": "OFA Earning & Transaction Ledger",
+      "ledger_desc": "Unified earnings, bonuses, deposits & withdrawals."
     }
   },
   "overview": {
@@ -420,7 +422,11 @@
       "fromUser": "उपयोगकर्ता",
       "level": "स्तर",
       "status": "स्थिति",
-      "received": "प्राप्त", "type": "प्रकार", "details": "विवरण", "typeDeposit": "डिपॉजिट", "typeKycRefund": "KYC रिफंड"
+      "received": "प्राप्त",
+      "type": "प्रकार",
+      "details": "विवरण",
+      "typeDeposit": "डिपॉजिट",
+      "typeKycRefund": "KYC रिफंड"
     },
     "historyTypes": {
       "deposit": "जमा इतिहास",
@@ -1093,7 +1099,7 @@
       "missionPoint3": "एक पारदर्शी, सुरक्षित और प्रदर्शन-आधारित पुरस्कार पारिस्थितिकी तंत्र का निर्माण करना",
       "missionPoint4": "विश्वास, सहयोग और साझा विकास पर आधारित एक वैश्विक समुदाय को बढ़ावा देना",
       "servicesTitle": "हम क्या करते हैं",
-"servicesSubtitle": "लचीली डिजिटल कार्य के अवसर जो आपकी ज़िंदगी की शैली से मेल खाते हों।",
+      "servicesSubtitle": "लचीली डिजिटल कार्य के अवसर जो आपकी ज़िंदगी की शैली से मेल खाते हों।",
       "service1Title": "डिजिटल कार्य",
       "service1Desc": "रोज़ाना वाली simple तास्क से आसान अनुभव।",
       "service2Title": "कैप्चा",
@@ -1117,7 +1123,7 @@
       "platformTitle": "एक मंच। अनंत संभावनाएं।",
       "platformText": "OFA कमाई, सीखने, टीमवर्क और उद्यमशीलता को एक सुरक्षित, आधुनिक और पारदर्शी मंच पर एक साथ लाता है। चाहे आप अभी शुरुआत कर रहे हों या एक अंतरराष्ट्रीय टीम बना रहे हों — आपको जो कुछ भी चाहिए वह यहां है — विकास के लिए डिज़ाइन किया गया और विश्वास पर बनाया गया।",
       "whyTitle": "क्यों OFA",
-"whySubtitle": "आपके विकास के लिए एक विश्वसनीय मंच।",
+      "whySubtitle": "आपके विकास के लिए एक विश्वसनीय मंच।",
       "why1Title": "वैश्विक अवसर",
       "why1Desc": "विश्वव्यापी समुदाय और बिना सीमा के अवसर।",
       "why2Title": "कौशल विकास",
@@ -2354,7 +2360,11 @@
     "from": "से: {{name}}",
     "loading": "लोड हो रहा है...",
     "noTransfers": "अभी कोई स्थानांतरण नहीं",
-    "received": "प्राप्त ({{count}})", "type": "प्रकार", "details": "विवरण", "typeDeposit": "डिपॉजिट", "typeKycRefund": "KYC रिफंड",
+    "received": "प्राप्त ({{count}})",
+    "type": "प्रकार",
+    "details": "विवरण",
+    "typeDeposit": "डिपॉजिट",
+    "typeKycRefund": "KYC रिफंड",
     "sent": "भेजे ({{count}})",
     "subtitle": "अपने भेजे और प्राप्त स्थानांतरण देखें",
     "title": "स्थानांतरण इतिहास",
@@ -2554,6 +2564,84 @@
       "refunded": "रिफंड किया गया",
       "failed": "विफल",
       "shipped": "शिप किया गया"
+    }
+  },
+  "ledger": {
+    "title": "OFA Earning & Transaction Ledger",
+    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "availableBalances": "Available Balances",
+    "loading": "Loading…",
+    "noRecords": "No records found.",
+    "loadError": "Unable to load ledger records.",
+    "col": {
+      "date": "Date",
+      "category": "Category",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "status": "Status",
+      "reference": "Reference"
+    },
+    "pageInfo": "Page {{page}} of {{totalPages}} · {{total}} records",
+    "filter": {
+      "allCategories": "All Categories",
+      "allTypes": "All Types",
+      "allCurrencies": "All Currencies",
+      "allStatuses": "All Statuses",
+      "search": "Search reference…"
+    },
+    "category": {
+      "daily_earning": "Daily Earning",
+      "ad_view": "Ad View Earning",
+      "captcha": "CAPTCHA Earning",
+      "referral_bonus": "Referral Bonus",
+      "team_bonus": "Team Bonus",
+      "matching_bonus": "Matching Bonus",
+      "mining": "Mining Reward",
+      "signup_bonus": "Signup Bonus",
+      "package_bonus": "Package Bonus",
+      "ecommerce_bonus": "E-commerce Bonus",
+      "ofa_conversion": "OFA to USDT Conversion",
+      "manual_adjustment": "Manual Adjustment",
+      "kyc_fee": "KYC Fee",
+      "refund": "Refund",
+      "withdrawal": "Withdrawal",
+      "service_fee": "Service Fee",
+      "deposit": "Deposit",
+      "ecommerce": "E-commerce",
+      "transfer": "Transfer"
+    },
+    "type": {
+      "earning": "Earning",
+      "deduction": "Deduction",
+      "adjustment": "Adjustment"
+    },
+    "currency": {
+      "USD": "USD",
+      "USDT": "USDT",
+      "OFA": "OFA"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "reversed": "Reversed",
+      "held": "Held",
+      "refunded": "Refunded"
+    },
+    "balance": {
+      "main_wallet": "Main Wallet",
+      "deposit_wallet": "Deposit Wallet",
+      "withdraw_wallet": "Withdraw Wallet",
+      "referral_wallet": "Referral Wallet",
+      "generation_wallet": "Generation Wallet",
+      "captcha_wallet": "CAPTCHA Wallet",
+      "ad_view_wallet": "Ad View Wallet",
+      "ecommerce_wallet": "E-commerce Wallet",
+      "matching_bonus_wallet": "Matching Bonus Wallet",
+      "arbx_wallet": "ArbX Wallet",
+      "arbx_mining_wallet": "ArbX Mining Wallet",
+      "ofa_balance": "OFA Balance"
     }
   }
 }

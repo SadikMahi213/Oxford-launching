@@ -35,6 +35,7 @@ const LazyVerificationPage = React.lazy(() => import("./VerificationPage.jsx"));
 const LazyVerificationPending = React.lazy(() => import("./VerificationPending.jsx"));
 const LazyProfilePage = React.lazy(() => import("../component/user/ProfilePage.jsx"));
 const LazyTransactionHistoryPage = React.lazy(() => import("../component/user/TransactionHistoryPage.jsx"));
+const LazyLedgerPage = React.lazy(() => import("../component/user/LedgerPage.jsx"));
 const LazyDepositPage = React.lazy(() => import("../component/user/DepositUSDT.jsx"));
 const LazyWithdrawPage = React.lazy(() => import("../component/user/WithdrawUSDT.jsx"));
 const LazyMyInvestments = React.lazy(() => import("../component/user/MyInvestments.jsx").then(m => ({ default: m.MyInvestments })));
@@ -666,6 +667,12 @@ export function UserDashboard() {
       description: t("userDashboard.sidebar.transactions_desc"),
     },
     {
+      id: "ledger",
+      label: t("userDashboard.sidebar.ledger"),
+      icon: Wallet,
+      description: t("userDashboard.sidebar.ledger_desc"),
+    },
+    {
       id: "referral",
       label: t("userDashboard.sidebar.referral"),
       icon: Users,
@@ -904,6 +911,9 @@ export function UserDashboard() {
           isLoading={transactionsLoading}
         />
       );
+    }
+    if (activePage === "ledger") {
+      return <LazyLedgerPage setActivePage={safeSetActivePage} />;
     }
     if (activePage === "deposit") {
       return <LazyDepositPage />;

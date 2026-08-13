@@ -303,7 +303,9 @@
       "whitepaper_desc": "Dokumentasi proyek",
       "soon": "Segera",
       "banking": "Pengaturan Perbankan",
-      "banking_desc": "Daftarkan detail bank"
+      "banking_desc": "Daftarkan detail bank",
+      "ledger": "OFA Earning & Transaction Ledger",
+      "ledger_desc": "Unified earnings, bonuses, deposits & withdrawals."
     }
   },
   "overview": {
@@ -420,7 +422,11 @@
       "fromUser": "Dari Pengguna",
       "level": "Level",
       "status": "Status",
-      "received": "diterima", "type": "Tipe", "details": "Detail", "typeDeposit": "Deposit", "typeKycRefund": "Pengembalian KYC"
+      "received": "diterima",
+      "type": "Tipe",
+      "details": "Detail",
+      "typeDeposit": "Deposit",
+      "typeKycRefund": "Pengembalian KYC"
     },
     "historyTypes": {
       "deposit": "Riwayat Deposit",
@@ -2354,7 +2360,11 @@
     "from": "Dari: {{name}}",
     "loading": "Memuat...",
     "noTransfers": "Belum ada transfer",
-    "received": "Diterima ({{count}})", "type": "Tipe", "details": "Detail", "typeDeposit": "Deposit", "typeKycRefund": "Pengembalian KYC",
+    "received": "Diterima ({{count}})",
+    "type": "Tipe",
+    "details": "Detail",
+    "typeDeposit": "Deposit",
+    "typeKycRefund": "Pengembalian KYC",
     "sent": "Dikirim ({{count}})",
     "subtitle": "Lihat transfer yang Anda kirim dan terima",
     "title": "Riwayat Transfer",
@@ -2554,6 +2564,84 @@
       "refunded": "Dikembalikan",
       "failed": "Gagal",
       "shipped": "Dikirim"
+    }
+  },
+  "ledger": {
+    "title": "OFA Earning & Transaction Ledger",
+    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "availableBalances": "Available Balances",
+    "loading": "Loading…",
+    "noRecords": "No records found.",
+    "loadError": "Unable to load ledger records.",
+    "col": {
+      "date": "Date",
+      "category": "Category",
+      "type": "Type",
+      "amount": "Amount",
+      "currency": "Currency",
+      "status": "Status",
+      "reference": "Reference"
+    },
+    "pageInfo": "Page {{page}} of {{totalPages}} · {{total}} records",
+    "filter": {
+      "allCategories": "All Categories",
+      "allTypes": "All Types",
+      "allCurrencies": "All Currencies",
+      "allStatuses": "All Statuses",
+      "search": "Search reference…"
+    },
+    "category": {
+      "daily_earning": "Daily Earning",
+      "ad_view": "Ad View Earning",
+      "captcha": "CAPTCHA Earning",
+      "referral_bonus": "Referral Bonus",
+      "team_bonus": "Team Bonus",
+      "matching_bonus": "Matching Bonus",
+      "mining": "Mining Reward",
+      "signup_bonus": "Signup Bonus",
+      "package_bonus": "Package Bonus",
+      "ecommerce_bonus": "E-commerce Bonus",
+      "ofa_conversion": "OFA to USDT Conversion",
+      "manual_adjustment": "Manual Adjustment",
+      "kyc_fee": "KYC Fee",
+      "refund": "Refund",
+      "withdrawal": "Withdrawal",
+      "service_fee": "Service Fee",
+      "deposit": "Deposit",
+      "ecommerce": "E-commerce",
+      "transfer": "Transfer"
+    },
+    "type": {
+      "earning": "Earning",
+      "deduction": "Deduction",
+      "adjustment": "Adjustment"
+    },
+    "currency": {
+      "USD": "USD",
+      "USDT": "USDT",
+      "OFA": "OFA"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "reversed": "Reversed",
+      "held": "Held",
+      "refunded": "Refunded"
+    },
+    "balance": {
+      "main_wallet": "Main Wallet",
+      "deposit_wallet": "Deposit Wallet",
+      "withdraw_wallet": "Withdraw Wallet",
+      "referral_wallet": "Referral Wallet",
+      "generation_wallet": "Generation Wallet",
+      "captcha_wallet": "CAPTCHA Wallet",
+      "ad_view_wallet": "Ad View Wallet",
+      "ecommerce_wallet": "E-commerce Wallet",
+      "matching_bonus_wallet": "Matching Bonus Wallet",
+      "arbx_wallet": "ArbX Wallet",
+      "arbx_mining_wallet": "ArbX Mining Wallet",
+      "ofa_balance": "OFA Balance"
     }
   }
 }

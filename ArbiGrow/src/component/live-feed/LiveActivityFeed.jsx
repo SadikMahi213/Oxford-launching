@@ -68,30 +68,32 @@ const weightedPick = (items) => {
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const round2 = (n) => Math.round(n * 100) / 100;
 const usd = (n) => `$${n.toFixed(2)}`;
+const usdt = (n) => `${n.toFixed(2)} USDT`;
 
 // ── Amount generation ────────────────────────────────────────────────────────
 // Amounts are generated ONCE per event (at event creation time) and stored on
-// the item, so they never change on re-renders. Ranges reflect the platform:
-// deposits start at the configured minimum (~$10), mining caps around 20 OFA.
+// the item, so they never change on re-renders. Currency units reflect the
+// platform: deposits/withdrawals are settled in USDT, captcha/ads/tasks in USD,
+// mining caps around 20 OFA.
 
 function withdrawalAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.5) raw = 10 + Math.random() * 80; // $10 – $90
-  else if (r < 0.8) raw = 90 + Math.random() * 160; // $90 – $250
-  else if (r < 0.95) raw = 250 + Math.random() * 250; // $250 – $500
-  else raw = 500 + Math.random() * 200; // $500 – $700
-  return usd(clamp(raw, 10, 700));
+  if (r < 0.5) raw = 10 + Math.random() * 80; // 10 – 90 USDT
+  else if (r < 0.8) raw = 90 + Math.random() * 160; // 90 – 250 USDT
+  else if (r < 0.95) raw = 250 + Math.random() * 250; // 250 – 500 USDT
+  else raw = 500 + Math.random() * 200; // 500 – 700 USDT
+  return usdt(clamp(raw, 10, 700));
 }
 
 function depositAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.45) raw = 10 + Math.random() * 90; // $10 – $100
-  else if (r < 0.75) raw = 100 + Math.random() * 200; // $100 – $300
-  else if (r < 0.93) raw = 300 + Math.random() * 400; // $300 – $700
-  else raw = 700 + Math.random() * 300; // $700 – $1,000
-  return usd(round2(raw));
+  if (r < 0.45) raw = 10 + Math.random() * 90; // 10 – 100 USDT
+  else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 – 300 USDT
+  else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 – 700 USDT
+  else raw = 700 + Math.random() * 300; // 700 – 1,000 USDT
+  return usdt(round2(raw));
 }
 
 function captchaAmount() {
