@@ -290,7 +290,7 @@ const LedgerPage = () => {
         {/* Pagination */}
         <div className="p-4 sm:p-6 flex items-center justify-between border-t border-white/10">
           <div className="text-sm text-gray-400">
-            {t("ledger.pageInfo", `Page ${page} of ${totalPages} · ${total} records`)}
+            {t("ledger.pageInfo", { page, totalPages, total })}
           </div>
           <div className="flex items-center gap-2">
             <button

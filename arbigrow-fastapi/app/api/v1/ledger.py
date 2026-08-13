@@ -278,7 +278,7 @@ async def _transfers(db: AsyncSession, uid: int) -> list:
 async def _ofa_balance(db: AsyncSession, uid: int) -> float:
     row = (
         await db.execute(
-            select(OFACoinTransaction.balance_after)
+            select(OFACoinTransaction.wallet_balance_after)
             .where(OFACoinTransaction.user_id == uid)
             .order_by(desc(OFACoinTransaction.created_at))
             .limit(1)
