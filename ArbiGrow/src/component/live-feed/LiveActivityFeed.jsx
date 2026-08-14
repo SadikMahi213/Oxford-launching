@@ -202,21 +202,21 @@ function generateItem(ctx, timestampMs) {
 // dominates (like a real live feed) and older timestamps stay rarer.
 
 const SEED_AGE_BUCKETS = [
-  { offset: 0, weight: 7 }, // Just now
-  { offset: 2, weight: 9 },
-  { offset: 6, weight: 9 },
-  { offset: 10, weight: 8 },
+  { offset: 0, weight: 10 }, // Just now - highest weight ensures "Just now" appears
+  { offset: 2, weight: 8 },
+  { offset: 6, weight: 8 },
+  { offset: 10, weight: 7 },
   { offset: 15, weight: 7 },
-  { offset: 20, weight: 7 },
+  { offset: 20, weight: 6 },
   { offset: 30, weight: 6 },
   { offset: 45, weight: 5 },
-  { offset: 60, weight: 6 }, // 1 hour
-  { offset: 120, weight: 6 }, // 2 hours
-  { offset: 180, weight: 5 }, // 3 hours
-  { offset: 300, weight: 5 }, // 5 hours
-  { offset: 480, weight: 4 }, // 8 hours
-  { offset: 720, weight: 4 }, // 12 hours
-  { offset: 1200, weight: 4 }, // 20 hours
+  { offset: 60, weight: 4 }, // 1 hour
+  { offset: 120, weight: 4 }, // 2 hours
+  { offset: 180, weight: 3 }, // 3 hours
+  { offset: 300, weight: 3 }, // 5 hours
+  { offset: 480, weight: 2 }, // 8 hours
+  { offset: 720, weight: 2 }, // 12 hours
+  { offset: 1200, weight: 1 }, // 20 hours
 ];
 
 function pickAgeBucket() {
