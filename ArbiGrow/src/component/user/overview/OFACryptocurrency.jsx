@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Users, CheckCircle2, BarChart3 } from "lucide-react"
+import { Users, CheckCircle2, DollarSign } from "lucide-react"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
 import { useLiveActivity } from "./liveActivitySimulation.js"
 import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js"
@@ -35,18 +35,18 @@ const CIRCULAR_STATS = [
     labelKey: "liveStats.tasksCompletedToday",
     icon: CheckCircle2,
     format: fmtTasks,
-    ring: "rgba(34,211,153,0.9)",
-    ringSoft: "rgba(34,211,153,0.25)",
-    text: "#34d399",
+    ring: "rgba(59,130,246,0.9)",
+    ringSoft: "rgba(59,130,246,0.25)",
+    text: "#3b82f6",
   },
   {
     key: "platform_earnings_activity",
     labelKey: "liveStats.platformEarningsActivity",
-    icon: BarChart3,
+    icon: DollarSign,
     format: fmtEarnings,
-    ring: "rgba(34,211,153,0.9)",
-    ringSoft: "rgba(34,211,153,0.25)",
-    text: "#34d399",
+    ring: "rgba(245,158,11,0.9)",
+    ringSoft: "rgba(245,158,11,0.25)",
+    text: "#f59e0b",
   },
 ]
 
@@ -54,26 +54,26 @@ function CircularStat({ stat, value }) {
   const { t } = useTranslation()
   const Icon = stat.icon
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div
-        className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full flex items-center justify-center"
-        style={{
-          background: `conic-gradient(${stat.ring} 0deg, ${stat.ringSoft} 360deg)`,
-          padding: "2px",
-          filter: `drop-shadow(0 0 12px ${stat.ringSoft})`,
-        }}
-      >
-        <div className="w-full h-full rounded-full bg-[#0d1128] flex flex-col items-center justify-center gap-0.5 sm:gap-1">
-          <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" style={{ color: stat.text }} />
-          <div className="text-xs sm:text-base font-bold text-white tabular-nums leading-none">
-            <AnimatedNumber value={value} format={stat.format} />
+      <div className="flex flex-col items-center gap-2">
+        <div
+          className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
+          style={{
+            background: `conic-gradient(${stat.ring} 0deg, ${stat.ringSoft} 360deg)`,
+            padding: "2px",
+            filter: `drop-shadow(0 0 12px ${stat.ringSoft})`,
+          }}
+        >
+          <div className="w-full h-full rounded-full bg-[#0d1128] flex items-center justify-center">
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: stat.text }} />
           </div>
         </div>
+        <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none">
+          <AnimatedNumber value={value} format={stat.format} />
+        </div>
+        <div className="text-[9px] sm:text-[10px] uppercase tracking-wide text-center px-1 leading-tight" style={{ color: stat.text }}>
+          {t(stat.labelKey)}
+        </div>
       </div>
-      <div className="text-[8px] sm:text-[10px] text-gray-400 uppercase tracking-wide text-center px-1 leading-tight">
-        {t(stat.labelKey)}
-      </div>
-    </div>
   )
 }
 
@@ -185,14 +185,20 @@ const OFACryptocurrency = () => {
         </div>
 
         {/* Three Circular Statistics */}
-        <div className="grid grid-cols-3 gap-2 mt-2">
+        <div className="flex divide-x divide-white/[0.06] max-sm:divide-x-0 mt-3">
           {CIRCULAR_STATS.map((stat) => (
             <CircularStat key={stat.key} stat={stat} value={stats[stat.key]} />
           ))}
         </div>
 
+        {/* Token heading */}
+        <h4 className="text-sm font-bold text-white mt-5 mb-1 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+          {t("overview.ofaCoin.tokenHeading")}
+        </h4>
+
         {/* Lower information cards */}
-        <div className="grid grid-cols-2 gap-2 mt-4">
+        <div className="grid grid-cols-2 gap-2 mt-2">
           {[
             { label: t("overview.ofaCoin.symbol"), value: t("overview.tokenInfo.symbolVal") },
             { label: t("overview.ofaCoin.supply"), value: t("overview.tokenInfo.supplyVal") },
