@@ -193,28 +193,62 @@ function generateItem(ctx, timestampMs) {
 }
 
 // ── 24-hour rolling seed ─────────────────────────────────────────────────────
-// Builds an initial dataset spread across the latest 24h using irregular gaps
-// (recent events minutes apart, older events an hour or more apart) so the feed
-// looks like a natural activity stream rather than a mechanical counter.
+// Builds an initial dataset spread across the latest 24h using a weighted,
+// recent-heavy time distribution. Each item samples a target "age bucket"
+// (Just now, 2m, 6m, 10m, 15m, 20m, 30m, 45m, 1h, 2h, 3h, 5h, 8h, 12h, 20h)
+// with ±35% jitter, so the feed looks like a continuously active stream rather
+// than clustering around a single offset. Sampling + jitter make every seed
+// different, while the recent buckets carry the most weight so fresh activity
+// dominates (like a real live feed) and older timestamps stay rarer.
+
+const SEED_AGE_BUCKETS = [
+  { offset: 0, weight: 7 }, // Just now
+  { offset: 2, weight: 9 },
+  { offset: 6, weight: 9 },
+  { offset: 10, weight: 8 },
+  { offset: 15, weight: 7 },
+  { offset: 20, weight: 7 },
+  { offset: 30, weight: 6 },
+  { offset: 45, weight: 5 },
+  { offset: 60, weight: 6 }, // 1 hour
+  { offset: 120, weight: 6 }, // 2 hours
+  { offset: 180, weight: 5 }, // 3 hours
+  { offset: 300, weight: 5 }, // 5 hours
+  { offset: 480, weight: 4 }, // 8 hours
+  { offset: 720, weight: 4 }, // 12 hours
+  { offset: 1200, weight: 4 }, // 20 hours
+];
+
+function pickAgeBucket() {
+  const total = SEED_AGE_BUCKETS.reduce((sum, b) => sum + b.weight, 0);
+  let rand = Math.random() * total;
+  for (const b of SEED_AGE_BUCKETS) {
+    rand -= b.weight;
+    if (rand <= 0) return b;
+  }
+  return SEED_AGE_BUCKETS[SEED_AGE_BUCKETS.length - 1];
+}
 
 function buildSeed(count) {
-  const ctx = { nextId: 1, recentKeys: [], recentTypes: [] };
   const now = Date.now();
-  const items = [];
-  let t = now;
+  const ages = [];
   for (let i = 0; i < count; i += 1) {
-    items.push(generateItem(ctx, t));
-    const ageMin = (now - t) / ONE_MINUTE_MS;
-    let gapMin;
-    if (ageMin < 60) gapMin = 1 + Math.random() * 9; // 1–10 min
-    else if (ageMin < 360) gapMin = 6 + Math.random() * 22; // 6–28 min
-    else if (ageMin < 720) gapMin = 14 + Math.random() * 34; // 14–48 min
-    else gapMin = 24 + Math.random() * 66; // 24–90 min
-    const nextT = t - gapMin * ONE_MINUTE_MS;
-    if (nextT <= now - TWENTY_FOUR_HOURS_MS) break;
-    t = nextT;
+    const bucket = pickAgeBucket();
+    let ageMin;
+    if (bucket.offset === 0) {
+      // Keep the freshest bucket genuinely within the "Just now" threshold
+      // (< 60s) so the label resolves correctly instead of being forced.
+      ageMin = Math.random() * 0.8; // 0–48s
+    } else {
+      const jitter = (Math.random() - 0.5) * 0.7; // ±35%
+      ageMin = bucket.offset * (1 + jitter);
+    }
+    ages.push(Math.max(0, Math.min(ageMin, 23 * 60 + 50)));
   }
-  return items; // newest first
+  ages.sort((a, b) => a - b); // newest first, so the type/person cooldown stays coherent
+
+  const ctx = { nextId: 1, recentKeys: [], recentTypes: [] };
+  return ages.map((ageMin) => generateItem(ctx, now - ageMin * ONE_MINUTE_MS));
 }
 
 // ── Persistence (sessionStorage only — never a database) ────────────────────
