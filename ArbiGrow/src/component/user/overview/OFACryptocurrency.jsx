@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Users, CheckCircle2, DollarSign } from "lucide-react"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
@@ -50,8 +50,16 @@ const CIRCULAR_STATS = [
   },
 ]
 
-function CircularStat({ stat, value }) {
+const StatLabel = memo(function StatLabel({ labelKey, color }) {
   const { t } = useTranslation()
+  return (
+    <div className="text-[9px] sm:text-[10px] uppercase tracking-wide text-center px-1 leading-tight" style={{ color }}>
+      {t(labelKey)}
+    </div>
+  )
+})
+
+function CircularStat({ stat, value }) {
   const Icon = stat.icon
   return (
       <div className="flex flex-col items-center gap-2">
@@ -70,9 +78,7 @@ function CircularStat({ stat, value }) {
         <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none">
           <AnimatedNumber value={value} format={stat.format} />
         </div>
-        <div className="text-[9px] sm:text-[10px] uppercase tracking-wide text-center px-1 leading-tight" style={{ color: stat.text }}>
-          {t(stat.labelKey)}
-        </div>
+        <StatLabel labelKey={stat.labelKey} color={stat.text} />
       </div>
   )
 }
