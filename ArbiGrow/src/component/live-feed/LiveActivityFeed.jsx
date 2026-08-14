@@ -21,6 +21,19 @@ const DEFAULT_MAX_ITEMS = 200;
 const STORAGE_KEY = "oxford_global_live_activity_v2";
 const AMOUNT_SENTINEL = "\u0001";
 
+// How long a set of activity rows stays on screen before the feed rotates to
+// the next window. Slowed down (was 1s) so each activity is readable: a smooth
+// ~6s cadence sits comfortably inside the 5–8s target range.
+const ROTATION_MS = 6000;
+
+// Responsive number of simultaneously visible rows:
+//   desktop / tablet (>= 640px): 3 rows
+//   mobile (< 640px): 2 rows (3 makes the section too tall on phones)
+function getVisibleRows() {
+  if (typeof window === "undefined") return 3;
+  return window.innerWidth < 640 ? 2 : 3;
+}
+
 // Weighted distribution (sums to 100):
 //   Withdrawal 10% · Deposit 10% · Captcha 20% · Ads 20%
 //   E-Commerce 15% · OFA Mining 10% · Digital Tasks 10% · Other 5%
@@ -325,6 +338,15 @@ const LiveActivityFeed = ({
   const isPausedFinal = paused || isPaused || isWeekendUK();
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [visibleRows, setVisibleRows] = useState(getVisibleRows);
+
+  // Keep the visible-row count in sync with the viewport so the feed stays
+  // responsive on desktop/tablet (3 rows) and mobile (2 rows) without overflow.
+  useEffect(() => {
+    const onResize = () => setVisibleRows(getVisibleRows());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Initialize cursor + user-rotation cooldown from the mounted seed. Runs once
   // after mount (never during render).
@@ -398,7 +420,7 @@ const LiveActivityFeed = ({
     if (isPausedFinal || items.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, 1000);
+    }, ROTATION_MS);
     return () => clearInterval(interval);
   }, [items.length, isPausedFinal]);
 
@@ -409,14 +431,18 @@ const LiveActivityFeed = ({
     return () => clearInterval(checkWeekend);
   }, []);
 
-  const item = items.length > 0 ? items[currentIndex % items.length] : null;
-  const actionText = item?.activity?.actionKey
-    ? t(item.activity.actionKey, {
-        amount: AMOUNT_SENTINEL,
-        activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
-      })
-    : "";
-  const [before, ...after] = actionText ? actionText.split(AMOUNT_SENTINEL) : [];
+  // Build a sliding window of distinct, existing activity records so 2–3 rows
+  // are visible at once. Items are referenced by stable id (no duplicates) and
+  // the head advances by one each rotation, giving a smooth slow scroll.
+  const visible = (() => {
+    if (items.length === 0) return [];
+    const len = items.length;
+    const head = ((currentIndex % len) + len) % len;
+    const count = Math.min(visibleRows, len);
+    const rows = [];
+    for (let k = 0; k < count; k += 1) rows.push(items[(head + k) % len]);
+    return rows;
+  })();
 
   return (
     <div className="live-feed-container">
@@ -430,34 +456,9 @@ const LiveActivityFeed = ({
         <div
           className={`live-feed-scroll-inner ${isPausedFinal ? "paused" : ""}`}
         >
-          {item && (
-            <div className="live-feed-item" key={`${item.id}-${currentIndex}`}>
-              <div className={`feed-icon ${item.activity.type}`}>
-                {item.activity.icon}
-              </div>
-              <span className="feed-flag">
-                <img
-                  src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
-                  alt={item.country.name}
-                  className="flag-img"
-                />
-              </span>
-              <div className="feed-info">
-                <div className="feed-name">
-                  {item.name}{" "}
-                  <span className="feed-country">
-                    {t("liveActivityFeed.from")} {item.country.name}
-                  </span>
-                </div>
-                <div className="feed-action">
-                  {before}
-                  {item.amount ? <span className="highlight">{item.amount}</span> : null}
-                  {after.join(AMOUNT_SENTINEL)}
-                </div>
-              </div>
-              <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
-            </div>
-          )}
+          {visible.map((item) => (
+            <FeedRow key={item.id} item={item} t={t} />
+          ))}
         </div>
       </div>
 
@@ -471,6 +472,48 @@ const LiveActivityFeed = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Single activity row. Keyed by stable item id in the parent so existing rows
+// are preserved across rotations and only the entering row remounts (with a
+// subtle fade) — no duplicate items, no abrupt full-swap jump.
+const FeedRow = ({ item, t }) => {
+  const actionText = item?.activity?.actionKey
+    ? t(item.activity.actionKey, {
+        amount: AMOUNT_SENTINEL,
+        activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
+      })
+    : "";
+  const [before, ...after] = actionText ? actionText.split(AMOUNT_SENTINEL) : [];
+
+  return (
+    <div className="live-feed-item">
+      <div className={`feed-icon ${item.activity.type}`}>
+        {item.activity.icon}
+      </div>
+      <span className="feed-flag">
+        <img
+          src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
+          alt={item.country.name}
+          className="flag-img"
+        />
+      </span>
+      <div className="feed-info">
+        <div className="feed-name">
+          {item.name}{" "}
+          <span className="feed-country">
+            {t("liveActivityFeed.from")} {item.country.name}
+          </span>
+        </div>
+        <div className="feed-action">
+          {before}
+          {item.amount ? <span className="highlight">{item.amount}</span> : null}
+          {after.join(AMOUNT_SENTINEL)}
+        </div>
+      </div>
+      <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
     </div>
   );
 };
