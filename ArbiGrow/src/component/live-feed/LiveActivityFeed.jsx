@@ -79,21 +79,21 @@ const usdt = (n) => `${n.toFixed(2)} USDT`;
 function withdrawalAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.5) raw = 10 + Math.random() * 80; // 10 – 90 USDT
-  else if (r < 0.8) raw = 90 + Math.random() * 160; // 90 – 250 USDT
-  else if (r < 0.95) raw = 250 + Math.random() * 250; // 250 – 500 USDT
-  else raw = 500 + Math.random() * 200; // 500 – 700 USDT
-  return usdt(clamp(raw, 10, 700));
+  if (r < 0.5) raw = 10 + Math.random() * 80; // 10 – 90 USD
+  else if (r < 0.8) raw = 90 + Math.random() * 160; // 90 – 250 USD
+  else if (r < 0.95) raw = 250 + Math.random() * 250; // 250 – 500 USD
+  else raw = 500 + Math.random() * 200; // 500 – 700 USD
+  return usd(clamp(raw, 10, 700));
 }
 
 function depositAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.45) raw = 10 + Math.random() * 90; // 10 – 100 USDT
-  else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 – 300 USDT
-  else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 – 700 USDT
-  else raw = 700 + Math.random() * 300; // 700 – 1,000 USDT
-  return usdt(round2(raw));
+  if (r < 0.45) raw = 10 + Math.random() * 90; // 10 – 100 USD
+  else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 – 300 USD
+  else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 – 700 USD
+  else raw = 700 + Math.random() * 300; // 700 – 1,000 USD
+  return usd(round2(raw));
 }
 
 function captchaAmount() {
