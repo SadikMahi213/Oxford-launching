@@ -210,7 +210,8 @@ export default function DepositPage() {
 
       setFeedback({
         type: "success",
-        message: t('deposit.success'),
+        title: t('deposit.successTitle'),
+        message: t('deposit.successMessage'),
       });
       setFieldErrors(INITIAL_FIELD_ERRORS);
       setAmount("");

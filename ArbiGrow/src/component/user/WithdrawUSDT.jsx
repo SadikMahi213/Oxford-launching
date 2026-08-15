@@ -254,7 +254,7 @@ export default function WithdrawPage() {
         const wRes = await getMyWithdrawals();
         setWithdrawals(wRes?.data?.data || []);
       }
-      setFeedback({ type: "success", message: t('withdraw.success') });
+      setFeedback({ type: "success", title: t('withdraw.successTitle'), message: t('withdraw.successMessage') });
       setFieldErrors(INITIAL_FIELD_ERRORS);
       setAmount("");
       setNote("");

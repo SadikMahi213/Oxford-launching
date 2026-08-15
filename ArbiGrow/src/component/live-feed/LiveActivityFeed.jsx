@@ -106,7 +106,9 @@ function depositAmount() {
   else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 – 300 USD
   else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 – 700 USD
   else raw = 700 + Math.random() * 300; // 700 – 1,000 USD
-  return usd(round2(raw));
+  // Deposits are displayed as an INTEGER (no cents) per business/display rules.
+  // The underlying simulated value is unchanged — this is display formatting only.
+  return `$${Math.round(raw)}`;
 }
 
 function captchaAmount() {

@@ -48,7 +48,7 @@ export default function StatusFeedbackModal({ feedback, onClose }) {
   const isSuccess = feedback.type === "success";
   const Icon = isSuccess ? CheckCircle2 : XCircle;
   const message = normalizeMessage(feedback.message, t);
-  const title = isSuccess ? t("statusFeedbackModal.success") : t("statusFeedbackModal.rejected");
+  const title = feedback.title || (isSuccess ? t("statusFeedbackModal.success") : t("statusFeedbackModal.rejected"));
 
   const handleClose = () => {
     if (typeof onClose === "function") onClose();
@@ -83,7 +83,7 @@ export default function StatusFeedbackModal({ feedback, onClose }) {
           <h3 className="text-lg font-semibold">{title}</h3>
         </div>
 
-        <p className="text-sm leading-6 opacity-95">{message}</p>
+        <p className="text-sm leading-6 opacity-95" style={{ whiteSpace: "pre-line" }}>{message}</p>
       </div>
     </div>,
     document.body,
