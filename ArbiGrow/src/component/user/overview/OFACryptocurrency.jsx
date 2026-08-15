@@ -59,10 +59,10 @@ const StatLabel = memo(function StatLabel({ labelKey, color }) {
   )
 })
 
-function CircularStat({ stat, value }) {
+function CircularStat({ stat, value, className = "" }) {
   const Icon = stat.icon
   return (
-      <div className="flex flex-col items-center gap-2">
+      <div className={"flex flex-col items-center gap-2 sm:border-l sm:border-white/[0.06] first:sm:border-l-0 " + className}>
         <div
           className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
           style={{
@@ -75,7 +75,7 @@ function CircularStat({ stat, value }) {
             <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: stat.text }} />
           </div>
         </div>
-        <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none">
+        <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none whitespace-nowrap">
           <AnimatedNumber value={value} format={stat.format} />
         </div>
         <StatLabel labelKey={stat.labelKey} color={stat.text} />
@@ -191,9 +191,14 @@ const OFACryptocurrency = () => {
         </div>
 
         {/* Three Circular Statistics */}
-        <div className="flex divide-x divide-white/[0.06] max-sm:divide-x-0 mt-3">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
           {CIRCULAR_STATS.map((stat) => (
-            <CircularStat key={stat.key} stat={stat} value={stats[stat.key]} />
+            <CircularStat
+              key={stat.key}
+              stat={stat}
+              value={stats[stat.key]}
+              className={stat.key === "platform_earnings_activity" ? "min-[480px]:max-sm:col-span-2" : ""}
+            />
           ))}
         </div>
 
