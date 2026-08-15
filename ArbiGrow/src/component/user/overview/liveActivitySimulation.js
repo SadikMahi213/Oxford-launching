@@ -1,62 +1,57 @@
 import { useEffect, useState } from "react"
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000
-
 export const LIVE_ACTIVITY_CONFIG = {
-  tasks: {
-    start: 1000,
-    max: 21000,
-    exponent: 1.35,
-    variance: 0.05,
-  },
-  platformEarnings: {
-    start: 1000,
-    max: 7700,
-    exponent: 1.35,
-    variance: 0.05,
-  },
   liveOnline: {
-    min: 240000,
-    peak: 1050000,
-    peakHour: 20,
-    ripple: 0.02,
+    min: 178919,
+    max: 587391,
+    start: 178919,
+    step: 55,
+    decimals: 0,
+  },
+  tasks: {
+    min: 21893,
+    max: 89791,
+    start: 21893,
+    step: 48,
+    decimals: 0,
+  },
+  earnings: {
+    min: 19390.85,
+    max: 27573.85,
+    start: 19390.85,
+    step: 38.5,
+    decimals: 2,
   },
 }
 
-const clamp01 = (v) => Math.min(1, Math.max(0, v))
-
-function dayProgress(date) {
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
-  return clamp01((date.getTime() - start) / MS_PER_DAY)
+// Bounded controlled random walk (presentation-layer live activity only).
+// - a small random delta each tick
+// - bias toward the center: near the max it is pulled down, near the min pushed up
+// - result is clamped to [min, max] and rounded to `decimals` (decimal-safe for money)
+function updateBoundedCounter(current, cfg) {
+  const { min, max, step, decimals } = cfg
+  const range = max - min
+  const t = range > 0 ? (current - min) / range : 0 // 0 at min, 1 at max
+  const bias = (0.5 - t) * 2 // +1 near min (up bias), -1 near max (down bias)
+  const rand = (Math.random() * 2 - 1) * step
+  const f = Math.pow(10, decimals)
+  let next = Math.min(max, Math.max(min, current + rand + bias * step))
+  next = Math.round(next * f) / f
+  // Guarantee the counter always moves (avoid a tick-to-tick "stuck" value),
+  // nudging in the bias direction (or random direction near the center).
+  if (next === current) {
+    const unit = 1 / f
+    const dir = bias > 0 ? unit : bias < 0 ? -unit : Math.random() < 0.5 ? unit : -unit
+    next = Math.min(max, Math.max(min, Math.round((current + dir) * f) / f))
+  }
+  return next
 }
 
-function dayFactor(date) {
-  const ymd = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate()
-  const x = Math.sin(ymd * 12.9898) * 43758.5453
-  const frac = x - Math.floor(x)
-  return 1 + (frac - 0.5) * 2 * LIVE_ACTIVITY_CONFIG.tasks.variance
-}
-
-function cumulativeValue(date, cfg) {
-  const p = dayProgress(date)
-  const eased = Math.pow(p, cfg.exponent)
-  const max = cfg.max * dayFactor(date)
-  return cfg.start + (max - cfg.start) * eased
-}
-
-function liveOnlineValue(date) {
-  const { min, peak, peakHour, ripple } = LIVE_ACTIVITY_CONFIG.liveOnline
-  const h = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600
-  const wave = (1 + Math.cos(((h - peakHour) / 24) * Math.PI * 2)) / 2
-  const drift = Math.sin((date.getTime() / (30 * 60 * 1000)) * Math.PI * 2) * ripple * (peak - min)
-  return min + Math.max(0, peak - min) * wave + drift
-}
-
-export function computeLiveActivity(date = new Date()) {
+export function computeLiveActivity() {
   return {
-    live_online: liveOnlineValue(date),
-    tasks_completed_today: cumulativeValue(date, LIVE_ACTIVITY_CONFIG.tasks),
-    platform_earnings_activity: cumulativeValue(date, LIVE_ACTIVITY_CONFIG.platformEarnings),
+    live_online: LIVE_ACTIVITY_CONFIG.liveOnline.start,
+    tasks_completed_today: LIVE_ACTIVITY_CONFIG.tasks.start,
+    platform_earnings_activity: LIVE_ACTIVITY_CONFIG.earnings.start,
   }
 }
 
@@ -64,7 +59,13 @@ export function useLiveActivity(intervalMs = 1000) {
   const [stats, setStats] = useState(() => computeLiveActivity())
 
   useEffect(() => {
-    const id = setInterval(() => setStats(computeLiveActivity()), intervalMs)
+    const id = setInterval(() => {
+      setStats((prev) => ({
+        live_online: updateBoundedCounter(prev.live_online, LIVE_ACTIVITY_CONFIG.liveOnline),
+        tasks_completed_today: updateBoundedCounter(prev.tasks_completed_today, LIVE_ACTIVITY_CONFIG.tasks),
+        platform_earnings_activity: updateBoundedCounter(prev.platform_earnings_activity, LIVE_ACTIVITY_CONFIG.earnings),
+      }))
+    }, intervalMs)
     return () => clearInterval(id)
   }, [intervalMs])
 
