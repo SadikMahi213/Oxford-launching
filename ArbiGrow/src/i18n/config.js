@@ -22,7 +22,7 @@ else if (browserLang && supported.includes(browserLang)) detected = browserLang;
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
-  { code: "bn", label: "বাংলা", flag: "🇧🇩" },
+  { code: "bn", label: "Bengali", flag: "🇧🇩" },
   { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
   { code: "ur", label: "اردو", flag: "🇵🇰" },
   { code: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },

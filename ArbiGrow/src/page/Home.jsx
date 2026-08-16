@@ -9,7 +9,6 @@ import { SecurityCompliance } from "../component/SecurityCompliance";
 import { GlobalCertifications } from "../component/GlobalCertifications";
 import { SecurityStandards } from "../component/SecurityStandards";
 import { CorporateIntegrity } from "../component/CorporateIntegrity";
-import { CertifiedExcellence } from "../component/CertifiedExcellence";
 import Founders from "../component/Founder";
 import { PrivacySecurity } from "../component/PrivacySecurity";
 import { WhyChooseUs } from "../component/WhyChooseUs";
@@ -145,8 +144,6 @@ const Home = () => {
       <div id="corporate">
         <CorporateIntegrity />
       </div>
-
-      <CertifiedExcellence />
 
       <ShowcaseSection
         badge={t("showcase.community.badge")}

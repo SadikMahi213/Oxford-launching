@@ -36,7 +36,7 @@ INVOICE_CSS = """
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #2c2c2c; font-size: 12.5px; line-height: 1.25; background: #fff; }
     .page { width: 210mm; height: 297mm; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; }
-    .content { flex: 1; padding: 8px 18px 0; }
+    .content { padding: 8px 18px 0; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
     .header-left { display: flex; align-items: center; gap: 8px; }
     .logo-crest { width: 32px; height: 32px; flex-shrink: 0; }
