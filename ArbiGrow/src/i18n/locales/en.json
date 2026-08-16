@@ -2259,21 +2259,23 @@
   "liveActivityFeed": {
     "title": "Global Live Activity",
     "justNow": "Just now",
-    "minutesAgo": "{{count}}m ago",
+    "minutesAgo": "{{count}} minutes ago",
+    "minutesAgo_one": "{{count}} minute ago",
+    "minutesAgo_other": "{{count}} minutes ago",
     "hoursAgo": "{{count}}h ago",
     "from": "from",
     "pausedWeekend": "Activity paused on weekends (UK time)",
     "pausedAdmin": "Activity paused by admin",
     "platformActivity": "Platform Activity",
     "types": {
-      "withdraw": "Withdrawal activity — {{amount}} ✔️ Completed",
-      "deposit": "Deposit activity — {{amount}} ✔️ Completed",
-      "captcha": "completed Captcha Typing and earned {{amount}}",
-      "ads": "completed an Ads activity and earned {{amount}}",
-      "ecommerce": "completed an e-commerce sale and earned {{amount}}",
-      "mining": "completed OFA Mining and earned {{amount}}",
-      "task": "completed a {{activity}} task and earned {{amount}}",
-      "signup": "joined the platform"
+      "withdraw": "Withdrawal Successful — {{amount}} ✔️ Completed",
+      "deposit": "Deposit Successful — {{amount}} ✔️ Completed",
+      "captcha": "Successfully completed Captcha Typing and earned {{amount}}",
+      "ads": "Successfully completed an Ad View and earned {{amount}}",
+      "ecommerce": "Successfully completed an e-commerce sale and earned {{amount}}",
+      "mining": "Successfully completed OFA Mining and earned {{amount}}",
+      "task": "Successfully completed a {{activity}} task and earned {{amount}}",
+      "signup": "Successfully joined the platform"
     },
     "tasks": {
       "dataEntry": "Data Entry",

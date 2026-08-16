@@ -21,10 +21,10 @@ const DEFAULT_MAX_ITEMS = 200;
 const STORAGE_KEY = "oxford_global_live_activity_v2";
 const AMOUNT_SENTINEL = "\u0001";
 
-// How long a set of activity rows stays on screen before the feed rotates to
-// the next window. Slowed down (was 1s) so each activity is readable: a smooth
-// ~6s cadence sits comfortably inside the 5–8s target range.
-const ROTATION_MS = 6000;
+// How long the visible window stays before rotating to the next set of rows.
+// Kept snappy (~2s) so a freshly generated event surfaces quickly while the
+// feed still reads smoothly. Generation itself runs ~1s (see appendNewEvent).
+const ROTATION_MS = 2000;
 
 // Responsive number of simultaneously visible rows:
 //   desktop / tablet (>= 640px): 3 rows
@@ -246,7 +246,7 @@ function pickAgeBucket() {
 
 function buildSeed(count) {
   const now = Date.now();
-  const ages = [];
+  let ages = [];
   for (let i = 0; i < count; i += 1) {
     const bucket = pickAgeBucket();
     let ageMin;
@@ -260,10 +260,15 @@ function buildSeed(count) {
     }
     ages.push(Math.max(0, Math.min(ageMin, 23 * 60 + 50)));
   }
-  ages.sort((a, b) => a - b); // newest first, so the type/person cooldown stays coherent
+   ages.sort((a, b) => a - b); // newest first, so the type/person cooldown stays coherent
 
-  const ctx = { nextId: 1, recentKeys: [], recentTypes: [] };
-  return ages.map((ageMin) => generateItem(ctx, now - ageMin * ONE_MINUTE_MS));
+   // De-cluster: guarantee every seeded event has a strictly distinct timestamp
+   // so no two rows can ever share the same minute label (PHASE 3). Each event
+   // keeps its own real generation time; we only nudge the seed spread.
+   ages = ages.map((ageMin, i) => ageMin + i * 0.02);
+
+   const ctx = { nextId: 1, recentKeys: [], recentTypes: [] };
+   return ages.map((ageMin) => generateItem(ctx, now - ageMin * ONE_MINUTE_MS));
 }
 
 // ── Persistence (sessionStorage only — never a database) ────────────────────
@@ -304,7 +309,8 @@ function saveSeedState(items, nextId) {
 
 const formatTimeAgo = (timestamp, t) => {
   const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / ONE_MINUTE_MS));
-  if (minutes < 1) return t("liveActivityFeed.justNow");
+  // "Just Now" removed (PHASE 4): always show a minute-based relative time.
+  // 0 minutes ago is acceptable for a very recent event.
   if (minutes < 60) return t("liveActivityFeed.minutesAgo", { count: minutes });
   return t("liveActivityFeed.hoursAgo", { count: Math.floor(minutes / 60) });
 };
@@ -400,7 +406,7 @@ const LiveActivityFeed = ({
       const delay =
         newInterval && newInterval > 0
           ? newInterval
-          : 12000 + Math.random() * 26000; // irregular 12–38s
+          : 800 + Math.random() * 700; // irregular ~0.8–1.5s (≈1s cadence)
       timer = setTimeout(() => {
         timer = null;
         if (cancelled) return;
