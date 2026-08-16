@@ -902,7 +902,7 @@
       }
     },
     "overview": {
-      "totalSignupBonusDistributed": "Total Signup Bonus Distributed",
+      "totalSignupBonusDistributed": "Total Signup OFA Bonus Distributed",
       "totalMiningOFADistributed": "Total Mining OFA Tokens Distributed",
       "onlineMembersLive": "Online Members (Live)",
       "totalDistributionSubtitle": "Package Commission + Referral Bonus + Generation Bonus + Matching Bonus + Rewards and Incentives"

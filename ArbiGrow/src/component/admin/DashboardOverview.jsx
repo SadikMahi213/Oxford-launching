@@ -134,7 +134,7 @@ export default function DashboardOverview() {
             <StatCard key="captcha" icon={Shapes} label="Captcha Typing Distribution" value={`$${toAmount(realtime.total_captcha_distribution).toLocaleString()}`} delay={0.15} iconColor="text-indigo-400" />,
             <StatCard key="adview" icon={Tv} label="Ad View Distribution" value={`$${toAmount(realtime.total_ad_view_distribution).toLocaleString()}`} delay={0.2} iconColor="text-sky-400" />,
             <StatCard key="free-package" icon={Gem} label="Total Free Package Distribution USD" value={`$${toAmount(realtime.total_free_package_distribution).toLocaleString()}`} delay={0.25} iconColor="text-teal-400" />,
-            <StatCard key="signup-bonus" icon={Gift} label={t("admin.overview.totalSignupBonusDistributed", "Total Signup Bonus Distributed")} value={`${toAmount(realtime.total_signup_bonus_distributed ?? 0).toLocaleString()} OFA`} delay={0.3} iconColor="text-emerald-400" />,
+            <StatCard key="signup-bonus" icon={Gift} label={t("admin.overview.totalSignupBonusDistributed", "Total Signup OFA Bonus Distributed")} value={`${toAmount(realtime.total_signup_bonus_distributed ?? 0).toLocaleString()} OFA`} delay={0.3} iconColor="text-emerald-400" />,
           ])}
 
           {/* ── Free User Earnings ───────────────────────── */}
