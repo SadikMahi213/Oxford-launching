@@ -3,8 +3,11 @@
 Covers:
 - `total_signup_bonus_distributed` sums ONLY signup/package-signup OFA ledger
   entries (excludes referral bonuses, mining rewards, conversions).
-- `total_mining_ofa_distributed` equals the sum of successful mining claims
-  (mining_logs), the same authoritative ledger as `total_mining_ofa`.
+- `total_mining_ofa_distributed` equals the sum of successful mining claims as
+  recorded in the balance-proven `ofa_coin_transactions` ledger
+  (`tx_type = mining_reward`), the same authoritative ledger as
+  `total_mining_ofa`. The raw `mining_logs` claim log is NOT authoritative
+  (it can contain orphan rows with no wallet credit).
 - `total_kyc_purchases_usd` uses stored `fee_paid` and excludes refunded fees
   (no live kyc_fee config x count multiplication).
 - `total_withdrawn` is the net of stored withdrawal charges.
@@ -200,10 +203,11 @@ def test_signup_bonus_excludes_referral_and_mining_tx_types():
     assert total != db.signup_bonus + db.mining_reward_tx
 
 
-def test_mining_ofa_distributed_from_mining_log_ledger():
+def test_mining_ofa_distributed_from_mining_reward_ledger():
     db = _FakeDashboardDB()
     r = _fetch(db)
-    assert r["total_mining_ofa_distributed"] == "60.00000000000000"
+    # Authoritative: mining_reward OFA ledger (20), not the raw mining_logs sum (60).
+    assert r["total_mining_ofa_distributed"] == "20.00000000000000"
     assert r["total_mining_ofa"] == r["total_mining_ofa_distributed"]
 
 
@@ -237,6 +241,7 @@ def test_empty_state_returns_zero():
     db.signup_bonus = Decimal("0")
     db.package_signup = Decimal("0")
     db.mining_logs = Decimal("0")
+    db.mining_reward_tx = Decimal("0")
     db.total_captcha = db.free_captcha = db.paid_captcha = Decimal("0")
     db.total_ad = db.free_ad = db.paid_ad = Decimal("0")
     r = _fetch(db)
@@ -278,11 +283,11 @@ def test_transferred_and_paid_investment_status_filters_present():
 
 
 def test_multiple_records_aggregated_not_paginated():
-    # Three successful mining logs (20 + 20 + 20) and 20 signup bonuses
-    # must all be summed — no LIMIT/pagination anywhere in the endpoint.
+    # Mining rewards (only the balance-proven mining_reward ledger) and signup
+    # bonuses must all be summed — no LIMIT/pagination anywhere in the endpoint.
     db = _FakeDashboardDB()
     r = _fetch(db)
-    assert r["total_mining_ofa_distributed"] == "60.00000000000000"
+    assert r["total_mining_ofa_distributed"] == "20.00000000000000"
     assert r["total_signup_bonus_distributed"] == "2050.00000000000000"
 
 

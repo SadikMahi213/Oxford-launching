@@ -2256,8 +2256,14 @@ async def get_realtime_stats(
     )
     total_profit_shared = Decimal(str(total_profit_result.scalar() or 0))
 
+    # Authoritative mining distribution ledger: ofa_coin_transactions.mining_reward.
+    # Each successful claim writes an OFACoinTransaction (with balance_before/after
+    # wallet proof), so this — not the raw mining_logs claim log — is the source of
+    # truth for OFA actually distributed to user wallets.
     total_mining_result = await db.execute(
-        select(func.coalesce(func.sum(MiningLog.amount), 0))
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.tx_type.in_([OFATransactionType.mining_reward])
+        )
     )
     total_mining = Decimal(str(total_mining_result.scalar() or 0))
 
