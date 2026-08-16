@@ -416,13 +416,19 @@ async def claim_mining(
                 bal_before = locked_user.arbx_wallet or Decimal("0")
                 locked_user.arbx_wallet = bal_before + final_reward
                 locked_user.daily_mined = daily_mined + final_reward
-                db.add(MiningLog(
+                mining_log = MiningLog(
                     user_id=locked_user.id,
                     amount=final_reward,
                     mined_from=reference_time,
                     mined_to=cycle_end,
                     daily_mined_after=locked_user.daily_mined,
-                ))
+                )
+                db.add(mining_log)
+                # Flush so the MiningLog gets a PK, then bind the wallet-credit
+                # transaction to it. Both rows are committed together below, so
+                # the claim log and the mining_reward ledger stay atomic AND
+                # explicitly linked (reference_id) for future reconciliation.
+                await db.flush()
                 await _create_ofa_tx(
                     db, locked_user.id,
                     tx_type=OFATransactionType.mining_reward,
@@ -431,6 +437,7 @@ async def claim_mining(
                     balance_after=locked_user.arbx_wallet,
                     target_wallet="arbx_wallet",
                     reference_type="mining_log",
+                    reference_id=mining_log.id,
                     idempotency_key=idempotency_key,
                     description="Daily mining reward (cycle end)",
                 )
@@ -479,14 +486,18 @@ async def claim_mining(
     locked_user.daily_mined = daily_mined + reward
     locked_user.last_mine_time = now_utc
 
-    db.add(MiningLog(
+    mining_log = MiningLog(
         user_id=locked_user.id,
         amount=reward,
         mined_from=reference_time,
         mined_to=now_utc,
         daily_mined_after=locked_user.daily_mined,
-    ))
-
+    )
+    db.add(mining_log)
+    # Flush so the MiningLog gets a PK, then bind the wallet-credit transaction
+    # to it. Both rows are committed together below, so the claim log and the
+    # mining_reward ledger stay atomic AND explicitly linked (reference_id).
+    await db.flush()
     await _create_ofa_tx(
         db, locked_user.id,
         tx_type=OFATransactionType.mining_reward,
@@ -495,6 +506,7 @@ async def claim_mining(
         balance_after=locked_user.arbx_wallet,
         target_wallet="arbx_wallet",
         reference_type="mining_log",
+        reference_id=mining_log.id,
         idempotency_key=idempotency_key,
         description="Daily mining reward",
     )

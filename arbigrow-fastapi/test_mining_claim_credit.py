@@ -116,6 +116,9 @@ class _FakeMiningDB:
     async def commit(self):
         self.commits += 1
 
+    async def flush(self):
+        return None
+
     async def refresh(self, obj, *_a, **_k):
         return None
 
