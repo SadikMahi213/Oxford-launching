@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
 import { Users, CheckCircle2, DollarSign } from "lucide-react"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
-import { useLiveActivity } from "./liveActivitySimulation.js"
+import { useSharedLiveActivity } from "../../live-feed/liveActivityStore.js"
 import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js"
 
 const SPIN_KEYFRAMES = `
@@ -89,7 +89,12 @@ const OFACryptocurrency = () => {
   const coinRef = useRef(null)
   const [mounted, setMounted] = useState(false)
 
-  const stats = useLiveActivity()
+  const live = useSharedLiveActivity();
+  const stats = live || {
+    live_online: 0,
+    tasks_completed_today: 0,
+    platform_earnings_activity: 0,
+  };
 
   useEffect(() => { setMounted(true) }, [])
 

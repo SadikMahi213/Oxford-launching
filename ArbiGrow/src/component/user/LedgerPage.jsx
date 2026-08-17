@@ -1,6 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Loader2, ArrowDownLeft, ArrowUpRight, Filter, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Filter,
+  Search,
+  Coins,
+  MonitorPlay,
+  ShieldCheck,
+  Users,
+  GitMerge,
+  Pickaxe,
+  PartyPopper,
+  Package,
+  ShoppingBag,
+  Repeat,
+  SlidersHorizontal,
+  BadgeCheck,
+  RotateCcw,
+  Banknote,
+  Receipt,
+  Landmark,
+  ShoppingCart,
+  ArrowLeftRight,
+  CircleDollarSign,
+} from "lucide-react";
 import { getLedgerTransactions } from "../../api/user.api.js";
 
 const CATEGORIES = [
@@ -66,6 +93,61 @@ const formatDate = (iso) => {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleString();
+};
+
+// Map backend ledger categories to clear, consistent icons for the mobile
+// transaction list. Keys match the CATEGORIES list above.
+const CATEGORY_ICON = {
+  daily_earning: Coins,
+  ad_view: MonitorPlay,
+  captcha: ShieldCheck,
+  referral_bonus: Users,
+  team_bonus: Users,
+  matching_bonus: GitMerge,
+  mining: Pickaxe,
+  signup_bonus: PartyPopper,
+  package_bonus: Package,
+  ecommerce_bonus: ShoppingBag,
+  ofa_conversion: Repeat,
+  manual_adjustment: SlidersHorizontal,
+  kyc_fee: BadgeCheck,
+  refund: RotateCcw,
+  withdrawal: Banknote,
+  service_fee: Receipt,
+  deposit: Landmark,
+  ecommerce: ShoppingCart,
+  transfer: ArrowLeftRight,
+};
+
+const MobileLedgerRow = ({ item, t }) => {
+  const isDebit = item.direction === "debit";
+  const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] border border-white/10 p-3">
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+          isDebit ? "bg-red-500/10 text-red-300" : "bg-emerald-500/10 text-emerald-300"
+        }`}
+      >
+        <Icon size={18} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-white">
+          {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
+        </div>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-400">
+          <span className="truncate">{formatDate(item.date)}</span>
+          <span className={`inline-block rounded-full border px-1.5 py-0.5 text-[10px] ${statusColor(item.status)}`}>
+            {t(`ledger.status.${item.status}`, item.status)}
+          </span>
+        </div>
+      </div>
+      <div className={`shrink-0 text-right text-sm font-semibold ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+        {isDebit ? "-" : "+"}
+        {item.amount} {item.currency}
+      </div>
+    </div>
+  );
 };
 
 const LedgerPage = () => {
@@ -230,8 +312,8 @@ const LedgerPage = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Table (desktop) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full min-w-[760px]">
             <thead>
               <tr className="border-b border-white/10">
@@ -285,6 +367,20 @@ const LedgerPage = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card list */}
+        <div className="md:hidden p-4 space-y-2">
+          {loading ? (
+            <div className="py-10 text-center text-gray-400">
+              <Loader2 className="inline animate-spin mr-2" size={18} />
+              {t("ledger.loading", "Loading…")}
+            </div>
+          ) : items.length === 0 ? (
+            <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
+          ) : (
+            items.map((item) => <MobileLedgerRow key={item.id} item={item} t={t} />)
+          )}
         </div>
 
         {/* Pagination */}
