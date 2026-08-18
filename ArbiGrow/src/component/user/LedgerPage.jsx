@@ -31,49 +31,13 @@ import {
 import { getLedgerTransactions } from "../../api/user.api.js";
 
 const CATEGORIES = [
-  "daily_earning",
   "ad_view",
   "captcha",
-  "referral_bonus",
-  "team_bonus",
-  "matching_bonus",
-  "mining",
-  "signup_bonus",
-  "package_bonus",
-  "ecommerce_bonus",
-  "company_profit",
-  "development",
-  "international",
-  "travel",
-  "ofa_conversion",
-  "manual_adjustment",
-  "kyc_fee",
-  "refund",
-  "withdrawal",
-  "service_fee",
-  "deposit",
-  "ecommerce",
-  "transfer",
 ];
 
 const TYPES = ["earning", "deduction", "adjustment"];
 const CURRENCIES = ["USD", "USDT", "OFA"];
 const STATUSES = ["pending", "completed", "failed", "reversed", "held", "refunded"];
-
-const BALANCE_KEYS = [
-  "main_wallet",
-  "deposit_wallet",
-  "withdraw_wallet",
-  "referral_wallet",
-  "generation_wallet",
-  "captcha_wallet",
-  "ad_view_wallet",
-  "ecommerce_wallet",
-  "matching_bonus_wallet",
-  "arbx_wallet",
-  "arbx_mining_wallet",
-  "ofa_balance",
-];
 
 const statusColor = (status) => {
   switch (status) {
@@ -184,6 +148,7 @@ const LedgerPage = () => {
       const res = await getLedgerTransactions({
         page,
         page_size: pageSize,
+        scope: "task",
         category: filters.category,
         type: filters.type,
         currency: filters.currency,
@@ -219,8 +184,8 @@ const LedgerPage = () => {
         <div className="p-4 sm:p-6 border-b border-white/10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">{t("ledger.title", "OFA Earning & Transaction Ledger")}</h2>
-              <p className="text-sm text-gray-400">{t("ledger.subtitle", "Every earning, bonus, deposit, withdrawal and adjustment in one place.")}</p>
+              <h2 className="text-xl font-bold text-white mb-1">{t("ledger.title", "Task Earning Ledger")}</h2>
+              <p className="text-sm text-gray-400">{t("ledger.subtitle", "Earnings from completing digital tasks only.")}</p>
             </div>
           </div>
         </div>
@@ -230,36 +195,24 @@ const LedgerPage = () => {
         )}
 
         {/* Summary totals */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 sm:p-6 border-b border-white/10">
-          {CURRENCIES.map((cur) => {
-            const bucket = summary.totals?.[cur] || { credit: 0, debit: 0, net: 0 };
-            return (
-              <div key={cur} className="rounded-lg bg-[#0A122C] border border-white/10 p-4">
-                <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">{t(`ledger.currency.${cur}`, cur)}</div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-emerald-300">+{bucket.credit?.toFixed(4) || "0.0000"}</span>
-                  <span className="text-red-300">-{bucket.debit?.toFixed(4) || "0.0000"}</span>
-                </div>
-                <div className="mt-1 text-right text-base font-bold text-white">
-                  {bucket.net?.toFixed(4) || "0.0000"}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Balances */}
         <div className="p-4 sm:p-6 border-b border-white/10">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t("ledger.availableBalances", "Available Balances")}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {BALANCE_KEYS.map((key) => (
-              <div key={key} className="rounded-lg bg-white/5 border border-white/10 p-3">
-                <div className="text-[11px] text-gray-400 truncate">{t(`ledger.balance.${key}`, key)}</div>
-                <div className="text-sm font-semibold text-white mt-1">
-                  {(summary.balances?.[key] ?? 0).toFixed(4)}
+          <h3 className="text-sm font-semibold text-gray-300 mb-3">{t("ledger.taskEarnings", "Task Earnings")}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {CURRENCIES.map((cur) => {
+              const bucket = summary.totals?.[cur] || { credit: 0, debit: 0, net: 0 };
+              return (
+                <div key={cur} className="rounded-lg bg-[#0A122C] border border-white/10 p-4">
+                  <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">{t(`ledger.currency.${cur}`, cur)}</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-emerald-300">+{bucket.credit?.toFixed(4) || "0.0000"}</span>
+                    <span className="text-red-300">-{bucket.debit?.toFixed(4) || "0.0000"}</span>
+                  </div>
+                  <div className="mt-1 text-right text-base font-bold text-white">
+                    {bucket.net?.toFixed(4) || "0.0000"}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -344,7 +297,7 @@ const LedgerPage = () => {
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
+                  <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noTaskEarnings", "No task earnings yet.")}</td>
                 </tr>
               ) : (
                 items.map((item) => {
@@ -385,7 +338,7 @@ const LedgerPage = () => {
               {t("ledger.loading", "Loading…")}
             </div>
           ) : items.length === 0 ? (
-            <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
+            <div className="py-10 text-center text-gray-400">{t("ledger.noTaskEarnings", "No task earnings yet.")}</div>
           ) : (
             items.map((item) => <MobileLedgerRow key={item.id} item={item} t={t} />)
           )}

@@ -2529,8 +2529,8 @@
     }
   },
   "ledger": {
-    "title": "OFA Earning & Transaction Ledger",
-    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "title": "Task Earning Ledger",
+    "subtitle": "Earnings from completing digital tasks only.",
     "availableBalances": "Available Balances",
     "loading": "Loading…",
     "noRecords": "No records found.",
@@ -2555,7 +2555,7 @@
     "category": {
       "daily_earning": "Daily Earning",
       "ad_view": "Ad View Earning",
-      "captcha": "CAPTCHA Earning",
+      "captcha": "CAPTCHA Typing Earning",
       "referral_bonus": "Referral Bonus",
       "team_bonus": "Team Bonus",
       "matching_bonus": "Matching Bonus",
@@ -2608,6 +2608,8 @@
       "arbx_wallet": "ArbX Wallet",
       "arbx_mining_wallet": "ArbX Mining Wallet",
       "ofa_balance": "OFA Balance"
-    }
+    },
+    "taskEarnings": "Task Earnings",
+    "noTaskEarnings": "No task earnings yet."
   }
 }

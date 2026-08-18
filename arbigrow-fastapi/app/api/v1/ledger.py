@@ -7,6 +7,12 @@ OFA coin ledger, KYC wallet transactions, etc.) into one normalized, paginated
 ledger. No records are manufactured: only categories that have backing rows are
 returned, and the "available balance" is read from authoritative User columns
 (or derived from the OFA coin ledger) — never recomputed as a sum of rows.
+
+`scope=task` narrows this to the TASK-BASED EARNINGS LEDGER: only genuine
+digital-task earning categories (ad_view, captcha) are returned, wallet
+balances are omitted, and no bonuses/financial/OFA movements are shown.
+The default (`scope` absent) preserves the full general ledger for other
+consumers.
 """
 
 import asyncio
@@ -37,6 +43,12 @@ from app.models.transfer_log import TransferLog
 
 
 router = APIRouter(prefix="/ledger", tags=["Ledger"])
+
+
+# ── Task-based categories ────────────────────────────────────────────────────
+# Genuine task-based digital earning activities. Matches the TaskType enum
+# (captcha, ad_view). Only these are shown when scope=task.
+TASK_CATEGORIES = frozenset({"ad_view", "captcha"})
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -289,10 +301,15 @@ async def _ofa_balance(db: AsyncSession, uid: int) -> float:
 
 # ── Aggregation ──────────────────────────────────────────────────────────────
 
-async def _build_ledger(user: User, db: AsyncSession) -> tuple[list, dict]:
+async def _build_ledger(user: User, db: AsyncSession, task_only: bool = False) -> tuple[list, dict]:
     uid = user.id
-    records, ofa_balance = await asyncio_gather_ledger(user, db, uid)
+    records, ofa_balance = await asyncio_gather_ledger(user, db, uid, task_only=task_only)
     records.sort(key=lambda x: x["date"] or "", reverse=True)
+
+    if task_only:
+        # Task ledger is not a wallet statement; do not surface wallet balances.
+        balances = {}
+        return records, balances
 
     balances = {
         "main_wallet": _num(user.main_wallet),
@@ -311,21 +328,27 @@ async def _build_ledger(user: User, db: AsyncSession) -> tuple[list, dict]:
     return records, balances
 
 
-async def asyncio_gather_ledger(user, db, uid):
-    tasks = [
-        _investment_profits(db, uid),
-        _ad_views(db, uid),
-        _captcha(db, uid),
-        _referral_profits(db, uid),
-        _matching_bonuses(db, uid),
-        _mining(db, uid),
-        _ofa_transactions(db, uid),
-        _wallet_transactions(db, uid),
-        _withdrawals(db, uid),
-        _deposits(db, uid),
-        _ecommerce(db, uid),
-        _transfers(db, uid),
-    ]
+async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
+    if task_only:
+        tasks = [
+            _ad_views(db, uid),
+            _captcha(db, uid),
+        ]
+    else:
+        tasks = [
+            _investment_profits(db, uid),
+            _ad_views(db, uid),
+            _captcha(db, uid),
+            _referral_profits(db, uid),
+            _matching_bonuses(db, uid),
+            _mining(db, uid),
+            _ofa_transactions(db, uid),
+            _wallet_transactions(db, uid),
+            _withdrawals(db, uid),
+            _deposits(db, uid),
+            _ecommerce(db, uid),
+            _transfers(db, uid),
+        ]
     results = await asyncio.gather(*tasks)
     records = [item for sub in results for item in sub]
     ofa_balance = await _ofa_balance(db, uid)
@@ -340,6 +363,7 @@ async def get_ledger_transactions(
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    scope: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     type: Optional[str] = Query(None),
     currency: Optional[str] = Query(None),
@@ -348,10 +372,14 @@ async def get_ledger_transactions(
     end_date: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
 ):
-    records, balances = await _build_ledger(current_user, db)
+    task_only = scope == "task"
+    records, balances = await _build_ledger(current_user, db, task_only=task_only)
 
     # ── Apply filters ──
     filtered = records
+    if task_only:
+        # Keep task-based records only; drop everything else explicitly.
+        filtered = [r for r in filtered if r["category"] in TASK_CATEGORIES]
     if category:
         filtered = [r for r in filtered if r["category"] == category]
     if type:
