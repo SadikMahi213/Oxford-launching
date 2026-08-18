@@ -153,23 +153,41 @@ def _daily_seed_int():
     return int(datetime.utcnow().strftime("%Y%m%d"))
 
 
+def _triangle(now_s, period, amplitude):
+    # Continuous triangular wave: rises 0→amplitude then falls back over
+    # `period` seconds. Guarantees a minimum per-second change of
+    # `2*amplitude/period` (constant slope), so the value can never appear
+    # frozen and no two consecutive seconds can show the identical combo.
+    phase = now_s % period
+    half = period / 2.0
+    if phase < half:
+        return amplitude * (2.0 * phase / period)
+    return amplitude * (2.0 - 2.0 * phase / period)
+
+
 def _live_online(now_s):
     # Smooth, deterministic oscillation — evolves continuously (never frozen),
     # bounded to a believable range, identical for all users at a given time.
     val = 380000 + 185000 * math.sin(now_s / 720.0) + 32000 * math.sin(now_s / 95.0)
+    val += _triangle(now_s, 300, 4000)
     return int(round(val)) | 1
 
 
 def _tasks_completed_today(now_s):
     base = (_daily_seed_int() % 1000) * 37 + 18000
     frac = (now_s % 86400) / 86400.0
-    return int(base + frac * 72000) | 1
+    # Daily upward trend plus a fast bounded wobble (min ~133 tasks/sec) so the
+    # value visibly ticks up and down instead of creeping monotonically.
+    val = base + frac * 72000 + _triangle(now_s, 90, 6000) + 400 * math.sin(now_s / 7.0)
+    return int(round(val)) | 1
 
 
 def _platform_earnings_activity(now_s):
     base = (_daily_seed_int() % 1000) * 11 + 19000
     frac = (now_s % 86400) / 86400.0
-    val = base + frac * 9000 + 800 * math.sin(now_s / 1300.0)
+    # Daily upward trend plus a fast bounded wobble (min ~$26/sec) so the
+    # displayed USD figure keeps moving every poll.
+    val = base + frac * 9000 + _triangle(now_s, 60, 800) + 120 * math.sin(now_s / 13.0)
     return round(val, 2)
 
 

@@ -234,7 +234,7 @@ async def _deposits(db: AsyncSession, uid: int) -> list:
     for r in rows:
         status = _withdrawal_status(r.status)
         out.append(_to_record("dp", r.id, r.created_at, "deposit",
-                              "earning", "credit", r.amount, "USDT", status,
+                              "adjustment", "credit", r.amount, "USDT", status,
                               reference=r.txid))
     return out
 
