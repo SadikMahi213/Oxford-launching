@@ -1,10 +1,7 @@
-import math
 import time
-from datetime import datetime
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-
 
 router = APIRouter(prefix="/live-stats", tags=["Live Stats"])
 
@@ -19,6 +16,14 @@ router = APIRouter(prefix="/live-stats", tags=["Live Stats"])
 # divergence. The event sequence is anchored to `seq = floor(now / 1000)`,
 # therefore it is independent of who is logged in, page refreshes, or which
 # browser opened the page.
+#
+# The three OFA Cryptocurrency metrics are fully INDEPENDENT of each other.
+# Each one ticks on its own cadence (Live Online every 3s, Earnings every 5s,
+# Tasks every 10s) and is computed as a pure function of the server clock, so
+# they drift apart naturally instead of moving together on a shared poll. The
+# Earnings/Tasks counters run on their own persistent 24h windows anchored to
+# UTC midnight (now_s % 86400) — they start at $0.00 / 0 at the boundary and
+# never reset on refresh, logout or login.
 # ─────────────────────────────────────────────────────────────────────────────
 
 EVENT_INTERVAL_MS = 1000
@@ -149,46 +154,45 @@ def _event_for_index(n):
     }
 
 
-def _daily_seed_int():
-    return int(datetime.utcnow().strftime("%Y%m%d"))
-
-
-def _triangle(now_s, period, amplitude):
-    # Continuous triangular wave: rises 0→amplitude then falls back over
-    # `period` seconds. Guarantees a minimum per-second change of
-    # `2*amplitude/period` (constant slope), so the value can never appear
-    # frozen and no two consecutive seconds can show the identical combo.
-    phase = now_s % period
-    half = period / 2.0
-    if phase < half:
-        return amplitude * (2.0 * phase / period)
-    return amplitude * (2.0 - 2.0 * phase / period)
-
-
 def _live_online(now_s):
-    # Smooth, deterministic oscillation — evolves continuously (never frozen),
-    # bounded to a believable range, identical for all users at a given time.
-    val = 380000 + 185000 * math.sin(now_s / 720.0) + 32000 * math.sin(now_s / 95.0)
-    val += _triangle(now_s, 300, 4000)
-    return int(round(val)) | 1
+    # Independent 3s cycle. A deterministic hash of the 3-second tick yields a
+    # new value every 3 seconds that fluctuates 180–200, up or down, and can
+    # never print the identical number on two consecutive ticks. Pure function
+    # of the server clock — identical for every user, no state, survives
+    # refreshes and has no shared interval with the other two metrics.
+    def _at(t):
+        rng = __import__("random").Random(t)
+        return 180 + rng.randrange(21)
+
+    tick = now_s // 3
+    val = _at(tick)
+    if val == _at(tick - 1):
+        val = 180 + (val - 180 + 1) % 21
+    return val
 
 
 def _tasks_completed_today(now_s):
-    base = (_daily_seed_int() % 1000) * 37 + 18000
-    frac = (now_s % 86400) / 86400.0
-    # Daily upward trend plus a fast bounded wobble (min ~133 tasks/sec) so the
-    # value visibly ticks up and down instead of creeping monotonically.
-    val = base + frac * 72000 + _triangle(now_s, 90, 6000) + 400 * math.sin(now_s / 7.0)
-    return int(round(val)) | 1
+    # Independent 10s cycle inside its own persistent 24h window (anchored to
+    # UTC midnight via now_s % 86400). Starts at 0 at the boundary and adds a
+    # deterministic ~350–500 tasks per completed 10s tick. The window start is
+    # derived from the server clock only, so it never restarts on refresh,
+    # logout or login, and every user sees the identical running total.
+    day = now_s // 86400
+    ticks = (now_s % 86400) // 10
+    rng = __import__("random").Random(day * 2)
+    return sum(rng.randrange(350, 501) for _ in range(ticks))
 
 
 def _platform_earnings_activity(now_s):
-    base = (_daily_seed_int() % 1000) * 11 + 19000
-    frac = (now_s % 86400) / 86400.0
-    # Daily upward trend plus a fast bounded wobble (min ~$26/sec) so the
-    # displayed USD figure keeps moving every poll.
-    val = base + frac * 9000 + _triangle(now_s, 60, 800) + 120 * math.sin(now_s / 13.0)
-    return round(val, 2)
+    # Independent 5s cycle inside its own persistent 24h window (anchored to
+    # UTC midnight via now_s % 86400). Starts at $0.00 at the boundary and adds
+    # a deterministic ~$40–50 per completed 5s tick. Same replay guarantees as
+    # the tasks counter above; seeded differently from it so the two streams
+    # are fully uncorrelated.
+    day = now_s // 86400
+    ticks = (now_s % 86400) // 5
+    rng = __import__("random").Random(day * 2 + 1)
+    return sum(rng.randrange(4000, 5001) for _ in range(ticks)) / 100.0
 
 
 @router.get("/")
