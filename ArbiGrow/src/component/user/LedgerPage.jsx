@@ -31,8 +31,29 @@ import {
 import { getLedgerTransactions } from "../../api/user.api.js";
 
 const CATEGORIES = [
+  "daily_earning",
   "ad_view",
   "captcha",
+  "referral_bonus",
+  "team_bonus",
+  "matching_bonus",
+  "mining",
+  "signup_bonus",
+  "package_bonus",
+  "ecommerce_bonus",
+  "company_profit",
+  "development",
+  "international",
+  "travel",
+  "ofa_conversion",
+  "manual_adjustment",
+  "kyc_fee",
+  "refund",
+  "withdrawal",
+  "service_fee",
+  "deposit",
+  "ecommerce",
+  "transfer",
 ];
 
 const TYPES = ["earning", "deduction", "adjustment"];
@@ -184,8 +205,8 @@ const LedgerPage = () => {
         <div className="p-4 sm:p-6 border-b border-white/10">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">{t("ledger.title", "Task Earning Ledger")}</h2>
-              <p className="text-sm text-gray-400">{t("ledger.subtitle", "Earnings from completing digital tasks only.")}</p>
+              <h2 className="text-xl font-bold text-white mb-1">{t("ledger.title", "OFA Earning & Transaction Ledger")}</h2>
+              <p className="text-sm text-gray-400">{t("ledger.subtitle", "Every earning, bonus, deposit, withdrawal and adjustment in one place.")}</p>
             </div>
           </div>
         </div>
@@ -297,7 +318,7 @@ const LedgerPage = () => {
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noTaskEarnings", "No task earnings yet.")}</td>
+                  <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
                 </tr>
               ) : (
                 items.map((item) => {
@@ -338,7 +359,7 @@ const LedgerPage = () => {
               {t("ledger.loading", "Loading…")}
             </div>
           ) : items.length === 0 ? (
-            <div className="py-10 text-center text-gray-400">{t("ledger.noTaskEarnings", "No task earnings yet.")}</div>
+            <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
           ) : (
             items.map((item) => <MobileLedgerRow key={item.id} item={item} t={t} />)
           )}
