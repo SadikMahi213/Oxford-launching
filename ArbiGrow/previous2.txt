@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { countries } from "./countries";
 import { countryNames } from "./countryNames";
 import "./LiveActivityFeed.css";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Simulated Global Live Activity feed.
 //
 // This widget renders simulated, client-side platform activity for display
@@ -12,7 +12,7 @@ import "./LiveActivityFeed.css";
 // wallets, balances, transactions, mining logs or e-commerce orders.
 // Everything is generated in memory and kept inside React state (optionally
 // mirrored to sessionStorage so a refresh does not reset the activity window).
-// ─────────────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 const ONE_MINUTE_MS = 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * ONE_MINUTE_MS;
@@ -21,31 +21,18 @@ const DEFAULT_MAX_ITEMS = 200;
 const STORAGE_KEY = "oxford_global_live_activity_v2";
 const AMOUNT_SENTINEL = "\u0001";
 
-// How long a set of activity rows stays on screen before the feed rotates to
-// the next window. Slowed down (was 1s) so each activity is readable: a smooth
-// ~6s cadence sits comfortably inside the 5–8s target range.
-const ROTATION_MS = 6000;
-
-// Responsive number of simultaneously visible rows:
-//   desktop / tablet (>= 640px): 3 rows
-//   mobile (< 640px): 2 rows (3 makes the section too tall on phones)
-function getVisibleRows() {
-  if (typeof window === "undefined") return 3;
-  return window.innerWidth < 640 ? 2 : 3;
-}
-
 // Weighted distribution (sums to 100):
-//   Withdrawal 10% · Deposit 10% · Captcha 20% · Ads 20%
-//   E-Commerce 15% · OFA Mining 10% · Digital Tasks 10% · Other 5%
+//   Withdrawal 10% ┬╖ Deposit 10% ┬╖ Captcha 20% ┬╖ Ads 20%
+//   E-Commerce 15% ┬╖ OFA Mining 10% ┬╖ Digital Tasks 10% ┬╖ Other 5%
 const ACTIVITY_TYPES = [
-  { type: "withdraw", icon: "💸", actionKey: "liveActivityFeed.types.withdraw", weight: 10 },
-  { type: "deposit", icon: "🏦", actionKey: "liveActivityFeed.types.deposit", weight: 10 },
-  { type: "captcha", icon: "🔐", actionKey: "liveActivityFeed.types.captcha", weight: 20 },
-  { type: "ads", icon: "📺", actionKey: "liveActivityFeed.types.ads", weight: 20 },
-  { type: "ecommerce", icon: "🛒", actionKey: "liveActivityFeed.types.ecommerce", weight: 15 },
-  { type: "mining", icon: "⛏️", actionKey: "liveActivityFeed.types.mining", weight: 10 },
-  { type: "task", icon: "💻", actionKey: "liveActivityFeed.types.task", weight: 10 },
-  { type: "signup", icon: "🎉", actionKey: "liveActivityFeed.types.signup", weight: 5 },
+  { type: "withdraw", icon: "≡ƒÆ╕", actionKey: "liveActivityFeed.types.withdraw", weight: 10 },
+  { type: "deposit", icon: "≡ƒÅª", actionKey: "liveActivityFeed.types.deposit", weight: 10 },
+  { type: "captcha", icon: "≡ƒöÉ", actionKey: "liveActivityFeed.types.captcha", weight: 20 },
+  { type: "ads", icon: "≡ƒô║", actionKey: "liveActivityFeed.types.ads", weight: 20 },
+  { type: "ecommerce", icon: "≡ƒ¢Æ", actionKey: "liveActivityFeed.types.ecommerce", weight: 15 },
+  { type: "mining", icon: "Γ¢Å∩╕Å", actionKey: "liveActivityFeed.types.mining", weight: 10 },
+  { type: "task", icon: "≡ƒÆ╗", actionKey: "liveActivityFeed.types.task", weight: 10 },
+  { type: "signup", icon: "≡ƒÄë", actionKey: "liveActivityFeed.types.signup", weight: 5 },
 ];
 
 const TASK_TYPES = [
@@ -83,7 +70,7 @@ const round2 = (n) => Math.round(n * 100) / 100;
 const usd = (n) => `$${n.toFixed(2)}`;
 const usdt = (n) => `${n.toFixed(2)} USDT`;
 
-// ── Amount generation ────────────────────────────────────────────────────────
+// ΓöÇΓöÇ Amount generation ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Amounts are generated ONCE per event (at event creation time) and stored on
 // the item, so they never change on re-renders. Currency units reflect the
 // platform: deposits/withdrawals are settled in USDT, captcha/ads/tasks in USD,
@@ -92,20 +79,20 @@ const usdt = (n) => `${n.toFixed(2)} USDT`;
 function withdrawalAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.5) raw = 10 + Math.random() * 80; // 10 – 90 USDT
-  else if (r < 0.8) raw = 90 + Math.random() * 160; // 90 – 250 USDT
-  else if (r < 0.95) raw = 250 + Math.random() * 250; // 250 – 500 USDT
-  else raw = 500 + Math.random() * 200; // 500 – 700 USDT
+  if (r < 0.5) raw = 10 + Math.random() * 80; // 10 ΓÇô 90 USDT
+  else if (r < 0.8) raw = 90 + Math.random() * 160; // 90 ΓÇô 250 USDT
+  else if (r < 0.95) raw = 250 + Math.random() * 250; // 250 ΓÇô 500 USDT
+  else raw = 500 + Math.random() * 200; // 500 ΓÇô 700 USDT
   return usdt(clamp(raw, 10, 700));
 }
 
 function depositAmount() {
   const r = Math.random();
   let raw;
-  if (r < 0.45) raw = 10 + Math.random() * 90; // 10 – 100 USDT
-  else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 – 300 USDT
-  else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 – 700 USDT
-  else raw = 700 + Math.random() * 300; // 700 – 1,000 USDT
+  if (r < 0.45) raw = 10 + Math.random() * 90; // 10 ΓÇô 100 USDT
+  else if (r < 0.75) raw = 100 + Math.random() * 200; // 100 ΓÇô 300 USDT
+  else if (r < 0.93) raw = 300 + Math.random() * 400; // 300 ΓÇô 700 USDT
+  else raw = 700 + Math.random() * 300; // 700 ΓÇô 1,000 USDT
   return usdt(round2(raw));
 }
 
@@ -151,8 +138,8 @@ const amountFor = (type, taskKey) => {
   }
 };
 
-// ── Dummy user rotation ──────────────────────────────────────────────────────
-// Keeps a cooldown of the last 2–3 generated users so the same member does not
+// ΓöÇΓöÇ Dummy user rotation ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Keeps a cooldown of the last 2ΓÇô3 generated users so the same member does not
 // appear back-to-back.
 
 function pickPerson(avoidKeys) {
@@ -205,31 +192,31 @@ function generateItem(ctx, timestampMs) {
   };
 }
 
-// ── 24-hour rolling seed ─────────────────────────────────────────────────────
+// ΓöÇΓöÇ 24-hour rolling seed ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Builds an initial dataset spread across the latest 24h using a weighted,
 // recent-heavy time distribution. Each item samples a target "age bucket"
 // (Just now, 2m, 6m, 10m, 15m, 20m, 30m, 45m, 1h, 2h, 3h, 5h, 8h, 12h, 20h)
-// with ±35% jitter, so the feed looks like a continuously active stream rather
+// with ┬▒35% jitter, so the feed looks like a continuously active stream rather
 // than clustering around a single offset. Sampling + jitter make every seed
 // different, while the recent buckets carry the most weight so fresh activity
 // dominates (like a real live feed) and older timestamps stay rarer.
 
 const SEED_AGE_BUCKETS = [
-  { offset: 0, weight: 7 }, // Just now
-  { offset: 2, weight: 9 },
-  { offset: 6, weight: 9 },
-  { offset: 10, weight: 8 },
+  { offset: 0, weight: 10 }, // Just now - highest weight ensures "Just now" appears
+  { offset: 2, weight: 8 },
+  { offset: 6, weight: 8 },
+  { offset: 10, weight: 7 },
   { offset: 15, weight: 7 },
-  { offset: 20, weight: 7 },
+  { offset: 20, weight: 6 },
   { offset: 30, weight: 6 },
   { offset: 45, weight: 5 },
-  { offset: 60, weight: 6 }, // 1 hour
-  { offset: 120, weight: 6 }, // 2 hours
-  { offset: 180, weight: 5 }, // 3 hours
-  { offset: 300, weight: 5 }, // 5 hours
-  { offset: 480, weight: 4 }, // 8 hours
-  { offset: 720, weight: 4 }, // 12 hours
-  { offset: 1200, weight: 4 }, // 20 hours
+  { offset: 60, weight: 4 }, // 1 hour
+  { offset: 120, weight: 4 }, // 2 hours
+  { offset: 180, weight: 3 }, // 3 hours
+  { offset: 300, weight: 3 }, // 5 hours
+  { offset: 480, weight: 2 }, // 8 hours
+  { offset: 720, weight: 2 }, // 12 hours
+  { offset: 1200, weight: 1 }, // 20 hours
 ];
 
 function pickAgeBucket() {
@@ -251,9 +238,9 @@ function buildSeed(count) {
     if (bucket.offset === 0) {
       // Keep the freshest bucket genuinely within the "Just now" threshold
       // (< 60s) so the label resolves correctly instead of being forced.
-      ageMin = Math.random() * 0.8; // 0–48s
+      ageMin = Math.random() * 0.8; // 0ΓÇô48s
     } else {
-      const jitter = (Math.random() - 0.5) * 0.7; // ±35%
+      const jitter = (Math.random() - 0.5) * 0.7; // ┬▒35%
       ageMin = bucket.offset * (1 + jitter);
     }
     ages.push(Math.max(0, Math.min(ageMin, 23 * 60 + 50)));
@@ -264,7 +251,7 @@ function buildSeed(count) {
   return ages.map((ageMin) => generateItem(ctx, now - ageMin * ONE_MINUTE_MS));
 }
 
-// ── Persistence (sessionStorage only — never a database) ────────────────────
+// ΓöÇΓöÇ Persistence (sessionStorage only ΓÇö never a database) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 function loadSeedState() {
   try {
@@ -338,15 +325,6 @@ const LiveActivityFeed = ({
   const isPausedFinal = paused || isPaused || isWeekendUK();
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [visibleRows, setVisibleRows] = useState(getVisibleRows);
-
-  // Keep the visible-row count in sync with the viewport so the feed stays
-  // responsive on desktop/tablet (3 rows) and mobile (2 rows) without overflow.
-  useEffect(() => {
-    const onResize = () => setVisibleRows(getVisibleRows());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
 
   // Initialize cursor + user-rotation cooldown from the mounted seed. Runs once
   // after mount (never during render).
@@ -398,7 +376,7 @@ const LiveActivityFeed = ({
       const delay =
         newInterval && newInterval > 0
           ? newInterval
-          : 12000 + Math.random() * 26000; // irregular 12–38s
+          : 12000 + Math.random() * 26000; // irregular 12ΓÇô38s
       timer = setTimeout(() => {
         timer = null;
         if (cancelled) return;
@@ -420,7 +398,7 @@ const LiveActivityFeed = ({
     if (isPausedFinal || items.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, ROTATION_MS);
+    }, 1000);
     return () => clearInterval(interval);
   }, [items.length, isPausedFinal]);
 
@@ -431,18 +409,14 @@ const LiveActivityFeed = ({
     return () => clearInterval(checkWeekend);
   }, []);
 
-  // Build a sliding window of distinct, existing activity records so 2–3 rows
-  // are visible at once. Items are referenced by stable id (no duplicates) and
-  // the head advances by one each rotation, giving a smooth slow scroll.
-  const visible = (() => {
-    if (items.length === 0) return [];
-    const len = items.length;
-    const head = ((currentIndex % len) + len) % len;
-    const count = Math.min(visibleRows, len);
-    const rows = [];
-    for (let k = 0; k < count; k += 1) rows.push(items[(head + k) % len]);
-    return rows;
-  })();
+  const item = items.length > 0 ? items[currentIndex % items.length] : null;
+  const actionText = item?.activity?.actionKey
+    ? t(item.activity.actionKey, {
+        amount: AMOUNT_SENTINEL,
+        activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
+      })
+    : "";
+  const [before, ...after] = actionText ? actionText.split(AMOUNT_SENTINEL) : [];
 
   return (
     <div className="live-feed-container">
@@ -456,64 +430,47 @@ const LiveActivityFeed = ({
         <div
           className={`live-feed-scroll-inner ${isPausedFinal ? "paused" : ""}`}
         >
-          {visible.map((item) => (
-            <FeedRow key={item.id} item={item} t={t} />
-          ))}
+          {item && (
+            <div className="live-feed-item" key={`${item.id}-${currentIndex}`}>
+              <div className={`feed-icon ${item.activity.type}`}>
+                {item.activity.icon}
+              </div>
+              <span className="feed-flag">
+                <img
+                  src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
+                  alt={item.country.name}
+                  className="flag-img"
+                />
+              </span>
+              <div className="feed-info">
+                <div className="feed-name">
+                  {item.name}{" "}
+                  <span className="feed-country">
+                    {t("liveActivityFeed.from")} {item.country.name}
+                  </span>
+                </div>
+                <div className="feed-action">
+                  {before}
+                  {item.amount ? <span className="highlight">{item.amount}</span> : null}
+                  {after.join(AMOUNT_SENTINEL)}
+                </div>
+              </div>
+              <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
+            </div>
+          )}
         </div>
       </div>
 
       {isPausedFinal && (
         <div className="live-feed-paused-overlay">
           <div className="live-feed-paused-text">
-            <span>⏸</span>
+            <span>ΓÅ╕</span>
             {isWeekendUK()
               ? t("liveActivityFeed.pausedWeekend")
               : t("liveActivityFeed.pausedAdmin")}
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-// Single activity row. Keyed by stable item id in the parent so existing rows
-// are preserved across rotations and only the entering row remounts (with a
-// subtle fade) — no duplicate items, no abrupt full-swap jump.
-const FeedRow = ({ item, t }) => {
-  const actionText = item?.activity?.actionKey
-    ? t(item.activity.actionKey, {
-        amount: AMOUNT_SENTINEL,
-        activity: item.activity.taskKey ? t(item.activity.taskKey) : "",
-      })
-    : "";
-  const [before, ...after] = actionText ? actionText.split(AMOUNT_SENTINEL) : [];
-
-  return (
-    <div className="live-feed-item">
-      <div className={`feed-icon ${item.activity.type}`}>
-        {item.activity.icon}
-      </div>
-      <span className="feed-flag">
-        <img
-          src={`https://flagcdn.com/24x18/${item.country.code.toLowerCase()}.png`}
-          alt={item.country.name}
-          className="flag-img"
-        />
-      </span>
-      <div className="feed-info">
-        <div className="feed-name">
-          {item.name}{" "}
-          <span className="feed-country">
-            {t("liveActivityFeed.from")} {item.country.name}
-          </span>
-        </div>
-        <div className="feed-action">
-          {before}
-          {item.amount ? <span className="highlight">{item.amount}</span> : null}
-          {after.join(AMOUNT_SENTINEL)}
-        </div>
-      </div>
-      <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
     </div>
   );
 };
