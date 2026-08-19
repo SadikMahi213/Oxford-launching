@@ -112,36 +112,7 @@ const CATEGORY_ICON = {
   transfer: ArrowLeftRight,
 };
 
-const MobileLedgerRow = ({ item, t }) => {
-  const isDebit = item.direction === "debit";
-  const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] border border-white/10 p-3">
-      <div
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-          isDebit ? "bg-red-500/10 text-red-300" : "bg-emerald-500/10 text-emerald-300"
-        }`}
-      >
-        <Icon size={18} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-white">
-          {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
-        </div>
-        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-400">
-          <span className="truncate">{formatDate(item.date)}</span>
-          <span className={`inline-block rounded-full border px-1.5 py-0.5 text-[10px] ${statusColor(item.status)}`}>
-            {t(`ledger.status.${item.status}`, item.status)}
-          </span>
-        </div>
-      </div>
-      <div className={`shrink-0 text-right text-sm font-semibold ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-        {isDebit ? "-" : "+"}
-        {item.amount} {item.currency}
-      </div>
-    </div>
-  );
-};
+
 
 const LedgerPage = () => {
   const { t } = useTranslation();
@@ -351,19 +322,62 @@ const LedgerPage = () => {
           </table>
         </div>
 
-        {/* Mobile card list */}
-        <div className="md:hidden p-4 space-y-2">
-          {loading ? (
-            <div className="py-10 text-center text-gray-400">
-              <Loader2 className="inline animate-spin mr-2" size={18} />
-              {t("ledger.loading", "Loading…")}
-            </div>
-          ) : items.length === 0 ? (
-            <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
-          ) : (
-            items.map((item) => <MobileLedgerRow key={item.id} item={item} t={t} />)
-          )}
-        </div>
+        {/* Mobile horizontal scrollable table */}
+        <div className="md:hidden overflow-x-auto -mx-3 pb-3">
+          <table className="min-w-full table-fixed sm:table-fixed">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.date", "Date")}</th>
+                <th className="p-4 text-sm text-gray-400">{t("ledger.col.category", "Category")}</th>
+                <th className="p-4 text-sm text-gray-400">{t("ledger.col.type", "Type")}</th>
+                <th className="p-4 text-sm text-gray-400">{t("ledger.col.amount", "Amount")}</th>
+                <th className="p-4 text-sm text-gray-400">{t("ledger.col.currency", "Currency")}</th>
+                <th className="p-4 text-sm text-gray-400">{t("ledger.col.status", "Status")}</th>
+                <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.reference", "Reference")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-10 text-center text-gray-400">
+                    <Loader2 className="inline animate-spin mr-2" size={18} />
+                    {t("ledger.loading", "Loading…")}
+                  </td>
+                </tr>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
+                </tr>
+              ) : (
+                items.map((item) => {
+                  const isDebit = item.direction === "debit";
+                  return (
+                    <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
+                      <td className="p-4 text-sm text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
+                      <td className="p-4 text-sm text-white">{t(item.category_label_key || `ledger.category.${item.category}`, item.category)}</td>
+                      <td className="p-4 text-sm text-gray-400">
+                        <span className="inline-flex items-center gap-1">
+                          {isDebit ? <ArrowUpRight size={14} className="text-red-300" /> : <ArrowDownLeft size={14} className="text-emerald-300" />}
+                          {t(`ledger.type.${item.type}`, item.type)}
+                        </span>
+                      </td>
+                      <td className={`p-4 text-sm font-semibold text-right ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+                        {isDebit ? "-" : "+"}{item.amount} {item.currency}
+                      </td>
+                      <td className="p-4 text-sm text-gray-300">{item.currency}</td>
+                      <td className="p-4 text-sm">
+                        <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${statusColor(item.status)}`}>
+                          {t(`ledger.status.${item.status}`, item.status)}
+                        </span>
+                      </td>
+                      <td className="p-4 text-sm text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>'''
 
         {/* Pagination */}
         <div className="p-4 sm:p-6 flex items-center justify-between border-t border-white/10">
