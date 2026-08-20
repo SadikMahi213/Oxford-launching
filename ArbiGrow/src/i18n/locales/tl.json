@@ -2566,12 +2566,14 @@
     }
   },
   "ledger": {
-    "title": "Task Earning Ledger",
-    "subtitle": "Earnings from completing digital tasks only.",
-    "availableBalances": "Available Balances",
+    "title": "OFA Earning & Transaction Ledger",
+    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
     "loading": "Loading…",
     "noRecords": "No records found.",
     "loadError": "Unable to load ledger records.",
+    "overview": "Overview",
+    "comingSoon": "Coming Soon",
+    "soon": "Soon",
     "col": {
       "date": "Date",
       "category": "Category",
@@ -2589,7 +2591,14 @@
       "allStatuses": "All Statuses",
       "search": "Search reference…"
     },
+    "tab": {
+      "earning": "Earning History",
+      "transaction": "Transaction History"
+    },
     "category": {
+      "total_deposit": "Total Deposit",
+      "total_withdrawal": "Total Withdrawal",
+      "total_earning": "Total Earning",
       "daily_earning": "Daily Earning",
       "ad_view": "Ad View Earning",
       "captcha": "CAPTCHA Typing Earning",
@@ -2600,12 +2609,16 @@
       "signup_bonus": "Signup Bonus",
       "package_bonus": "Package Bonus",
       "ecommerce_bonus": "E-commerce Bonus",
-      "company_profit": "Company Profit Bonus",
-      "development": "Development Bonus",
-      "international": "International Bonus",
-      "travel": "Travel Bonus",
+      "ofa_free_mining": "OFA Free Mining",
+      "ofa_settlement_balance": "OFA Settlement Balance",
+      "leadership_bonus": "Leadership Bonus",
+      "extra_offer_achievement": "Extra Offer Achievement",
+      "position_achievement": "Position Achievement",
+      "international_achievement": "International",
+      "company_profit": "Company Profit Received",
       "ofa_conversion": "OFA to USDT Conversion",
       "manual_adjustment": "Manual Adjustment",
+      "ofa_transaction": "OFA Transaction",
       "kyc_fee": "KYC Fee",
       "refund": "Refund",
       "withdrawal": "Withdrawal",
@@ -2645,8 +2658,6 @@
       "arbx_wallet": "ArbX Wallet",
       "arbx_mining_wallet": "ArbX Mining Wallet",
       "ofa_balance": "OFA Balance"
-    },
-    "taskEarnings": "Task Earnings",
-    "noTaskEarnings": "No task earnings yet."
+    }
   }
 }
