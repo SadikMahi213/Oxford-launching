@@ -18,12 +18,17 @@ router = APIRouter(prefix="/live-stats", tags=["Live Stats"])
 # browser opened the page.
 #
 # The three OFA Cryptocurrency metrics are fully INDEPENDENT of each other.
-# Each one ticks on its own cadence (Live Online every 3s, Earnings every 5s,
-# Tasks every 10s) and is computed as a pure function of the server clock, so
+# Each one ticks on its own cadence (Live Online every 3s, Tasks every 5s,
+# Earnings every 10s) and is computed as a pure function of the server clock, so
 # they drift apart naturally instead of moving together on a shared poll. The
 # Earnings/Tasks counters run on their own persistent 24h windows anchored to
 # UTC midnight (now_s % 86400) — they start at $0.00 / 0 at the boundary and
 # never reset on refresh, logout or login.
+#
+# Approved ranges (identical for every user, always, by construction):
+#   Live Online .......... 200,000 – 300,000, new value every 3s
+#   Tasks Completed Today. 0 – ~60,000 across the 24h UTC window, every 5s
+#   Platform Earnings ..... $0 – ~$1,000,000 across the 24h UTC window, every 10s
 # ─────────────────────────────────────────────────────────────────────────────
 
 EVENT_INTERVAL_MS = 1000
@@ -156,43 +161,45 @@ def _event_for_index(n):
 
 def _live_online(now_s):
     # Independent 3s cycle. A deterministic hash of the 3-second tick yields a
-    # new value every 3 seconds that fluctuates 180–200, up or down, and can
-    # never print the identical number on two consecutive ticks. Pure function
-    # of the server clock — identical for every user, no state, survives
-    # refreshes and has no shared interval with the other two metrics.
+    # new value every 3 seconds that fluctuates 200,000–300,000, up or down,
+    # and can never print the identical number on two consecutive ticks. Pure
+    # function of the server clock — identical for every user, no state,
+    # survives refreshes and has no shared interval with the other two metrics.
     def _at(t):
         rng = __import__("random").Random(t)
-        return 180 + rng.randrange(21)
+        return 200000 + rng.randrange(100001)
 
     tick = now_s // 3
     val = _at(tick)
     if val == _at(tick - 1):
-        val = 180 + (val - 180 + 1) % 21
+        val = 200000 + (val - 200000 + 1) % 100001
     return val
 
 
 def _tasks_completed_today(now_s):
-    # Independent 10s cycle inside its own persistent 24h window (anchored to
+    # Independent 5s cycle inside its own persistent 24h window (anchored to
     # UTC midnight via now_s % 86400). Starts at 0 at the boundary and adds a
-    # deterministic ~350–500 tasks per completed 10s tick. The window start is
-    # derived from the server clock only, so it never restarts on refresh,
-    # logout or login, and every user sees the identical running total.
+    # deterministic ~3–4 tasks per completed 5s tick, reaching ~60,000 by the
+    # end of the day. The window start is derived from the server clock only,
+    # so it never restarts on refresh, logout or login, and every user sees
+    # the identical running total.
     day = now_s // 86400
-    ticks = (now_s % 86400) // 10
+    ticks = (now_s % 86400) // 5
     rng = __import__("random").Random(day * 2)
-    return sum(rng.randrange(350, 501) for _ in range(ticks))
+    return min(60000, sum(rng.randrange(3, 5) for _ in range(ticks)))
 
 
 def _platform_earnings_activity(now_s):
-    # Independent 5s cycle inside its own persistent 24h window (anchored to
+    # Independent 10s cycle inside its own persistent 24h window (anchored to
     # UTC midnight via now_s % 86400). Starts at $0.00 at the boundary and adds
-    # a deterministic ~$40–50 per completed 5s tick. Same replay guarantees as
-    # the tasks counter above; seeded differently from it so the two streams
-    # are fully uncorrelated.
+    # a deterministic ~$115 per completed 10s tick, reaching ~$1,000,000 by the
+    # end of the day (capped at $1,000,000). Same replay guarantees as the tasks
+    # counter above; seeded differently from it so the two streams are fully
+    # uncorrelated.
     day = now_s // 86400
-    ticks = (now_s % 86400) // 5
+    ticks = (now_s % 86400) // 10
     rng = __import__("random").Random(day * 2 + 1)
-    return sum(rng.randrange(4000, 5001) for _ in range(ticks)) / 100.0
+    return min(100000000, sum(rng.randrange(9000, 14001) for _ in range(ticks))) / 100.0
 
 
 @router.get("/")
