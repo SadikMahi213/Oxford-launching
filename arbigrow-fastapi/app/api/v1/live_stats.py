@@ -58,29 +58,130 @@ TASK_KEYS = [
 COUNTRIES = [
     ("US", "United States", 3), ("GB", "United Kingdom", 3), ("IN", "India", 4),
     ("PH", "Philippines", 8), ("BD", "Bangladesh", 5), ("PK", "Pakistan", 4),
-    ("NG", "Nigeria", 4), ("ID", "Indonesia", 4), ("BR", "Brazil", 3),
-    ("EG", "Egypt", 3), ("KE", "Kenya", 3), ("VN", "Vietnam", 3),
-    ("MX", "Mexico", 3), ("TR", "Turkey", 3), ("RU", "Russia", 2),
-    ("JP", "Japan", 2), ("DE", "Germany", 2), ("FR", "France", 2),
-    ("CA", "Canada", 2), ("AU", "Australia", 2), ("AE", "United Arab Emirates", 2),
-    ("ZA", "South Africa", 2), ("LK", "Sri Lanka", 3), ("NP", "Nepal", 3),
+    ("MY", "Malaysia", 3), ("NG", "Nigeria", 4), ("ID", "Indonesia", 4),
+    ("BR", "Brazil", 3), ("EG", "Egypt", 3), ("KE", "Kenya", 3),
+    ("VN", "Vietnam", 3), ("MX", "Mexico", 3), ("TR", "Turkey", 3),
+    ("RU", "Russia", 2), ("JP", "Japan", 2), ("DE", "Germany", 2),
+    ("FR", "France", 2), ("CA", "Canada", 2), ("AU", "Australia", 2),
+    ("AE", "United Arab Emirates", 2), ("ZA", "South Africa", 2),
+    ("LK", "Sri Lanka", 3), ("NP", "Nepal", 3),
 ]
 
-FIRST_NAMES = [
-    "James", "Maria", "Mohammed", "Aisha", "Liam", "Sofia", "Noah", "Emma",
-    "Arjun", "Mei", "Lucas", "Olivia", "Hiro", "Fatima", "Daniel", "Grace",
-    "Carlos", "Amara", "Yusuf", "Layla", "Ethan", "Chloe", "Ravi", "Ines",
-    "Mateo", "Zara", "Kenji", "Nadia", "Omar", "Elena", "Pedro", "Aiko",
-    "Sami", "Leila", "Tariq", "Sara", "Diego", "Yuki", "Hassan", "Maya",
-]
+# Centralized country → culturally/natively appropriate name pools. Keyed by
+# the same ISO country codes used everywhere in the live stream, so the name
+# shown for a notification always matches the country attached to that event.
+# Every country in COUNTRIES has a dedicated pool; anything else falls back to
+# a safe generic international pool. These mirror the presentation bias of the
+# existing app and never expose real user PII.
+COUNTRY_NAME_POOLS = {
+    "US": {
+        "first": ["James","John","Robert","Michael","David","William","Richard","Joseph","Thomas","Christopher","Matthew","Daniel","Andrew","Joshua","Anthony","Kevin","Laura","Jennifer","Jessica","Sarah","Amanda","Ashley","Stephanie","Nicole","Elizabeth","Megan"],
+        "last": ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Anderson","Taylor","Thomas","Moore","Jackson","Martin","Lee","Thompson","White","Harris","Clark","Lewis","Robinson","Walker","Hall","Young"],
+    },
+    "GB": {
+        "first": ["Oliver","George","Harry","Jack","Charlie","Thomas","Oscar","William","James","Henry","Alfie","Archie","Ethan","Isaac","Freddie","Emily","Olivia","Isla","Ava","Mia","Isabella","Sophia","Grace","Lily","Freya","Evie"],
+        "last": ["Smith","Jones","Williams","Brown","Taylor","Davies","Wilson","Evans","Thomas","Roberts","Johnson","Walker","Wright","Robinson","Thompson","Green","Hall","Mitchell","Martin","Cooper","Hill","Morris","Ward","Turner","Scott"],
+    },
+    "DE": {
+        "first": ["Lukas","Leon","Finn","Noah","Elias","Paul","Ben","Felix","Max","Louis","Hannah","Emma","Mia","Sofia","Lina","Lea","Anna","Marie","Charlotte","Amelie","Clara","Lena","Sophie","Ida","Laura"],
+        "last": ["Mueller","Schmidt","Schneider","Fischer","Weber","Meyer","Wagner","Becker","Schulz","Hoffmann","Koch","Richter","Klein","Wolf","Schröder","Neumann","Schwarz","Zimmermann","Braun","Hartmann","Lange","Krause","Lehmann","Koehler","Herrmann"],
+    },
+    "FR": {
+        "first": ["Gabriel","Louis","Raphael","Hugo","Arthur","Jules","Nathan","Gabin","Louise","Jade","Camille","Emma","Chloé","Inès","Léa","Manon","Alice","Rose","Léon","Émile","Noé","Adam","Mael","Maxime","Hélène"],
+        "last": ["Martin","Bernard","Dubois","Thomas","Robert","Richard","Petit","Durand","Leroy","Moreau","Simon","Laurent","Lefebvre","Michel","Garcia","David","Bertrand","Roux","Vincent","Fournier","Morel","Girard","André","Lefevre","Mercier"],
+    },
+    "JP": {
+        "first": ["Haruto","Ren","Yuto","Sota","Hinata","Kaito","Riku","Sora","Takumi","Yamato","Aoi","Yui","Sakura","Rin","Hana","Mio","Mei","Koharu","Ichika","Momoka","Koki","Haruki","Soshi","Rui","Naoki"],
+        "last": ["Sato","Suzuki","Takahashi","Tanaka","Watanabe","Ito","Yamamoto","Nakamura","Kobayashi","Kato","Yoshida","Yamada","Sasaki","Yamaguchi","Matsumoto","Inoue","Kimura","Hayashi","Shimizu","Ogawa","Ishii","Saito","Fujita","Okada","Sasaki"],
+    },
+    "IN": {
+        "first": ["Aarav","Vivaan","Aditya","Arjun","Vihaan","Sai","Reyansh","Krishna","Ishaan","Shaurya","Diya","Ananya","Priya","Neha","Aisha","Sneha","Kavya","Pari","Aditi","Riya","Rohan","Ved","Kabir","Arnav","Viresh"],
+        "last": ["Sharma","Verma","Gupta","Singh","Kumar","Das","Reddy","Nair","Patel","Joshi","Iyer","Mishra","Pandey","Thakur","Rao","Choudhary","Mehta","Chauhan","Malhotra","Bhat","Pillai","Kapoor","Sinha","Bose","Dutta"],
+    },
+    "BR": {
+        "first": ["Miguel","Arthur","Bernardo","Heitor","Davi","Lorenzo","Gabriel","Lucas","Matheus","Rafael","Valentina","Helena","Laura","Sophia","Manuela","Giovanna","Alice","Maria","Isabela","Cecilia","Enzo","Pedro","Felipe","Samuel","Gustavo"],
+        "last": ["Silva","Santos","Oliveira","Souza","Rodrigues","Ferreira","Almeida","Pereira","Lima","Gomes","Costa","Ribeiro","Martins","Carvalho","Alves","Lopes","Soares","Fernandes","Vieira","Barbosa","Rocha","Dias","Nascimento","Andrade","Moreira"],
+    },
+    "MX": {
+        "first": ["Santiago","Mateo","Sebastián","Leonardo","Daniel","Diego","Andrés","Emiliano","Joaquín","Miguel","Sofía","Valentina","Camila","Ximena","Maria","Lucía","Victoria","Fernanda","Regina","Mariana","Alejandro","Carlos","José","Luis","Marco"],
+        "last": ["Hernández","García","Martínez","López","González","Rodríguez","Pérez","Sánchez","Ramírez","Torres","Flores","Rivera","Gómez","Díaz","Cruz","Morales","Reyes","Gutiérrez","Ortiz","Ruiz","Vargas","Castillo","Jiménez","Moreno","Herrera"],
+    },
+    "NG": {
+        "first": ["Chinedu","Emeka","Obinna","Chukwuemeka","Ikenna","Chidi","Tunde","Adebayo","Olumide","Ngozi","Adaeze","Chiamaka","Nneka","Amara","Ifeoma","Chioma","Folake","Funke","Aisha","Kelechi","Obiora","Uche","Chinedu","Ifeanyi","Ibrahim"],
+        "last": ["Abubakar","Mohammed","Ogundimu","Okafor","Adeyemi","Olawale","Ibrahim","Usman","Bello","Yusuf","Olawale","Adewale","Okonkwo","Nnamdi","Obi","Eze","Olu","Bakare","Onwueme","Chukwu","Ogundipe","Akinwale","Adeleke","Oyewole","Fashola"],
+    },
+    "ZA": {
+        "first": ["Sipho","Thabo","Lungile","Nomsa","Bongani","Thandeka","Sizwe","Ayanda","Nkululeko","Mandla","Zanele","Lerato","Thandi","Precious","Nomvula","Nompumelelo","Khulekani","Sandile","Muzi","Sibusiso","Lindiwe","Busisiwe","Zandile","Ayanda","Hlengiwe"],
+        "last": ["Ndlovu","Nkosi","Dlamini","Van Wyk","Van Der Merwe","Muller","Botha","Du Plessis","Steyn","Potgieter","Le Roux","Smit","Joubert","Swart","Fourie","Venter","Pretorius","Wessels","Barnard","Visser","Kruger","Boshoff","Du Toit","Van Zyl","Marais"],
+    },
+    "PH": {
+        "first": ["Jose","Juan","Pedro","Miguel","Antonio","Ramon","Angel","Carlos","Rafael","Fernando","Maria","Ana","Rosa","Lorna","Corazon","Virginia","Teresa","Elena","Grace","Carmen","Mark","John","David","Michael","Christian"],
+        "last": ["Santos","Reyes","Cruz","Bautista","Ocampo","Garcia","Mendoza","Torres","Ramos","Rivera","Gonzales","Delgado","Pascual","Villanueva","Aquino","Lopez","Santiago","Mercado","Padilla","Roxas","Castro","Fernandez","Morales","Gomez","Hernandez"],
+    },
+    "EG": {
+        "first": ["Mohamed","Ahmed","Mahmoud","Omar","Hassan","Ali","Mustafa","Youssef","Karim","Amr","Fatma","Nour","Salma","Hana","Mona","Yasmin","Aya","Nada","Layla","Menna","Khaled","Ibrahim","Tarek","Hisham","Mostafa"],
+        "last": ["Mohamed","Ali","Hassan","Ibrahim","Ahmed","Mahmoud","Mostafa","Khalil","Samir","Farouk","Nour","Hamed","Galal","Salem","Reda","Sayed","Metwally","Abbas","Hamdy","Mansour","Youssef","Zaki","Adel","Sami","Osman"],
+    },
+    "KE": {
+        "first": ["Brian","Kevin","Dennis","Victor","Martin","Joseph","Daniel","Samuel","Patrick","Stephen","Faith","Grace","Joy","Rose","Janet","Mary","Agnes","Jane","Esther","Alice","Wesley","Allan","Collins","Ian","Kevin"],
+        "last": ["Mwangi","Kamau","Odhiambo","Omondi","Wanjiku","Njoroge","Kiptoo","Wafula","Otieno","Muthoni","Kimani","Maina","Ngugi","Wairimu","Njeri","Karanja","Gichuru","Kariuki","Mutua","Kioko","Ndungu","Macharia","Njenga","Kipchoge","Sang"],
+    },
+    "VN": {
+        "first": ["Minh","Hùng","Đức","Tài","Dũng","Tuấn","Khoa","Đạt","Phúc","Thắng","Linh","Chi","Hương","Mai","Phượng","Nga","Lan","Hà","Trang","Thảo","Quốc","Ngọc","Việt","Nam","Bình"],
+        "last": ["Nguyễn","Trần","Lê","Phạm","Hoàng","Huỳnh","Phan","Vũ","Võ","Đặng","Bùi","Đỗ","Hồ","Ngô","Dương","Lý","Mai","Tô","Trương","Cao","Bạch","Tạ","Đào","Thạch","Tăng"],
+    },
+    "ID": {
+        "first": ["Muhammad","Aditya","Bagas","Dimas","Fajar","Rizky","Yoga","Arya","Ilham","Putri","Siti","Ratna","Dewi","Wulan","Anisa","Rika","Lestari","Sari","Budi","Santoso","Hendra","Wibowo","Pratama","Ayu","Nadia"],
+        "last": ["Setiawan","Pratama","Wijaya","Saputra","Putra","Hidayat","Ramadhani","Gunawan","Santoso","Purnama","Lestari","Anggraini","Kusuma","Aditya","Nugroho","Susanto","Hermawan","Suryana","Budiman","Sugiyarto","Wibowo","Hakim","Pamungkas","Sutanto","Utomo"],
+    },
+    "MY": {
+        "first": ["Muhammad","Amir","Aiman","Danial","Fahmi","Irfan","Haziq","Aqil","Rizal","Afif","Nur","Siti","Nurul","Aisyah","Aisha","Fatimah","Nabilah","Husna","Syafiqah","Amira","Izzat","Hakim","Farhan","Arif","Zakwan"],
+        "last": ["Mohammed","Ahmad","Abdullah","Ali","Ibrahim","Hassan","Hussein","Khalid","Omar","Ismail","Sulaiman","Yusof","Rahman","Razak","Hamid","Baharuddin","Hashim","Kadir","Salleh","Taha","Yakub","Yaakob","Nordin","Osman","Ramli"],
+    },
+    "PK": {
+        "first": ["Muhammad","Ahmed","Ali","Hassan","Husain","Usman","Omar","Bilal","Hamza","Daniyal","Ayesha","Fatima","Zara","Sana","Hira","Noor","Amina","Maham","Iqra","Safiya","Farhan","Danish","Faisal","Imran","Kamran"],
+        "last": ["Khan","Malik","Ahmad","Hussain","Iqbal","Butt","Chaudhry","Sheikh","Qureshi","Siddiqui","Nawaz","Shah","Raja","Javed","Akhtar","Raza","Bashir","Hashmi","Awan","Yousaf","Khawaja","Mirza","Alvi","Durrani","Gill"],
+    },
+    "BD": {
+        "first": ["Tanvir","Sakib","Rafiq","Momin","Jahid","Nayeem","Shakil","Rony","Tushar","Tasnim","Nusrat","Maliha","Jannat","Mim","Nafisa","Taniya","Sumaiya","Joya","Ruma","Rahim","Karim","Hasan","Hossain","Faruk","Sabbir"],
+        "last": ["Rahman","Hossain","Khan","Islam","Ahmed","Ali","Uddin","Miah","Chowdhury","Das","Begum","Akter","Sultana","Khatun","Parveen","Sheikh","Mollah","Sarkar","Talukder","Banu","Haque","Mondal","Ferdous","Rana","Howlader"],
+    },
+    "TR": {
+        "first": ["Yusuf","Mustafa","Ahmet","Mehmet","Hasan","Ali","Huseyin","Ibrahim","Emir","Arda","Elif","Zeynep","Yasmin","Sena","Azra","Ebrar","Hilal","Nisa","Beren","Defne","Mert","Can","Emre","Burak","Kerem"],
+        "last": ["Yilmaz","Kaya","Demir","Celik","Sahin","Yildiz","Yalcin","Ozturk","Aydin","Ozdemir","Arslan","Dogan","Kilic","Aslan","Cetin","Karaca","Ozer","Gunes","Bozkurt","Senturk","Aksoy","Erdogan","Korkmaz","Tuncer","Akar"],
+    },
+    "RU": {
+        "first": ["Alexander","Nikita","Mikhail","Daniil","Artyom","Ilya","Maxim","Kirill","Egor","Roman","Anastasia","Maria","Anna","Daria","Elena","Polina","Victoria","Ksenia","Natalia","Tatiana","Sergei","Andrei","Dmitri","Alexei","Pavel"],
+        "last": ["Ivanov","Petrov","Sidorov","Kuznetsov","Popov","Volkov","Novikov","Morozov","Sokolov","Lebedev","Kozlov","Orlov","Fedorov","Zaitsev","Soloviev","Vasiliev","Mikhailov","Pavlov","Semenov","Golubev","Bogdanov","Vorobiev","Sergeev","Romanov"],
+    },
+    "CA": {
+        "first": ["Liam","Noah","Oliver","Ethan","Lucas","Aiden","Mason","Logan","Jacob","William","Olivia","Emma","Charlotte","Amelia","Mia","Harper","Evelyn","Abigail","Emily","Ella","Leo","James","Benjamin","Alexander","Sebastian"],
+        "last": ["Smith","Brown","Tremblay","Roy","Gagnon","Lee","Martin","Campbell","Stewart","Johnston","Thompson","Wilson","Kelly","Murray","Davis","MacDonald","Bouchard","Belanger","Gauthier","Cote","Ross","Reid","Pelletier","Fournier","Lavoie"],
+    },
+    "AU": {
+        "first": ["Oliver","Noah","Liam","William","Jack","Lucas","Henry","Alexander","Ethan","James","Charlotte","Olivia","Amelia","Mia","Isla","Sophia","Aisha","Grace","Chloe","Lily","Elijah","Thomas","Sebastian","Benjamin","Daniel"],
+        "last": ["Smith","Jones","Williams","Brown","Wilson","Taylor","Johnson","White","Martin","Anderson","Thompson","Garcia","Martinez","Robinson","Clark","Rodriguez","Lewis","Lee","Walker","Hall","Allen","Young","King","Wright","Scott"],
+    },
+    "AE": {
+        "first": ["Mohamed","Ahmed","Ali","Hassan","Khalid","Omar","Sultan","Fahad","Saif","Hamad","Mariam","Fatima","Latifa","Shaikha","Sara","Noura","Reem","Aisha","Maryam","Rashid","Saeed","Humaid","Youssef","Salem","Hamdan"],
+        "last": ["Al Maktoum","Al Nahyan","Al Rashid","Al Mulla","Al Dhaheri","Al Shamsi","Al Ketbi","Al Suwaidi","Al Blooshi","Al Zaabi","Al Nuaimi","Al Falasi","Al Hashemi","Al Otaiba","Al Mansoori","Al Kaabi","Al Dhanhani","Al Rumaithi","Al Neyadi","Al Belushi","Al Maamari","Al Tunaiji","Al Hebsi","Al Astad","Al Marri"],
+    },
+    "LK": {
+        "first": ["Kamal","Ruwan","Nimal","Anura","Chaminda","Dinesh","Kasun","Lahiru","Sandun","Tharindu","Nadeesha","Shamali","Kumari","Udari","Ishara","Dilini","Sanduni","Thilini","Nayana","Shanthi","Aruna","Sunil","Prasanna","Nuwan","Harsha"],
+        "last": ["Perera","Fernando","Silva","Dias","Wijesinghe","Gunawardena","Jayawardena","Rathnayake","Weerasinghe","Bandara","Herath","Liyanage","Senanayake","Wickramasinghe","Karunaratne","Ekanayake","Samaraweera","Amarasinghe","Peiris","Abeysinghe","Dissanayake","Mendis","Seneviratne","Ranasinghe","De Alwis"],
+    },
+    "NP": {
+        "first": ["Rajesh","Suman","Bikash","Prakash","Sagar","Ramesh","Santosh","Dipesh","Nirajan","Binod","Sunita","Sita","Rita","Anita","Sabina","Srijana","Pooja","Kavita","Anjana","Mamata","Krishna","Gopal","Hari","Ram","Shyam"],
+        "last": ["Shrestha","Tamang","Gurung","Rai","Magar","Thapa","Karki","Poudel","Adhikari","Bhattarai","Khadka","Basnet","Koirala","Maharjan","Acharya","Bhandari","Pandey","Dahal","Neupane","Ghimire","Budhathoki","Dhami","Rimal","Gautam","Lama"],
+    },
+}
 
-LAST_NAMES = [
-    "Smith", "Cruz", "Khan", "Rahman", "Johnson", "Garcia", "Patel", "Chen",
-    "Müller", "Silva", "Tanaka", "Hassan", "Brown", "Lopez", "Singh", "Wang",
-    "Rossi", "Kim", "Ahmed", "Nguyen", "Walker", "Diaz", "Sharma", "Lee",
-    "Costa", "Ali", "Novak", "Reyes", "Okafor", "Haddad", "Schmidt", "Mbeki",
-    "Fernandez", "Yamamoto", "Ibrahim", "Petrov", "Santos", "Cohen", "Park", "Mensah",
-]
+# Safe generic international fallback for any country code without a dedicated
+# pool. Never undefined/null/Unknown — always a plausible full name.
+FALLBACK_NAME_POOL = {
+    "first": ["James","Maria","Mohammed","Aisha","Liam","Sofia","Noah","Emma","Arjun","Lucas","Olivia","Daniel","Grace","Carlos","Amara","Yusuf","Layla","Ethan","Chloe","Ravi","Mateo","Zara","Nadia","Omar","Elena","Sara","Diego","Hassan","Maya","Sami"],
+    "last": ["Smith","Garcia","Khan","Rahman","Johnson","Patel","Silva","Hassan","Brown","Lopez","Singh","Ahmed","Nguyen","Walker","Diaz","Sharma","Costa","Ali","Reyes","Okafor","Fernandez","Ibrahim","Santos","Cohen","Mensah","Novak","Haddad","Schmidt","Rossi","Kim"],
+}
 
 
 def _weighted_index(rng, weights):
@@ -142,7 +243,8 @@ def _event_for_index(n):
     task_key = TASK_KEYS[_weighted_index(rng, [25, 25, 25, 25])] if atype == "task" else None
     ci = _weighted_index(rng, [w for _, _, w in COUNTRIES])
     code, cname, _ = COUNTRIES[ci]
-    name = f"{rng.choice(FIRST_NAMES)} {rng.choice(LAST_NAMES)}"
+    pool = COUNTRY_NAME_POOLS.get(code, FALLBACK_NAME_POOL)
+    name = f"{rng.choice(pool['first'])} {rng.choice(pool['last'])}"
     amount = _amount(rng, atype, task_key)
     return {
         "id": n,
