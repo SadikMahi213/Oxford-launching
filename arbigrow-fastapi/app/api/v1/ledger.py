@@ -385,7 +385,10 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
     ecommerce = _sum(
         select(func.coalesce(func.sum(EcommerceWalletTransaction.amount), 0)).where(
             EcommerceWalletTransaction.user_id == uid,
-            ~EcommerceWalletTransaction.type.startswith(("purchase", "debit", "payment", "spend")),
+            ~EcommerceWalletTransaction.type.like("purchase%"),
+            ~EcommerceWalletTransaction.type.like("debit%"),
+            ~EcommerceWalletTransaction.type.like("payment%"),
+            ~EcommerceWalletTransaction.type.like("spend%"),
         )
     )
     ofa_mining = _sum(
