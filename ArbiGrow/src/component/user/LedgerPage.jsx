@@ -389,6 +389,26 @@ const LedgerPage = () => {
   const activeCards = categories.filter((c) => c.status !== "soon");
   const soonCards = categories.filter((c) => c.status === "soon");
 
+  // Mobile-first overview helpers: feature the settlement balance as a hero,
+  // highlight the four key metrics in a 2x2 grid, and keep every remaining
+  // real category below them in a compact grid. No fabricated figures —
+  // every value is the backend summary payload.
+  const balanceCard = activeCards.find((c) => c.key === "ofa_settlement_balance");
+  const METRIC_KEYS = ["total_deposit", "total_withdrawal", "matching_bonus", "total_earning"];
+  const METRIC_STYLES = {
+    total_deposit: { icon: ArrowDownLeft, circle: "bg-emerald-500/15", border: "border-emerald-500/30", iconColor: "text-emerald-400" },
+    total_withdrawal: { icon: ArrowUpRight, circle: "bg-rose-500/15", border: "border-rose-500/30", iconColor: "text-rose-400" },
+    matching_bonus: { icon: Gift, circle: "bg-blue-500/15", border: "border-blue-500/30", iconColor: "text-blue-400" },
+    total_earning: { icon: TrendingUp, circle: "bg-amber-500/15", border: "border-amber-500/30", iconColor: "text-amber-400" },
+  };
+  const metricCards = METRIC_KEYS
+    .map((k) => activeCards.find((c) => c.key === k))
+    .filter(Boolean)
+    .map((card) => ({ card, style: METRIC_STYLES[card.key] }));
+  const restCards = activeCards.filter(
+    (c) => c.key !== "ofa_settlement_balance" && !METRIC_KEYS.includes(c.key)
+  );
+
   // Premium fintech overview card. Presentation-only: values, labels and
   // currencies are bound straight from the backend payload + i18n keys.
   // Mobile uses a compact 2-column layout (bigger balance featured on top);
@@ -617,13 +637,98 @@ const LedgerPage = () => {
         {/* Category overview cards */}
         <div className="p-3 sm:p-6 border-b border-white/10">
           <h3 className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 auto-rows-fr">
+
+          {/* Mobile-first: Total Balance hero + 2x2 key metrics + remaining cards */}
+          <div className="md:hidden flex flex-col gap-2">
+            {balanceCard && (
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#10224a] to-[#0A122C] p-4 shadow-lg shadow-black/30">
+                <div className={`pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-gradient-to-bl from-blue-400/40 to-transparent opacity-40 blur-2xl`} />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/25 via-white/5 to-transparent" />
+                <div className="relative flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-medium text-gray-300">{t(`ledger.category.${balanceCard.key}`, balanceCard.key)}</div>
+                    <div className="mt-1 flex items-baseline gap-1.5">
+                      <span className="truncate text-2xl font-extrabold text-emerald-400">
+                        {formatAmount(balanceCard.amount)}
+                      </span>
+                      <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300">
+                        {balanceCard.currency}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-[10px] text-gray-500">
+                      {t("ledger.lifetime", "Lifetime")}
+                    </div>
+                  </div>
+                  {/* Wallet illustration */}
+                  <div className="relative shrink-0">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg shadow-blue-900/40">
+                      <Wallet size={30} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                      <span className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 shadow-md shadow-amber-900/40" />
+                      <span className="absolute -bottom-1 -left-1.5 h-4 w-4 rounded-full bg-gradient-to-br from-yellow-200 to-amber-400 shadow" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {metricCards.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 auto-rows-fr">
+                {metricCards.map(({ card, style }) => {
+                  const Icon = style.icon;
+                  return (
+                    <div key={card.key} className="relative rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+                      <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${style.circle} ${style.border}`}>
+                        <Icon size={15} aria-hidden="true" className={style.iconColor} />
+                      </span>
+                      <div className="mt-2 line-clamp-2 text-[10px] font-medium text-gray-400">
+                        {t(`ledger.category.${card.key}`, card.key)}
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1">
+                        <span className="truncate text-sm font-bold text-white">{formatAmount(card.amount)}</span>
+                        <span className="text-[9px] font-semibold text-gray-400">{card.currency}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {restCards.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 auto-rows-fr">
+                {restCards.map((c) => {
+                  const rMeta = { ...DEFAULT_META, ...(SUMMARY_CATEGORY_META[c.key] || {}) };
+                  const RIcon = rMeta.icon;
+                  return (
+                    <div key={c.key} className="relative rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+                      <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${rMeta.iconBg}`}>
+                        <RIcon size={14} aria-hidden="true" className={rMeta.iconText} />
+                      </span>
+                      <div className="mt-2 line-clamp-2 text-[10px] font-medium text-gray-400">
+                        {t(`ledger.category.${c.key}`, c.key)}
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1">
+                        <span className="truncate text-sm font-bold text-white">{formatAmount(c.amount)}</span>
+                        <span className="text-[9px] font-semibold text-gray-400">{c.currency}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Tablet / desktop: existing full category grid */}
+          <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4 auto-rows-fr">
             {sortByPriority(activeCards).map((c) => renderSummaryCard(c, false))}
           </div>
+
           {soonCards.length > 0 && (
             <div className="mt-3 sm:mt-4">
               <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t("ledger.comingSoon", "Coming Soon")}</h4>
-              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 auto-rows-fr">
+              <div className="md:hidden grid grid-cols-2 gap-2 auto-rows-fr">
+                {sortByPriority(soonCards).map((c) => renderSummaryCard(c, true))}
+              </div>
+              <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4 auto-rows-fr">
                 {sortByPriority(soonCards).map((c) => renderSummaryCard(c, true))}
               </div>
             </div>
@@ -632,16 +737,16 @@ const LedgerPage = () => {
 
         {/* Stream tabs */}
         <div className="px-4 sm:px-6 pt-4 border-b border-white/10">
-          <div className="inline-flex rounded-lg bg-[#0A122C] border border-white/10 p-1">
+          <div className="inline-flex w-full sm:w-auto rounded-xl bg-[#0A122C] border border-white/10 p-1">
             <button
               onClick={() => switchStream("earning")}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${stream === "earning" ? "bg-cyan-500/20 text-cyan-300" : "text-gray-400 hover:text-white"}`}
+              className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${stream === "earning" ? "bg-blue-600 text-white shadow-md shadow-blue-900/30" : "text-gray-400 hover:text-white"}`}
             >
               {t("ledger.tab.earning", "Earning History")}
             </button>
             <button
               onClick={() => switchStream("transaction")}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${stream === "transaction" ? "bg-cyan-500/20 text-cyan-300" : "text-gray-400 hover:text-white"}`}
+              className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${stream === "transaction" ? "bg-blue-600 text-white shadow-md shadow-blue-900/30" : "text-gray-400 hover:text-white"}`}
             >
               {t("ledger.tab.transaction", "Transaction History")}
             </button>
