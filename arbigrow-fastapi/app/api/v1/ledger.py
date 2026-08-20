@@ -22,7 +22,6 @@ TASK-BASED EARNINGS LEDGER: only genuine digital-task earning categories
 bonuses/financial/OFA movements are shown.
 """
 
-import asyncio
 from datetime import timezone
 from decimal import Decimal, InvalidOperation
 
@@ -396,10 +395,15 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         )
     )
     deposit, withdrawal, captcha, ad_view, generation, matching, daily_earning, ecommerce, ofa_mining = (
-        await asyncio.gather(
-            deposit, withdrawal, captcha, ad_view, generation, matching,
-            daily_earning, ecommerce, ofa_mining,
-        )
+        await deposit,
+        await withdrawal,
+        await captcha,
+        await ad_view,
+        await generation,
+        await matching,
+        await daily_earning,
+        await ecommerce,
+        await ofa_mining,
     )
 
     total_earning = round(
@@ -480,8 +484,11 @@ async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
             _ecommerce(db, uid),
             _transfers(db, uid),
         ]
-    results = await asyncio.gather(*tasks)
-    records = [item for sub in results for item in sub]
+    # NOTE: a single AsyncSession cannot serve concurrent execute() calls, so
+    # run the per-table fetchers sequentially (each is a small per-user query).
+    records = []
+    for coro in tasks:
+        records.extend(await coro)
     ofa_balance = await _ofa_balance(db, uid)
     return records, ofa_balance
 
