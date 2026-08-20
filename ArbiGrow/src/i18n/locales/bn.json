@@ -2588,7 +2588,8 @@
       "service_fee": "Service Fee",
       "deposit": "Deposit",
       "ecommerce": "E-commerce",
-      "transfer": "Transfer"
+      "transfer": "Transfer",
+      "generation_bonus": "Generation Bonus"
     },
     "type": {
       "earning": "Earning",
@@ -2621,6 +2622,12 @@
       "arbx_wallet": "ArbX Wallet",
       "arbx_mining_wallet": "ArbX Mining Wallet",
       "ofa_balance": "OFA Balance"
-    }
+    },
+    "stream": {
+      "earning": "Earning",
+      "transaction": "Transaction",
+      "balance": "Balance"
+    },
+    "lifetime": "Lifetime"
   }
 }
