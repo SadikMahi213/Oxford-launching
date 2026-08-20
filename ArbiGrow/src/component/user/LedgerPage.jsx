@@ -534,64 +534,67 @@ const LedgerPage = () => {
         </table>
       </div>
 
-      {/* Mobile responsive card list (no horizontal/vertical scrolling) */}
-      <div className="md:hidden p-3 flex flex-col gap-2">
-        {loading ? (
-          <div className="p-6 text-center text-gray-400">
-            <Loader2 className="inline animate-spin mr-2" size={16} />
-            {t("ledger.loading", "Loading…")}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="p-6 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
-        ) : (
-          items.map((item) => {
-            const isDebit = item.direction === "debit";
-            const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
-            const description = item.note || t(`ledger.type.${item.type}`, item.type);
-            return (
-              <div
-                key={item.id}
-                className="relative flex flex-col rounded-xl border border-white/10 bg-white/[0.02] p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border ${
-                        isDebit
-                          ? "border-red-500/20 bg-red-500/10 text-red-300"
-                          : "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                      }`}
-                    >
-                      <Icon size={15} aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="truncate text-[13px] font-semibold text-white">
+      {/* Mobile horizontal scrollable table (all columns preserved) */}
+      <div className="md:hidden overflow-x-auto -mx-3 pb-3">
+        <table className="min-w-[640px] w-full">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.date", "Date")}</th>
+              <th className="p-4 text-sm text-gray-400">{t("ledger.col.category", "Category")}</th>
+              <th className="p-4 text-sm text-gray-400">{t("ledger.col.type", "Type")}</th>
+              <th className="p-4 text-sm text-gray-400">{t("ledger.col.amount", "Amount")}</th>
+              <th className="p-4 text-sm text-gray-400">{t("ledger.col.currency", "Currency")}</th>
+              <th className="p-4 text-sm text-gray-400">{t("ledger.col.status", "Status")}</th>
+              <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.reference", "Reference")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="p-10 text-center text-gray-400">
+                  <Loader2 className="inline animate-spin mr-2" size={18} />
+                  {t("ledger.loading", "Loading…")}
+                </td>
+              </tr>
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
+              </tr>
+            ) : (
+              items.map((item) => {
+                const isDebit = item.direction === "debit";
+                const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+                return (
+                  <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
+                    <td className="p-4 text-sm text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
+                    <td className="p-4 text-sm text-white">
+                      <span className="inline-flex items-center gap-2">
+                        <Icon size={14} className="text-gray-500 shrink-0" />
                         {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
-                      </div>
-                      <div className="truncate text-[11px] text-gray-400">{description}</div>
-                    </div>
-                  </div>
-                  <div className={`shrink-0 text-right text-sm font-bold ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                    <span className="truncate">{isDebit ? "−" : "+"}{formatAmount(item.amount)}</span>
-                    <span className="ml-1 text-[10px] font-semibold text-gray-400">{item.currency}</span>
-                  </div>
-                </div>
-
-                <div className="mt-2 border-t border-white/5 pt-2 flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-[11px] text-gray-400">{formatDate(item.date)}</span>
-                  <span className={`inline-block px-1.5 py-0.5 rounded-full border text-[10px] ${statusColor(item.status)}`}>
-                    {t(`ledger.status.${item.status}`, item.status)}
-                  </span>
-                </div>
-
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-gray-500">{t("ledger.col.reference", "Reference")}</span>
-                  <span className="truncate text-[11px] font-mono text-gray-400">{item.reference || "—"}</span>
-                </div>
-              </div>
-            );
-          })
-        )}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-gray-400">
+                      <span className="inline-flex items-center gap-1">
+                        {isDebit ? <ArrowUpRight size={14} className="text-red-300" /> : <ArrowDownLeft size={14} className="text-emerald-300" />}
+                        {t(`ledger.type.${item.type}`, item.type)}
+                      </span>
+                    </td>
+                    <td className={`p-4 text-sm font-semibold text-right ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+                      {isDebit ? "-" : "+"}{formatAmount(item.amount)} {item.currency}
+                    </td>
+                    <td className="p-4 text-sm text-gray-300">{item.currency}</td>
+                    <td className="p-4 text-sm">
+                      <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${statusColor(item.status)}`}>
+                        {t(`ledger.status.${item.status}`, item.status)}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </>
   );
