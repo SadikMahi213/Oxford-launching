@@ -26,13 +26,16 @@ router = APIRouter(prefix="/live-stats", tags=["Live Stats"])
 # never reset on refresh, logout or login.
 #
 # Approved ranges (identical for every user, always, by construction):
-#   Live Online .......... 200,000 – 300,000, new value every 3s
-#   Tasks Completed Today. 0 – ~60,000 across the 24h UTC window, every 5s
-#   Platform Earnings ..... $0 – ~$1,000,000 across the 24h UTC window, every 10s
+#   Live Online .......... ~190,000 (always 180,000+), ±400–500 per 3s tick,
+#                          hard ceiling 600,000, mean-reverting random walk
+#   Tasks Completed Today. 0 – ~200,000 across the 24h UTC window, every 5s
+#   Platform Earnings ..... $0 – $40,000–$50,000 (per-day ceiling chosen
+#                          dynamically) across the 24h UTC window, every 10s
 # ─────────────────────────────────────────────────────────────────────────────
 
 EVENT_INTERVAL_MS = 1000
 WINDOW = 8  # number of recent events returned per request
+DAY_SECONDS = 86400  # 24h UTC window shared by the daily OFA counters
 
 # Weighted activity types — terminology/i18n keys match the frontend exactly.
 ACTIVITY_TYPES = [
@@ -261,47 +264,87 @@ def _event_for_index(n):
     }
 
 
-def _live_online(now_s):
-    # Independent 3s cycle. A deterministic hash of the 3-second tick yields a
-    # new value every 3 seconds that fluctuates 200,000–300,000, up or down,
-    # and can never print the identical number on two consecutive ticks. Pure
-    # function of the server clock — identical for every user, no state,
-    # survives refreshes and has no shared interval with the other two metrics.
-    def _at(t):
-        rng = __import__("random").Random(t)
-        return 200000 + rng.randrange(100001)
+LIVE_ONLINE_BASE = 190000       # startup/normal floor (always displayed 180,000+)
+LIVE_ONLINE_MIN = 150000        # absolute lower bound — never below reality
+LIVE_ONLINE_MAX = 600000        # approved hard ceiling
+LIVE_ONLINE_BAND = 10000        # mean reversion: pull back inside ±band of base
+_WALK_PULL_MIN = 400            # per-tick delta magnitude ±400–500
+_WALK_PULL_MAX = 500
 
-    tick = now_s // 3
-    val = _at(tick)
-    if val == _at(tick - 1):
-        val = 200000 + (val - 200000 + 1) % 100001
-    return val
+# Precomputed once per UTC day so each request is O(1) instead of replaying a
+# 28,800-step walk. Deterministic (values are pure functions of `day`), so
+# every worker/user observes the identical global stream; only kept for the
+# just-completed and current day to bound memory.
+_live_walk_cache = {}
+
+
+def _live_walk(day):
+    cached = _live_walk_cache.get(day)
+    if cached is not None:
+        return cached
+    if len(_live_walk_cache) >= 2:
+        _live_walk_cache.clear()
+    rng = __import__("random").Random(day)
+    base = LIVE_ONLINE_BASE + rng.randrange(5001)  # 190,000–195,000 per day
+    vals = [base]
+    val = base
+    for _ in range(DAY_SECONDS // 3):
+        step = rng.randrange(_WALK_PULL_MIN, _WALK_PULL_MAX + 1)
+        if val - base > LIVE_ONLINE_BAND:
+            step = -step  # too high → pull back down
+        elif val - base < -LIVE_ONLINE_BAND:
+            step = abs(step)  # too low → pull back up
+        elif rng.randrange(2):
+            step = -step  # in-band → random direction
+        val = max(LIVE_ONLINE_MIN, min(LIVE_ONLINE_MAX, val + step))
+        vals.append(val)
+    _live_walk_cache[day] = vals
+    return vals
+
+
+def _live_online(now_s):
+    # Independent 3s cycle. A mean-reverting random walk seeded from the UTC
+    # day: the value starts near 190,000, and every completed 3-second tick
+    # moves it up or down by a deterministic ±400–500 step (direction varies
+    # naturally). The band keeps it hovering around the 180,000+ base instead
+    # of drifting away, hard floors/caps guarantee [150,000, 600,000], and the
+    # result is a pure function of the server clock — identical for every
+    # user, no mutable state, survives refresh/logout/login, and shares no
+    # interval with the 5s/10s cycles below.
+    day = now_s // 86400
+    tick_index = (now_s % 86400) // 3
+    return _live_walk(day)[tick_index]
 
 
 def _tasks_completed_today(now_s):
     # Independent 5s cycle inside its own persistent 24h window (anchored to
     # UTC midnight via now_s % 86400). Starts at 0 at the boundary and adds a
-    # deterministic ~3–4 tasks per completed 5s tick, reaching ~60,000 by the
-    # end of the day. The window start is derived from the server clock only,
-    # so it never restarts on refresh, logout or login, and every user sees
-    # the identical running total.
+    # deterministic ~10–12 tasks per completed 5s tick, rising gradually to
+    # ~200,000 by the end of the day (capped at 200,000 so it can never
+    # exceed the approved maximum). The window start is derived from the
+    # server clock only, so it never restarts on refresh, logout or login,
+    # and every user sees the identical running total.
     day = now_s // 86400
     ticks = (now_s % 86400) // 5
     rng = __import__("random").Random(day * 2)
-    return min(60000, sum(rng.randrange(3, 5) for _ in range(ticks)))
+    return min(200000, sum(rng.randrange(10, 13) for _ in range(ticks)))
 
 
 def _platform_earnings_activity(now_s):
     # Independent 10s cycle inside its own persistent 24h window (anchored to
     # UTC midnight via now_s % 86400). Starts at $0.00 at the boundary and adds
-    # a deterministic ~$115 per completed 10s tick, reaching ~$1,000,000 by the
-    # end of the day (capped at $1,000,000). Same replay guarantees as the tasks
-    # counter above; seeded differently from it so the two streams are fully
-    # uncorrelated.
+    # a deterministic ~$4.40–$6.00 per completed 10s tick, rising gradually to
+    # a per-day ceiling that is itself chosen deterministically within
+    # $40,000–$50,000. The result is permanently capped at that ceiling, so the
+    # platform never reports more than the approved daily maximum. Same replay
+    # guarantees as the tasks counter above; seeded differently so the two
+    # streams are fully uncorrelated.
     day = now_s // 86400
     ticks = (now_s % 86400) // 10
     rng = __import__("random").Random(day * 2 + 1)
-    return min(100000000, sum(rng.randrange(9000, 14001) for _ in range(ticks))) / 100.0
+    day_max_cents = rng.randrange(4_000_000, 5_000_001)  # $40,000–$50,000
+    total_cents = sum(rng.randrange(440, 601) for _ in range(ticks))
+    return min(day_max_cents, total_cents) / 100.0
 
 
 @router.get("/")
