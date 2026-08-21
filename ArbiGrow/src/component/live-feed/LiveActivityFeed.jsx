@@ -16,15 +16,14 @@ import "./LiveActivityFeed.css";
 
 const ONE_MINUTE_MS = 60 * 1000;
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * ONE_MINUTE_MS;
-const SEED_COUNT = 64;
+const TEN_MINUTES_MS = 10 * ONE_MINUTE_MS;
+const SEED_COUNT = 16;
 const DEFAULT_MAX_ITEMS = 200;
 const STORAGE_KEY = "oxford_global_live_activity_v2";
 const AMOUNT_SENTINEL = "\u0001";
 
-// How long a set of activity rows stays on screen before the feed rotates to
-// the next window. Slowed down (was 1s) so each activity is readable: a smooth
-// ~6s cadence sits comfortably inside the 5–8s target range.
-const ROTATION_MS = 6000;
+// Activity rotation: ~1s to keep feed lively and meet spec
+const ROTATION_MS = 1000;
 
 // Responsive number of simultaneously visible rows:
 //   desktop / tablet (>= 640px): 3 rows
@@ -205,31 +204,25 @@ function generateItem(ctx, timestampMs) {
   };
 }
 
-// ── 24-hour rolling seed ─────────────────────────────────────────────────────
-// Builds an initial dataset spread across the latest 24h using a weighted,
-// recent-heavy time distribution. Each item samples a target "age bucket"
-// (Just now, 2m, 6m, 10m, 15m, 20m, 30m, 45m, 1h, 2h, 3h, 5h, 8h, 12h, 20h)
-// with ±35% jitter, so the feed looks like a continuously active stream rather
-// than clustering around a single offset. Sampling + jitter make every seed
-// different, while the recent buckets carry the most weight so fresh activity
-// dominates (like a real live feed) and older timestamps stay rarer.
+// ── 10-minute rolling seed ───────────────────────────────────────────────────
+// Initial dataset is intentionally recent and starts with "Just Now" so the
+// spec's progression Just Now → 1m → 2m … 10m is visible immediately. Each
+// item samples a 0–10 minute age bucket with jitter, sorted newest-first so
+// the newest (Just Now) is on top. Persistence via sessionStorage keeps the
+// feel continuous across refreshes (see loadSeedState).
 
 const SEED_AGE_BUCKETS = [
-  { offset: 0, weight: 7 }, // Just now
+  { offset: 0, weight: 10 }, // Just Now (<60s)
+  { offset: 1, weight: 10 }, // 1 minute
   { offset: 2, weight: 9 },
-  { offset: 6, weight: 9 },
-  { offset: 10, weight: 8 },
-  { offset: 15, weight: 7 },
-  { offset: 20, weight: 7 },
-  { offset: 30, weight: 6 },
-  { offset: 45, weight: 5 },
-  { offset: 60, weight: 6 }, // 1 hour
-  { offset: 120, weight: 6 }, // 2 hours
-  { offset: 180, weight: 5 }, // 3 hours
-  { offset: 300, weight: 5 }, // 5 hours
-  { offset: 480, weight: 4 }, // 8 hours
-  { offset: 720, weight: 4 }, // 12 hours
-  { offset: 1200, weight: 4 }, // 20 hours
+  { offset: 3, weight: 9 },
+  { offset: 4, weight: 8 },
+  { offset: 5, weight: 8 },
+  { offset: 6, weight: 7 },
+  { offset: 7, weight: 7 },
+  { offset: 8, weight: 6 },
+  { offset: 9, weight: 6 },
+  { offset: 10, weight: 6 }, // 10 minutes
 ];
 
 function pickAgeBucket() {
@@ -249,16 +242,14 @@ function buildSeed(count) {
     const bucket = pickAgeBucket();
     let ageMin;
     if (bucket.offset === 0) {
-      // Keep the freshest bucket genuinely within the "Just now" threshold
-      // (< 60s) so the label resolves correctly instead of being forced.
-      ageMin = Math.random() * 0.8; // 0–48s
+      ageMin = Math.random() * 0.85; // 0–51s stays inside Just Now
     } else {
-      const jitter = (Math.random() - 0.5) * 0.7; // ±35%
+      const jitter = (Math.random() - 0.5) * 0.5; // ±25%
       ageMin = bucket.offset * (1 + jitter);
     }
-    ages.push(Math.max(0, Math.min(ageMin, 23 * 60 + 50)));
+    ages.push(Math.max(0, Math.min(ageMin, 10.5)));
   }
-  ages.sort((a, b) => a - b); // newest first, so the type/person cooldown stays coherent
+  ages.sort((a, b) => a - b); // newest first
 
   const ctx = { nextId: 1, recentKeys: [], recentTypes: [] };
   return ages.map((ageMin) => generateItem(ctx, now - ageMin * ONE_MINUTE_MS));
@@ -278,7 +269,7 @@ function loadSeedState() {
       (it) =>
         it &&
         typeof it.timestamp === "number" &&
-        now - it.timestamp <= TWENTY_FOUR_HOURS_MS &&
+        now - it.timestamp <= TEN_MINUTES_MS + ONE_MINUTE_MS &&
         it.name &&
         it.country &&
         it.activity
@@ -300,11 +291,13 @@ function saveSeedState(items, nextId) {
   }
 }
 
-const formatTimeAgo = (timestamp, t) => {
-  const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / ONE_MINUTE_MS));
+const formatTimeAgo = (timestamp, t, nowMs = Date.now()) => {
+  const diff = nowMs - timestamp;
+  const minutes = Math.max(0, Math.floor(diff / ONE_MINUTE_MS));
   if (minutes < 1) return t("liveActivityFeed.justNow");
-  if (minutes < 60) return t("liveActivityFeed.minutesAgo", { count: minutes });
-  return t("liveActivityFeed.hoursAgo", { count: Math.floor(minutes / 60) });
+  if (minutes <= 10) return t("liveActivityFeed.minutesAgo", { count: minutes });
+  // Cap at 10 minutes ago per spec (never show hours or beyond)
+  return t("liveActivityFeed.minutesAgo", { count: 10 });
 };
 
 function isWeekendUK() {
@@ -337,7 +330,7 @@ const LiveActivityFeed = ({
   const [isPaused, setIsPaused] = useState(paused);
   const isPausedFinal = paused || isPaused || isWeekendUK();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [now, setNow] = useState(Date.now());
   const [visibleRows, setVisibleRows] = useState(getVisibleRows);
 
   // Keep the visible-row count in sync with the viewport so the feed stays
@@ -373,7 +366,7 @@ const LiveActivityFeed = ({
     const item = generateItem(ctx, Date.now());
     idRef.current = ctx.nextId;
     setItems((prev) => {
-      const cutoff = Date.now() - TWENTY_FOUR_HOURS_MS;
+      const cutoff = Date.now() - TEN_MINUTES_MS - ONE_MINUTE_MS;
       const retained = prev.filter((it) => it.timestamp >= cutoff);
       return [item, ...retained].slice(0, maxItems);
     });
@@ -381,15 +374,21 @@ const LiveActivityFeed = ({
 
   const pruneExpired = useCallback(() => {
     setItems((prev) => {
-      const cutoff = Date.now() - TWENTY_FOUR_HOURS_MS;
+      const cutoff = Date.now() - TEN_MINUTES_MS - ONE_MINUTE_MS;
       const retained = prev.filter((it) => it.timestamp >= cutoff);
       return retained.length === prev.length ? prev : retained;
     });
   }, []);
 
-  // Single chained, irregular scheduler: prepend a new simulated event, drop
-  // anything older than 24 hours, then re-schedule. The timer is cleaned up on
-  // unmount / pause so no duplicate or leaked timers are created.
+  // Tick `now` every second so timestamps progress Just Now → 1m → 2m … 10m
+  useEffect(() => {
+    if (isPausedFinal) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [isPausedFinal]);
+
+  // Generate a new varied activity approx every 1s (900–1100ms) and
+  // automatically age out items older than ~11m. One controlled timer.
   useEffect(() => {
     let timer = null;
     let cancelled = false;
@@ -398,7 +397,7 @@ const LiveActivityFeed = ({
       const delay =
         newInterval && newInterval > 0
           ? newInterval
-          : 12000 + Math.random() * 26000; // irregular 12–38s
+          : 900 + Math.random() * 200; // 0.9–1.1s
       timer = setTimeout(() => {
         timer = null;
         if (cancelled) return;
@@ -417,32 +416,15 @@ const LiveActivityFeed = ({
   }, [isPausedFinal, appendNewEvent, pruneExpired, newInterval]);
 
   useEffect(() => {
-    if (isPausedFinal || items.length === 0) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % items.length);
-    }, ROTATION_MS);
-    return () => clearInterval(interval);
-  }, [items.length, isPausedFinal]);
-
-  useEffect(() => {
     const checkWeekend = setInterval(() => {
       setIsPaused(isWeekendUK());
     }, 60000);
     return () => clearInterval(checkWeekend);
   }, []);
 
-  // Build a sliding window of distinct, existing activity records so 2–3 rows
-  // are visible at once. Items are referenced by stable id (no duplicates) and
-  // the head advances by one each rotation, giving a smooth slow scroll.
-  const visible = (() => {
-    if (items.length === 0) return [];
-    const len = items.length;
-    const head = ((currentIndex % len) + len) % len;
-    const count = Math.min(visibleRows, len);
-    const rows = [];
-    for (let k = 0; k < count; k += 1) rows.push(items[(head + k) % len]);
-    return rows;
-  })();
+  // Show freshest N items; new 1s events appear as Just Now at top and
+  // older items age Just Now → 1m → 2m … 10m via the `now` tick.
+  const visible = items.slice(0, Math.min(visibleRows, items.length));
 
   return (
     <div className="live-feed-container">
@@ -457,7 +439,7 @@ const LiveActivityFeed = ({
           className={`live-feed-scroll-inner ${isPausedFinal ? "paused" : ""}`}
         >
           {visible.map((item) => (
-            <FeedRow key={item.id} item={item} t={t} />
+            <FeedRow key={item.id} item={item} t={t} now={now} />
           ))}
         </div>
       </div>
@@ -476,10 +458,9 @@ const LiveActivityFeed = ({
   );
 };
 
-// Single activity row. Keyed by stable item id in the parent so existing rows
-// are preserved across rotations and only the entering row remounts (with a
-// subtle fade) — no duplicate items, no abrupt full-swap jump.
-const FeedRow = ({ item, t }) => {
+// Single activity row. `now` is passed from parent so elapsed recalculates
+// every second without remounting the whole feed.
+const FeedRow = ({ item, t, now }) => {
   const actionText = item?.activity?.actionKey
     ? t(item.activity.actionKey, {
         amount: AMOUNT_SENTINEL,
@@ -513,7 +494,7 @@ const FeedRow = ({ item, t }) => {
           {after.join(AMOUNT_SENTINEL)}
         </div>
       </div>
-      <span className="feed-time">{formatTimeAgo(item.timestamp, t)}</span>
+      <span className="feed-time">{formatTimeAgo(item.timestamp, t, now)}</span>
     </div>
   );
 };

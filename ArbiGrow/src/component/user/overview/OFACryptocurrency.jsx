@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, memo } from "react"
 import { useTranslation } from "react-i18next"
-import { Users, CheckCircle2, DollarSign } from "lucide-react"
+import { Activity, ClipboardCheck, Landmark } from "lucide-react"
 import { AnimatedNumber } from "./AnimatedNumber.jsx"
 import { useSharedLiveActivity } from "../../live-feed/liveActivityStore.js"
 import { fmtLiveOnline, fmtTasks, fmtEarnings } from "./liveStatsFormat.js"
@@ -24,29 +24,32 @@ const CIRCULAR_STATS = [
   {
     key: "live_online",
     labelKey: "liveStats.liveOnline",
-    icon: Users,
+    icon: Activity,
     format: fmtLiveOnline,
     ring: "rgba(34,211,153,0.9)",
     ringSoft: "rgba(34,211,153,0.25)",
     text: "#34d399",
+    bg: "from-emerald-500/20 to-teal-500/10",
   },
   {
     key: "tasks_completed_today",
     labelKey: "liveStats.tasksCompletedToday",
-    icon: CheckCircle2,
+    icon: ClipboardCheck,
     format: fmtTasks,
     ring: "rgba(59,130,246,0.9)",
     ringSoft: "rgba(59,130,246,0.25)",
     text: "#3b82f6",
+    bg: "from-blue-500/20 to-cyan-500/10",
   },
   {
     key: "platform_earnings_activity",
     labelKey: "liveStats.platformEarningsActivity",
-    icon: DollarSign,
+    icon: Landmark,
     format: fmtEarnings,
     ring: "rgba(245,158,11,0.9)",
     ringSoft: "rgba(245,158,11,0.25)",
     text: "#f59e0b",
+    bg: "from-amber-500/20 to-orange-500/10",
   },
 ]
 
@@ -67,15 +70,17 @@ function CircularStat({ stat, value, className = "" }) {
           className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
           style={{
             background: `conic-gradient(${stat.ring} 0deg, ${stat.ringSoft} 360deg)`,
-            padding: "2px",
-            filter: `drop-shadow(0 0 12px ${stat.ringSoft})`,
+            padding: "2.5px",
+            filter: `drop-shadow(0 4px 12px ${stat.ringSoft}) drop-shadow(0 0 20px ${stat.ringSoft})`,
+            boxShadow: `inset 0 1px 8px rgba(255,255,255,0.15), 0 6px 20px ${stat.ringSoft}`,
           }}
         >
-          <div className="w-full h-full rounded-full bg-[#0d1128] flex items-center justify-center">
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: stat.text }} />
+          <div className={`w-full h-full rounded-full bg-gradient-to-br ${stat.bg} backdrop-blur-md border border-white/10 flex items-center justify-center relative overflow-hidden`} style={{ backgroundColor: "#0d1128" }}>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/10 via-transparent to-black/20" />
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6 relative z-10 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" style={{ color: stat.text, filter: `drop-shadow(0 0 8px ${stat.ringSoft})` }} />
           </div>
         </div>
-        <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none whitespace-nowrap">
+        <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none whitespace-nowrap drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
           <AnimatedNumber value={value} format={stat.format} />
         </div>
         <StatLabel labelKey={stat.labelKey} color={stat.text} />
@@ -128,18 +133,18 @@ const OFACryptocurrency = () => {
       <style>{SPIN_KEYFRAMES}</style>
       <div
         ref={cardRef}
-        className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.1)] overflow-hidden group"
+        className="relative p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.15)] overflow-hidden group"
       >
         {/* Animated bg orbs */}
-        <div className="pointer-events-none absolute -top-20 -right-20 w-40 h-40 rounded-full bg-blue-500/5 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite" }} />
-        <div className="pointer-events-none absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-cyan-500/5 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite", animationDelay: "2s" }} />
+        <div className="pointer-events-none absolute -top-20 -right-20 w-40 h-40 rounded-full bg-amber-500/10 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite" }} />
+        <div className="pointer-events-none absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-yellow-500/10 blur-3xl" style={{ animation: "ofa-glow-pulse 4s ease-in-out infinite", animationDelay: "2s" }} />
 
         {/* Header */}
         <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-amber-300 to-yellow-500 shadow-[0_0_10px_rgba(245,158,11,0.9)]" />
           {t("overview.ofaCoin.title")}
         </h3>
-        <p className="text-[11px] text-blue-300/70 mb-3 tracking-wide">{t("overview.ofaCoin.subtitle")}</p>
+        <p className="text-[11px] text-amber-300/70 mb-3 tracking-wide">{t("overview.ofaCoin.subtitle")}</p>
 
         {/* Center Token */}
         <div className="relative flex items-center justify-center py-4">
@@ -149,27 +154,27 @@ const OFACryptocurrency = () => {
             style={{ transformStyle: "preserve-3d", perspective: "800px", transition: "transform 0.15s ease-out", animation: "ofa-float 3s ease-in-out infinite" }}
           >
             {/* Glow ring */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400/40 via-blue-400/30 to-purple-500/40 blur-xl" style={{ animation: "ofa-glow-pulse 3s ease-in-out infinite" }} />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400/40 via-yellow-500/30 to-orange-500/40 blur-xl" style={{ animation: "ofa-glow-pulse 3s ease-in-out infinite" }} />
 
-            {/* Outer glowing gradient ring */}
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_35px_rgba(34,211,238,0.4)]" style={{ clipPath: "inset(2px round 50%)", animation: "ofa-spin 10s linear infinite" }} />
+            {/* Outer glowing gradient ring - golden */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-orange-600 shadow-[0_0_35px_rgba(245,158,11,0.5)]" style={{ clipPath: "inset(2px round 50%)", animation: "ofa-spin 10s linear infinite" }} />
 
-            {/* Inner dark circle */}
-            <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a3e] to-[#0d0d2b] border border-cyan-500/30 flex items-center justify-center shadow-[inset_0_0_30px_rgba(59,130,246,0.2)]">
-              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-400/5" />
+            {/* Inner dark circle - warm golden */}
+            <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#2a1f0f] to-[#1a1300] border border-amber-500/40 flex items-center justify-center shadow-[inset_0_0_30px_rgba(245,158,11,0.25)]">
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-amber-500/15 to-yellow-500/10" />
 
-              {/* OFA TOKEN symbol */}
+              {/* OFA TOKEN symbol - golden */}
               <div className="relative z-10 flex flex-col items-center">
-                <div className="text-xl font-black bg-gradient-to-br from-cyan-300 via-blue-300 to-cyan-400 bg-clip-text text-transparent" style={{ filter: "drop-shadow(0 0 12px rgba(34,211,238,0.6))" }}>
+                <div className="text-xl font-black bg-gradient-to-br from-amber-200 via-yellow-300 to-amber-500 bg-clip-text text-transparent" style={{ filter: "drop-shadow(0 0 12px rgba(245,158,11,0.7)) drop-shadow(0 1px 2px rgba(0,0,0,0.8))" }}>
                   OFA
                 </div>
-                <div className="text-[8px] text-cyan-400/90 mt-0.5 font-mono tracking-widest">{t("overview.ofaCoin.token")}</div>
+                <div className="text-[8px] text-amber-400/90 mt-0.5 font-mono tracking-widest">{t("overview.ofaCoin.token")}</div>
               </div>
 
-              {/* Decorative rings */}
-              <div className="absolute inset-[6px] rounded-full border border-cyan-500/15" />
-              <div className="absolute inset-[10px] rounded-full border border-dashed border-cyan-400/25" style={{ animation: "ofa-spin 20s linear infinite" }} />
-              <div className="absolute inset-[14px] rounded-full border border-blue-500/10" />
+              {/* Decorative rings - golden */}
+              <div className="absolute inset-[6px] rounded-full border border-amber-500/20" />
+              <div className="absolute inset-[10px] rounded-full border border-dashed border-amber-400/30" style={{ animation: "ofa-spin 20s linear infinite" }} />
+              <div className="absolute inset-[14px] rounded-full border border-yellow-500/15" />
             </div>
 
             {/* Inner shine */}
@@ -205,7 +210,7 @@ const OFACryptocurrency = () => {
 
         {/* Token heading */}
         <h4 className="text-sm font-bold text-white mt-5 mb-1 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-cyan-300 to-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+          <span className="w-2 h-2 rounded-full bg-gradient-to-br from-amber-300 to-yellow-500 shadow-[0_0_10px_rgba(245,158,11,0.9)]" />
           {t("overview.ofaCoin.tokenHeading")}
         </h4>
 

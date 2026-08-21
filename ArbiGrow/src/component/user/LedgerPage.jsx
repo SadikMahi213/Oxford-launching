@@ -564,46 +564,67 @@ const LedgerPage = ({ setActivePage }) => {
         </table>
       </div>
 
-      {/* Mobile transaction card list */}
-      <div className="md:hidden flex flex-col gap-2 p-3">
-        {loading ? (
-          <div className="py-10 text-center text-gray-400">
-            <Loader2 className="inline animate-spin mr-2" size={18} />
-            {t("ledger.loading", "Loading…")}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
-        ) : (
-          items.map((item) => {
-            const isDebit = item.direction === "debit";
-            const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
-            // Icon color per transaction type - matches spec: green Deposit, red Withdrawal, blue Bonus, orange Spending
-            let iconWrap = "bg-blue-500/15 border-blue-500/30 text-blue-400";
-            const cat = String(item.category || "").toLowerCase();
-            const typ = String(item.type || "").toLowerCase();
-            if (cat === "deposit" || cat.includes("deposit")) iconWrap = "bg-emerald-500/15 border-emerald-500/30 text-emerald-400";
-            else if (cat === "withdrawal" || cat.includes("withdrawal") || isDebit) iconWrap = "bg-rose-500/15 border-rose-500/30 text-rose-400";
-            else if (cat.includes("bonus") || cat.includes("matching") || cat.includes("referral") || typ.includes("bonus")) iconWrap = "bg-blue-500/15 border-blue-500/30 text-blue-400";
-            else if (cat.includes("ecommerce") || cat.includes("purchase") || cat === "ecommerce_bonus") iconWrap = "bg-orange-500/15 border-orange-500/30 text-orange-400";
-            return (
-              <div key={item.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B132B] p-3">
-                <div className={`h-10 w-10 shrink-0 rounded-full border flex items-center justify-center ${iconWrap}`}>
-                  <Icon size={16} className="shrink-0" aria-hidden="true" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">{t(item.category_label_key || `ledger.category.${item.category}`, item.category)}</div>
-                  <div className="text-[11px] text-gray-400 truncate">{formatDate(item.date)}</div>
-                </div>
-                <div className="text-right shrink-0 flex flex-col items-end gap-1">
-                  <div className={`text-sm font-bold ${isDebit ? "text-red-400" : "text-emerald-400"}`}>{isDebit ? "-" : "+"}${formatAmount(item.amount)}</div>
-                  <span className={`inline-flex px-2 py-0.5 rounded-full border text-[10px] font-semibold ${item.status === "completed" ? "bg-[#0B132B] border-emerald-500/30 text-emerald-300" : statusColor(item.status)}`}>
-                    {t(`ledger.status.${item.status}`, item.status)}
-                  </span>
-                </div>
-              </div>
-            );
-          })
-        )}
+      {/* Mobile: horizontal scroll retains all desktop columns */}
+      <div className="md:hidden overflow-x-auto -mx-3 pb-3 touch-pan-x">
+        <table className="min-w-[720px] w-full">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="p-3 text-left text-xs font-semibold text-gray-400 whitespace-nowrap">{t("ledger.col.date", "Date")}</th>
+              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.category", "Category")}</th>
+              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.type", "Type")}</th>
+              <th className="p-3 text-right text-xs font-semibold text-gray-400">{t("ledger.col.amount", "Amount")}</th>
+              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.currency", "Currency")}</th>
+              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.status", "Status")}</th>
+              <th className="p-3 text-left text-xs font-semibold text-gray-400 whitespace-nowrap">{t("ledger.col.reference", "Reference")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-gray-400">
+                  <Loader2 className="inline animate-spin mr-2" size={16} />
+                  {t("ledger.loading", "Loading…")}
+                </td>
+              </tr>
+            ) : items.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
+              </tr>
+            ) : (
+              items.map((item) => {
+                const isDebit = item.direction === "debit";
+                const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+                return (
+                  <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
+                    <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
+                    <td className="p-3 text-xs text-white whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon size={12} className="text-gray-500 shrink-0" aria-hidden="true" />
+                        {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-xs text-gray-400 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1">
+                        {isDebit ? <ArrowUpRight size={12} className="text-red-300" /> : <ArrowDownLeft size={12} className="text-emerald-300" />}
+                        {t(`ledger.type.${item.type}`, item.type)}
+                      </span>
+                    </td>
+                    <td className={`p-3 text-xs font-semibold text-right whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+                      {isDebit ? "-" : "+"}{formatAmount(item.amount)} {item.currency}
+                    </td>
+                    <td className="p-3 text-xs text-gray-300">{item.currency}</td>
+                    <td className="p-3 text-xs">
+                      <span className={`inline-block px-1.5 py-0.5 rounded-full border text-[10px] leading-none ${statusColor(item.status)}`}>
+                        {t(`ledger.status.${item.status}`, item.status)}
+                      </span>
+                    </td>
+                    <td className="p-3 text-xs text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
     </>
   );
@@ -648,82 +669,44 @@ const LedgerPage = ({ setActivePage }) => {
           <div className="p-3 sm:p-4 text-sm text-red-300 bg-red-500/10 border-b border-red-500/20">{error}</div>
         )}
 
-        {/* Category overview cards */}
+        {/* Category overview cards - ONLY 4 required values */}
         <div className="p-3 sm:p-6 border-b border-white/10">
           <h3 className="hidden md:block text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
 
-          {/* Mobile: Total Balance hero + 2x2 metric grid */}
-          <div className="md:hidden flex flex-col gap-3">
-            {/* Total Balance Card */}
-            {(() => {
-              const bal = activeCards.find((c) => c.key === "ofa_settlement_balance") || activeCards[0];
-              const amt = bal ? formatAmount(bal.amount) : "0";
-              const cur = bal?.currency || "USD";
+          {/* Mobile: 2x2 grid with 4 required values */}
+          <div className="md:hidden grid grid-cols-2 gap-3">
+            {[
+              { key: "total_deposit", label: t("ledger.category.total_deposit", "Total Deposit"), icon: ArrowDownLeft, bg: "bg-emerald-500/15", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
+              { key: "total_withdrawal", label: t("ledger.category.total_withdrawal", "Total Withdrawal"), icon: ArrowUpRight, bg: "bg-rose-500/15", border: "border-rose-500/20", iconColor: "text-rose-400" },
+              { key: "total_earning", label: t("ledger.category.total_earning", "Total Earning"), icon: TrendingUp, bg: "bg-blue-500/15", border: "border-blue-500/20", iconColor: "text-blue-400" },
+              { key: "ofa_free_mining", label: t("ledger.category.ofa_free_mining", "OFA Free Mining"), icon: Pickaxe, bg: "bg-purple-500/15", border: "border-purple-500/20", iconColor: "text-purple-400" },
+            ].map((m) => {
+              const card = activeCards.find((c) => c.key === m.key);
+              const amount = card ? formatAmount(card.amount) : "0";
+              const cur = card?.currency || (m.key === "ofa_free_mining" ? "OFA" : "USD");
+              const Icon = m.icon;
               return (
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0B132B] p-4 shadow-lg shadow-black/20">
-                  <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl" />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
-                  <div className="relative flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-medium text-gray-400">Total Balance</div>
-                      <div className="mt-1 flex items-baseline gap-2 flex-wrap">
-                        <span className="text-2xl font-extrabold text-emerald-400 tracking-tight">${amt}</span>
-                        <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-gray-300">{cur}</span>
-                      </div>
-                    </div>
-                    <div className="relative shrink-0">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-900/30">
-                        <Wallet size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
-                        <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 shadow" />
-                        <span className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full bg-gradient-to-br from-yellow-200 to-amber-400 shadow" />
-                      </div>
-                    </div>
+                <div key={m.key} className="relative rounded-xl border border-white/10 bg-[#0B132B] p-3 flex flex-col gap-2 overflow-hidden">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${m.bg} ${m.border} shrink-0`}>
+                    <Icon size={16} className={m.iconColor} aria-hidden="true" />
+                  </div>
+                  <div className="text-[11px] font-medium text-gray-400 leading-tight line-clamp-1">{m.label}</div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-[15px] font-bold text-white truncate">{cur === "OFA" ? amount : `$${amount}`}</span>
+                    <span className="text-[9px] font-semibold text-gray-500">{cur}</span>
                   </div>
                 </div>
               );
-            })()}
-            {/* 2x2 Metric Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { key: "total_deposit", label: "Total Deposit", icon: ArrowDownLeft, bg: "bg-emerald-500/15", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
-                { key: "total_withdrawal", label: "Total Withdrawal", icon: ArrowUpRight, bg: "bg-rose-500/15", border: "border-rose-500/20", iconColor: "text-rose-400" },
-                { key: "matching_bonus", label: "Total Bonus", icon: Gift, bg: "bg-blue-500/15", border: "border-blue-500/20", iconColor: "text-blue-400" },
-                { key: "total_earning", label: "Total Spending", icon: ShoppingCart, bg: "bg-orange-500/15", border: "border-orange-500/20", iconColor: "text-orange-400" },
-              ].map((m) => {
-                const card = activeCards.find((c) => c.key === m.key);
-                const amount = card ? formatAmount(card.amount) : "0";
-                const Icon = m.icon;
-                return (
-                  <div key={m.key} className="relative rounded-xl border border-white/10 bg-[#0B132B] p-3 flex flex-col gap-2 overflow-hidden">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${m.bg} ${m.border} shrink-0`}>
-                      <Icon size={16} className={m.iconColor} aria-hidden="true" />
-                    </div>
-                    <div className="text-[11px] font-medium text-gray-400 leading-tight line-clamp-1">{m.label}</div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[15px] font-bold text-white truncate">${amount}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            })}
           </div>
 
-          {/* Tablet / desktop: existing full category grid */}
-          <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4 auto-rows-fr">
-            {sortByPriority(activeCards).map((c) => renderSummaryCard(c, false))}
+          {/* Tablet / desktop: 4-card grid */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+            {["total_deposit", "total_withdrawal", "total_earning", "ofa_free_mining"].map((k) => {
+              const c = activeCards.find((x) => x.key === k);
+              return c ? renderSummaryCard(c, false) : null;
+            })}
           </div>
-
-          {soonCards.length > 0 && (
-            <div className="mt-3 sm:mt-4">
-              <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t("ledger.comingSoon", "Coming Soon")}</h4>
-              <div className="md:hidden grid grid-cols-4 gap-1.5 auto-rows-fr">
-                {sortByPriority(soonCards).map((c) => renderMobileShortcutCard(c, true))}
-              </div>
-              <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4 auto-rows-fr">
-                {sortByPriority(soonCards).map((c) => renderSummaryCard(c, true))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Mobile filter pills */}
@@ -750,8 +733,8 @@ const LedgerPage = ({ setActivePage }) => {
           </div>
         </div>
 
-        {/* Stream tabs - desktop only */}
-        <div className="hidden md:block px-4 sm:px-6 pt-4 border-b border-white/10">
+        {/* Stream tabs */}
+        <div className="px-4 sm:px-6 pt-4 border-b border-white/10">
           <div className="inline-flex w-full sm:w-auto rounded-xl bg-[#0A122C] border border-white/10 p-1">
             <button
               onClick={() => switchStream("earning")}
