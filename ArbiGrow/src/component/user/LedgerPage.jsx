@@ -751,8 +751,8 @@ const LedgerPage = ({ setActivePage }) => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div id="ledger-filters" className="p-4 sm:p-6 border-b border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* Filters - hidden on mobile, visible on tablet/desktop */}
+        <div id="ledger-filters" className="hidden md:block p-4 sm:p-6 border-b border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-gray-400" />
             <select
