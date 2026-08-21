@@ -63,7 +63,9 @@ export default function LaunchCountdown() {
   }, []);
 
   return (
-    <div className="relative w-full bg-gradient-to-r from-[#0d1137]/95 via-[#0a0e27]/98 to-[#0d1137]/95 border-y border-cyan-500/10 backdrop-blur-md">
+    <>
+      <div className="h-16 lg:hidden" />
+      <div className="relative w-full bg-gradient-to-r from-[#0d1137]/95 via-[#0a0e27]/98 to-[#0d1137]/95 border-y border-cyan-500/10 backdrop-blur-md">
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-blue-500/5 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 py-3 md:py-4">
@@ -138,6 +140,7 @@ export default function LaunchCountdown() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
