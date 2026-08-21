@@ -36,6 +36,9 @@ import {
   Wallet,
   TrendingUp,
   Clock,
+  Home,
+  DollarSign,
+  User,
 } from "lucide-react";
 import { getLedgerTransactions } from "../../api/user.api.js";
 
@@ -322,7 +325,7 @@ const priorityRank = (key) => {
 const sortByPriority = (cards) =>
   [...cards].sort((a, b) => priorityRank(a.key) - priorityRank(b.key));
 
-const LedgerPage = () => {
+const LedgerPage = ({ setActivePage }) => {
   const { t } = useTranslation();
 
   const [items, setItems] = useState([]);
@@ -561,75 +564,79 @@ const LedgerPage = () => {
         </table>
       </div>
 
-      {/* Mobile horizontal scrollable table (all columns preserved) */}
-      <div className="md:hidden overflow-x-auto -mx-3 pb-3">
-        <table className="min-w-[640px] w-full">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.date", "Date")}</th>
-              <th className="p-4 text-sm text-gray-400">{t("ledger.col.category", "Category")}</th>
-              <th className="p-4 text-sm text-gray-400">{t("ledger.col.type", "Type")}</th>
-              <th className="p-4 text-sm text-gray-400">{t("ledger.col.amount", "Amount")}</th>
-              <th className="p-4 text-sm text-gray-400">{t("ledger.col.currency", "Currency")}</th>
-              <th className="p-4 text-sm text-gray-400">{t("ledger.col.status", "Status")}</th>
-              <th className="p-4 text-sm text-gray-400 whitespace-nowrap">{t("ledger.col.reference", "Reference")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={7} className="p-10 text-center text-gray-400">
-                  <Loader2 className="inline animate-spin mr-2" size={18} />
-                  {t("ledger.loading", "Loading…")}
-                </td>
-              </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
-              </tr>
-            ) : (
-              items.map((item) => {
-                const isDebit = item.direction === "debit";
-                const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
-                return (
-                  <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
-                    <td className="p-4 text-sm text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
-                    <td className="p-4 text-sm text-white">
-                      <span className="inline-flex items-center gap-2">
-                        <Icon size={14} className="text-gray-500 shrink-0" />
-                        {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-gray-400">
-                      <span className="inline-flex items-center gap-1">
-                        {isDebit ? <ArrowUpRight size={14} className="text-red-300" /> : <ArrowDownLeft size={14} className="text-emerald-300" />}
-                        {t(`ledger.type.${item.type}`, item.type)}
-                      </span>
-                    </td>
-                    <td className={`p-4 text-sm font-semibold text-right ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                      {isDebit ? "-" : "+"}{formatAmount(item.amount)} {item.currency}
-                    </td>
-                    <td className="p-4 text-sm text-gray-300">{item.currency}</td>
-                    <td className="p-4 text-sm">
-                      <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${statusColor(item.status)}`}>
-                        {t(`ledger.status.${item.status}`, item.status)}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+      {/* Mobile transaction card list */}
+      <div className="md:hidden flex flex-col gap-2 p-3">
+        {loading ? (
+          <div className="py-10 text-center text-gray-400">
+            <Loader2 className="inline animate-spin mr-2" size={18} />
+            {t("ledger.loading", "Loading…")}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="py-10 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
+        ) : (
+          items.map((item) => {
+            const isDebit = item.direction === "debit";
+            const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+            // Icon color per transaction type - matches spec: green Deposit, red Withdrawal, blue Bonus, orange Spending
+            let iconWrap = "bg-blue-500/15 border-blue-500/30 text-blue-400";
+            const cat = String(item.category || "").toLowerCase();
+            const typ = String(item.type || "").toLowerCase();
+            if (cat === "deposit" || cat.includes("deposit")) iconWrap = "bg-emerald-500/15 border-emerald-500/30 text-emerald-400";
+            else if (cat === "withdrawal" || cat.includes("withdrawal") || isDebit) iconWrap = "bg-rose-500/15 border-rose-500/30 text-rose-400";
+            else if (cat.includes("bonus") || cat.includes("matching") || cat.includes("referral") || typ.includes("bonus")) iconWrap = "bg-blue-500/15 border-blue-500/30 text-blue-400";
+            else if (cat.includes("ecommerce") || cat.includes("purchase") || cat === "ecommerce_bonus") iconWrap = "bg-orange-500/15 border-orange-500/30 text-orange-400";
+            return (
+              <div key={item.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B132B] p-3">
+                <div className={`h-10 w-10 shrink-0 rounded-full border flex items-center justify-center ${iconWrap}`}>
+                  <Icon size={16} className="shrink-0" aria-hidden="true" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-white truncate">{t(item.category_label_key || `ledger.category.${item.category}`, item.category)}</div>
+                  <div className="text-[11px] text-gray-400 truncate">{formatDate(item.date)}</div>
+                </div>
+                <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                  <div className={`text-sm font-bold ${isDebit ? "text-red-400" : "text-emerald-400"}`}>{isDebit ? "-" : "+"}${formatAmount(item.amount)}</div>
+                  <span className={`inline-flex px-2 py-0.5 rounded-full border text-[10px] font-semibold ${item.status === "completed" ? "bg-[#0B132B] border-emerald-500/30 text-emerald-300" : statusColor(item.status)}`}>
+                    {t(`ledger.status.${item.status}`, item.status)}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </>
   );
 
   return (
-    <div className="animate-[fadeIn_0.4s_ease] rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden">
+    <div className="animate-[fadeIn_0.4s_ease] rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden pb-20 md:pb-0">
+        {/* Header */}
         <div className="p-3 sm:p-6 border-b border-white/10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+          {/* Mobile header */}
+          <div className="flex md:hidden items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setActivePage?.("overview")}
+                className="h-9 w-9 shrink-0 rounded-full bg-[#0B132B] border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"
+                aria-label="Back"
+              >
+                <ChevronLeft size={18} className="text-white" />
+              </button>
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-bold text-white leading-tight truncate">My Ledger</h2>
+                <p className="text-[11px] text-gray-400 truncate">All your financial transactions</p>
+              </div>
+            </div>
+            <button
+              onClick={() => document.getElementById("ledger-filters")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="h-9 w-9 shrink-0 rounded-full bg-[#0B132B] border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"
+              aria-label="Filter"
+            >
+              <SlidersHorizontal size={16} className="text-gray-300" />
+            </button>
+          </div>
+          {/* Desktop header */}
+          <div className="hidden md:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">{t("ledger.title", "OFA Earning & Transaction Ledger")}</h2>
               <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{t("ledger.subtitle", "Every earning, bonus, deposit, withdrawal and adjustment in one place.")}</p>
@@ -643,11 +650,62 @@ const LedgerPage = () => {
 
         {/* Category overview cards */}
         <div className="p-3 sm:p-6 border-b border-white/10">
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
+          <h3 className="hidden md:block text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
 
-          {/* Mobile: compact 4-per-row wallet shortcut grid */}
-          <div className="md:hidden grid grid-cols-4 gap-1.5 auto-rows-fr">
-            {sortByPriority(activeCards).map((c) => renderMobileShortcutCard(c, false))}
+          {/* Mobile: Total Balance hero + 2x2 metric grid */}
+          <div className="md:hidden flex flex-col gap-3">
+            {/* Total Balance Card */}
+            {(() => {
+              const bal = activeCards.find((c) => c.key === "ofa_settlement_balance") || activeCards[0];
+              const amt = bal ? formatAmount(bal.amount) : "0";
+              const cur = bal?.currency || "USD";
+              return (
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0B132B] p-4 shadow-lg shadow-black/20">
+                  <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
+                  <div className="relative flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-medium text-gray-400">Total Balance</div>
+                      <div className="mt-1 flex items-baseline gap-2 flex-wrap">
+                        <span className="text-2xl font-extrabold text-emerald-400 tracking-tight">${amt}</span>
+                        <span className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-gray-300">{cur}</span>
+                      </div>
+                    </div>
+                    <div className="relative shrink-0">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-900/30">
+                        <Wallet size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]" aria-hidden="true" />
+                        <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 shadow" />
+                        <span className="absolute -bottom-1 -left-1 h-4 w-4 rounded-full bg-gradient-to-br from-yellow-200 to-amber-400 shadow" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+            {/* 2x2 Metric Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { key: "total_deposit", label: "Total Deposit", icon: ArrowDownLeft, bg: "bg-emerald-500/15", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
+                { key: "total_withdrawal", label: "Total Withdrawal", icon: ArrowUpRight, bg: "bg-rose-500/15", border: "border-rose-500/20", iconColor: "text-rose-400" },
+                { key: "matching_bonus", label: "Total Bonus", icon: Gift, bg: "bg-blue-500/15", border: "border-blue-500/20", iconColor: "text-blue-400" },
+                { key: "total_earning", label: "Total Spending", icon: ShoppingCart, bg: "bg-orange-500/15", border: "border-orange-500/20", iconColor: "text-orange-400" },
+              ].map((m) => {
+                const card = activeCards.find((c) => c.key === m.key);
+                const amount = card ? formatAmount(card.amount) : "0";
+                const Icon = m.icon;
+                return (
+                  <div key={m.key} className="relative rounded-xl border border-white/10 bg-[#0B132B] p-3 flex flex-col gap-2 overflow-hidden">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${m.bg} ${m.border} shrink-0`}>
+                      <Icon size={16} className={m.iconColor} aria-hidden="true" />
+                    </div>
+                    <div className="text-[11px] font-medium text-gray-400 leading-tight line-clamp-1">{m.label}</div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[15px] font-bold text-white truncate">${amount}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Tablet / desktop: existing full category grid */}
@@ -668,8 +726,32 @@ const LedgerPage = () => {
           )}
         </div>
 
-        {/* Stream tabs */}
-        <div className="px-4 sm:px-6 pt-4 border-b border-white/10">
+        {/* Mobile filter pills */}
+        <div className="md:hidden px-3 pt-3 border-b border-white/10">
+          <div className="flex gap-2 overflow-x-auto scrollbar-none pb-3 -mx-3 px-3">
+            {[
+              { id: "", label: "All" },
+              { id: "deposit", label: "Deposit" },
+              { id: "withdrawal", label: "Withdrawal" },
+              { id: "matching_bonus", label: "Bonus" },
+              { id: "ecommerce", label: "Spending" },
+            ].map((tab) => {
+              const active = filters.category === tab.id;
+              return (
+                <button
+                  key={tab.id || "all"}
+                  onClick={() => updateFilter("category", tab.id)}
+                  className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors ${active ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-900/20" : "bg-[#0B132B] border-white/10 text-gray-400 hover:text-white hover:border-white/20"}`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Stream tabs - desktop only */}
+        <div className="hidden md:block px-4 sm:px-6 pt-4 border-b border-white/10">
           <div className="inline-flex w-full sm:w-auto rounded-xl bg-[#0A122C] border border-white/10 p-1">
             <button
               onClick={() => switchStream("earning")}
@@ -687,7 +769,7 @@ const LedgerPage = () => {
         </div>
 
         {/* Filters */}
-        <div className="p-4 sm:p-6 border-b border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div id="ledger-filters" className="p-4 sm:p-6 border-b border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-gray-400" />
             <select
@@ -766,6 +848,31 @@ const LedgerPage = () => {
               <ChevronRight size={16} />
             </button>
           </div>
+        </div>
+
+        {/* Bottom Navigation - Mobile only */}
+        <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0B132B] border-t border-white/10 px-2 py-2 flex items-center justify-around">
+          <button onClick={() => setActivePage?.("overview")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
+            <Home size={18} aria-hidden="true" />
+            <span className="text-[10px] leading-none">Dashboard</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 px-3 py-1 text-blue-400">
+            <Wallet size={18} aria-hidden="true" />
+            <span className="text-[10px] font-semibold leading-none">Ledger</span>
+          </button>
+          <button onClick={() => setActivePage?.("deposit")} className="flex flex-col items-center justify-center -mt-4">
+            <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/30 border-2 border-[#0B132B]">
+              <DollarSign size={20} className="text-white" aria-hidden="true" />
+            </div>
+          </button>
+          <button onClick={() => setActivePage?.("transfer")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
+            <Wallet size={18} aria-hidden="true" />
+            <span className="text-[10px] leading-none">Wallet</span>
+          </button>
+          <button onClick={() => setActivePage?.("profile")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
+            <User size={18} aria-hidden="true" />
+            <span className="text-[10px] leading-none">Profile</span>
+          </button>
         </div>
       </div>
   );
