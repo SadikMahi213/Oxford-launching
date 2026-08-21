@@ -15,6 +15,7 @@ import { WhyChooseUs } from "../component/WhyChooseUs";
 import { MemberBenefits } from "../component/MemberBenefits";
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { ShowcaseSection } from "../component/ShowcaseSection";
+import LaunchCountdown from "../component/LaunchCountdown";
 import { getPlatformStats } from "../api/admin.api.js";
 import { PartyPopper, Users, GraduationCap, Briefcase } from "lucide-react";
 import eventsImg1 from "../assets/events.jpg";
@@ -77,6 +78,7 @@ const Home = () => {
     <>
       <Navbar />
       <ScrollToTopButton />
+      <LaunchCountdown />
       <div id="home">
         <Hero />
       </div>

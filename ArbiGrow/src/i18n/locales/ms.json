@@ -896,7 +896,17 @@
     "imageAlt": "Perkhidmatan Kewangan",
     "altOurCommitment": "Komitmen Kami",
     "altGlobalCertifications": "Pensijilan Global & Komitmen",
-    "altHero": "Pasukan Oxford Financial Ads"
+    "altHero": "Pasukan Oxford Financial Ads",
+    "countdown": {
+      "badge": "Pelancaran Rasmi",
+      "title": "Oxford Financial Ads akan dilancarkan pada 20 September 2026",
+      "launchDate": "Pelancaran 20 September 2026",
+      "days": "Hari",
+      "hours": "Jam",
+      "minutes": "Minit",
+      "seconds": "Saat",
+      "live": "Kami Sudah Bersiaran"
+    }
   },
   "home": {
     "whyChooseUs": {

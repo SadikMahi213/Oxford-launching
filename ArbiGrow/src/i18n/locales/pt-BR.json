@@ -896,7 +896,17 @@
     "imageAlt": "Serviços Financeiros",
     "altOurCommitment": "Nosso Compromisso",
     "altGlobalCertifications": "Certificações Globais & Compromisso",
-    "altHero": "Equipe Oxford Financial Ads"
+    "altHero": "Equipe Oxford Financial Ads",
+    "countdown": {
+      "badge": "Lançamento Oficial",
+      "title": "Oxford Financial Ads será lançado em 20 de setembro de 2026",
+      "launchDate": "Lançamento 20 de setembro de 2026",
+      "days": "Dias",
+      "hours": "Horas",
+      "minutes": "Minutos",
+      "seconds": "Segundos",
+      "live": "Estamos Ao Vivo"
+    }
   },
   "home": {
     "whyChooseUs": {

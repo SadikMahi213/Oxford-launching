@@ -896,7 +896,17 @@
     "imageAlt": "Dịch vụ tài chính",
     "altOurCommitment": "Cam kết của chúng tôi",
     "altGlobalCertifications": "Chứng Nhận Toàn Cầu & Cam Kết",
-    "altHero": "Đội ngũ Oxford Financial Ads"
+    "altHero": "Đội ngũ Oxford Financial Ads",
+    "countdown": {
+      "badge": "Ra mắt chính thức",
+      "title": "Oxford Financial Ads sẽ ra mắt vào ngày 20 tháng 9 năm 2026",
+      "launchDate": "Ra mắt 20 tháng 9 năm 2026",
+      "days": "Ngày",
+      "hours": "Giờ",
+      "minutes": "Phút",
+      "seconds": "Giây",
+      "live": "Chúng tôi đã trực tuyến"
+    }
   },
   "home": {
     "whyChooseUs": {

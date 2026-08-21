@@ -896,7 +896,17 @@
     "imageAlt": "مالیاتی خدمات",
     "altOurCommitment": "ہمارا عزم",
     "altGlobalCertifications": "عالمی سرٹیفیکیشنز اور عزم",
-    "altHero": "آکسفورڈ فنانشل ایڈز ٹیم"
+    "altHero": "آکسفورڈ فنانشل ایڈز ٹیم",
+    "countdown": {
+      "badge": "سرکاری لانچ",
+      "title": "آکسفورڈ فنانشل ایڈز 20 ستمبر 2026 کو لانچ ہو رہا ہے",
+      "launchDate": "لانچ 20 ستمبر 2026",
+      "days": "دن",
+      "hours": "گھنٹے",
+      "minutes": "منٹ",
+      "seconds": "سیکنڈ",
+      "live": "ہم لائیو ہیں"
+    }
   },
   "home": {
     "whyChooseUs": {

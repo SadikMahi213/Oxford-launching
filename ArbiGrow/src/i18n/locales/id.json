@@ -896,7 +896,17 @@
     "imageAlt": "Layanan Keuangan",
     "altOurCommitment": "Komitmen kami",
     "altGlobalCertifications": "Sertifikasi Global & Komitmen",
-    "altHero": "Tim Oxford Financial Ads"
+    "altHero": "Tim Oxford Financial Ads",
+    "countdown": {
+      "badge": "Peluncuran Resmi",
+      "title": "Oxford Financial Ads akan diluncurkan pada 20 September 2026",
+      "launchDate": "Peluncuran 20 September 2026",
+      "days": "Hari",
+      "hours": "Jam",
+      "minutes": "Menit",
+      "seconds": "Detik",
+      "live": "Kami Sudah Online"
+    }
   },
   "home": {
     "whyChooseUs": {

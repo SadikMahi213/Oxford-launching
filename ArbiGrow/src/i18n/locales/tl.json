@@ -896,7 +896,17 @@
     "imageAlt": "Serbisyong Pinansyal",
     "altOurCommitment": "Ang Aming Pangako",
     "altGlobalCertifications": "Pandaigdigang Sertipikasyon at Pangako",
-    "altHero": "Team ng Oxford Financial Ads"
+    "altHero": "Team ng Oxford Financial Ads",
+    "countdown": {
+      "badge": "Opisyal na Paglulunsad",
+      "title": "Ang Oxford Financial Ads ay ilulunsad sa Setyembre 20, 2026",
+      "launchDate": "Paglulunsad Setyembre 20, 2026",
+      "days": "Araw",
+      "hours": "Oras",
+      "minutes": "Minuto",
+      "seconds": "Segundo",
+      "live": "Naka-live Na Kami"
+    }
   },
   "home": {
     "whyChooseUs": {
