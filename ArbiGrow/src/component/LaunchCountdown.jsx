@@ -21,26 +21,32 @@ function calculateTimeLeft() {
   };
 }
 
-const TimeUnit = ({ value, label }) => (
-  <div className="flex flex-col items-center">
-    <div className="relative">
-      <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl bg-gradient-to-br from-[#0d1137]/80 to-[#0a0e27]/90 border border-cyan-500/20 flex items-center justify-center backdrop-blur-sm">
-        <span className="text-xl sm:text-2xl md:text-3xl font-bold text-white tabular-nums min-w-[2ch] text-center">
-          {String(value).padStart(2, "0")}
-        </span>
+const TimeUnit = ({ value, label, size = "md" }) => {
+  const sizeClasses = {
+    sm: "w-12 h-12 text-lg",
+    md: "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 text-xl sm:text-2xl md:text-3xl",
+  };
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <div className={`${sizeClasses[size]} rounded-xl bg-gradient-to-br from-[#0d1137]/80 to-[#0a0e27]/90 border border-cyan-500/20 flex items-center justify-center backdrop-blur-sm`}>
+          <span className={`${size === "sm" ? "text-lg" : "text-xl sm:text-2xl md:text-3xl"} font-bold text-white tabular-nums min-w-[2ch] text-center`}>
+            {String(value).padStart(2, "0")}
+          </span>
+        </div>
+        <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 -z-10 blur-sm" />
       </div>
-      <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 -z-10 blur-sm" />
+      <span className={`${size === "sm" ? "mt-1 text-[8px]" : "mt-1.5 text-[10px] sm:text-xs"} text-gray-400 uppercase tracking-wider font-medium`}>
+        {label}
+      </span>
     </div>
-    <span className="mt-1.5 text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider font-medium">
-      {label}
-    </span>
-  </div>
-);
+  );
+};
 
-const Separator = () => (
-  <div className="flex flex-col items-center justify-center gap-1 px-1 sm:px-2 pb-4">
-    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400/60" />
-    <div className="w-1.5 h-1.5 rounded-full bg-cyan-400/60" />
+const Separator = ({ size = "md" }) => (
+  <div className="flex flex-col items-center justify-center gap-1 px-0.5 sm:px-2 pb-4">
+    <div className={`${size === "sm" ? "w-1 h-1" : "w-1.5 h-1.5"} rounded-full bg-cyan-400/60`} />
+    <div className={`${size === "sm" ? "w-1 h-1" : "w-1.5 h-1.5"} rounded-full bg-cyan-400/60`} />
   </div>
 );
 
@@ -102,56 +108,31 @@ export default function LaunchCountdown() {
 
         {/* Mobile layout */}
         <div className="md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                <Rocket className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="flex flex-col items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                <Rocket className="w-3 h-3 text-cyan-400" />
               </div>
-              <div className="min-w-0">
-                <div className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold leading-tight">
-                  {t("homePage.countdown.badge")}
-                </div>
-                <div className="text-xs text-white font-medium truncate">
-                  {t("homePage.countdown.launchDate")}
-                </div>
+              <div className="text-[10px] text-cyan-400 uppercase tracking-widest font-semibold">
+                {t("homePage.countdown.badge")}
               </div>
             </div>
 
             {timeLeft.isLive ? (
-              <div className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 flex-shrink-0">
+              <div className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
                 <span className="text-xs font-bold text-green-400 uppercase tracking-wider">
                   {t("homePage.countdown.live")}
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold text-white tabular-nums min-w-[2ch] text-center">
-                    {String(timeLeft.days).padStart(2, "0")}
-                  </span>
-                  <span className="text-[8px] text-gray-500 uppercase">{t("homePage.countdown.days")}</span>
-                </div>
-                <span className="text-cyan-400/50 text-xs">:</span>
-                <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold text-white tabular-nums min-w-[2ch] text-center">
-                    {String(timeLeft.hours).padStart(2, "0")}
-                  </span>
-                  <span className="text-[8px] text-gray-500 uppercase">{t("homePage.countdown.hours")}</span>
-                </div>
-                <span className="text-cyan-400/50 text-xs">:</span>
-                <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold text-white tabular-nums min-w-[2ch] text-center">
-                    {String(timeLeft.minutes).padStart(2, "0")}
-                  </span>
-                  <span className="text-[8px] text-gray-500 uppercase">{t("homePage.countdown.minutes")}</span>
-                </div>
-                <span className="text-cyan-400/50 text-xs">:</span>
-                <div className="flex flex-col items-center">
-                  <span className="text-sm font-bold text-white tabular-nums min-w-[2ch] text-center">
-                    {String(timeLeft.seconds).padStart(2, "0")}
-                  </span>
-                  <span className="text-[8px] text-gray-500 uppercase">{t("homePage.countdown.seconds")}</span>
-                </div>
+              <div className="flex items-center gap-1">
+                <TimeUnit value={timeLeft.days} label={t("homePage.countdown.days")} size="sm" />
+                <Separator size="sm" />
+                <TimeUnit value={timeLeft.hours} label={t("homePage.countdown.hours")} size="sm" />
+                <Separator size="sm" />
+                <TimeUnit value={timeLeft.minutes} label={t("homePage.countdown.minutes")} size="sm" />
+                <Separator size="sm" />
+                <TimeUnit value={timeLeft.seconds} label={t("homePage.countdown.seconds")} size="sm" />
               </div>
             )}
           </div>
