@@ -670,15 +670,13 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
           <div className="p-3 sm:p-4 text-sm text-red-300 bg-red-500/10 border-b border-red-500/20">{error}</div>
         )}
 
-        {/* Category overview cards - ONLY 4 required values */}
+        {/* Earning History overview cards - earnings only (no wallet/deposit/withdrawal) */}
         <div className="p-3 sm:p-6 border-b border-white/10">
           <h3 className="hidden md:block text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
 
-          {/* Mobile: 2x2 grid with 4 required values */}
+          {/* Mobile: 2-col grid with earning-only values (no wallet/deposit/withdrawal) */}
           <div className="md:hidden grid grid-cols-2 gap-3">
             {[
-              { key: "total_deposit", label: t("ledger.category.total_deposit", "Total Deposit"), icon: ArrowDownLeft, bg: "bg-emerald-500/15", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
-              { key: "total_withdrawal", label: t("ledger.category.total_withdrawal", "Total Withdrawal"), icon: ArrowUpRight, bg: "bg-rose-500/15", border: "border-rose-500/20", iconColor: "text-rose-400" },
               { key: "total_earning", label: t("ledger.category.total_earning", "Total Earning"), icon: TrendingUp, bg: "bg-blue-500/15", border: "border-blue-500/20", iconColor: "text-blue-400" },
               { key: "ofa_free_mining", label: t("ledger.category.ofa_free_mining", "OFA Free Mining"), icon: Pickaxe, bg: "bg-purple-500/15", border: "border-purple-500/20", iconColor: "text-purple-400" },
             ].map((m) => {
@@ -701,9 +699,9 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
             })}
           </div>
 
-          {/* Tablet / desktop: 4-card grid */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
-            {["total_deposit", "total_withdrawal", "total_earning", "ofa_free_mining"].map((k) => {
+          {/* Tablet / desktop: earning-only 2-card grid (wallet/deposit/withdrawal removed) */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-2 gap-4 auto-rows-fr">
+            {["total_earning", "ofa_free_mining"].map((k) => {
               const c = activeCards.find((x) => x.key === k);
               return c ? renderSummaryCard(c, false) : null;
             })}
