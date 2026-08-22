@@ -463,6 +463,12 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
             <span className="text-[9px] sm:text-[11px] font-semibold text-gray-400">{c.currency}</span>
           </div>
 
+          {c.balance_ofa != null && (
+            <div className="relative text-[10px] text-gray-500 leading-none">
+              {formatAmount(c.balance_ofa)} OFA
+            </div>
+          )}
+
           <div className="relative mt-auto pt-1.5 sm:pt-2.5 hidden sm:block">
             <div className="mb-2.5 border-t border-white/5" />
             <div className="flex items-center justify-between">

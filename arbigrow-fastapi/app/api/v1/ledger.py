@@ -40,6 +40,7 @@ from app.models.investments import Investment
 from app.models.matching_bonus import MatchingBonus
 from app.models.ofa_coin_transaction import OFACoinTransaction
 from app.models.referral_profit_history import ReferralProfitHistory
+from app.models.system_config import SystemConfig
 from app.models.transfer_log import TransferLog
 from app.models.user import User
 from app.models.wallet_transaction import WalletTransaction
@@ -409,6 +410,13 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         await ofa_mining,
     )
 
+    # Authoritative OFA → USDT rate (mirrors user.py convert-ofa-to-usdt).
+    rate_res = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate")
+    )
+    rate_cfg = rate_res.scalar_one_or_none()
+    ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
+
     total_earning = round(
         captcha + ad_view + generation + matching + daily_earning + ecommerce, 6
     )
@@ -422,8 +430,8 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         {"key": "generation_bonus", "amount": round(generation, 6), "currency": "USD", "stream": "earning"},
         {"key": "matching_bonus", "amount": round(matching, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
-        {"key": "ofa_free_mining", "amount": round(ofa_mining, 6), "currency": "OFA", "stream": "earning"},
-        {"key": "ofa_settlement_balance", "amount": ofa_balance, "currency": "OFA", "stream": "balance"},
+        {"key": "ofa_free_mining", "amount": round((Decimal(str(ofa_mining)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
+        {"key": "ofa_settlement_balance", "amount": round((Decimal(str(ofa_balance)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "balance", "balance_ofa": ofa_balance},
     ]
     soon = [
         {"key": key, "amount": 0.0, "currency": "USD", "stream": "earning"}
@@ -607,14 +615,26 @@ async def get_wallet_balances(
 ):
     """Return the user's current wallet balances for the Ledger overview."""
     ofa_balance = await _ofa_balance(db, current_user.id)
+    # Authoritative OFA → USDT rate (mirrors user.py convert-ofa-to-usdt).
+    rate_res = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate")
+    )
+    rate_cfg = rate_res.scalar_one_or_none()
+    ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
+
     wallets = []
     for key, currency in _WALLET_META:
         raw = getattr(current_user, key, None) if key != "ofa_balance" else ofa_balance
-        wallets.append(
-            {
-                "key": key,
-                "currency": currency,
-                "balance": _num(raw),
-            }
-        )
-    return {"wallets": wallets}
+        balance = _num(raw)
+        entry = {
+            "key": key,
+            "currency": currency,
+            "balance": balance,
+        }
+        if currency == "OFA":
+            entry["balance_usdt"] = float(Decimal(str(balance)) * ofa_to_usdt_rate)
+        wallets.append(entry)
+    return {
+        "wallets": wallets,
+        "ofa_to_usdt_rate": float(ofa_to_usdt_rate),
+    }

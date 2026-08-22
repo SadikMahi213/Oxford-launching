@@ -94,9 +94,11 @@ const WalletLedgerPage = ({ setActivePage }) => {
     load();
   }, [load]);
 
-  const usdtTotal = wallets
-    .filter((w) => w.currency !== "OFA")
-    .reduce((sum, w) => sum + (Number(w.balance) || 0), 0);
+  const usdtTotal = wallets.reduce(
+    (sum, w) =>
+      sum + (w.currency === "OFA" ? Number(w.balance_usdt) || 0 : Number(w.balance) || 0),
+    0
+  );
 
   return (
     <div className="relative min-h-full bg-[#060B1A] text-white pb-24 md:pb-0">
@@ -150,7 +152,8 @@ const WalletLedgerPage = ({ setActivePage }) => {
             {wallets.map((w) => {
               const Icon = WALLET_ICON[w.key] || Wallet;
               const isOfa = w.currency === "OFA";
-              const amount = formatAmount(w.balance);
+              const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
+              const amount = formatAmount(usdtValue);
               return (
                 <div
                   key={w.key}
@@ -168,11 +171,14 @@ const WalletLedgerPage = ({ setActivePage }) => {
                     </div>
                   </div>
                   <div className="relative flex items-baseline gap-1 mt-auto">
-                    <span className="text-base sm:text-xl font-bold text-white truncate">
-                      {isOfa ? amount : `$${amount}`}
-                    </span>
-                    <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500">{w.currency}</span>
+                    <span className="text-base sm:text-xl font-bold text-white truncate">${amount}</span>
+                    <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500">USDT</span>
                   </div>
+                  {isOfa && (
+                    <div className="relative text-[10px] text-gray-500 leading-none">
+                      {formatAmount(w.balance)} OFA
+                    </div>
+                  )}
                 </div>
               );
             })}
