@@ -290,8 +290,10 @@
       "whitepaper": "Technical Whitepaper",
       "whitepaper_desc": "Project documentation",
       "soon": "Soon",
-      "ledger": "OFA Earning & Transaction Ledger",
-      "ledger_desc": "Unified earnings, bonuses, deposits & withdrawals."
+      "earningHistory": "Earning History",
+      "earningHistory_desc": "Earnings, bonuses and rewards",
+      "ledger": "Ledger",
+      "ledger_desc": "Your balances across every wallet"
     }
   },
   "overview": {
@@ -2545,8 +2547,11 @@
     }
   },
   "ledger": {
-    "title": "OFA Earning & Transaction Ledger",
-    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "title": "Earning History",
+    "subtitle": "Every earning, bonus and reward in one place.",
+    "walletTitle": "Ledger",
+    "walletSubtitle": "Your balances across every wallet",
+    "totalUsdt": "Total USDT Balance",
     "loading": "Loading…",
     "noRecords": "No records found.",
     "loadError": "Unable to load ledger records.",
@@ -2564,6 +2569,7 @@
     },
     "pageInfo": "Page {{page}} of {{totalPages}} · {{total}} records",
     "filter": {
+      "all": "All",
       "allCategories": "All Categories",
       "allTypes": "All Types",
       "allCurrencies": "All Currencies",
@@ -2637,6 +2643,7 @@
       "matching_bonus_wallet": "Matching Bonus Wallet",
       "arbx_wallet": "ArbX Wallet",
       "arbx_mining_wallet": "ArbX Mining Wallet",
+      "ofa": "OFA Balance",
       "ofa_balance": "OFA Balance"
     },
     "stream": {

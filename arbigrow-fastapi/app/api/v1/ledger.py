@@ -576,3 +576,45 @@ async def get_ledger_transactions(
             "categories": categories,
         },
     }
+
+
+# ── Wallet balances (Ledger section) ──────────────────────────────────────────
+# The "Ledger" dashboard section is a wallet overview. It reads the authoritative
+# current wallet balances from the User columns (and the derived OFA balance) —
+# never a sum of ledger rows. This is a lightweight endpoint that returns only
+# the wallet balances, without aggregating the full transaction records.
+
+_WALLET_META = (
+    ("main_wallet", "USDT"),
+    ("deposit_wallet", "USDT"),
+    ("withdraw_wallet", "USDT"),
+    ("referral_wallet", "USDT"),
+    ("generation_wallet", "USDT"),
+    ("captcha_wallet", "USDT"),
+    ("ad_view_wallet", "USDT"),
+    ("ecommerce_wallet", "USDT"),
+    ("matching_bonus_wallet", "USDT"),
+    ("arbx_wallet", "OFA"),
+    ("arbx_mining_wallet", "OFA"),
+    ("ofa_balance", "OFA"),
+)
+
+
+@router.get("/wallets")
+async def get_wallet_balances(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the user's current wallet balances for the Ledger overview."""
+    ofa_balance = await _ofa_balance(db, current_user.id)
+    wallets = []
+    for key, currency in _WALLET_META:
+        raw = getattr(current_user, key, None) if key != "ofa_balance" else ofa_balance
+        wallets.append(
+            {
+                "key": key,
+                "currency": currency,
+                "balance": _num(raw),
+            }
+        )
+    return {"wallets": wallets}

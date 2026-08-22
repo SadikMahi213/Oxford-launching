@@ -223,3 +223,6 @@ export const getLedgerTransactions = (params = {}) => {
   const qs = query.toString();
   return api.get(`v1/ledger/transactions${qs ? `?${qs}` : ""}`, authHeaders());
 };
+
+export const getWalletBalances = () =>
+  api.get("v1/ledger/wallets", authHeaders());

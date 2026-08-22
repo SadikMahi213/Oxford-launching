@@ -36,6 +36,7 @@ const LazyVerificationPending = React.lazy(() => import("./VerificationPending.j
 const LazyProfilePage = React.lazy(() => import("../component/user/ProfilePage.jsx"));
 const LazyTransactionHistoryPage = React.lazy(() => import("../component/user/TransactionHistoryPage.jsx"));
 const LazyLedgerPage = React.lazy(() => import("../component/user/LedgerPage.jsx"));
+const LazyWalletLedgerPage = React.lazy(() => import("../component/user/WalletLedgerPage.jsx"));
 const LazyDepositPage = React.lazy(() => import("../component/user/DepositUSDT.jsx"));
 const LazyWithdrawPage = React.lazy(() => import("../component/user/WithdrawUSDT.jsx"));
 const LazyMyInvestments = React.lazy(() => import("../component/user/MyInvestments.jsx").then(m => ({ default: m.MyInvestments })));
@@ -667,7 +668,13 @@ export function UserDashboard() {
       description: t("userDashboard.sidebar.transactions_desc"),
     },
     {
-      id: "ledger",
+      id: "earning_history",
+      label: t("userDashboard.sidebar.earningHistory"),
+      icon: TrendingUp,
+      description: t("userDashboard.sidebar.earningHistory_desc"),
+    },
+    {
+      id: "wallet_ledger",
       label: t("userDashboard.sidebar.ledger"),
       icon: Wallet,
       description: t("userDashboard.sidebar.ledger_desc"),
@@ -912,8 +919,11 @@ export function UserDashboard() {
         />
       );
     }
-    if (activePage === "ledger") {
-      return <LazyLedgerPage setActivePage={safeSetActivePage} />;
+    if (activePage === "earning_history") {
+      return <LazyLedgerPage setActivePage={safeSetActivePage} earningOnly />;
+    }
+    if (activePage === "wallet_ledger") {
+      return <LazyWalletLedgerPage setActivePage={safeSetActivePage} />;
     }
     if (activePage === "deposit") {
       return <LazyDepositPage />;

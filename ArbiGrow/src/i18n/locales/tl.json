@@ -304,8 +304,10 @@
       "soon": "Malapit Na",
       "banking": "Setup sa Banking",
       "banking_desc": "Magrehistro ng mga detalye ng bangko",
-      "ledger": "OFA Earning & Transaction Ledger",
-      "ledger_desc": "Unified earnings, bonuses, deposits & withdrawals."
+      "ledger": "Ledger",
+      "ledger_desc": "Your balances across every wallet",
+      "earningHistory": "Earning History",
+      "earningHistory_desc": "Earnings, bonuses and rewards"
     }
   },
   "overview": {
@@ -2576,8 +2578,8 @@
     }
   },
   "ledger": {
-    "title": "OFA Earning & Transaction Ledger",
-    "subtitle": "Every earning, bonus, deposit, withdrawal and adjustment in one place.",
+    "title": "Earning History",
+    "subtitle": "Every earning, bonus and reward in one place.",
     "loading": "Loading…",
     "noRecords": "No records found.",
     "loadError": "Unable to load ledger records.",
@@ -2599,7 +2601,8 @@
       "allTypes": "All Types",
       "allCurrencies": "All Currencies",
       "allStatuses": "All Statuses",
-      "search": "Search reference…"
+      "search": "Search reference…",
+      "all": "All"
     },
     "tab": {
       "earning": "Earning History",
@@ -2668,13 +2671,17 @@
       "matching_bonus_wallet": "Matching Bonus Wallet",
       "arbx_wallet": "ArbX Wallet",
       "arbx_mining_wallet": "ArbX Mining Wallet",
-      "ofa_balance": "OFA Balance"
+      "ofa_balance": "OFA Balance",
+      "ofa": "OFA Balance"
     },
     "stream": {
       "earning": "Earning",
       "transaction": "Transaction",
       "balance": "Balance"
     },
-    "lifetime": "Lifetime"
+    "lifetime": "Lifetime",
+    "walletTitle": "Ledger",
+    "walletSubtitle": "Your balances across every wallet",
+    "totalUsdt": "Total USDT Balance"
   }
 }

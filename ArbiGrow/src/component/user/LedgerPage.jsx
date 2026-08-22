@@ -325,7 +325,7 @@ const priorityRank = (key) => {
 const sortByPriority = (cards) =>
   [...cards].sort((a, b) => priorityRank(a.key) - priorityRank(b.key));
 
-const LedgerPage = ({ setActivePage }) => {
+const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const { t } = useTranslation();
 
   const [items, setItems] = useState([]);
@@ -382,6 +382,7 @@ const LedgerPage = ({ setActivePage }) => {
   };
 
   const switchStream = (next) => {
+    if (earningOnly) return;
     if (next === stream) return;
     setStream(next);
     setPage(1);
@@ -644,8 +645,8 @@ const LedgerPage = ({ setActivePage }) => {
                 <ChevronLeft size={18} className="text-white" />
               </button>
               <div className="min-w-0">
-                <h2 className="text-[15px] font-bold text-white leading-tight truncate">My Ledger</h2>
-                <p className="text-[11px] text-gray-400 truncate">All your financial transactions</p>
+                <h2 className="text-[15px] font-bold text-white leading-tight truncate">{t("ledger.title", "Earning History")}</h2>
+                <p className="text-[11px] text-gray-400 truncate">{t("ledger.subtitle", "Every earning, bonus and reward in one place.")}</p>
               </div>
             </div>
             <button
@@ -659,8 +660,8 @@ const LedgerPage = ({ setActivePage }) => {
           {/* Desktop header */}
           <div className="hidden md:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">{t("ledger.title", "OFA Earning & Transaction Ledger")}</h2>
-              <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{t("ledger.subtitle", "Every earning, bonus, deposit, withdrawal and adjustment in one place.")}</p>
+              <h2 className="text-lg sm:text-xl font-bold text-white leading-snug">{t("ledger.title", "Earning History")}</h2>
+              <p className="text-xs sm:text-sm text-gray-400 mt-0.5">{t("ledger.subtitle", "Every earning, bonus and reward in one place.")}</p>
             </div>
           </div>
         </div>
@@ -712,13 +713,26 @@ const LedgerPage = ({ setActivePage }) => {
         {/* Mobile filter pills */}
         <div className="md:hidden px-3 pt-3 border-b border-white/10">
           <div className="flex gap-2 overflow-x-auto scrollbar-none pb-3 -mx-3 px-3">
-            {[
-              { id: "", label: "All" },
-              { id: "deposit", label: "Deposit" },
-              { id: "withdrawal", label: "Withdrawal" },
-              { id: "matching_bonus", label: "Bonus" },
-              { id: "ecommerce", label: "Spending" },
-            ].map((tab) => {
+            {(
+              earningOnly
+                ? [
+                    { id: "", label: t("ledger.filter.all", "All") },
+                    { id: "captcha", label: t("ledger.category.captcha", "Captcha") },
+                    { id: "ad_view", label: t("ledger.category.ad_view", "Ad View") },
+                    { id: "matching_bonus", label: t("ledger.category.matching_bonus", "Matching") },
+                    { id: "signup_bonus", label: t("ledger.category.signup_bonus", "Signup") },
+                    { id: "referral_bonus", label: t("ledger.category.referral_bonus", "Referral") },
+                    { id: "ecommerce_bonus", label: t("ledger.category.ecommerce_bonus", "E-commerce") },
+                    { id: "mining", label: t("ledger.category.mining", "Mining") },
+                  ]
+                : [
+                    { id: "", label: "All" },
+                    { id: "deposit", label: "Deposit" },
+                    { id: "withdrawal", label: "Withdrawal" },
+                    { id: "matching_bonus", label: "Bonus" },
+                    { id: "ecommerce", label: "Spending" },
+                  ]
+            ).map((tab) => {
               const active = filters.category === tab.id;
               return (
                 <button
@@ -735,19 +749,21 @@ const LedgerPage = ({ setActivePage }) => {
 
         {/* Stream tabs */}
         <div className="px-4 sm:px-6 pt-4 border-b border-white/10">
-          <div className="inline-flex w-full sm:w-auto rounded-xl bg-[#0A122C] border border-white/10 p-1">
+          <div className={`inline-flex w-full sm:w-auto rounded-xl bg-[#0A122C] border border-white/10 p-1 ${earningOnly ? "" : "sm:w-auto"}`}>
             <button
               onClick={() => switchStream("earning")}
               className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${stream === "earning" ? "bg-blue-600 text-white shadow-md shadow-blue-900/30" : "text-gray-400 hover:text-white"}`}
             >
               {t("ledger.tab.earning", "Earning History")}
             </button>
-            <button
-              onClick={() => switchStream("transaction")}
-              className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${stream === "transaction" ? "bg-blue-600 text-white shadow-md shadow-blue-900/30" : "text-gray-400 hover:text-white"}`}
-            >
-              {t("ledger.tab.transaction", "Transaction History")}
-            </button>
+            {!earningOnly && (
+              <button
+                onClick={() => switchStream("transaction")}
+                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors ${stream === "transaction" ? "bg-blue-600 text-white shadow-md shadow-blue-900/30" : "text-gray-400 hover:text-white"}`}
+              >
+                {t("ledger.tab.transaction", "Transaction History")}
+              </button>
+            )}
           </div>
         </div>
 
@@ -840,8 +856,8 @@ const LedgerPage = ({ setActivePage }) => {
             <span className="text-[10px] leading-none">Dashboard</span>
           </button>
           <button className="flex flex-col items-center gap-1 px-3 py-1 text-blue-400">
-            <Wallet size={18} aria-hidden="true" />
-            <span className="text-[10px] font-semibold leading-none">Ledger</span>
+            <TrendingUp size={18} aria-hidden="true" />
+            <span className="text-[10px] font-semibold leading-none">Earning</span>
           </button>
           <button onClick={() => setActivePage?.("deposit")} className="flex flex-col items-center justify-center -mt-4">
             <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/30 border-2 border-[#0B132B]">
