@@ -125,7 +125,7 @@ async def get_transfer_minimum(
     min_amount = Decimal(cfg.value) if cfg and cfg.value else Decimal("0")
     return {
         "min_user_transfer_amount": float(min_amount),
-        "currency": "OFA",
+        "currency": "USDT",
     }
 
 

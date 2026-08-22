@@ -158,7 +158,7 @@ const SystemConfigPanel = () => {
     try {
       await updateFeeConfig(token, "min_user_transfer_amount", minTransferInput.trim());
       setFeeConfig({ ...feeConfig, min_user_transfer_amount: minTransferInput.trim() });
-      setMsg(`Minimum user-to-user transfer amount set to ${minTransferInput.trim()} OFA`);
+      setMsg(`Minimum user-to-user transfer amount set to ${minTransferInput.trim()} USDT`);
       setMinTransferInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
@@ -372,7 +372,7 @@ const SystemConfigPanel = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-400">Min User Transfer (OFA):</label>
+              <label className="text-sm text-gray-400">Min User Transfer (USDT):</label>
               <input
                 value={minTransferInput}
                 onChange={(e) => setMinTransferInput(e.target.value)}
@@ -385,7 +385,7 @@ const SystemConfigPanel = () => {
               <button onClick={saveMinTransfer}
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
                 >Save</button>
-              <span className="text-xs text-gray-500">Current: {feeConfig.min_user_transfer_amount || "0"} OFA</span>
+              <span className="text-xs text-gray-500">Current: {feeConfig.min_user_transfer_amount || "0"} USDT</span>
             </div>
 
             {/* Withdrawal Mode */}
