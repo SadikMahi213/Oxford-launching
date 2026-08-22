@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle } from "lucide-react";
-import { sendFunds, searchUsers } from "../../api/user.api.js";
+import { sendFunds, searchUsers, getTransferMinimum } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
 
@@ -16,8 +16,19 @@ export default function SendFunds({ setActivePage }) {
   const [searching, setSearching] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
   const [transferChargePercent, setTransferChargePercent] = useState(5);
+  const [minTransfer, setMinTransfer] = useState(0);
+  const [minCurrency, setMinCurrency] = useState("OFA");
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    getTransferMinimum()
+      .then((res) => {
+        setMinTransfer(Number(res?.data?.min_user_transfer_amount) || 0);
+        if (res?.data?.currency) setMinCurrency(res.data.currency);
+      })
+      .catch(() => setMinTransfer(0));
+  }, []);
 
   const handleSearch = async () => {
     if (!recipient.trim()) return;
@@ -50,6 +61,10 @@ export default function SendFunds({ setActivePage }) {
     const kycStatus = user?.kyc_status;
     if (!kycStatus || kycStatus !== "approved") {
       setMsg(t('sendFunds.err_kyc'));
+      return;
+    }
+    if (minTransfer > 0 && Number(amount) < minTransfer) {
+      setMsg(t('sendFunds.err_min', { min: minTransfer, currency: minCurrency }));
       return;
     }
     setLoading(true);
@@ -145,8 +160,11 @@ export default function SendFunds({ setActivePage }) {
                   />
                   <span className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-xs md:text-sm text-gray-400">USDT</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{t('sendFunds.available', { balance: Number(user?.main_wallet || 0).toFixed(2) })}</p>
-              </div>
+                  <p className="text-xs text-gray-500 mt-1">{t('sendFunds.available', { balance: Number(user?.main_wallet || 0).toFixed(2) })}</p>
+                  {minTransfer > 0 && (
+                    <p className="text-xs text-amber-400 mt-1">{t('sendFunds.minTransfer', { min: minTransfer, currency: minCurrency })}</p>
+                  )}
+                </div>
 
               {amount > 0 && (
                 <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5">

@@ -148,6 +148,10 @@ export const getOFAConversionRate = () => {
   return api.get("v1/user/conversion-rate", authHeaders());
 };
 
+export const getTransferMinimum = () => {
+  return api.get("v1/user/transfer-minimum", authHeaders());
+};
+
 export const updateProfileImage = (payload) => {
   return api.post("v1/user/profile-image", payload, authHeaders());
 };

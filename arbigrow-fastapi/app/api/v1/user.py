@@ -111,6 +111,24 @@ async def get_ofa_conversion_rate(
     }
 
 
+@router.get("/transfer-minimum")
+@limiter.limit("120/minute")
+async def get_transfer_minimum(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "min_user_transfer_amount")
+    )
+    cfg = result.scalar_one_or_none()
+    min_amount = Decimal(cfg.value) if cfg and cfg.value else Decimal("0")
+    return {
+        "min_user_transfer_amount": float(min_amount),
+        "currency": "OFA",
+    }
+
+
 @router.get("/me", response_model=UserRefreshResponse)
 @limiter.limit("400/minute")
 async def get_me(
@@ -979,6 +997,19 @@ async def send_funds(
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
+
+    # Enforce the admin-configured minimum user-to-user transfer amount.
+    # Read dynamically from SystemConfig so changes apply without deployment.
+    min_result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "min_user_transfer_amount")
+    )
+    min_cfg = min_result.scalar_one_or_none()
+    min_transfer = Decimal(min_cfg.value) if min_cfg and min_cfg.value else Decimal("0")
+    if min_transfer > 0 and amount < min_transfer:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Minimum transfer amount is {float(min_transfer)}",
+        )
 
     if current_user.main_wallet is None or current_user.main_wallet < amount:
         raise HTTPException(status_code=400, detail="Insufficient balance in main wallet")

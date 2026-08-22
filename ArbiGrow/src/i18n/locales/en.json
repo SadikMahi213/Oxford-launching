@@ -433,7 +433,7 @@
       "network": "Network",
       "supply": "Supply"
     },
-    "pendingPayment": "Your package payment has not been completed yet. Please complete your payment. Once your payment has been approved by the administrator, all earning features will be activated automatically.",
+    "pendingPayment": "Your package payment has not been completed yet. Please complete your payment. Once your payment has been approved by the Our Compliance Team, all earning features will be activated automatically.",
     "viewAll": "View All",
     "allLevels": "All Levels"
   },
@@ -539,7 +539,7 @@
     "loadingHistory": "Loading withdrawal history...",
     "noHistory": "No withdrawal history found.",
     "err_general": "Something went wrong",
-    "success": "Withdrawal request submitted. It is now pending admin review.",
+    "success": "Withdrawal request submitted. It is now pending Our Compliance Team review.",
     "successTitle": "Withdrawal Request Successful",
     "successMessage": "Status: Pending — Management Review\n\nYour withdrawal request has been received successfully and is currently under review.\n\n⏳ Please allow up to 3 business days for review and payment processing.\n\nThank you for your patience.\n— OFA Management",
     "err_field": "Field required",
@@ -619,7 +619,9 @@
     "err_search": "Search failed: {{error}}",
     "success": "Sent {{amount}} USDT to {{name}}",
     "err_failed": "Transfer failed",
-    "err_kyc": "KYC verification required. Please complete KYC verification before sending funds."
+    "err_kyc": "KYC verification required. Please complete KYC verification before sending funds.",
+    "minTransfer": "Minimum transfer: {{min}} {{currency}}",
+    "err_min": "Minimum transfer amount is {{min}} {{currency}}"
   },
   "matchingBonusTransfer": {
     "title": "Matching Bonus Transfer",
@@ -707,7 +709,7 @@
     "purchaseSubmit": "Purchase & Submit ({{fee}} USDT)",
     "submitForVerification": "Submit for Verification",
     "infoBox": "This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.",
-    "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.",
+    "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the Our Compliance Team.",
     "errors": {
       "enterFullName": "Please enter your full name",
       "enterIdNumber": "Please enter your ID number",
@@ -1614,9 +1616,9 @@
     "yourInvoices": "Transaction Invoices",
     "loadingInvoices": "Loading invoices...",
     "noInvoices": "No invoices yet",
-    "noInvoicesDesc": "Invoices are automatically generated when your deposits and withdrawals are approved by admin.",
+    "noInvoicesDesc": "Invoices are automatically generated when your deposits and withdrawals are approved by Our Compliance Team.",
     "needHelp": "Need Help?",
-    "helpDesc": "Each deposit and withdrawal generates a professional PDF invoice upon admin approval. Download or view your invoices below.",
+    "helpDesc": "Each deposit and withdrawal generates a professional PDF invoice upon Our Compliance Team approval. Download or view your invoices below.",
     "viewPdf": "View PDF",
     "downloadPdf": "Download PDF",
     "ready": "Ready",
@@ -1724,7 +1726,7 @@
       "s6_title": "6. Your Rights",
       "s6_c1": "Verify information related to your account.",
       "s6_c2": "Remove your account from our platform at any time.",
-      "s6_c3": "Security Tips: Oxford Financial Ads admin will never ask for your password or recovery phrase. Avoid sharing such information with anyone."
+      "s6_c3": "Security Tips: Oxford Financial Ads Our Compliance Team will never ask for your password or recovery phrase. Avoid sharing such information with anyone."
     },
     "questionsTitle": "Questions About These Privacy Policy?",
     "questionsText": "If you have any questions about these Privacy Policy, please contact us:"
@@ -2092,7 +2094,7 @@
   },
   "kycWarningBanner": {
     "title": "KYC Verification Required",
-    "pendingMessage": "Your KYC verification is being reviewed. Please wait for admin approval.",
+    "pendingMessage": "Your KYC verification is being reviewed. Please wait for Our Compliance Team approval.",
     "rejectedMessage": "Your KYC verification was rejected. Please resubmit with correct documents.",
     "notVerifiedMessage": "Complete your KYC verification to unlock fund transfers and withdrawals.",
     "status": "Status:",
@@ -2244,7 +2246,7 @@
     "type_kyc_fee": "KYC Fee",
     "type_kyc_refund": "KYC Refund",
     "wallet_captcha": "Captcha Wallet",
-    "wallet_arbx_mining": "ARBX Mining Wallet",
+    "wallet_arbx_mining": "OFA Mining Wallet",
     "wallet_ad_view": "Ad View Wallet",
     "wallet_ecommerce": "Ecommerce Wallet"
   },
@@ -2267,7 +2269,7 @@
     "hoursAgo": "{{count}}h ago",
     "from": "from",
     "pausedWeekend": "Activity paused on weekends (UK time)",
-    "pausedAdmin": "Activity paused by admin",
+    "pausedAdmin": "Activity paused by Our Compliance Team",
     "platformActivity": "Platform Activity",
     "types": {
       "withdraw": "Withdrawal Successful — {{amount}} ✔️ Completed",
@@ -2427,7 +2429,7 @@
     "completePayment": "Complete Your Payment",
     "pendingActivation": "Your account is pending payment activation",
     "depositSubmitted": "Deposit Submitted",
-    "pendingApproval": "Your deposit is pending admin approval. Once approved, your account will be activated and you can access the dashboard.",
+    "pendingApproval": "Your deposit is pending Our Compliance Team approval. Once approved, your account will be activated and you can access the dashboard.",
     "err_loadPkg": "Failed to load package details",
     "selectedPackage": "Selected Package",
     "investmentAmount": "Investment Amount:",
@@ -2470,7 +2472,7 @@
     "requiredField": "This field is required",
     "invalidSwift": "Invalid SWIFT code",
     "currencyRequired": "Currency is required",
-    "submitted": "Banking information submitted successfully. Awaiting admin approval.",
+    "submitted": "Banking information submitted successfully. Awaiting Our Compliance Team approval.",
     "approved": "Banking Setup Complete",
     "approvedDesc": "Your banking information has been verified and approved. Withdrawals will use your registered bank account automatically.",
     "registeredAccount": "Registered Bank Account",
@@ -2480,7 +2482,7 @@
     "pendingDesc": "Your banking information is being reviewed by our compliance team. This typically takes 1-2 business days.",
     "rejectedDesc": "Your banking information was not approved.{{reason}}",
     "reason": "Reason:",
-    "adminNote": "Admin Note",
+    "adminNote": "Our Compliance Team Note",
     "plhHolderName": "Must match your KYC verified name",
     "plhBankName": "e.g. HSBC, Deutsche Bank",
     "plhAccountNumber": "e.g. GB29NWBK60161331926819",
@@ -2641,8 +2643,8 @@
       "ad_view_wallet": "Ad View Wallet",
       "ecommerce_wallet": "E-commerce Wallet",
       "matching_bonus_wallet": "Matching Bonus Wallet",
-      "arbx_wallet": "ArbX Wallet",
-      "arbx_mining_wallet": "ArbX Mining Wallet",
+      "arbx_wallet": "OFA Wallet",
+      "arbx_mining_wallet": "OFA Mining Wallet",
       "ofa": "OFA Balance",
       "ofa_balance": "OFA Balance"
     },
