@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
@@ -17,7 +17,8 @@ import {
   MonitorPlay,
   ShoppingBag,
   Trophy,
-  Globe,
+  Gem,
+  CircleDollarSign,
 } from "lucide-react";
 import { getWalletBalances } from "../../api/user.api.js";
 
@@ -33,10 +34,22 @@ const WALLET_ICON = {
   ad_view_wallet: MonitorPlay,
   ecommerce_wallet: ShoppingBag,
   matching_bonus_wallet: Trophy,
-  ofa_balance: Globe,
 };
 
-// Stable display order for wallet cards.
+const WALLET_THEME = {
+  main_wallet:     { grad: "from-sky-400 to-blue-600",   glow: "bg-sky-500/20" },
+  deposit_wallet:  { grad: "from-emerald-400 to-teal-600", glow: "bg-emerald-500/20" },
+  withdraw_wallet: { grad: "from-rose-400 to-red-600",   glow: "bg-rose-500/20" },
+  referral_wallet: { grad: "from-fuchsia-400 to-pink-600", glow: "bg-fuchsia-500/20" },
+  generation_wallet:{ grad: "from-violet-400 to-purple-600", glow: "bg-violet-500/20" },
+  captcha_wallet:  { grad: "from-indigo-400 to-blue-500",  glow: "bg-indigo-500/20" },
+  ad_view_wallet:  { grad: "from-cyan-400 to-sky-600",   glow: "bg-cyan-500/20" },
+  ecommerce_wallet:{ grad: "from-orange-400 to-amber-500", glow: "bg-orange-500/20" },
+  matching_bonus_wallet:{ grad: "from-amber-400 to-yellow-500", glow: "bg-amber-500/20" },
+  arbx_wallet:     { grad: "from-emerald-400 to-green-600", glow: "bg-emerald-500/20" },
+  arbx_mining_wallet:{ grad: "from-lime-400 to-green-600",  glow: "bg-lime-500/20" },
+};
+
 const WALLET_ORDER = [
   "main_wallet",
   "deposit_wallet",
@@ -49,15 +62,100 @@ const WALLET_ORDER = [
   "captcha_wallet",
   "ad_view_wallet",
   "ecommerce_wallet",
-  "ofa_balance",
 ];
 
-const formatAmount = (value) => {
+const OFA_KEY = "ofa_balance";
+
+const formatToken = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return "0";
   const s = n.toFixed(6).replace(/\.?0+$/, "");
   return s === "-0" ? "0" : s;
 };
+
+const formatFiat = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0.00";
+  return n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+function WalletCard({ icon: Icon, title, value, unit, subtitle, theme }) {
+  return (
+    <div className="relative rounded-2xl bg-[#0B132B] border border-white/10 p-4 flex flex-col gap-3 overflow-hidden shadow-xl shadow-black/30 transition-all duration-200 hover:border-white/20 hover:shadow-2xl">
+      <div className={`pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full ${theme.glow} blur-3xl`} />
+      <div className="pointer-events-none absolute -left-4 -bottom-6 h-16 w-16 rounded-full ${theme.glow} blur-2xl opacity-50" />
+      <div className="relative flex items-center gap-3">
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${theme.grad} shadow-lg shadow-black/30 ring-1 ring-white/10`}>
+          <Icon size={20} className="text-white drop-shadow-sm" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-xs font-semibold text-gray-200 leading-tight line-clamp-2">
+            {title}
+          </div>
+        </div>
+      </div>
+      <div className="relative mt-auto">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-xl font-bold text-white tracking-tight truncate">{value}</span>
+          {unit && <span className="text-[11px] font-semibold text-gray-400 shrink-0">{unit}</span>}
+        </div>
+        {subtitle && (
+          <div className="mt-0.5 text-[10px] text-gray-500 leading-none">{subtitle}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OfaTokenCard({ ofa, t }) {
+  const theme = { grad: "from-indigo-400 to-violet-600", glow: "bg-indigo-500/25" };
+  return (
+    <WalletCard
+      icon={Gem}
+      title={t("ledger.ofaTokenBalance", "OFA Token Balance")}
+      value={formatToken(ofa.balance)}
+      unit="OFA"
+      subtitle={t("ledger.ofaTokenBalanceSub", "Current token balance")}
+      theme={theme}
+    />
+  );
+}
+
+function OfaValueCard({ ofa, t }) {
+  const theme = { grad: "from-emerald-400 to-green-600", glow: "bg-emerald-500/25" };
+  return (
+    <WalletCard
+      icon={CircleDollarSign}
+      title={t("ledger.ofaValue", "OFA Value")}
+      value={`$${formatFiat(ofa.balance_usdt)}`}
+      unit="USD"
+      subtitle={t("ledger.ofaUsdValueSub", "Current USD equivalent")}
+      theme={theme}
+    />
+  );
+}
+
+function GenericWalletCard({ w, t }) {
+  const Icon = WALLET_ICON[w.key] || Wallet;
+  const theme = WALLET_THEME[w.key] || { grad: "from-slate-400 to-slate-600", glow: "bg-slate-500/20" };
+  const isOfa = w.currency === "OFA";
+  const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
+  const amount = formatFiat(usdtValue);
+
+  return (
+    <WalletCard
+      icon={Icon}
+      title={t(`ledger.balance.${w.key}`, w.key)}
+      value={`$${amount}`}
+      unit="USDT"
+      subtitle={isOfa ? `${formatToken(w.balance)} OFA` : undefined}
+      theme={theme}
+    />
+  );
+}
 
 const WalletLedgerPage = ({ setActivePage }) => {
   const { t } = useTranslation();
@@ -72,7 +170,6 @@ const WalletLedgerPage = ({ setActivePage }) => {
       const res = await getWalletBalances();
       const data = res?.data || {};
       const list = Array.isArray(data.wallets) ? data.wallets : [];
-      // Preserve a stable display order; unknown keys appended at the end.
       const ordered = [...WALLET_ORDER]
         .map((key) => list.find((w) => w.key === key))
         .filter(Boolean);
@@ -93,6 +190,16 @@ const WalletLedgerPage = ({ setActivePage }) => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const ofaWallet = useMemo(
+    () => wallets.find((w) => w.key === OFA_KEY),
+    [wallets]
+  );
+
+  const otherWallets = useMemo(
+    () => wallets.filter((w) => w.key !== OFA_KEY),
+    [wallets]
+  );
 
   const usdtTotal = wallets.reduce(
     (sum, w) =>
@@ -139,50 +246,32 @@ const WalletLedgerPage = ({ setActivePage }) => {
       ) : (
         <div className="p-3 sm:p-6">
           {/* Total balance highlight */}
-          <div className="mb-4 sm:mb-6 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-600/20 to-white/[0.02] border border-white/10 p-4 sm:p-5">
+          <div className="mb-5 sm:mb-7 rounded-2xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-white/[0.02] border border-white/10 p-4 sm:p-5 shadow-xl shadow-blue-900/10">
             <div className="text-[11px] sm:text-xs font-medium text-gray-400">{t("ledger.totalUsdt", "Total USDT Balance")}</div>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-xl sm:text-3xl font-bold text-white">${formatAmount(usdtTotal)}</span>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight">${formatFiat(usdtTotal)}</span>
               <span className="text-[10px] sm:text-xs font-semibold text-gray-500">USDT</span>
             </div>
           </div>
 
-          {/* Wallet cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 auto-rows-fr">
-            {wallets.map((w) => {
-              const Icon = WALLET_ICON[w.key] || Wallet;
-              const isOfa = w.currency === "OFA";
-              const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
-              const amount = formatAmount(usdtValue);
-              return (
-                <div
-                  key={w.key}
-                  className="relative rounded-xl sm:rounded-2xl bg-[#0B132B] border border-white/10 p-3 sm:p-4 flex flex-col gap-2 overflow-hidden"
-                >
-                  <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-blue-500/20 blur-2xl" />
-                  <div className="relative flex items-center gap-2">
-                    <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                      <Icon size={18} className="text-blue-300" aria-hidden="true" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[11px] sm:text-xs font-semibold text-white leading-tight line-clamp-2">
-                        {t(`ledger.balance.${w.key}`, w.key)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-baseline gap-1 mt-auto">
-                    <span className="text-base sm:text-xl font-bold text-white truncate">${amount}</span>
-                    <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500">USDT</span>
-                  </div>
-                  {isOfa && (
-                    <div className="relative text-[10px] text-gray-500 leading-none">
-                      {formatAmount(w.balance)} OFA
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          {/* OFA highlight cards — Token Balance + USD Value */}
+          {ofaWallet && (
+            <div className="mb-5 sm:mb-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <OfaTokenCard ofa={ofaWallet} t={t} />
+                <OfaValueCard ofa={ofaWallet} t={t} />
+              </div>
+            </div>
+          )}
+
+          {/* Other wallet cards */}
+          {otherWallets.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 auto-rows-fr">
+              {otherWallets.map((w) => (
+                <GenericWalletCard key={w.key} w={w} t={t} />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
