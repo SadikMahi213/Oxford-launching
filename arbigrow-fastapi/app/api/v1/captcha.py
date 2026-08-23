@@ -36,10 +36,10 @@ WALLET_PRECISION = Decimal("0.00000000000001")
 CAPTCHA_CHARSET = "ACDEFGHJKLMNPQRTUVWXYZ234679"
 
 
-async def _get_captcha_timer_seconds(db, investment: Investment = None) -> int:
-    if investment and investment.captcha_task_duration_seconds:
+async def _get_captcha_timer_seconds(db, package: Package = None) -> int:
+    if package and package.captcha_task_duration_seconds:
         try:
-            return max(5, min(300, int(investment.captcha_task_duration_seconds)))
+            return max(5, min(300, int(package.captcha_task_duration_seconds)))
         except (ValueError, TypeError):
             pass
     result = await db.execute(
@@ -150,7 +150,7 @@ async def get_next_captcha(
         captcha_id=challenge.id,
         captcha_image=captcha_image,
         expires_at=expires_at,
-        timer_seconds=await _get_captcha_timer_seconds(db, investment),
+        timer_seconds=await _get_captcha_timer_seconds(db, package),
     )
 
 
