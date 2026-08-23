@@ -84,11 +84,13 @@ function WalletCard({ icon: Icon, title, value, unit, subtitle, theme }) {
         <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${theme.grad} shadow-lg shadow-black/30 ring-1 ring-white/10`}>
           <Icon size={20} className="text-white drop-shadow-sm" />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold text-gray-200 leading-tight line-clamp-2">
-            {title}
+        {title && title.trim() && (
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-semibold text-gray-200 leading-tight line-clamp-2">
+              {title}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="relative mt-auto">
         <div className="flex items-baseline gap-1.5">
@@ -203,7 +205,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
                   <WalletCard
                     key={w.key}
                     icon={Icon}
-                    title={t(`ledger.balance.${w.key}`, w.key)}
+                    title={(w.key === "main_wallet" || w.key === "arbx_wallet") ? "" : t(`ledger.balance.${w.key}`, w.key)}
                     value={`$${amount}`}
                     unit="USDT"
                     subtitle={isOfa ? `${formatAmount(w.balance)} OFA` : undefined}
