@@ -102,7 +102,7 @@ async def get_next_captcha(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.captcha:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
             investment = inv
             package = pkg
             break
@@ -204,7 +204,7 @@ async def submit_captcha(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.captcha:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
             investment = inv
             break
     if not investment:
@@ -276,7 +276,7 @@ async def expire_captcha(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.captcha:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
             investment = inv
             break
     if not investment:
@@ -336,7 +336,7 @@ async def get_captcha_stats(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.captcha:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
             investment = inv
             break
     if not investment:

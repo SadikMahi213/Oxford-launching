@@ -64,7 +64,7 @@ async def start_ad(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.ad_view:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
             ad_investments.append((inv, pkg))
     if not ad_investments:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
@@ -203,7 +203,7 @@ async def complete_ad(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.ad_view:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
             ad_investments.append((inv, pkg))
     if not ad_investments:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
@@ -305,7 +305,7 @@ async def get_ad_stats(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
-        if pkg and pkg.task_type == TaskType.ad_view:
+        if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
             ad_investments.append((inv, pkg))
     if not ad_investments:
         return zero_stats
