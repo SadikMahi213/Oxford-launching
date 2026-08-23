@@ -239,8 +239,11 @@ async def get_my_investments(
 
     result = await db.execute(
         select(Investment, Package)
-        .outerjoin(Package, Investment.package_name == Package.name)
-        .where(Investment.user_id == current_user.id)
+        .join(Package, Investment.package_name == Package.name)
+        .where(
+            Investment.user_id == current_user.id,
+            Package.is_active == True,
+        )
         .order_by(Investment.created_at.desc())
     )
 
@@ -266,7 +269,7 @@ async def get_my_investments(
             "start_date": inv.start_date,
             "end_date": inv.end_date,
             "status": inv.status,
-            "package_is_active": pkg.is_active if pkg else False,
+            "package_is_active": pkg.is_active,
         }
         for inv, pkg in rows
     ]
