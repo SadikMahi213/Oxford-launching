@@ -65,6 +65,8 @@ const CATEGORIES = [
   "transfer",
 ];
 
+const VALID_CATEGORIES = new Set(CATEGORIES);
+
 const TYPES = ["earning", "deduction", "adjustment"];
 const CURRENCIES = ["USDT", "OFA"];
 const STATUSES = ["pending", "completed", "failed", "reversed", "held", "refunded"];
@@ -381,7 +383,9 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
         search: filters.search,
       });
       const data = res?.data || {};
-      setItems(data.items || []);
+      const rawItems = data.items || [];
+      const validItems = rawItems.filter((item) => VALID_CATEGORIES.has(item.category));
+      setItems(validItems);
       setSummary(data.summary || { totals: {}, balances: {}, categories: [] });
       setTotal(data.total || 0);
     } catch (err) {

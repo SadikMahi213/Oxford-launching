@@ -121,10 +121,6 @@ const WalletLedgerPage = ({ setActivePage }) => {
       const ordered = [...WALLET_ORDER]
         .map((key) => list.find((w) => w.key === key))
         .filter(Boolean);
-      const seen = new Set(ordered.map((w) => w.key));
-      list.forEach((w) => {
-        if (!seen.has(w.key)) ordered.push(w);
-      });
       setWallets(ordered);
     } catch (err) {
       console.error("WalletLedger load failed", err);
