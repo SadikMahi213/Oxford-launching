@@ -40,6 +40,7 @@ const mapInvestment = (investment) => {
     id: investment.id,
     packageName: investment.package_name,
     status: investment.status,
+    packageIsActive: investment.package_is_active !== false,
     investedAmount,
     expectedProfit,
     profitEarned,
@@ -70,7 +71,7 @@ export function MyInvestments({ refreshKey, onNavigateToPackages }) {
     try {
       const response = await fetchMyInvestments();
       const items = Array.isArray(response?.data) ? response.data : [];
-      setInvestments(items.map(mapInvestment));
+      setInvestments(items.map(mapInvestment).filter((inv) => inv.packageIsActive));
     } catch (err) {
       const detail = err?.response?.data?.detail;
       setError(detail || t('investments.error'));
