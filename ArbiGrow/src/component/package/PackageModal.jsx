@@ -35,7 +35,7 @@ export default function PackageModal({
   const amt = selectedPackage.investment_amount ?? selectedPackage.amount ?? 0;
   const dailyPmt = selectedPackage.daily_payment ?? selectedPackage.dailyPayment ?? 0;
   const totalRet = selectedPackage.total_return ?? selectedPackage.totalReturn ?? 0;
-  const captchaReq = selectedPackage.captcha_required_per_day ?? selectedPackage.captchaRequiredPerDay ?? 0;
+  const captchaReq = selectedPackage.daily_captcha_limit ?? selectedPackage.captcha_required_per_day ?? 0;
   const durDays = selectedPackage.duration_days ?? selectedPackage.durationDays ?? 0;
 
   const handleClose = () => {

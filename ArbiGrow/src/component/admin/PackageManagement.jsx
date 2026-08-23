@@ -334,7 +334,7 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Payment</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tasks/Day</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Limit</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">OFA Bonus</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
@@ -367,7 +367,7 @@ export default function PackageManagement() {
                         {pkg.task_type === "ad_view" ? "Ad View" : "Captcha"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
+                    <td className="px-4 py-3 text-gray-300">{pkg.daily_captcha_limit}</td>
                     <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
                     <td className="px-4 py-3 text-purple-300">{(pkg.signup_arbx_bonus || 0).toFixed(2)} OFA</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.duration_days}d</td>
@@ -522,33 +522,21 @@ export default function PackageManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm text-gray-400 block mb-1">Tasks/Day</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.captcha_required_per_day}
-                    onChange={(e) => setForm({ ...form, captcha_required_per_day: e.target.value })}
-                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Ad Duration (sec)" : "Task Duration (sec)"}</label>
-                  <input
-                    type="number"
-                    min="5"
-                    value={form.task_type === "ad_view" ? form.ad_duration_seconds : form.captcha_task_duration_seconds}
-                    onChange={(e) => {
-                      if (form.task_type === "ad_view") {
-                        setForm({ ...form, ad_duration_seconds: e.target.value });
-                      } else {
-                        setForm({ ...form, captcha_task_duration_seconds: e.target.value });
-                      }
-                    }}
-                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
-                  />
-                </div>
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Ad Duration (sec)" : "Task Duration (sec)"}</label>
+                <input
+                  type="number"
+                  min="5"
+                  value={form.task_type === "ad_view" ? form.ad_duration_seconds : form.captcha_task_duration_seconds}
+                  onChange={(e) => {
+                    if (form.task_type === "ad_view") {
+                      setForm({ ...form, ad_duration_seconds: e.target.value });
+                    } else {
+                      setForm({ ...form, captcha_task_duration_seconds: e.target.value });
+                    }
+                  }}
+                  className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -564,7 +552,7 @@ export default function PackageManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Daily Task Limit</label>
+                  <label className="text-sm text-gray-400 block mb-1">Daily Tasks Allowed</label>
                   <input
                     type="number"
                     min="0"
@@ -572,6 +560,7 @@ export default function PackageManagement() {
                     onChange={(e) => setForm({ ...form, daily_captcha_limit: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Max tasks a user can complete per day</p>
                 </div>
               </div>
 

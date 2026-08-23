@@ -44,7 +44,7 @@ const mapInvestment = (investment) => {
     expectedProfit,
     profitEarned,
     dailyPayment: toNumber(investment.daily_payment),
-    captchaRequiredPerDay: investment.captcha_required_per_day || 0,
+    captchaRequiredPerDay: investment.daily_captcha_limit || 0,
     startDate: formatDate(investment.start_date),
     endDate: formatDate(investment.end_date),
     roiPercent,

@@ -105,7 +105,7 @@ export default function TierSection({ onSelect }) {
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">{pkg.task_type === "ad_view" ? t("tierSection.dailyAds") : t("tierSection.dailyCaptcha")}</span>
-                      <span className="text-cyan-300 font-medium">{pkg.captcha_required_per_day} {pkg.task_type === "ad_view" ? t("tierSection.ads") : t("tierSection.tasks")}</span>
+                      <span className="text-cyan-300 font-medium">{pkg.daily_captcha_limit} {pkg.task_type === "ad_view" ? t("tierSection.ads") : t("tierSection.tasks")}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">{t("tierSection.duration")}</span>
