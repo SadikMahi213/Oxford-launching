@@ -66,7 +66,7 @@ const CATEGORIES = [
 ];
 
 const TYPES = ["earning", "deduction", "adjustment"];
-const CURRENCIES = ["USD", "USDT", "OFA"];
+const CURRENCIES = ["USDT", "OFA"];
 const STATUSES = ["pending", "completed", "failed", "reversed", "held", "refunded"];
 
 const statusColor = (status) => {
@@ -680,37 +680,32 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
         <div className="p-3 sm:p-6 border-b border-white/10">
           <h3 className="hidden md:block text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
 
-          {/* Mobile: 2-col grid with earning-only values (no wallet/deposit/withdrawal) */}
+          {/* Mobile: compact cards for all active categories */}
           <div className="md:hidden grid grid-cols-2 gap-3">
-            {[
-              { key: "total_earning", label: t("ledger.category.total_earning", "Total Earning"), icon: TrendingUp, bg: "bg-blue-500/15", border: "border-blue-500/20", iconColor: "text-blue-400" },
-              { key: "ofa_free_mining", label: t("ledger.category.ofa_free_mining", "OFA Free Mining"), icon: Pickaxe, bg: "bg-purple-500/15", border: "border-purple-500/20", iconColor: "text-purple-400" },
-            ].map((m) => {
-              const card = activeCards.find((c) => c.key === m.key);
-              const amount = card ? formatAmount(card.amount) : "0";
-              const cur = card?.currency || (m.key === "ofa_free_mining" ? "OFA" : "USD");
-              const Icon = m.icon;
+            {sortByPriority(activeCards).map((c) => {
+              const meta = SUMMARY_CATEGORY_META[c.key] || {};
+              const Icon = meta.icon || CircleDollarSign;
+              const label = t(`ledger.category.${c.key}`, c.key);
+              const amount = formatAmount(c.amount);
               return (
-                <div key={m.key} className="relative rounded-xl border border-white/10 bg-[#0B132B] p-3 flex flex-col gap-2 overflow-hidden">
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${m.bg} ${m.border} shrink-0`}>
-                    <Icon size={16} className={m.iconColor} aria-hidden="true" />
+                <div key={c.key} className="relative rounded-xl border border-white/10 bg-[#0B132B] p-3 flex flex-col gap-2 overflow-hidden">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full border ${meta.bg || "bg-white/5"} ${meta.border || "border-white/10"} shrink-0`}
+                    style={{ background: `linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.08))`, borderColor: "rgba(255,255,255,0.1)" }}>
+                    <Icon size={16} className={meta.iconText || "text-gray-300"} aria-hidden="true" />
                   </div>
-                  <div className="text-[11px] font-medium text-gray-400 leading-tight line-clamp-1">{m.label}</div>
+                  <div className="text-[11px] font-medium text-gray-400 leading-tight line-clamp-1">{label}</div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-[15px] font-bold text-white truncate">{cur === "OFA" ? amount : `$${amount}`}</span>
-                    <span className="text-[9px] font-semibold text-gray-500">{cur}</span>
+                    <span className="text-[15px] font-bold text-white truncate">{c.currency === "OFA" ? amount : `$${amount}`}</span>
+                    <span className="text-[9px] font-semibold text-gray-500">{c.currency}</span>
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Tablet / desktop: earning-only 2-card grid (wallet/deposit/withdrawal removed) */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-2 gap-4 auto-rows-fr">
-            {["total_earning", "ofa_free_mining"].map((k) => {
-              const c = activeCards.find((x) => x.key === k);
-              return c ? renderSummaryCard(c, false) : null;
-            })}
+          {/* Tablet / desktop: full summary cards for all active categories */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
+            {sortByPriority(activeCards).map((c) => renderSummaryCard(c, false))}
           </div>
         </div>
 

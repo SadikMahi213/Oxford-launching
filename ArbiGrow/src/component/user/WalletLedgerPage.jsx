@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
@@ -17,27 +17,23 @@ import {
   MonitorPlay,
   ShoppingBag,
   Trophy,
-  Gem,
-  CircleDollarSign,
 } from "lucide-react";
 import { getWalletBalances } from "../../api/user.api.js";
 
 const WALLET_ICON = {
-  main_wallet: Wallet,
   deposit_wallet: Landmark,
   withdraw_wallet: Banknote,
   referral_wallet: Users,
   generation_wallet: GitMerge,
-  arbx_wallet: Coins,
-  arbx_mining_wallet: Pickaxe,
   captcha_wallet: ShieldCheck,
   ad_view_wallet: MonitorPlay,
   ecommerce_wallet: ShoppingBag,
   matching_bonus_wallet: Trophy,
+  arbx_wallet: Coins,
+  arbx_mining_wallet: Pickaxe,
 };
 
 const WALLET_THEME = {
-  main_wallet:     { grad: "from-sky-400 to-blue-600",   glow: "bg-sky-500/20" },
   deposit_wallet:  { grad: "from-emerald-400 to-teal-600", glow: "bg-emerald-500/20" },
   withdraw_wallet: { grad: "from-rose-400 to-red-600",   glow: "bg-rose-500/20" },
   referral_wallet: { grad: "from-fuchsia-400 to-pink-600", glow: "bg-fuchsia-500/20" },
@@ -51,7 +47,6 @@ const WALLET_THEME = {
 };
 
 const WALLET_ORDER = [
-  "main_wallet",
   "deposit_wallet",
   "withdraw_wallet",
   "referral_wallet",
@@ -64,9 +59,7 @@ const WALLET_ORDER = [
   "ecommerce_wallet",
 ];
 
-const OFA_KEY = "ofa_balance";
-
-const formatToken = (value) => {
+const formatAmount = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return "0";
   const s = n.toFixed(6).replace(/\.?0+$/, "");
@@ -86,7 +79,7 @@ function WalletCard({ icon: Icon, title, value, unit, subtitle, theme }) {
   return (
     <div className="relative rounded-2xl bg-[#0B132B] border border-white/10 p-4 flex flex-col gap-3 overflow-hidden shadow-xl shadow-black/30 transition-all duration-200 hover:border-white/20 hover:shadow-2xl">
       <div className={`pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full ${theme.glow} blur-3xl`} />
-      <div className="pointer-events-none absolute -left-4 -bottom-6 h-16 w-16 rounded-full ${theme.glow} blur-2xl opacity-50" />
+      <div className={`pointer-events-none absolute -left-4 -bottom-6 h-16 w-16 rounded-full ${theme.glow} blur-2xl opacity-50`} />
       <div className="relative flex items-center gap-3">
         <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${theme.grad} shadow-lg shadow-black/30 ring-1 ring-white/10`}>
           <Icon size={20} className="text-white drop-shadow-sm" />
@@ -107,53 +100,6 @@ function WalletCard({ icon: Icon, title, value, unit, subtitle, theme }) {
         )}
       </div>
     </div>
-  );
-}
-
-function OfaTokenCard({ ofa, t }) {
-  const theme = { grad: "from-indigo-400 to-violet-600", glow: "bg-indigo-500/25" };
-  return (
-    <WalletCard
-      icon={Gem}
-      title={t("ledger.ofaTokenBalance", "OFA Token Balance")}
-      value={formatToken(ofa.balance)}
-      unit="OFA"
-      subtitle={t("ledger.ofaTokenBalanceSub", "Current token balance")}
-      theme={theme}
-    />
-  );
-}
-
-function OfaValueCard({ ofa, t }) {
-  const theme = { grad: "from-emerald-400 to-green-600", glow: "bg-emerald-500/25" };
-  return (
-    <WalletCard
-      icon={CircleDollarSign}
-      title={t("ledger.ofaValue", "OFA Value")}
-      value={`$${formatFiat(ofa.balance_usdt)}`}
-      unit="USD"
-      subtitle={t("ledger.ofaUsdValueSub", "Current USD equivalent")}
-      theme={theme}
-    />
-  );
-}
-
-function GenericWalletCard({ w, t }) {
-  const Icon = WALLET_ICON[w.key] || Wallet;
-  const theme = WALLET_THEME[w.key] || { grad: "from-slate-400 to-slate-600", glow: "bg-slate-500/20" };
-  const isOfa = w.currency === "OFA";
-  const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
-  const amount = formatFiat(usdtValue);
-
-  return (
-    <WalletCard
-      icon={Icon}
-      title={t(`ledger.balance.${w.key}`, w.key)}
-      value={`$${amount}`}
-      unit="USDT"
-      subtitle={isOfa ? `${formatToken(w.balance)} OFA` : undefined}
-      theme={theme}
-    />
   );
 }
 
@@ -190,16 +136,6 @@ const WalletLedgerPage = ({ setActivePage }) => {
   useEffect(() => {
     load();
   }, [load]);
-
-  const ofaWallet = useMemo(
-    () => wallets.find((w) => w.key === OFA_KEY),
-    [wallets]
-  );
-
-  const otherWallets = useMemo(
-    () => wallets.filter((w) => w.key !== OFA_KEY),
-    [wallets]
-  );
 
   const usdtTotal = wallets.reduce(
     (sum, w) =>
@@ -254,22 +190,27 @@ const WalletLedgerPage = ({ setActivePage }) => {
             </div>
           </div>
 
-          {/* OFA highlight cards — Token Balance + USD Value */}
-          {ofaWallet && (
-            <div className="mb-5 sm:mb-7">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <OfaTokenCard ofa={ofaWallet} t={t} />
-                <OfaValueCard ofa={ofaWallet} t={t} />
-              </div>
-            </div>
-          )}
-
-          {/* Other wallet cards */}
-          {otherWallets.length > 0 && (
+          {/* Wallet cards */}
+          {wallets.length > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 auto-rows-fr">
-              {otherWallets.map((w) => (
-                <GenericWalletCard key={w.key} w={w} t={t} />
-              ))}
+              {wallets.map((w) => {
+                const Icon = WALLET_ICON[w.key] || Wallet;
+                const theme = WALLET_THEME[w.key] || { grad: "from-slate-400 to-slate-600", glow: "bg-slate-500/20" };
+                const isOfa = w.currency === "OFA";
+                const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
+                const amount = formatFiat(usdtValue);
+                return (
+                  <WalletCard
+                    key={w.key}
+                    icon={Icon}
+                    title={t(`ledger.balance.${w.key}`, w.key)}
+                    value={`$${amount}`}
+                    unit="USDT"
+                    subtitle={isOfa ? `${formatAmount(w.balance)} OFA` : undefined}
+                    theme={theme}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
