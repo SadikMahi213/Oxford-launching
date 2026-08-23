@@ -103,9 +103,6 @@ const TransactionHistoryPage = ({
                 <th className="text-left p-4 text-sm font-semibold text-gray-400">
                   {t('transactions.type')}
                 </th>
-                <th className="text-left p-4 text-sm font-semibold text-gray-400">
-                  {t('transactions.wallet')}
-                </th>
                 <th className="text-right p-4 text-sm font-semibold text-gray-400">
                   {t('transactions.amount')}
                 </th>
@@ -120,14 +117,14 @@ const TransactionHistoryPage = ({
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center">
+                  <td colSpan={6} className="py-16 text-center">
                     <Loader2 className="w-8 h-8 text-cyan-400 animate-spin mx-auto mb-2" />
                     <p className="text-gray-400 text-sm">{t('transactions.loading')}</p>
                   </td>
                 </tr>
               ) : currentTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-gray-500 text-sm">
+                  <td colSpan={6} className="py-16 text-center text-gray-500 text-sm">
                     {t('transactions.empty')}
                   </td>
                 </tr>
@@ -144,9 +141,6 @@ const TransactionHistoryPage = ({
                     {transaction.transactionId || "-"}
                   </td>
                   <td className="p-4 text-white text-sm">{transaction.typeLabel || transaction.type}</td>
-                  <td className="p-4 text-gray-400 text-sm">
-                    {transaction.walletLabel || transaction.wallet}
-                  </td>
                   <td className="p-4">
                     {renderAmount(transaction, true)}
                   </td>
@@ -214,11 +208,7 @@ const TransactionHistoryPage = ({
                       {transaction.transactionId || "-"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">{t('transactions.wallet')}</p>
-                    <p className="text-sm text-gray-300">{transaction.walletLabel || transaction.wallet}</p>
-                  </div>
-                  <div className="text-right">
+                  <div className="col-span-2">
                     <p className="text-xs text-gray-500 mb-1">{t('transactions.amount')}</p>
                     {renderAmount(transaction, true)}
                   </div>
