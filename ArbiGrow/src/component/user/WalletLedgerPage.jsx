@@ -21,6 +21,7 @@ import {
 import { getWalletBalances } from "../../api/user.api.js";
 
 const WALLET_ICON = {
+  main_wallet: DollarSign,
   deposit_wallet: Landmark,
   withdraw_wallet: Banknote,
   referral_wallet: Users,
@@ -34,6 +35,7 @@ const WALLET_ICON = {
 };
 
 const WALLET_THEME = {
+  main_wallet:     { grad: "from-blue-400 to-indigo-600", glow: "bg-blue-500/20" },
   deposit_wallet:  { grad: "from-emerald-400 to-teal-600", glow: "bg-emerald-500/20" },
   withdraw_wallet: { grad: "from-rose-400 to-red-600",   glow: "bg-rose-500/20" },
   referral_wallet: { grad: "from-fuchsia-400 to-pink-600", glow: "bg-fuchsia-500/20" },
@@ -47,6 +49,7 @@ const WALLET_THEME = {
 };
 
 const WALLET_ORDER = [
+  "main_wallet",
   "deposit_wallet",
   "withdraw_wallet",
   "referral_wallet",
@@ -201,7 +204,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
                   <WalletCard
                     key={w.key}
                     icon={Icon}
-                    title={(w.key === "main_wallet" || w.key === "arbx_wallet") ? "" : t(`ledger.balance.${w.key}`, w.key)}
+                    title={w.key === "arbx_wallet" ? "" : t(`ledger.balance.${w.key}`, w.key)}
                     value={`$${amount}`}
                     unit="USDT"
                     subtitle={isOfa ? `${formatAmount(w.balance)} OFA` : undefined}
