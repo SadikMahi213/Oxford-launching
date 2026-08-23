@@ -576,39 +576,52 @@ export function UserDashboard() {
     if (activePage !== "transactions" || transactionsLoaded) return;
     const load = async () => {
       setTransactionsLoading(true);
-      const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes, wtxRes] = await Promise.all([
-        _safeFetch(getMyDeposits, { data: [] }),
-        _safeFetch(getMyWithdrawals, { data: [] }),
-        _safeFetch(getMyEarningsHistory, { data: [] }),
-        _safeFetch(getMyProfitHistory, { data: [] }),
-        _safeFetch(getTransferHistory, {}),
-        _safeFetch(getMyInvestments, []),
-        _safeFetch(getMyMatchingBonuses, []),
-        _safeFetch(getMyCaptchaEarnings, { data: [] }),
-        _safeFetch(getMyMiningHistory, { data: [] }),
-        _safeFetch(getMyAdViewHistory, { data: [] }),
-        _safeFetch(getMyInvoiceHistory, { data: { invoices: [] } }),
-        _safeFetch(getVendorWithdraws, { data: { withdraws: [] } }),
-        _safeFetch(getEcommerceWalletTransactions, { data: [] }),
-        _safeFetch(getMyWalletTransactions, { data: [] }),
-      ]);
-      const deps = depRes?.data?.data || [];
-      const wdws = wdwRes?.data?.data || [];
-      const ears = earRes?.data?.data || [];
-      const pfts = pftRes?.data?.data || [];
-      const transfers = trfRes?.data || {};
-      const investments = invRes?.data || [];
-      const matching_bonuses = bonusRes?.data || [];
-      const captcha_earnings = captchaRes?.data?.data || [];
-      const mining_logs = mineRes?.data?.data || [];
-      const ad_views = adRes?.data?.data || [];
-      const invoices = invoiceRes?.data?.invoices || [];
-      const vendor_withdraws = vendorRes?.data?.withdraws || [];
-      const ecom_txs = ecomRes?.data?.data || [];
-      const wallet_txs = wtxRes?.data?.data || [];
-      setTransactions(_normalizeTransactions(deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs));
-      setTransactionsLoaded(true);
-      setTransactionsLoading(false);
+      try {
+        const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes, wtxRes] = await Promise.all([
+          _safeFetch(getMyDeposits, { data: [] }),
+          _safeFetch(getMyWithdrawals, { data: [] }),
+          _safeFetch(getMyEarningsHistory, { data: [] }),
+          _safeFetch(getMyProfitHistory, { data: [] }),
+          _safeFetch(getTransferHistory, {}),
+          _safeFetch(getMyInvestments, []),
+          _safeFetch(getMyMatchingBonuses, []),
+          _safeFetch(getMyCaptchaEarnings, { data: [] }),
+          _safeFetch(getMyMiningHistory, { data: [] }),
+          _safeFetch(getMyAdViewHistory, { data: [] }),
+          _safeFetch(getMyInvoiceHistory, { data: { invoices: [] } }),
+          _safeFetch(getVendorWithdraws, { data: { withdraws: [] } }),
+          _safeFetch(getEcommerceWalletTransactions, { data: [] }),
+          _safeFetch(getMyWalletTransactions, { data: [] }),
+        ]);
+        const _arr = (v) => (Array.isArray(v) ? v : []);
+        const deps = depRes?.data?.data;
+        const wdws = wdwRes?.data?.data;
+        const ears = earRes?.data?.data;
+        const pfts = pftRes?.data?.data;
+        const transfers = trfRes?.data || {};
+        const investments = invRes?.data;
+        const matching_bonuses = bonusRes?.data;
+        const captcha_earnings = captchaRes?.data?.data;
+        const mining_logs = mineRes?.data?.data;
+        const ad_views = adRes?.data?.data;
+        const invoices = invoiceRes?.data?.invoices;
+        const vendor_withdraws = vendorRes?.data?.withdraws;
+        const ecom_txs = ecomRes?.data?.data;
+        const wallet_txs = wtxRes?.data?.data;
+        setTransactions(_normalizeTransactions(
+          _arr(deps), _arr(wdws), _arr(ears), _arr(pfts),
+          transfers && typeof transfers === "object" ? transfers : {},
+          _arr(investments), _arr(matching_bonuses),
+          _arr(captcha_earnings), _arr(mining_logs), _arr(ad_views),
+          _arr(invoices), _arr(vendor_withdraws), _arr(ecom_txs), _arr(wallet_txs),
+        ));
+        setTransactionsLoaded(true);
+      } catch (err) {
+        console.error("Transactions load failed", err);
+        setTransactions([]);
+      } finally {
+        setTransactionsLoading(false);
+      }
     };
     load();
   }, [activePage, transactionsLoaded]);

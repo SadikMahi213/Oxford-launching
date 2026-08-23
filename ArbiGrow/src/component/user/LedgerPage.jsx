@@ -602,7 +602,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
       </div>
 
       {/* Mobile: horizontal scroll retains all desktop columns */}
-      <div className="md:hidden overflow-x-auto -mx-3 pb-3 touch-pan-x">
+      <div className="md:hidden overflow-x-auto -mx-3 pb-3 touch-pan-x" style={{ WebkitOverflowScrolling: "touch" }}>
         <table className="min-w-[720px] w-full">
           <thead>
             <tr className="border-b border-white/10">
