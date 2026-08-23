@@ -70,21 +70,21 @@ export default function GenerationBonusHistory({ setActivePage }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 mb-6">
-          <div className="relative flex-1 max-w-xs">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1 min-w-0 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type="text"
               placeholder={t("genBonus.search_plh")}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
             />
           </div>
           <select
             value={levelFilter}
             onChange={(e) => { setLevelFilter(e.target.value); setPage(1); }}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none min-w-[160px]"
           >
             <option value="">{t("genBonus.all")}</option>
             <option value="2">{t("genBonus.gen2")}</option>

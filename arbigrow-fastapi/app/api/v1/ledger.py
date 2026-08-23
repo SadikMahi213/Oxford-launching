@@ -106,7 +106,7 @@ def _to_record(
     kind: str,            # earning | deduction | adjustment
     direction: str,       # credit | debit
     amount: Decimal,
-    currency: str,        # USD | USDT | OFA
+    currency: str,        # USDT | OFA
     status: str,
     reference=None,
     note: str | None = None,
@@ -153,7 +153,7 @@ async def _ad_views(db: AsyncSession, uid: int) -> list:
     for r in rows:
         status = "completed" if r.is_completed else "pending"
         out.append(_to_record("ad", r.id, r.completed_at or r.started_at, "ad_view",
-                              "earning", "credit", r.amount_earned, "USD", status,
+                              "earning", "credit", r.amount_earned, "USDT", status,
                               reference=r.ad_id))
     return out
 
@@ -162,9 +162,9 @@ async def _captcha(db: AsyncSession, uid: int) -> list:
     rows = (await db.execute(select(CaptchaEarning).where(CaptchaEarning.user_id == uid))).scalars().all()
     out = []
     for r in rows:
-        status = "completed" if r.is_correct else "pending"
+        status = "completed" if r.is_correct else "failed"
         out.append(_to_record("cap", r.id, r.created_at, "captcha",
-                              "earning", "credit", r.amount_earned, "USD", status))
+                              "earning", "credit", r.amount_earned, "USDT", status))
     return out
 
 
@@ -177,7 +177,7 @@ async def _referral_profits(db: AsyncSession, uid: int) -> list:
         category = "referral_bonus" if (r.level or 1) == 1 else "team_bonus"
         ref = r.investment_id or r.deposit_id
         out.append(_to_record("rph", r.id, r.created_at, category,
-                              "earning", "credit", r.amount, "USD", "completed",
+                              "earning", "credit", r.amount, "USDT", "completed",
                               reference=ref))
     return out
 
@@ -260,11 +260,11 @@ async def _withdrawals(db: AsyncSession, uid: int) -> list:
     for r in rows:
         status = _withdrawal_status(r.status)
         out.append(_to_record("wd", r.id, r.created_at, "withdrawal",
-                              "deduction", "debit", r.amount, "USD", status,
+                              "deduction", "debit", r.amount, "USDT", status,
                               reference=r.transaction_id))
         if r.charge and _num(r.charge) > 0:
             out.append(_to_record("wdf", r.id, r.created_at, "service_fee",
-                                  "deduction", "debit", r.charge, "USD", status,
+                                  "deduction", "debit", r.charge, "USDT", status,
                                   reference=r.transaction_id))
     return out
 
@@ -275,7 +275,7 @@ async def _deposits(db: AsyncSession, uid: int) -> list:
     for r in rows:
         status = _withdrawal_status(r.status)
         out.append(_to_record("dp", r.id, r.created_at, "deposit",
-                              "adjustment", "credit", r.amount, "USD", status,
+                              "adjustment", "credit", r.amount, "USDT", status,
                               reference=r.txid))
     return out
 
@@ -422,19 +422,19 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
     )
 
     active = [
-        {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USD", "stream": "transaction"},
-        {"key": "total_withdrawal", "amount": round(withdrawal, 6), "currency": "USD", "stream": "transaction"},
-        {"key": "total_earning", "amount": total_earning, "currency": "USD", "stream": "earning"},
-        {"key": "captcha", "amount": round(captcha, 6), "currency": "USD", "stream": "earning"},
-        {"key": "ad_view", "amount": round(ad_view, 6), "currency": "USD", "stream": "earning"},
-        {"key": "generation_bonus", "amount": round(generation, 6), "currency": "USD", "stream": "earning"},
+        {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
+        {"key": "total_withdrawal", "amount": round(withdrawal, 6), "currency": "USDT", "stream": "transaction"},
+        {"key": "total_earning", "amount": total_earning, "currency": "USDT", "stream": "earning"},
+        {"key": "captcha", "amount": round(captcha, 6), "currency": "USDT", "stream": "earning"},
+        {"key": "ad_view", "amount": round(ad_view, 6), "currency": "USDT", "stream": "earning"},
+        {"key": "generation_bonus", "amount": round(generation, 6), "currency": "USDT", "stream": "earning"},
         {"key": "matching_bonus", "amount": round(matching, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ofa_free_mining", "amount": round((Decimal(str(ofa_mining)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
         {"key": "ofa_settlement_balance", "amount": round((Decimal(str(ofa_balance)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "balance", "balance_ofa": ofa_balance},
     ]
     soon = [
-        {"key": key, "amount": 0.0, "currency": "USD", "stream": "earning"}
+        {"key": key, "amount": 0.0, "currency": "USDT", "stream": "earning"}
         for key in _SOON_CATEGORIES
     ]
     for c in soon:

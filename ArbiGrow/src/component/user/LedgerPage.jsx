@@ -93,6 +93,20 @@ const formatDate = (iso) => {
   return d.toLocaleString();
 };
 
+const formatDateParts = (iso) => {
+  if (!iso) return { date: "—", time: "" };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: iso, time: "" };
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return { date: `${day}-${month}-${year}`, time: `${hours}:${minutes} ${ampm}` };
+};
+
 // Format a numeric amount without JS float drift: keep up to 6 decimals but
 // strip trailing zeros, preserving the currency symbol + code.
 const formatAmount = (value) => {
@@ -100,6 +114,13 @@ const formatAmount = (value) => {
   if (!Number.isFinite(n)) return "0";
   const s = n.toFixed(6).replace(/\.?0+$/, "");
   return s === "-0" ? "0" : s;
+};
+
+// Format amount with exactly 3 decimal places for task-based earnings
+const formatAmount3 = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0.000";
+  return n.toFixed(3);
 };
 
 // Map backend ledger categories to clear, consistent icons for the mobile
@@ -390,7 +411,11 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const categories = summary.categories || [];
-  const activeCards = categories.filter((c) => c.status !== "soon");
+  const activeCards = categories.filter((c) => {
+    if (c.status === "soon") return false;
+    if (earningOnly && c.stream !== "earning") return false;
+    return true;
+  });
   const soonCards = categories.filter((c) => c.status === "soon");
 
   // Premium fintech overview card. Presentation-only: values, labels and
@@ -543,6 +568,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
             ) : (
               items.map((item) => {
                 const isDebit = item.direction === "debit";
+                const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
                 return (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
                     <td className="p-4 text-sm text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
@@ -554,7 +580,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
                       </span>
                     </td>
                     <td className={`p-4 text-sm font-semibold text-right ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                      {isDebit ? "-" : "+"}{formatAmount(item.amount)} {item.currency}
+                      {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
                     </td>
                     <td className="p-4 text-sm text-gray-300">{item.currency}</td>
                     <td className="p-4 text-sm">
@@ -601,9 +627,14 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
               items.map((item) => {
                 const isDebit = item.direction === "debit";
                 const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+                const { date: dateStr, time: timeStr } = formatDateParts(item.date);
+                const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
                 return (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
-                    <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
+                    <td className="p-3 text-xs text-gray-300 whitespace-nowrap">
+                      <div>{dateStr}</div>
+                      {timeStr && <div className="text-[10px] text-gray-500">Time: {timeStr}</div>}
+                    </td>
                     <td className="p-3 text-xs text-white whitespace-nowrap">
                       <span className="inline-flex items-center gap-1.5">
                         <Icon size={12} className="text-gray-500 shrink-0" aria-hidden="true" />
@@ -617,7 +648,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
                       </span>
                     </td>
                     <td className={`p-3 text-xs font-semibold text-right whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                      {isDebit ? "-" : "+"}{formatAmount(item.amount)} {item.currency}
+                      {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
                     </td>
                     <td className="p-3 text-xs text-gray-300">{item.currency}</td>
                     <td className="p-3 text-xs">

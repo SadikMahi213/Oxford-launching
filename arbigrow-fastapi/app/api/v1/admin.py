@@ -929,7 +929,7 @@ async def update_kyc_status(
         if refunded > 0 and refund_txn is not None:
             ts = refunded_at or datetime.now(timezone.utc)
             message += (
-                f" Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+                f" Refund of {float(refunded):.2f} USDT credited to Deposit Wallet"
                 f" (Ref #{refund_txn.id}) at {ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
             )
             notif_metadata = {
@@ -1101,7 +1101,7 @@ async def update_kyc_status(
         ts = refunded_at or datetime.now(timezone.utc)
         message = (
             f"User #{user_id} KYC was {new_kyc_status.value} by admin. "
-            f"Refund of ${float(refunded):.2f} credited to Deposit Wallet"
+            f"Refund of {float(refunded):.2f} USDT credited to Deposit Wallet"
             f" (Ref #{refund_txn.id if refund_txn else 'N/A'}) at "
             f"{ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
         )
@@ -1957,8 +1957,27 @@ async def admin_update_package(
     if is_active is not None:
         package.is_active = is_active
 
+    # Propagate captcha/ad config changes to existing active investments for this package
+    from app.models.investments import Investment
+    inv_result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.package_name == package.name,
+                Investment.status == "active",
+            )
+        )
+    )
+    active_investments = inv_result.scalars().all()
+    for inv in active_investments:
+        if earn_per_captcha is not None:
+            inv.earn_per_captcha = Decimal(str(earn_per_captcha))
+        if daily_captcha_limit is not None:
+            inv.daily_captcha_limit = daily_captcha_limit
+        if captcha_required_per_day is not None:
+            inv.captcha_required_per_day = captcha_required_per_day
+
     await db.commit()
-    return {"status": "updated", "package_id": package.id}
+    return {"status": "updated", "package_id": package.id, "investments_updated": len(active_investments)}
 
 
 @router.patch("/packages/{package_id}/toggle")
