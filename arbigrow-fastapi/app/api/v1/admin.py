@@ -2137,14 +2137,14 @@ async def admin_delete_package(
     count_result = await db.execute(
         select(func.count(Investment.id)).where(
             Investment.package_name == package.name,
-            Investment.status.in_(["active", "completed"])
+            Investment.status == "active"
         )
     )
     active_count = count_result.scalar() or 0
     if active_count > 0:
         raise HTTPException(
             400,
-            f"Cannot delete package with {active_count} active/completed investments. "
+            f"Cannot delete package with {active_count} active investments. "
             "Deactivate it instead."
         )
 
