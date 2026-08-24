@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, GitBranch, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
-import { getGenerationBonuses } from "../../api/user.api.js";
+import { getGenerationBonuses, getGenerationBonusRates } from "../../api/user.api.js";
 import { useTranslation } from "react-i18next";
 
 const getErrorMessage = (error) =>
@@ -11,6 +11,7 @@ const getErrorMessage = (error) =>
   error?.message;
 
 const LEVEL_LABELS = { 2: "genLevel2", 3: "genLevel3", 4: "genLevel4", 5: "genLevel5" };
+const LEVEL_SHORT = { 2: "Gen 2", 3: "Gen 3", 4: "Gen 4", 5: "Gen 5" };
 const LEVEL_COLORS = {
   2: {
     active: "from-blue-600/15 to-cyan-600/10 border-blue-500/30",
@@ -34,12 +35,7 @@ const LEVEL_COLORS = {
   },
 };
 
-const GENERATIONS = [
-  { level: 2, short: "Gen 2" },
-  { level: 3, short: "Gen 3" },
-  { level: 4, short: "Gen 4" },
-  { level: 5, short: "Gen 5" },
-];
+const LEVELS = [2, 3, 4, 5];
 
 export default function GenerationBonusHistory({ setActivePage }) {
   const { t } = useTranslation();
@@ -51,6 +47,7 @@ export default function GenerationBonusHistory({ setActivePage }) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
+  const [rates, setRates] = useState({});
   const limit = 20;
 
   const load = useCallback(async () => {
@@ -75,6 +72,13 @@ export default function GenerationBonusHistory({ setActivePage }) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!token) return;
+    getGenerationBonusRates()
+      .then((res) => setRates(res?.data?.rates || {}))
+      .catch(() => {});
+  }, [token]);
+
   const totalPages = Math.ceil(total / limit);
 
   return (
@@ -92,6 +96,26 @@ export default function GenerationBonusHistory({ setActivePage }) {
             <p className="text-sm text-gray-400">{t("genBonus.subtitle")}</p>
           </div>
         </div>
+
+        {/* Rates summary card — shows configured percentage for each generation level from DB */}
+        {Object.keys(rates).length > 0 && (
+          <div className="rounded-xl bg-gradient-to-br from-blue-600/10 to-cyan-600/5 border border-blue-500/20 p-4 mb-6">
+            <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide mb-3">{t("genBonus.ratesTitle")}</p>
+            <div className="flex flex-wrap gap-2">
+              {LEVELS.map((lvl) => {
+                const r = rates[String(lvl)];
+                if (r == null) return null;
+                const lc = LEVEL_COLORS[lvl];
+                return (
+                  <div key={lvl} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${lc.badge}`}>
+                    <span className="text-xs font-medium">{LEVEL_SHORT[lvl]}</span>
+                    <span className="text-xs font-bold">{r}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Level selector tabs — horizontally scrollable on mobile, matches ReferralPage pattern */}
         <div className="mb-6">
@@ -114,9 +138,10 @@ export default function GenerationBonusHistory({ setActivePage }) {
                 {total || "—"}
               </span>
             </button>
-            {GENERATIONS.map(({ level, short }) => {
+            {LEVELS.map((level) => {
               const lc = LEVEL_COLORS[level];
               const isActive = levelFilter === String(level);
+              const rate = rates[String(level)];
               return (
                 <button
                   key={level}
@@ -128,11 +153,16 @@ export default function GenerationBonusHistory({ setActivePage }) {
                   }`}
                 >
                   <span className={`text-[10px] font-semibold ${isActive ? lc.text : "text-gray-500"}`}>
-                    {t("referral.level", { level: short })}
+                    {t("referral.level", { level: LEVEL_SHORT[level] })}
                   </span>
                   <span className={`text-lg font-bold leading-none ${isActive ? "text-white" : "text-gray-500"}`}>
-                    {short}
+                    {LEVEL_SHORT[level]}
                   </span>
+                  {rate != null && (
+                    <span className={`text-[9px] font-medium ${isActive ? lc.text : "text-gray-600"}`}>
+                      {rate}%
+                    </span>
+                  )}
                 </button>
               );
             })}

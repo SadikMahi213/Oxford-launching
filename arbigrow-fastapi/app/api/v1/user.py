@@ -686,6 +686,26 @@ async def get_referral_bonuses(
     return {"total": total, "page": page, "limit": limit, "data": data}
 
 
+@router.get("/generation-bonus-rates")
+@limiter.limit("120/minute")
+async def get_generation_bonus_rates(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return configured generation bonus rates for all levels.
+
+    Uses the SAME source of truth (system_config) as the bonus calculation engine.
+    """
+    rates = await get_referral_level_rates(db)
+    return {
+        "rates": {
+            str(lvl): float(r)
+            for lvl, r in sorted(rates.items())
+        }
+    }
+
+
 @router.get("/generation-bonuses")
 @limiter.limit("120/minute")
 async def get_generation_bonuses(

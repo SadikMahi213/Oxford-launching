@@ -176,6 +176,10 @@ export const getGenerationBonuses = (params = {}) => {
   return api.get("v1/user/generation-bonuses", { params, ...authHeaders() });
 };
 
+export const getGenerationBonusRates = () => {
+  return api.get("v1/user/generation-bonus-rates", authHeaders());
+};
+
 export const getUserRankInfo = () => {
   return api.get("v1/ranks/my-rank", authHeaders());
 };
