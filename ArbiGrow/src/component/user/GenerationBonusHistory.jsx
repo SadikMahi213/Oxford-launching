@@ -12,11 +12,34 @@ const getErrorMessage = (error) =>
 
 const LEVEL_LABELS = { 2: "genLevel2", 3: "genLevel3", 4: "genLevel4", 5: "genLevel5" };
 const LEVEL_COLORS = {
-  2: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  3: "text-purple-400 bg-purple-500/10 border-purple-500/30",
-  4: "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  5: "text-pink-400 bg-pink-500/10 border-pink-500/30",
+  2: {
+    active: "from-blue-600/15 to-cyan-600/10 border-blue-500/30",
+    text: "text-blue-400",
+    badge: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  },
+  3: {
+    active: "from-purple-600/15 to-violet-600/10 border-purple-500/30",
+    text: "text-purple-400",
+    badge: "text-purple-400 bg-purple-500/10 border-purple-500/30",
+  },
+  4: {
+    active: "from-pink-600/15 to-rose-600/10 border-pink-500/30",
+    text: "text-pink-400",
+    badge: "text-pink-400 bg-pink-500/10 border-pink-500/30",
+  },
+  5: {
+    active: "from-amber-600/15 to-orange-600/10 border-amber-500/30",
+    text: "text-amber-400",
+    badge: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+  },
 };
+
+const GENERATIONS = [
+  { level: 2, short: "Gen 2" },
+  { level: 3, short: "Gen 3" },
+  { level: 4, short: "Gen 4" },
+  { level: 5, short: "Gen 5" },
+];
 
 export default function GenerationBonusHistory({ setActivePage }) {
   const { t } = useTranslation();
@@ -70,28 +93,62 @@ export default function GenerationBonusHistory({ setActivePage }) {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1 min-w-0 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              placeholder={t("genBonus.search_plh")}
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
-            />
-          </div>
-          <select
-            value={levelFilter}
-            onChange={(e) => { setLevelFilter(e.target.value); setPage(1); }}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 appearance-none min-w-[160px]"
+        {/* Level selector tabs — horizontally scrollable on mobile, matches ReferralPage pattern */}
+        <div className="mb-6">
+          <div
+            className="flex gap-2 overflow-x-auto pb-1"
+            style={{ scrollbarWidth: "none" }}
           >
-            <option value="">{t("genBonus.all")}</option>
-            <option value="2">{t("genBonus.gen2")}</option>
-            <option value="3">{t("genBonus.gen3")}</option>
-            <option value="4">{t("genBonus.gen4")}</option>
-            <option value="5">{t("genBonus.gen5")}</option>
-          </select>
+            <button
+              onClick={() => { setLevelFilter(""); setPage(1); }}
+              className={`flex-shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-xl border transition-all duration-250 min-w-[72px] ${
+                levelFilter === ""
+                  ? "bg-gradient-to-br from-blue-600/15 to-cyan-600/10 border-blue-500/30"
+                  : "bg-white/[0.04] border-white/10 hover:border-white/20"
+              }`}
+            >
+              <span className={`text-[10px] font-semibold ${levelFilter === "" ? "text-blue-400" : "text-gray-500"}`}>
+                {t("referral.level", { level: "All" })}
+              </span>
+              <span className={`text-lg font-bold leading-none ${levelFilter === "" ? "text-white" : "text-gray-500"}`}>
+                {total || "—"}
+              </span>
+            </button>
+            {GENERATIONS.map(({ level, short }) => {
+              const lc = LEVEL_COLORS[level];
+              const isActive = levelFilter === String(level);
+              return (
+                <button
+                  key={level}
+                  onClick={() => { setLevelFilter(String(level)); setPage(1); }}
+                  className={`flex-shrink-0 flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-xl border transition-all duration-250 min-w-[72px] ${
+                    isActive
+                      ? `bg-gradient-to-br ${lc.active}`
+                      : "bg-white/[0.04] border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  <span className={`text-[10px] font-semibold ${isActive ? lc.text : "text-gray-500"}`}>
+                    {t("referral.level", { level: short })}
+                  </span>
+                  <span className={`text-lg font-bold leading-none ${isActive ? "text-white" : "text-gray-500"}`}>
+                    {short}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative mb-6 max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder={t("genBonus.search_plh")}
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+          />
         </div>
 
         {error && (
@@ -128,7 +185,7 @@ export default function GenerationBonusHistory({ setActivePage }) {
                       <td className="p-4 text-white">{b.source_name}</td>
                       <td className="p-4 text-gray-400">@{b.source_username}</td>
                       <td className="p-4 text-center">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${LEVEL_COLORS[b.level] || "text-gray-400 bg-white/5 border-white/10"}`}>
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${LEVEL_COLORS[b.level]?.badge || "text-gray-400 bg-white/5 border-white/10"}`}>
                           {LEVEL_LABELS[b.level] ? t(`genBonus.${LEVEL_LABELS[b.level]}`) : t("genBonus.genLevelN", { level: b.level })}
                         </span>
                       </td>
