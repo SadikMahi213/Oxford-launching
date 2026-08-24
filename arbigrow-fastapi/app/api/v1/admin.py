@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
+from app.core.security import hash_password
 from app.models.user import User
 from app.models.kyc import KYC, KYCStatus, KycPackage, PaymentStatus
 from app.models.wallet_transaction import WalletTransaction, WalletTransactionType, WalletTransactionStatus
@@ -35,6 +36,8 @@ from app.schemas.admin import (
     UpdateWalletBalancesRequest,
     BulkTogglePackagesRequest,
     ConfigUpdate,
+    AdminUpdateUserProfile,
+    AdminResetPassword,
 )
 from app.models.system_config import SystemConfig
 from app.models.mining_log import MiningLog
@@ -53,6 +56,7 @@ from app.utils.is_system_active import FEATURE_CONFIG_KEYS
 from app.core.referral import get_referral_level_rates
 from app.utils.referral import apply_cascading_referral_commissions
 from app.utils.notifications import notify_admin
+from app.services.security_logger import SecurityLogger
 
 logger = logging.getLogger(__name__)
 
@@ -1390,7 +1394,171 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 
 
-@router.post("/users/{user_id}/credit-profit")
+# ── Admin: User Profile Edit ───────────────────────────────────────────────
+@router.put("/users/{user_id}/profile")
+async def admin_update_user_profile(
+    user_id: int,
+    payload: AdminUpdateUserProfile,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    changes = []
+
+    # ── Email validation ──────────────────────────────────
+    if payload.email is not None:
+        new_email = payload.email.strip().lower()
+        if new_email != user.email:
+            email_check = await db.execute(
+                select(User).where(func.lower(User.email) == new_email, User.id != user_id)
+            )
+            if email_check.scalar_one_or_none():
+                raise HTTPException(status_code=400, detail="Email address is already in use")
+            changes.append(f"email: {user.email} -> {new_email}")
+            user.email = new_email
+
+    # ── Username validation ───────────────────────────────
+    if payload.username is not None:
+        new_username = payload.username.strip().lower()
+        if new_username != user.username:
+            if len(new_username) < 3:
+                raise HTTPException(status_code=400, detail="Username must be at least 3 characters")
+            username_check = await db.execute(
+                select(User).where(func.lower(User.username) == new_username, User.id != user_id)
+            )
+            if username_check.scalar_one_or_none():
+                raise HTTPException(status_code=400, detail="Username is already taken")
+            changes.append(f"username: {user.username} -> {new_username}")
+            user.username = new_username
+
+    # ── Simple field updates ──────────────────────────────
+    field_map = {
+        "full_name": payload.full_name,
+        "first_name": payload.first_name,
+        "last_name": payload.last_name,
+        "mobile_number": payload.mobile_number,
+        "country_of_residence": payload.country_of_residence,
+        "residential_address": payload.residential_address,
+        "city": payload.city,
+        "state_province": payload.state_province,
+        "postal_code": payload.postal_code,
+        "gender": payload.gender,
+        "nationality": payload.nationality,
+        "religion": payload.religion,
+        "marital_status": payload.marital_status,
+        "national_id_number": payload.national_id_number,
+        "passport_number": payload.passport_number,
+    }
+
+    for field, new_value in field_map.items():
+        if new_value is not None:
+            old_value = getattr(user, field, None)
+            normalized_new = new_value.strip() if isinstance(new_value, str) else new_value
+            if str(old_value or "") != str(normalized_new or ""):
+                changes.append(f"{field}: {old_value} -> {normalized_new}")
+                setattr(user, field, normalized_new)
+
+    # ── Date of birth validation ──────────────────────────
+    if payload.date_of_birth is not None:
+        try:
+            from datetime import date as date_type
+            dob = date_type.fromisoformat(payload.date_of_birth.strip())
+            old_dob = user.date_of_birth
+            if old_dob != dob:
+                changes.append(f"date_of_birth: {old_dob} -> {dob}")
+                user.date_of_birth = dob
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+
+    if not changes:
+        return {"message": "No changes detected", "updated_fields": []}
+
+    await db.commit()
+    await db.refresh(user)
+
+    # ── Audit log ─────────────────────────────────────────
+    sec_logger = SecurityLogger(db)
+    ip_address = request.client.host if request.client else None
+    if request.headers.get("x-forwarded-for"):
+        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
+    device = (request.headers.get("user-agent", "") or "")[:255]
+
+    await sec_logger.log(
+        event_type="admin_profile_updated",
+        user_id=user.id,
+        email=user.email,
+        ip_address=ip_address,
+        device=device,
+        details=f"Admin #{current_admin.id} updated fields: {'; '.join(changes)}",
+    )
+
+    await notify_admin(
+        db=db,
+        type="profile_updated",
+        message=f"Admin updated profile for user {user.full_name} ({user.email}): {', '.join(changes)}",
+        user_id=user.id,
+        request=request,
+    )
+
+    return {
+        "message": "User profile updated successfully",
+        "updated_fields": changes,
+    }
+
+
+# ── Admin: Password Reset ──────────────────────────────────────────────────
+@router.post("/users/{user_id}/reset-password")
+async def admin_reset_user_password(
+    user_id: int,
+    payload: AdminResetPassword,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.hashed_password = hash_password(payload.new_password)
+    user.failed_attempts = 0
+    user.blocked_at = None
+    user.blocked_reason = None
+
+    await db.commit()
+
+    # ── Audit log (never log the actual password) ─────────
+    sec_logger = SecurityLogger(db)
+    ip_address = request.client.host if request.client else None
+    if request.headers.get("x-forwarded-for"):
+        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
+    device = (request.headers.get("user-agent", "") or "")[:255]
+
+    await sec_logger.log(
+        event_type="admin_password_reset",
+        user_id=user.id,
+        email=user.email,
+        ip_address=ip_address,
+        device=device,
+        details=f"Admin #{current_admin.id} reset password for user {user.email}",
+    )
+
+    await notify_admin(
+        db=db,
+        type="password_change",
+        message=f"Admin reset password for user {user.full_name} ({user.email})",
+        user_id=user.id,
+        request=request,
+    )
+
+    return {"message": "Password reset successfully. The new password is now active."}
 async def credit_user_profit(
     user_id: int,
     payload: CreditProfitRequest,

@@ -9,6 +9,8 @@ import {
   updateUserWallets,
   blockUser,
   unblockUser,
+  updateUserProfile,
+  adminResetPassword,
 } from "../../api/admin.api.js";
 import { getAllUsers } from "../../api/admin.api.js";
 
@@ -68,6 +70,10 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [blockingUserId, setBlockingUserId] = useState(null);
   const [blockMessage, setBlockMessage] = useState("");
+  const [isProfileUpdating, setIsProfileUpdating] = useState(false);
+  const [profileUpdateMessage, setProfileUpdateMessage] = useState("");
+  const [isPasswordResetting, setIsPasswordResetting] = useState(false);
+  const [passwordResetMessage, setPasswordResetMessage] = useState("");
   const latestFetchIdRef = useRef(0);
 
   const { setUserDetails } = useUserStore();
@@ -77,8 +83,12 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
     setUserIssueNote("");
     setUpdateMessage("");
     setWalletUpdateMessage("");
+    setProfileUpdateMessage("");
+    setPasswordResetMessage("");
     setIsUpdating(false);
     setIsWalletUpdating(false);
+    setIsProfileUpdating(false);
+    setIsPasswordResetting(false);
   };
 
   const fetchUsers = useCallback(async () => {
@@ -393,6 +403,55 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
       setBlockMessage(error?.response?.data?.detail || `Failed to ${action} user`);
     } finally {
       setBlockingUserId(null);
+    }
+  };
+
+  const handleProfileUpdate = async (userId, profileForm) => {
+    const token = useUserStore.getState().token;
+    if (!token) return;
+
+    try {
+      setIsProfileUpdating(true);
+      setProfileUpdateMessage("");
+
+      const response = await updateUserProfile(token, userId, profileForm);
+
+      setProfileUpdateMessage(response.message || "Profile updated successfully");
+
+      const updatedUser = await getUser(token, userId);
+      if (updatedUser) {
+        setSelectedUser(updatedUser);
+      }
+
+      await fetchUsers();
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      const detail = error?.response?.data?.detail;
+      const msg = Array.isArray(detail)
+        ? detail.map((d) => d.msg || JSON.stringify(d)).join("; ")
+        : detail || "Failed to update profile";
+      setProfileUpdateMessage(msg);
+    } finally {
+      setIsProfileUpdating(false);
+    }
+  };
+
+  const handlePasswordReset = async (userId, newPassword) => {
+    const token = useUserStore.getState().token;
+    if (!token) return;
+
+    try {
+      setIsPasswordResetting(true);
+      setPasswordResetMessage("");
+
+      const response = await adminResetPassword(token, userId, newPassword);
+      setPasswordResetMessage(response.message || "Password reset successfully");
+    } catch (error) {
+      console.error("Failed to reset password:", error);
+      const detail = error?.response?.data?.detail;
+      setPasswordResetMessage(detail || "Failed to reset password");
+    } finally {
+      setIsPasswordResetting(false);
     }
   };
 
@@ -858,6 +917,12 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
         hasWalletChanges={hasWalletChanges}
         onBlockUnblock={handleBlockUnblock}
         isBlocking={blockingUserId === selectedUser?.id}
+        onProfileUpdate={handleProfileUpdate}
+        isProfileUpdating={isProfileUpdating}
+        profileUpdateMessage={profileUpdateMessage}
+        onPasswordReset={handlePasswordReset}
+        isPasswordResetting={isPasswordResetting}
+        passwordResetMessage={passwordResetMessage}
       />
     </div>
   );

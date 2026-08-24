@@ -15,6 +15,10 @@ import {
   Award,
   ChevronLeft,
   ChevronRight,
+  Edit3,
+  Save,
+  RotateCcw,
+  Shield,
 } from "lucide-react";
 
 export default function UserDetailModal({
@@ -35,6 +39,12 @@ export default function UserDetailModal({
   hasWalletChanges,
   onBlockUnblock,
   isBlocking,
+  onProfileUpdate,
+  isProfileUpdating,
+  profileUpdateMessage,
+  onPasswordReset,
+  isPasswordResetting,
+  passwordResetMessage,
 }) {
   // console.log("user from modal", selectedUser);
 
@@ -122,8 +132,39 @@ export default function UserDetailModal({
   };
 
   const [selectedReferralLevel, setSelectedReferralLevel] = useState(1);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({});
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   useEffect(() => {
     setSelectedReferralLevel(1);
+    setIsEditingProfile(false);
+    setShowPasswordReset(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+    setProfileForm({
+      full_name: selectedUser?.full_name || "",
+      first_name: selectedUser?.first_name || "",
+      last_name: selectedUser?.last_name || "",
+      username: selectedUser?.username || "",
+      email: selectedUser?.email || "",
+      mobile_number: selectedUser?.mobile_number || "",
+      date_of_birth: selectedUser?.date_of_birth || "",
+      country_of_residence: selectedUser?.country_of_residence || "",
+      residential_address: selectedUser?.residential_address || "",
+      city: selectedUser?.city || "",
+      state_province: selectedUser?.state_province || "",
+      postal_code: selectedUser?.postal_code || "",
+      gender: selectedUser?.gender || "",
+      nationality: selectedUser?.nationality || "",
+      religion: selectedUser?.religion || "",
+      marital_status: selectedUser?.marital_status || "",
+      national_id_number: selectedUser?.national_id_number || "",
+      passport_number: selectedUser?.passport_number || "",
+    });
   }, [selectedUser?.id]);
 
   const referralLevels = useMemo(() => {
@@ -217,27 +258,127 @@ export default function UserDetailModal({
             {/* Content */}
             <div className="p-4 sm:p-6 space-y-6">
               {/* Basic Info */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <InfoCard icon={User} label="Full Name" value={selectedUser?.full_name || "N/A"} />
-                <InfoCard icon={User} label="First Name" value={selectedUser?.first_name || "N/A"} />
-                <InfoCard icon={User} label="Last Name" value={selectedUser?.last_name || "N/A"} />
-                <InfoCard icon={User} label="Username" value={selectedUser?.username || "N/A"} />
-                <InfoCard icon={Mail} label="Email" value={selectedUser?.email || "N/A"} breakAll />
-                <InfoCard icon={Phone} label="Mobile Number" value={selectedUser?.mobile_number || selectedUser?.kyc?.phone_number || "N/A"} />
-                <InfoCard icon={MapPin} label="Date of Birth" value={selectedUser?.date_of_birth || "N/A"} />
-                <InfoCard icon={MapPin} label="Gender" value={selectedUser?.gender || "N/A"} />
-                <InfoCard icon={MapPin} label="Nationality" value={selectedUser?.nationality || "N/A"} />
-                <InfoCard icon={MapPin} label="Religion" value={selectedUser?.religion || "N/A"} />
-                <InfoCard icon={MapPin} label="Marital Status" value={selectedUser?.marital_status || "N/A"} />
-                <InfoCard icon={MapPin} label="Country of Residence" value={selectedUser?.country_of_residence || selectedUser?.kyc?.country || "N/A"} />
-                <InfoCard icon={MapPin} label="City" value={selectedUser?.city || "N/A"} />
-                <InfoCard icon={MapPin} label="State/Province" value={selectedUser?.state_province || "N/A"} />
-                <InfoCard icon={MapPin} label="Postal Code" value={selectedUser?.postal_code || "N/A"} />
-                <InfoCard icon={MapPin} label="Residential Address" value={selectedUser?.residential_address || "N/A"} />
-                <InfoCard icon={FileText} label="National ID Number" value={selectedUser?.national_id_number || "N/A"} />
-                <InfoCard icon={FileText} label="Passport Number" value={selectedUser?.passport_number || "N/A"} />
-                <InfoCard icon={FileText} label="KYC Document Type" value={selectedUser?.kyc?.document_type?.toUpperCase() || "N/A"} />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <User className="w-5 h-5 text-cyan-400" />
+                  User Information
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditingProfile(!isEditingProfile);
+                    setPasswordError("");
+                    if (!isEditingProfile) {
+                      setProfileForm({
+                        full_name: selectedUser?.full_name || "",
+                        first_name: selectedUser?.first_name || "",
+                        last_name: selectedUser?.last_name || "",
+                        username: selectedUser?.username || "",
+                        email: selectedUser?.email || "",
+                        mobile_number: selectedUser?.mobile_number || "",
+                        date_of_birth: selectedUser?.date_of_birth || "",
+                        country_of_residence: selectedUser?.country_of_residence || "",
+                        residential_address: selectedUser?.residential_address || "",
+                        city: selectedUser?.city || "",
+                        state_province: selectedUser?.state_province || "",
+                        postal_code: selectedUser?.postal_code || "",
+                        gender: selectedUser?.gender || "",
+                        nationality: selectedUser?.nationality || "",
+                        religion: selectedUser?.religion || "",
+                        marital_status: selectedUser?.marital_status || "",
+                        national_id_number: selectedUser?.national_id_number || "",
+                        passport_number: selectedUser?.passport_number || "",
+                      });
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    isEditingProfile
+                      ? "bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30"
+                      : "bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30"
+                  }`}
+                >
+                  {isEditingProfile ? (
+                    <>
+                      <X className="w-4 h-4" /> Cancel
+                    </>
+                  ) : (
+                    <>
+                      <Edit3 className="w-4 h-4" /> Edit Profile
+                    </>
+                  )}
+                </button>
               </div>
+
+              {isEditingProfile ? (
+                <div className="rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 p-4 sm:p-6">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField label="Full Name" value={profileForm.full_name} onChange={(v) => setProfileForm(p => ({...p, full_name: v}))} />
+                    <FormField label="First Name" value={profileForm.first_name} onChange={(v) => setProfileForm(p => ({...p, first_name: v}))} />
+                    <FormField label="Last Name" value={profileForm.last_name} onChange={(v) => setProfileForm(p => ({...p, last_name: v}))} />
+                    <FormField label="Username" value={profileForm.username} onChange={(v) => setProfileForm(p => ({...p, username: v}))} />
+                    <FormField label="Email" value={profileForm.email} onChange={(v) => setProfileForm(p => ({...p, email: v}))} type="email" />
+                    <FormField label="Mobile Number" value={profileForm.mobile_number} onChange={(v) => setProfileForm(p => ({...p, mobile_number: v}))} />
+                    <FormField label="Date of Birth" value={profileForm.date_of_birth} onChange={(v) => setProfileForm(p => ({...p, date_of_birth: v}))} type="date" />
+                    <FormField label="Gender" value={profileForm.gender} onChange={(v) => setProfileForm(p => ({...p, gender: v}))} />
+                    <FormField label="Nationality" value={profileForm.nationality} onChange={(v) => setProfileForm(p => ({...p, nationality: v}))} />
+                    <FormField label="Religion" value={profileForm.religion} onChange={(v) => setProfileForm(p => ({...p, religion: v}))} />
+                    <FormField label="Marital Status" value={profileForm.marital_status} onChange={(v) => setProfileForm(p => ({...p, marital_status: v}))} />
+                    <FormField label="Country of Residence" value={profileForm.country_of_residence} onChange={(v) => setProfileForm(p => ({...p, country_of_residence: v}))} />
+                    <FormField label="City" value={profileForm.city} onChange={(v) => setProfileForm(p => ({...p, city: v}))} />
+                    <FormField label="State/Province" value={profileForm.state_province} onChange={(v) => setProfileForm(p => ({...p, state_province: v}))} />
+                    <FormField label="Postal Code" value={profileForm.postal_code} onChange={(v) => setProfileForm(p => ({...p, postal_code: v}))} />
+                    <div className="sm:col-span-2 lg:col-span-3">
+                      <FormField label="Residential Address" value={profileForm.residential_address} onChange={(v) => setProfileForm(p => ({...p, residential_address: v}))} />
+                    </div>
+                    <FormField label="National ID Number" value={profileForm.national_id_number} onChange={(v) => setProfileForm(p => ({...p, national_id_number: v}))} />
+                    <FormField label="Passport Number" value={profileForm.passport_number} onChange={(v) => setProfileForm(p => ({...p, passport_number: v}))} />
+                  </div>
+
+                  <div className="mt-4 flex flex-col md:flex-row md:items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => onProfileUpdate?.(selectedUser?.id, profileForm)}
+                      disabled={isProfileUpdating}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isProfileUpdating ? (
+                        <>Updating...</>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" /> Save Changes
+                        </>
+                      )}
+                    </button>
+                    {profileUpdateMessage && (
+                      <div className={`text-sm ${profileUpdateMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                        {profileUpdateMessage}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <InfoCard icon={User} label="Full Name" value={selectedUser?.full_name || "N/A"} />
+                  <InfoCard icon={User} label="First Name" value={selectedUser?.first_name || "N/A"} />
+                  <InfoCard icon={User} label="Last Name" value={selectedUser?.last_name || "N/A"} />
+                  <InfoCard icon={User} label="Username" value={selectedUser?.username || "N/A"} />
+                  <InfoCard icon={Mail} label="Email" value={selectedUser?.email || "N/A"} breakAll />
+                  <InfoCard icon={Phone} label="Mobile Number" value={selectedUser?.mobile_number || selectedUser?.kyc?.phone_number || "N/A"} />
+                  <InfoCard icon={MapPin} label="Date of Birth" value={selectedUser?.date_of_birth || "N/A"} />
+                  <InfoCard icon={MapPin} label="Gender" value={selectedUser?.gender || "N/A"} />
+                  <InfoCard icon={MapPin} label="Nationality" value={selectedUser?.nationality || "N/A"} />
+                  <InfoCard icon={MapPin} label="Religion" value={selectedUser?.religion || "N/A"} />
+                  <InfoCard icon={MapPin} label="Marital Status" value={selectedUser?.marital_status || "N/A"} />
+                  <InfoCard icon={MapPin} label="Country of Residence" value={selectedUser?.country_of_residence || selectedUser?.kyc?.country || "N/A"} />
+                  <InfoCard icon={MapPin} label="City" value={selectedUser?.city || "N/A"} />
+                  <InfoCard icon={MapPin} label="State/Province" value={selectedUser?.state_province || "N/A"} />
+                  <InfoCard icon={MapPin} label="Postal Code" value={selectedUser?.postal_code || "N/A"} />
+                  <InfoCard icon={MapPin} label="Residential Address" value={selectedUser?.residential_address || "N/A"} />
+                  <InfoCard icon={FileText} label="National ID Number" value={selectedUser?.national_id_number || "N/A"} />
+                  <InfoCard icon={FileText} label="Passport Number" value={selectedUser?.passport_number || "N/A"} />
+                  <InfoCard icon={FileText} label="KYC Document Type" value={selectedUser?.kyc?.document_type?.toUpperCase() || "N/A"} />
+                </div>
+              )}
 
               {/* Active Packages */}
               <div>
@@ -837,6 +978,95 @@ export default function UserDetailModal({
                   </div>
                 </div>
               </div>
+
+              {/* Security / Password Reset */}
+              <div className="p-6 rounded-xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/30">
+                <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-orange-400" />
+                  Security
+                </h3>
+                <p className="text-xs text-gray-400 mb-4">
+                  Admin cannot view the user's existing password. Passwords are securely hashed.
+                </p>
+
+                {!showPasswordReset ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordReset(true)}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-500 text-white font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" /> Reset Password
+                  </button>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setPasswordError(""); }}
+                        placeholder="Enter new password (min 6 characters)"
+                        className="w-full px-4 py-3 rounded-xl bg-[#0C1035] border border-white/20 text-white placeholder-gray-500 focus:border-cyan-500/50 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Confirm Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
+                        placeholder="Confirm new password"
+                        className="w-full px-4 py-3 rounded-xl bg-[#0C1035] border border-white/20 text-white placeholder-gray-500 focus:border-cyan-500/50 focus:outline-none"
+                      />
+                    </div>
+
+                    {passwordError && (
+                      <div className="text-sm text-red-400">{passwordError}</div>
+                    )}
+
+                    {passwordResetMessage && (
+                      <div className={`text-sm ${passwordResetMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                        {passwordResetMessage}
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newPassword.length < 6) {
+                            setPasswordError("Password must be at least 6 characters");
+                            return;
+                          }
+                          if (newPassword !== confirmPassword) {
+                            setPasswordError("Passwords do not match");
+                            return;
+                          }
+                          onPasswordReset?.(selectedUser?.id, newPassword);
+                          setNewPassword("");
+                          setConfirmPassword("");
+                        }}
+                        disabled={isPasswordResetting}
+                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-red-500 text-white font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isPasswordResetting ? "Resetting..." : "Confirm Reset"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPasswordReset(false);
+                          setNewPassword("");
+                          setConfirmPassword("");
+                          setPasswordError("");
+                        }}
+                        className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 font-semibold hover:text-white hover:bg-white/10 transition-all duration-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         </motion.div>
@@ -858,6 +1088,21 @@ function InfoCard({ icon: Icon, label, value, breakAll }) {
       >
         {value || "N/A"}
       </div>
+    </div>
+  );
+}
+
+/* Editable form field for profile editing */
+function FormField({ label, value, onChange, type = "text" }) {
+  return (
+    <div>
+      <label className="block text-xs text-gray-400 mb-1">{label}</label>
+      <input
+        type={type}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 rounded-lg bg-[#0C1035] border border-white/10 text-white text-sm focus:border-cyan-500/50 focus:outline-none"
+      />
     </div>
   );
 }

@@ -682,3 +682,23 @@ export const updateCommissionConfig = async (token, key, value) => {
   );
   return res.data || {};
 };
+
+// ── Admin User Profile Management ─────────────────────────────────────────
+
+export const updateUserProfile = async (token, userId, payload) => {
+  const res = await api.put(
+    `v1/admin/users/${userId}/profile`,
+    payload,
+    authHeaders(token),
+  );
+  return res.data || {};
+};
+
+export const adminResetPassword = async (token, userId, newPassword) => {
+  const res = await api.post(
+    `v1/admin/users/${userId}/reset-password`,
+    { new_password: newPassword },
+    authHeaders(token),
+  );
+  return res.data || {};
+};

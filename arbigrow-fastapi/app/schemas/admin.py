@@ -37,3 +37,28 @@ class BulkTogglePackagesRequest(BaseModel):
 
 class ConfigUpdate(BaseModel):
     value: str
+
+
+class AdminUpdateUserProfile(BaseModel):
+    full_name: Optional[str] = Field(default=None, max_length=100)
+    first_name: Optional[str] = Field(default=None, max_length=100)
+    last_name: Optional[str] = Field(default=None, max_length=100)
+    username: Optional[str] = Field(default=None, max_length=100, min_length=3)
+    email: Optional[str] = Field(default=None, max_length=255)
+    mobile_number: Optional[str] = Field(default=None, max_length=20)
+    date_of_birth: Optional[str] = Field(default=None, description="YYYY-MM-DD format")
+    country_of_residence: Optional[str] = Field(default=None, max_length=100)
+    residential_address: Optional[str] = Field(default=None, max_length=500)
+    city: Optional[str] = Field(default=None, max_length=100)
+    state_province: Optional[str] = Field(default=None, max_length=100)
+    postal_code: Optional[str] = Field(default=None, max_length=20)
+    gender: Optional[str] = Field(default=None, max_length=20)
+    nationality: Optional[str] = Field(default=None, max_length=100)
+    religion: Optional[str] = Field(default=None, max_length=50)
+    marital_status: Optional[str] = Field(default=None, max_length=20)
+    national_id_number: Optional[str] = Field(default=None, max_length=100)
+    passport_number: Optional[str] = Field(default=None, max_length=100)
+
+
+class AdminResetPassword(BaseModel):
+    new_password: str = Field(..., min_length=6, max_length=128)
