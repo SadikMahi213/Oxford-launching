@@ -204,7 +204,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
                   <WalletCard
                     key={w.key}
                     icon={Icon}
-                    title={w.key === "arbx_wallet" ? "" : t(`ledger.balance.${w.key}`, w.key)}
+                    title={t(`ledger.balance.${w.key}`, w.key)}
                     value={`$${amount}`}
                     unit="USDT"
                     subtitle={isOfa ? `${formatAmount(w.balance)} OFA` : undefined}
