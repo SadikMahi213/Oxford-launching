@@ -19,6 +19,7 @@ from app.utils.is_system_active import is_system_active
 from app.services.invoice_service import generate_withdrawal_invoice
 from app.utils.notifications import notify_admin
 from app.utils.kyc_helper import check_kyc_approved
+from app.services.security_logger import SecurityLogger
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
@@ -136,8 +137,20 @@ async def create_withdrawal_request(
     else:
         raise HTTPException(status_code=400, detail="Invalid withdrawal method type")
 
+    # ── Atomic balance reservation ─────────────────────────────────────
+    # Lock the user row to prevent concurrent withdrawal double-spend.
+    user_result = await db.execute(
+        select(User)
+        .where(User.id == current_user.id)
+        .with_for_update()
+    )
+    locked_user = user_result.scalar_one_or_none()
+    if not locked_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Re-read balance from the locked row ( authoritative, prevents race )
     source_balance = Decimal(
-        str(getattr(current_user, data.source_wallet, Decimal("0")) or 0)
+        str(getattr(locked_user, data.source_wallet, Decimal("0")) or 0)
     )
 
     if source_balance < amount:
@@ -160,7 +173,7 @@ async def create_withdrawal_request(
     EARNING_WALLETS = {"captcha_wallet", "ad_view_wallet"}
     if data.source_wallet not in EARNING_WALLETS:
         main_balance = Decimal(
-            str(getattr(current_user, "main_wallet", Decimal("0")) or 0))
+            str(getattr(locked_user, "main_wallet", Decimal("0")) or 0))
         required_main_balance = _to_wallet_precision(
             amount + charge_amount
         )
@@ -172,6 +185,10 @@ async def create_withdrawal_request(
                     f"Required: {required_main_balance}, Available: {main_balance}"
                 ),
             )
+
+    # ── Deduct from source wallet atomically ───────────────────────────
+    new_balance = _to_wallet_precision(source_balance - amount)
+    setattr(locked_user, data.source_wallet, new_balance)
 
     withdrawal = Withdrawal(
         user_id=current_user.id,
@@ -317,16 +334,28 @@ async def update_withdrawal_status(
             raise HTTPException(status_code=404, detail="User not found")
 
         amount = Decimal(str(withdrawal.amount))
+        # Credit withdraw_wallet (cumulative tracking of total withdrawn)
         user.withdraw_wallet = _to_wallet_precision(
             Decimal(str(user.withdraw_wallet or 0)) + amount
         )
+        # NOTE: Balance was already deducted at withdrawal creation time.
+        # Do NOT deduct again here — that would be a double deduction.
+
+    elif data.status == "rejected":
+        user_result = await db.execute(
+            select(User)
+            .where(User.id == withdrawal.user_id)
+            .with_for_update()
+        )
+        user = user_result.scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        amount = Decimal(str(withdrawal.amount))
+        # Refund the held amount back to the source wallet
         source_balance = Decimal(str(getattr(user, withdrawal.source_wallet, "0") or 0))
-        if source_balance < amount:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Insufficient balance in {withdrawal.source_wallet}. Available: {source_balance}, Requested: {amount}",
-            )
-        setattr(user, withdrawal.source_wallet, _to_wallet_precision(source_balance - amount))
+        setattr(user, withdrawal.source_wallet, _to_wallet_precision(source_balance + amount))
 
     withdrawal.status = data.status
     withdrawal.approved_by = admin.id
