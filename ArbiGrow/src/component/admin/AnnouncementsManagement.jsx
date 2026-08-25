@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Edit2, Globe, Megaphone, Plus, Power, Trash2, X } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
 import {
@@ -17,6 +17,7 @@ const emptyForm = {
   imageFile: null,
   imageUrl: "",
   imagePreview: "",
+  imageRemoved: false,
   translations: [],
 };
 
@@ -76,6 +77,7 @@ export default function AnnouncementsManagement() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [langTab, setLangTab] = useState("default");
+  const fileInputRef = useRef(null);
 
   const loadAnnouncements = useCallback(async () => {
     try {
@@ -189,8 +191,27 @@ export default function AnnouncementsManagement() {
         ...prev,
         imageFile: nextFile,
         imagePreview: nextFile ? URL.createObjectURL(nextFile) : "",
+        imageRemoved: false,
       };
     });
+  };
+
+  const handleRemoveImage = () => {
+    setForm((prev) => {
+      if (prev.imagePreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(prev.imagePreview);
+      }
+      return {
+        ...prev,
+        imageFile: null,
+        imageUrl: "",
+        imagePreview: "",
+        imageRemoved: true,
+      };
+    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const buildFormData = () => {
@@ -205,6 +226,9 @@ export default function AnnouncementsManagement() {
     if (form.imageUrl.trim()) {
       payload.append("image_url", form.imageUrl.trim());
     }
+    if (editingItem && form.imageRemoved) {
+      payload.append("clear_image", "true");
+    }
     return payload;
   };
 
@@ -215,11 +239,6 @@ export default function AnnouncementsManagement() {
 
     if (!form.title.trim()) {
       setErrorMessage("Title is required.");
-      return;
-    }
-
-    if (!editingItem && !form.imageFile && !form.imageUrl.trim()) {
-      setErrorMessage("Please upload an image or provide an image URL.");
       return;
     }
 
@@ -583,6 +602,7 @@ export default function AnnouncementsManagement() {
                   <div>
                     <label className="mb-1 block text-sm text-gray-300">Image</label>
                     <input
+                      ref={fileInputRef}
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
@@ -602,8 +622,16 @@ export default function AnnouncementsManagement() {
                     <p className="mt-1 text-xs text-gray-500">Paste a direct link to an image. Used if no file is uploaded.</p>
                   </div>
                   {form.imagePreview && (
-                    <div className="overflow-hidden rounded-xl border border-white/15">
+                    <div className="relative overflow-hidden rounded-xl border border-white/15">
                       <img src={form.imagePreview} alt="Announcement preview" className="max-h-56 sm:max-h-72 w-full object-contain bg-[#0c1035]" />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 flex items-center gap-1 rounded-lg border border-red-500/40 bg-red-600/80 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-red-500"
+                      >
+                        <X className="h-3 w-3" />
+                        Remove Picture
+                      </button>
                     </div>
                   )}
                   <label className="flex items-center gap-2 text-sm text-gray-200">
