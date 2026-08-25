@@ -251,7 +251,7 @@ export default function Breakout() {
 
       <div className="flex gap-4 text-sm">
         <span className="text-gray-400">Score: <span className="text-green-400 font-bold">{score}</span></span>
-        <span className="text-gray-400">Lives: <span className="text-red-400 font-bold">{"❤️".repeat(lives)}</span></span>
+        <span className="text-gray-400">Lives: <span className="text-red-400 font-bold">{"❤️".repeat(Math.max(0, lives))}</span></span>
         <span className="text-gray-400">Level: <span className="text-blue-400 font-bold">{level}</span></span>
       </div>
 

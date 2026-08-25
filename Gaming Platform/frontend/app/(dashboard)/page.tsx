@@ -230,39 +230,6 @@ export default function HomePage() {
           </Card>
         )}
 
-        {stats && stats.high_scores.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Play className="h-5 w-5 text-primary" />
-                Your High Scores
-              </CardTitle>
-              <CardDescription>Your best performances</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.high_scores.slice(0, 5).map((hs) => (
-                  <div
-                    key={hs.game_slug}
-                    className="flex items-center gap-3 rounded-lg border p-3"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{hs.game_name}</p>
-                    </div>
-                    <span className="text-sm font-bold text-primary">
-                      {hs.high_score.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <Button asChild variant="outline" className="mt-4 w-full">
-                <Link href="/profile">
-                  View All <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       <section>

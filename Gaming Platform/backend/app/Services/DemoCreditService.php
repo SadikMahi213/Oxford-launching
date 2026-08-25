@@ -48,7 +48,7 @@ class DemoCreditService
         $wallet = $this->getOrCreateWallet($user);
 
         return DB::transaction(function () use ($wallet, $amount, $game, $score, $user) {
-            $wallet = $wallet->lockForUpdate();
+            $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
             $balanceBefore = $wallet->available_balance;
             $balanceAfter = bcadd($balanceBefore, (string) $amount, 4);
 
@@ -86,7 +86,7 @@ class DemoCreditService
         $wallet = $this->getOrCreateWallet($user);
 
         return DB::transaction(function () use ($wallet, $amount, $game, $user) {
-            $wallet = $wallet->lockForUpdate();
+            $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
 
             if (bccomp($wallet->available_balance, (string) $amount, 4) < 0) {
                 throw ApiException::badRequest('Insufficient demo credits.');

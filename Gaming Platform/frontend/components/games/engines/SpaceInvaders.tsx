@@ -237,7 +237,7 @@ export default function SpaceInvaders() {
       <h1 className="text-2xl font-bold text-white">Space Invaders</h1>
       <div className="flex gap-4 text-sm">
         <span className="text-gray-400">Score: <span className="text-green-400 font-bold">{score}</span></span>
-        <span className="text-gray-400">Lives: <span className="text-red-400 font-bold">{"❤️".repeat(lives)}</span></span>
+        <span className="text-gray-400">Lives: <span className="text-red-400 font-bold">{"❤️".repeat(Math.max(0, lives))}</span></span>
         <span className="text-gray-400">Wave: <span className="text-blue-400 font-bold">{wave}</span></span>
       </div>
       {highScore > 0 && <p className="text-yellow-400 text-sm">Best: {highScore}</p>}

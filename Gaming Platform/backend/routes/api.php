@@ -148,7 +148,9 @@ Route::middleware(['auth:sanctum', 'account.active', 'admin'])->prefix('admin')-
 |--------------------------------------------------------------------------
 */
 Route::prefix('games')->group(function () {
+    Route::get('/featured', [GameController::class, 'featured']);
     Route::get('/', [GameController::class, 'index']);
+    Route::get('/by-slug/{slug}', [GameController::class, 'showBySlug']);
     Route::get('/{id}', [GameController::class, 'show']);
 });
 

@@ -51,6 +51,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/games/:path*",
     "/categories/:path*",
     "/leaderboard/:path*",

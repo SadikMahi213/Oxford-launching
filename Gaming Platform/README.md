@@ -1,62 +1,45 @@
 # Gaming Platform
 
-Production-grade online gaming platform built with Laravel 12 (backend API) and Next.js (frontend).
+A demo/simulation gaming platform built with **Laravel 12** (backend API) and **Next.js 15** (frontend). Features 100 original browser-playable games, demo credits system, user dashboard, and admin panel.
+
+> **Note:** This is strictly a demo/simulation platform. No real money is involved. Demo credits have zero monetary value and cannot be converted to cash.
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
-| Backend API | Laravel 12, PHP 8.4 |
-| Database | PostgreSQL 16 |
-| Cache / Queue | Redis 7 |
-| Auth | Laravel Sanctum (bearer tokens) |
-| Permissions | spatie/laravel-permission |
-| Frontend | Next.js 15, React 19, TypeScript |
-| UI | Tailwind CSS, shadcn/ui |
-| Containerization | Docker, Docker Compose |
-| Testing | Pest (backend), Playwright (frontend, planned) |
-
-## Project Structure
-
-```
-Gaming Platform/
-├── backend/           Laravel 12 API + Filament admin
-│   ├── app/
-│   │   ├── Domains/       DDD-style modules (wallet, game, payment)
-│   │   ├── Http/          Controllers, Middleware, Resources, Requests
-│   │   ├── Models/        Eloquent models
-│   │   ├── Repositories/  Data-access abstractions
-│   │   └── Services/      Business logic
-│   ├── database/      Migrations, seeders, factories
-│   ├── routes/        api.php, web.php
-│   ├── tests/         Pest feature/unit tests
-│   └── docker/        Dockerfile, nginx.conf
-├── frontend/          Next.js App Router
-│   ├── app/           Routes, layouts, pages
-│   ├── components/    React components (shadcn/ui)
-│   ├── lib/           API client, auth helpers, utilities
-│   └── middleware.ts  Route protection
-├── infra/             Docker Compose, nginx config
-└── docs/              Architecture audit
-```
+|-------|-----------|
+| Backend | Laravel 12, PHP 8.2+, Sanctum auth, spatie/laravel-permission |
+| Database | PostgreSQL 16 (production) / SQLite (local dev) |
+| Cache/Queue | Redis 7 (production) / File-based (local dev) |
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui |
+| Testing | Pest (backend) |
 
 ## Prerequisites
 
-- PHP 8.4+ with extensions: pdo_pgsql, redis, bcmath, intl, zip, opcache
-- Composer 2
-- Node.js 22+ with npm
+- **PHP 8.2+** with extensions: mbstring, xml, curl, sqlite3, bcmath
+- **Composer** 2.x
+- **Node.js 18+** with npm
+- **Git**
+
+Optional (production only):
 - PostgreSQL 16
 - Redis 7
-- Docker & Docker Compose (optional, for containerized development)
 
-## Quick Start (Local)
+## Local Setup (SQLite — No Docker Required)
 
-### 1. Backend
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/SadikMahi213/Gaming-Platform.git
+cd Gaming-Platform
+```
+
+### 2. Backend Setup
 
 ```bash
 cd backend
 
-# Install dependencies
+# Install PHP dependencies
 composer install
 
 # Copy environment file
@@ -64,107 +47,77 @@ cp .env.example .env
 
 # Generate application key
 php artisan key:generate
-
-# Create the database (PostgreSQL)
-createdb gaming_platform
-
-# Run migrations and seed
-php artisan migrate --seed
-
-# Start the development server
-php artisan serve
 ```
 
-The API will be available at `http://localhost:8000/api/v1`.
+**Configure `.env` for local SQLite:**
 
-### 2. Frontend
+Replace the database section in `.env` with:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=
+
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+```
+
+Then create the SQLite database file:
+
+```bash
+# Create empty SQLite database (Windows)
+echo. > database\database.sqlite
+
+# On macOS/Linux:
+# touch database/database.sqlite
+```
+
+**Run migrations and seed the database:**
+
+```bash
+php artisan migrate
+php artisan db:seed        # Creates admin + player users + 100 games
+```
+
+**Start the backend server:**
+
+```bash
+php artisan serve --port=8080
+```
+
+Backend is now running at **http://localhost:8080**
+
+### 3. Frontend Setup
+
+Open a new terminal:
 
 ```bash
 cd frontend
 
-# Install dependencies
+# Install Node dependencies
 npm install
 
-# Start the development server
-npm run dev
+# Start the dev server
+npm run dev -- --port=3000
 ```
 
-The frontend will be available at `http://localhost:3000`.
+Frontend is now running at **http://localhost:3000**
 
-### 3. Docker (Alternative)
+### 4. Verify Installation
 
-```bash
-# From the project root
-docker compose -f infra/docker-compose.yml up --build
-```
+| URL | Description |
+|-----|-------------|
+| http://localhost:3000 | Frontend (login page) |
+| http://localhost:8080/api/v1/ping | Backend health check |
 
-This starts:
-- PostgreSQL on `localhost:5432`
-- Redis on `localhost:6379`
-- Backend API on `localhost:8080` (via nginx)
-- Frontend on `localhost:3000`
+## Test Accounts
 
-## Environment Variables
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@example.com | password |
+| Player | player@example.com | password |
 
-### Backend (`.env`)
-
-Key variables (copy from `.env.example`):
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_CONNECTION` | Database driver | `pgsql` |
-| `DB_HOST` | Database host | `127.0.0.1` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_DATABASE` | Database name | `gaming_platform` |
-| `DB_USERNAME` | Database user | `gaming` |
-| `DB_PASSWORD` | Database password | *(required)* |
-| `REDIS_HOST` | Redis host | `127.0.0.1` |
-| `REDIS_PORT` | Redis port | `6379` |
-| `SANCTUM_STATEFUL_DOMAINS` | Frontend domains for SPA auth | `localhost:3000` |
-
-### Frontend (`.env`)
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:8080/api/v1` |
-
-## API Endpoints
-
-All endpoints are prefixed with `/api/v1`.
-
-### Authentication
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/v1/auth/register` | No | Register a new player |
-| POST | `/api/v1/auth/login` | No | Login and receive a token |
-| POST | `/api/v1/auth/logout` | Yes | Revoke the current token |
-| GET | `/api/v1/auth/me` | Yes | Get the authenticated user |
-
-### Health
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/v1/ping` | No | API health check |
-| GET | `/up` | No | Laravel health check |
-
-### Response Format
-
-All API responses follow this envelope:
-
-```json
-{
-  "success": true,
-  "message": "OK",
-  "data": {},
-  "errors": null,
-  "meta": null
-}
-```
-
-## Testing
-
-### Backend (Pest)
+## Running Tests
 
 ```bash
 cd backend
@@ -172,52 +125,106 @@ cd backend
 # Run all tests
 php artisan test
 
-# Run only Pest tests
+# Or with Pest directly
 ./vendor/bin/pest
-
-# Run a specific test file
-./vendor/bin/pest tests/Feature/AuthTest.php
 ```
 
-### Frontend Type Checking
+## Frontend Commands
 
 ```bash
 cd frontend
-npm run typecheck
+
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run typecheck    # Run TypeScript checks
 ```
 
-### Frontend Build
+## Project Structure
 
-```bash
-cd frontend
-npm run build
+```
+Gaming-Platform/
+├── backend/                     # Laravel 12 API
+│   ├── app/
+│   │   ├── Http/Controllers/Api/V1/   # API controllers
+│   │   ├── Models/                     # Eloquent models
+│   │   ├── Services/                   # Business logic
+│   │   └── Http/Resources/             # API resources
+│   ├── database/
+│   │   ├── migrations/                 # Database migrations
+│   │   └── seeders/                    # DemoGamesSeeder (100 games)
+│   └── routes/api.php                 # API routes
+│
+├── frontend/                    # Next.js 15
+│   ├── app/
+│   │   ├── (dashboard)/         # User dashboard pages
+│   │   │   ├── page.tsx         # Home
+│   │   │   ├── games/           # Game list + play
+│   │   │   ├── categories/      # Category grid
+│   │   │   ├── leaderboard/     # Leaderboard
+│   │   │   └── profile/         # User profile
+│   │   └── admin/               # Admin panel
+│   │       ├── page.tsx         # Dashboard
+│   │       ├── games/           # Game management
+│   │       └── categories/      # Category management
+│   ├── components/
+│   │   └── games/engines/       # 100 playable game components
+│   └── lib/
+│       ├── api/                 # API client (apiFetch, apiFetchEnvelope)
+│       ├── api.ts               # API service functions
+│       └── admin-api.ts         # Admin API functions
+│
+└── docs/                        # Architecture documentation
 ```
 
-## Architecture
+## Game Categories (100 Games)
 
-See `docs/ARCHITECTURE_AUDIT.md` for the full architecture audit and design decisions.
+| Category | Games | Examples |
+|----------|-------|---------|
+| Arcade | 15 | Snake, Tetris, Pacman, Breakout, Space Invaders |
+| Cards | 12 | Solitaire, Blackjack, Card Flip, Go Fish |
+| Dice | 8 | Yahtzee, Farkle, Dice Duel |
+| Wheel | 5 | Lucky Wheel, Prize Wheel, Color Wheel |
+| Puzzle | 15 | 2048, Sudoku, Hangman, Crossword, Sokoban |
+| Reaction | 8 | Simon Says, Color Match, Speed Click |
+| Strategy | 10 | Chess Puzzle, Checkers, Othello, Battleship |
+| Memory | 8 | Memory Match, Number Memory, Pattern Memory |
+| Number | 10 | Number Guess, Math Challenge, Higher or Lower |
+| Casual | 9 | Typing Speed, Trivia Quiz, Word Scramble |
 
-### Key Principles
+## API Endpoints
 
-- **API-first:** Frontend is a thin client; all business logic lives in the backend.
-- **Integer money:** All monetary values stored as BIGINT in minor units (cents).
-- **Immutability:** Ledger tables (`wallet_transactions`) are append-only.
-- **Module boundaries:** Cross-module calls go through domain services, never direct model coupling.
-- **Webhook security:** Provider callbacks authenticated by HMAC signature, not user tokens.
+### Public
+- `GET /api/v1/ping` — Health check
 
-## Development Workflow
+### Auth
+- `POST /api/v1/register` — Register new user
+- `POST /api/v1/login` — Login
+- `POST /api/v1/logout` — Logout (auth required)
+- `GET /api/v1/me` — Current user (auth required)
 
-1. Backend changes: run `php artisan test` to verify
-2. Frontend changes: run `npm run typecheck` and `npm run build` to verify
-3. Database changes: create a migration with `php artisan make:migration`
-4. New API endpoints: add to `routes/api.php`, create controller in `app/Http/Controllers/Api/V1/`
-5. New form validation: create a FormRequest in `app/Http/Requests/Api/V1/`
-6. New business logic: create a Service in `app/Services/`
+### Games
+- `GET /api/v1/games` — List all games (paginated)
+- `GET /api/v1/games/featured` — Featured games
+- `GET /api/v1/games/{id}` — Game by ID
+- `GET /api/v1/games/by-slug/{slug}` — Game by slug
+- `GET /api/v1/categories` — List categories
 
-## Security
+### Demo Credits (auth required)
+- `GET /api/v1/demo-credits/balance` — Get balance
+- `POST /api/v1/demo-credits/daily-bonus` — Claim daily bonus
+- `GET /api/v1/demo-credits/stats` — User stats
 
-- Never commit `.env` files or secrets
-- Use `REPLACE_ME` placeholders in `.env.example`
-- Sanctum tokens are short-lived; rotate regularly
-- Provider webhooks must verify HMAC signatures
-- Admin panel uses a separate auth guard with 2FA (planned)
+### Scores (auth required)
+- `POST /api/v1/game-scores` — Submit score
+- `GET /api/v1/game-scores/history` — Score history
+- `GET /api/v1/game-scores/leaderboard` — Global leaderboard
+
+### Admin (auth + admin role required)
+- `GET /api/v1/admin/stats` — Dashboard stats
+- CRUD for games and categories
+
+## License
+
+MIT

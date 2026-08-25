@@ -23,6 +23,7 @@ type Mode = "login" | "register";
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") ?? "/";
   const { login, register } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]> | null>(
@@ -56,7 +57,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           password: String(payload.password),
         });
       }
-      router.push("/dashboard");
+      router.push(redirect);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

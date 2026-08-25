@@ -1,5 +1,5 @@
-import { apiFetch } from "./api/client";
-import type { PaginationMeta, User } from "./api/types";
+import { apiFetch, apiFetchEnvelope } from "./api/client";
+import type { ApiEnvelope, PaginationMeta, User } from "./api/types";
 import type { Game } from "./games/types";
 
 export interface DemoCredits {
@@ -16,8 +16,10 @@ export interface DailyBonusResponse {
 export interface UserStats {
   total_games_played: number;
   total_score: number;
-  high_scores: { game_name: string; game_slug: string; high_score: number }[];
-  rank: number;
+  unique_games_played: number;
+  best_score: number;
+  average_score: number;
+  demo_balance: number;
 }
 
 export interface ScoreHistoryEntry {
@@ -50,7 +52,7 @@ export interface ScoreSubmission {
 
 // Demo Credits
 export function getDemoCredits() {
-  return apiFetch<DemoCredits>("/demo-credits");
+  return apiFetch<DemoCredits>("/demo-credits/balance");
 }
 
 export function claimDailyBonus() {
@@ -109,7 +111,7 @@ export function getAllGames(params?: {
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.per_page) searchParams.set("per_page", String(params.per_page));
   const query = searchParams.toString();
-  return apiFetch<{ data: Game[] } & PaginationMeta>(
+  return apiFetchEnvelope<Game[]>(
     `/games${query ? `?${query}` : ""}`
   );
 }
@@ -119,9 +121,9 @@ export function getFeaturedGames() {
 }
 
 export function getGameBySlug(slug: string) {
-  return apiFetch<Game>(`/games/${slug}`);
+  return apiFetch<Game>(`/games/by-slug/${slug}`);
 }
 
 export function getGameCategories() {
-  return apiFetch<Category[]>("/games/categories");
+  return apiFetch<Category[]>("/categories");
 }

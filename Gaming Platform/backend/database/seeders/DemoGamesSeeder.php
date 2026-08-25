@@ -31,7 +31,10 @@ class DemoGamesSeeder extends Seeder
 
         $categories = [];
         foreach ($categoryData as $data) {
-            $categories[$data['slug']] = GameCategory::create($data);
+            $categories[$data['slug']] = GameCategory::firstOrCreate(
+                ['slug' => $data['slug']],
+                $data
+            );
         }
 
         return $categories;
@@ -1096,6 +1099,20 @@ class DemoGamesSeeder extends Seeder
         $sortOrder = 0;
         foreach ($games as $gameData) {
             $category = $categories[$gameData['category']] ?? null;
+            
+            if (!$category) {
+                $this->command->warn("Category not found for game: {$gameData['name']}, category: {$gameData['category']}");
+                continue;
+            }
+            
+            $externalId = 'builtin-' . $gameData['slug'];
+            $existing = Game::where('external_game_id', $externalId)->first();
+            if ($existing) {
+                $this->command->info("Skipping existing game: {$gameData['name']} (external_id: $externalId)");
+                continue;
+            }
+
+            $this->command->info("Creating game: {$gameData['name']} (category: {$gameData['category']})");
 
             Game::create([
                 'provider_id' => null,

@@ -152,50 +152,21 @@ export default function ProfilePage() {
               <div className="rounded-lg border p-4 text-center">
                 <Trophy className="mx-auto h-6 w-6 text-yellow-500" />
                 <p className="mt-2 text-2xl font-bold">
-                  #{stats?.rank ?? "---"}
+                  #{stats?.unique_games_played ?? 0}
                 </p>
-                <p className="text-xs text-muted-foreground">Global Rank</p>
+                <p className="text-xs text-muted-foreground">Unique Games</p>
               </div>
               <div className="rounded-lg border p-4 text-center">
                 <Award className="mx-auto h-6 w-6 text-purple-500" />
                 <p className="mt-2 text-2xl font-bold">
-                  {stats?.high_scores?.length ?? 0}
+                  {stats?.best_score ?? 0}
                 </p>
-                <p className="text-xs text-muted-foreground">High Scores</p>
+                <p className="text-xs text-muted-foreground">Best Score</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {stats && stats.high_scores.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-500" />
-              High Scores Per Game
-            </CardTitle>
-            <CardDescription>Your best scores in each game</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {stats.high_scores.map((hs) => (
-                <div
-                  key={hs.game_slug}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div>
-                    <p className="text-sm font-medium">{hs.game_name}</p>
-                  </div>
-                  <span className="text-lg font-bold text-primary">
-                    {hs.high_score.toLocaleString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="flex gap-4">
         <Button asChild variant="outline">

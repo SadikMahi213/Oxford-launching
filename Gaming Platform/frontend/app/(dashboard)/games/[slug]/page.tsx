@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { GamePlayer } from "@/components/games/GamePlayer";
+import GameRenderer from "@/components/games/GameRenderer";
 import { GameCard } from "@/components/games/GameCard";
 import { cn } from "@/lib/utils";
 
@@ -94,7 +94,7 @@ export default function GamePlayPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div>
-          <GamePlayer game={game} />
+          <GameRenderer game={game} />
         </div>
 
         <div className="space-y-4">

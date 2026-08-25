@@ -44,7 +44,8 @@ export default function GamesPage() {
       ]);
 
       setGames(gamesData.data);
-      setTotalPages(gamesData.pagination?.last_page ?? 1);
+      const pag = (gamesData.meta as Record<string, unknown>)?.pagination as Record<string, unknown> | undefined;
+      setTotalPages((pag?.last_page as number) ?? 1);
       setCategories(catsData);
     } catch {
       // Failed to load

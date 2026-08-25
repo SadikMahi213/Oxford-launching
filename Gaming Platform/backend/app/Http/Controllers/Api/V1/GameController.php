@@ -19,11 +19,29 @@ class GameController extends Controller
     ) {}
 
     /**
+     * List featured games.
+     */
+    public function featured(): JsonResponse
+    {
+        $games = \App\Models\Game::with('category')
+            ->where('is_featured', true)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->limit(20)
+            ->get();
+
+        return ApiResponse::success(
+            'Featured games retrieved.',
+            GameResource::collection($games),
+        );
+    }
+
+    /**
      * List games with optional filters.
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->input('per_page', 15), 50);
+        $perPage = min((int) $request->input('per_page', 15), 100);
 
         $paginator = $this->service->listGames(
             providerId: $request->input('provider_id') ? (int) $request->input('provider_id') : null,
@@ -46,6 +64,23 @@ class GameController extends Controller
     public function show(int $id): JsonResponse
     {
         $game = $this->service->getGame($id);
+
+        return ApiResponse::success(
+            'Game retrieved.',
+            new GameResource($game),
+        );
+    }
+
+    /**
+     * Show a single game by slug.
+     */
+    public function showBySlug(string $slug): JsonResponse
+    {
+        $game = \App\Models\Game::with('category')->where('slug', $slug)->first();
+
+        if (! $game) {
+            return ApiResponse::error('Game not found.', 404);
+        }
 
         return ApiResponse::success(
             'Game retrieved.',
