@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import joinedload
@@ -8,6 +9,7 @@ from sqlalchemy.orm import joinedload
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
 from app.models.user import User
+from app.models.system_config import SystemConfig
 from app.models.security_log import SecurityLog
 from app.services.security_logger import SecurityLogger
 from app.utils.notifications import notify_admin
@@ -206,4 +208,80 @@ async def get_event_types(
             "account_unblocked",
             "password_change",
         ]
+    }
+
+
+# ── Security settings (SystemConfig-backed) ─────────────────────────────
+
+DEFAULTS = {
+    "login_max_attempts": "5",
+    "login_lockout_minutes": "30",
+}
+
+
+class SecuritySettingsUpdate(BaseModel):
+    login_max_attempts: int
+    login_lockout_minutes: int
+
+
+async def _read_security_setting(db: AsyncSession, key: str) -> str:
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == key)
+    )
+    row = result.scalar_one_or_none()
+    return row.value if row else DEFAULTS[key]
+
+
+@router.get("/settings")
+async def get_security_settings(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    max_attempts = await _read_security_setting(db, "login_max_attempts")
+    lockout_minutes = await _read_security_setting(db, "login_lockout_minutes")
+    return {
+        "login_max_attempts": int(max_attempts),
+        "login_lockout_minutes": int(lockout_minutes),
+    }
+
+
+@router.put("/settings")
+async def update_security_settings(
+    body: SecuritySettingsUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    if body.login_max_attempts < 1 or body.login_max_attempts > 100:
+        raise HTTPException(status_code=400, detail="login_max_attempts must be between 1 and 100")
+    if body.login_lockout_minutes < 1 or body.login_lockout_minutes > 1440:
+        raise HTTPException(status_code=400, detail="login_lockout_minutes must be between 1 and 1440")
+
+    for key, value in [
+        ("login_max_attempts", str(body.login_max_attempts)),
+        ("login_lockout_minutes", str(body.login_lockout_minutes)),
+    ]:
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == key)
+        )
+        config = result.scalar_one_or_none()
+        if config:
+            config.value = value
+        else:
+            db.add(SystemConfig(key=key, value=value))
+
+    await db.commit()
+
+    sec_logger = SecurityLogger(db)
+    await sec_logger.log(
+        event_type="settings_changed",
+        user_id=current_admin.id,
+        email=current_admin.email,
+        ip_address=None,
+        device=None,
+        details=f"Login security updated: max_attempts={body.login_max_attempts}, lockout_minutes={body.login_lockout_minutes}",
+    )
+
+    return {
+        "login_max_attempts": body.login_max_attempts,
+        "login_lockout_minutes": body.login_lockout_minutes,
     }

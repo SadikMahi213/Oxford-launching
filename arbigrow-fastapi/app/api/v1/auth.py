@@ -322,21 +322,41 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    # Check if account is blocked
+    # Check if account is blocked (auto-unlock if lock duration expired)
     if user.blocked_at:
-        blocked_msg = (
-            "Your account has been temporarily blocked due to multiple failed login attempts. "
-            "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
+        lockout_row = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "login_lockout_minutes")
         )
-        raise HTTPException(status_code=423, detail=blocked_msg)
+        lockout_cfg = lockout_row.scalar_one_or_none()
+        lockout_minutes = int(lockout_cfg.value) if lockout_cfg else 30
+
+        lock_duration = timedelta(minutes=lockout_minutes)
+        if datetime.now(timezone.utc) - user.blocked_at >= lock_duration:
+            user.blocked_at = None
+            user.blocked_reason = None
+            user.failed_attempts = 0
+            await db.commit()
+        else:
+            blocked_msg = (
+                "Your account has been temporarily blocked due to multiple failed login attempts. "
+                "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
+            )
+            raise HTTPException(status_code=423, detail=blocked_msg)
 
     # pending_payment users are allowed to login (they will see the payment page)
     is_pending_payment = (user.account_status or "").lower() == "pending_payment"
 
+    # Read configured max failed attempts from SystemConfig (dynamic, no restart needed)
+    max_attempts_row = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "login_max_attempts")
+    )
+    max_attempts_cfg = max_attempts_row.scalar_one_or_none()
+    max_failed_attempts = int(max_attempts_cfg.value) if max_attempts_cfg else settings.MAX_FAILED_ATTEMPTS
+
     if not verify_password(user_data.password, user.hashed_password):
         user.failed_attempts = (user.failed_attempts or 0) + 1
 
-        if user.failed_attempts >= settings.MAX_FAILED_ATTEMPTS:
+        if user.failed_attempts >= max_failed_attempts:
             user.blocked_at = datetime.now(timezone.utc)
             user.blocked_reason = f"Auto-blocked after {user.failed_attempts} consecutive failed login attempts"
             await db.commit()
@@ -361,7 +381,7 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
 
         await notify_admin(
             db=db, type="failed_login",
-            message=f"Failed login attempt ({user.failed_attempts}/{settings.MAX_FAILED_ATTEMPTS}) for {user.full_name} ({user.email})",
+            message=f"Failed login attempt ({user.failed_attempts}/{max_failed_attempts}) for {user.full_name} ({user.email})",
             user_id=user.id, request=request,
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
