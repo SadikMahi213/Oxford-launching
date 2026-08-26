@@ -360,6 +360,7 @@ async def update_deposit_status(
                 tx_data={
                     "network": deposit.network_name,
                     "transaction_hash": deposit.txid,
+                    "transaction_id": deposit.txid,
                     "previous_balance": balance_before,
                     "current_balance": balance_before + float(deposit.amount),
                     "main_wallet_balance": float(user.main_wallet or 0),

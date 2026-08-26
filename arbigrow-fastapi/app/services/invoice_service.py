@@ -118,9 +118,9 @@ def _fmt_date(dt) -> str:
 def _fmt_currency(val, decimals=2) -> str:
     try:
         v = float(val or 0)
-        return f"${v:,.{decimals}f}"
+        return f"{v:,.{decimals}f} USDT"
     except (ValueError, TypeError):
-        return "$0.00"
+        return "0.00 USDT"
 
 
 def _sanitize_transaction_id(txid: str) -> str:
@@ -220,10 +220,14 @@ def _build_invoice_html(
 
     ref_col = ""
     ref_col += f'<div class="detail-row"><span class="label">Invoice No</span><span class="value">{invoice_number}</span></div>'
-    if tx_hash:
-        ref_col += f'<div class="detail-row"><span class="label">Tx Hash</span><span class="value">{_sanitize_transaction_id(tx_hash_display)}</span></div>'
-    if tx_id_val:
+    if is_deposit and tx_id_val:
+        ref_col += f'<div class="detail-row"><span class="label">Deposit TX ID</span><span class="value">{_sanitize_transaction_id(tx_id_val)}</span></div>'
+    elif is_withdrawal and tx_id_val:
+        ref_col += f'<div class="detail-row"><span class="label">Withdrawal Ref ID</span><span class="value">{_sanitize_transaction_id(tx_id_val)}</span></div>'
+    elif tx_id_val:
         ref_col += f'<div class="detail-row"><span class="label">Transaction ID</span><span class="value">{_sanitize_transaction_id(tx_id_val)}</span></div>'
+    if tx_hash and tx_hash != tx_id_val:
+        ref_col += f'<div class="detail-row"><span class="label">Tx Hash</span><span class="value">{_sanitize_transaction_id(tx_hash_display)}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">User ID</span><span class="value">{user_id or "-"}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Customer</span><span class="value">{user_name}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Email</span><span class="value">{user_email}</span></div>'
@@ -319,7 +323,10 @@ def _build_invoice_html(
     <table class="tx-table">
       <tr><td class="label">Transaction Type</td><td class="value">{tx_label}</td></tr>
       <tr><td class="label">Current Status</td><td class="value">{badge_text}</td></tr>
-      <tr><td class="label">Transaction ID</td><td class="value">{_sanitize_transaction_id(tx_id_val) or invoice_number}</td></tr>
+      {"<tr><td class=\"label\">Deposit Transaction ID</td><td class=\"value\">" + _sanitize_transaction_id(tx_id_val) + "</td></tr>" if is_deposit and tx_id_val else ""}
+      {"<tr><td class=\"label\">Withdrawal Reference ID</td><td class=\"value\">" + _sanitize_transaction_id(tx_id_val) + "</td></tr>" if is_withdrawal and tx_id_val else ""}
+      {"<tr><td class=\"label\">Transaction ID</td><td class=\"value\">" + _sanitize_transaction_id(tx_id_val) + "</td></tr>" if not is_deposit and not is_withdrawal and tx_id_val else ""}
+      <tr><td class="label">Invoice Number</td><td class="value val-blue">{invoice_number}</td></tr>
       <tr><td class="label">Payment Method</td><td class="value">{pm}</td></tr>
       <tr><td class="label">{tx_label} Amount</td><td class="value val-green">{amt_fmt}</td></tr>
       <tr><td class="label">Processing Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>

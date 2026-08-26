@@ -191,7 +191,7 @@ export default function InvoicePage() {
                     </div>
                     {inv.transaction_id && (
                       <div className="text-[10px] font-mono text-gray-500 truncate mt-0.5">
-                        TXN: {inv.transaction_id}
+                        {dep ? "Deposit TX:" : "Withdrawal Ref:"} {inv.transaction_id}
                       </div>
                     )}
                     <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
