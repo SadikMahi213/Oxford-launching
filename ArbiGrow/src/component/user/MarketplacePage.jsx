@@ -72,10 +72,11 @@ const ProductCard = ({ product, openProduct, toggleWishlist, inWishlist }) => (
   >
     <div className="aspect-square bg-white/[0.02] flex items-center justify-center p-4 overflow-hidden">
       {product.image_urls?.[0] ? (
-        <img src={product.image_urls[0]} alt={product.name} loading="lazy" className="w-full h-full object-cover rounded-xl transition-transform group-hover:scale-105" />
-      ) : (
+        <img src={product.image_urls[0]} alt={product.name} loading="lazy" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} className="w-full h-full object-cover rounded-xl transition-transform group-hover:scale-105" />
+      ) : null}
+      <div style={product.image_urls?.[0] ? {display:'none'} : {display:'flex'}} className="items-center justify-center">
         <Package className="w-12 h-12 text-gray-600" />
-      )}
+      </div>
     </div>
     <div className="p-3 space-y-1.5">
       <h3 className="text-xs text-gray-300 font-medium line-clamp-2 leading-tight">{product.name}</h3>
@@ -118,7 +119,8 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
                 <div className="relative aspect-square bg-white/[0.02] rounded-xl overflow-hidden group">
                   {productDetail.image_urls?.length > 0 ? (
                     <>
-                        <img src={productDetail.image_urls[selectedImageIdx]} alt={productDetail.name} loading="lazy" className="w-full h-full object-cover transition-opacity" />
+                        <img src={productDetail.image_urls[selectedImageIdx]} alt={productDetail.name} loading="lazy" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }} className="w-full h-full object-cover transition-opacity" />
+                      <div style={productDetail.image_urls?.[selectedImageIdx] ? {display:'none'} : {display:'flex'}} className="w-full h-full items-center justify-center"><Package className="w-16 h-16 text-gray-600" /></div>
                       {productDetail.image_urls.length > 1 && (
                         <>
                           <button onClick={() => setSelectedImageIdx((selectedImageIdx - 1 + productDetail.image_urls.length) % productDetail.image_urls.length)} className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"><ChevronLeft className="w-5 h-5" /></button>
@@ -139,7 +141,7 @@ const ProductDetailModal = ({ selectedProduct, setSelectedProduct, setProductDet
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {productDetail.image_urls.map((url, i) => (
                       <button key={i} onClick={() => setSelectedImageIdx(i)} className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${i === selectedImageIdx ? "border-cyan-400 opacity-100" : "border-transparent opacity-60 hover:opacity-80"}`}>
-                        <img src={url} alt={t("marketplace.productImage", { n: i + 1 })} loading="lazy" className="w-full h-full object-cover" />
+                        <img src={url} alt={t("marketplace.productImage", { n: i + 1 })} loading="lazy" onError={(e) => { e.target.style.display='none' }} className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -256,7 +258,10 @@ const CartDrawer = ({ view, setView, cart, updateQty, removeItem, setShowCheckou
             {cart.items.map((item) => (
               <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                 <div className="w-14 h-14 rounded-xl bg-white/[0.04] overflow-hidden flex-shrink-0">
-                    {item.product_image ? <img src={item.product_image} alt={item.product_name} loading="lazy" className="w-full h-full object-cover" /> : <Package className="w-6 h-6 m-auto mt-4 text-gray-600" />}
+                    {item.product_image ? <img src={item.product_image} alt={item.product_name} loading="lazy" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} className="w-full h-full object-cover" /> : null}
+                    <div style={item.product_image ? {display:'none'} : {display:'flex'}} className="w-full h-full items-center justify-center">
+                      <Package className="w-6 h-6 text-gray-600" />
+                    </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-white font-medium truncate">{item.product_name}</p>
