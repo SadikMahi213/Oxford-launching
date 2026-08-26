@@ -15,7 +15,7 @@ from app.models.user import User
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
 from app.models.invoice import Invoice
-from app.utils.transaction_id import generate_unique_transaction_id
+from app.utils.transaction_id import generate_unique_transaction_id, format_invoice_number
 
 logger = logging.getLogger(__name__)
 
@@ -469,17 +469,12 @@ async def generate_transaction_invoice(
     reference_type: Optional[str] = None,
     tx_data: Optional[dict] = None,
 ) -> Optional[Invoice]:
-    """Generate a per-transaction invoice: DB record, HTML, PDF."""
+    """Generate a per-transaction invoice: DB record, HTML, PDF.
+
+    Invoice number format: OFA + 6-digit zero-padded DB auto-increment ID.
+    Generated post-insert to guarantee uniqueness without race conditions.
+    """
     timestamp = datetime.now(timezone.utc)
-    ts_str = timestamp.strftime("%Y%m%d%H%M%S")
-    type_code = {
-        "deposit": "DEPO", "withdrawal": "WITH", "daily": "DAIL",
-        "weekly": "WEEK", "monthly": "MNTH", "statement": "STMT",
-        "investment": "INVT", "referral_bonus": "RBNS",
-        "matching_bonus": "MBON", "captcha_earning": "CAPT",
-        "ad_view_earning": "ADVW", "mining_reward": "MINE",
-    }.get(invoice_type, invoice_type.upper()[:4])
-    inv_number = f"INV-{type_code}-{user.id}-{ts_str}"
 
     if not description:
         type_labels = {
@@ -498,7 +493,39 @@ async def generate_transaction_invoice(
         }
         description = type_labels.get(invoice_type, f"{invoice_type.replace('_', ' ').title()} Invoice")
 
-    
+    raw_txid = (tx_data or {}).get("transaction_id", "") or ""
+    if raw_txid:
+        transaction_id = raw_txid
+    else:
+        transaction_id = await generate_unique_transaction_id(db, Invoice)
+
+    if tx_data is not None:
+        tx_data["transaction_id"] = transaction_id
+    else:
+        tx_data = {"transaction_id": transaction_id}
+
+    # Step 1: Insert record with placeholder invoice_number to get auto-increment ID
+    invoice = Invoice(
+        user_id=user.id,
+        invoice_type=invoice_type,
+        invoice_number="PENDING",
+        transaction_id=transaction_id,
+        amount=amount,
+        currency=currency,
+        status="generating",
+        description=description,
+        reference_id=reference_id,
+        reference_type=reference_type,
+    )
+    db.add(invoice)
+    await db.flush()
+    await db.refresh(invoice)
+
+    # Step 2: Generate OFA invoice number from the auto-increment ID
+    inv_number = format_invoice_number(invoice.id)
+    invoice.invoice_number = inv_number
+
+    # Step 3: Build HTML and generate PDF with the real invoice number
     user_id_str = user.user_no or str(user.id)
     account_holder_name = user.full_name or None
     raw_prev = tx_data.get("previous_balance") if tx_data else None
@@ -522,7 +549,6 @@ async def generate_transaction_invoice(
         created_at=_fmt_date(timestamp),
         tx_data=tx_data,
         user_id=user_id_str,
-        
         payment_method=payment_method,
         remarks=remarks,
         prev_balance=prev_balance,
@@ -540,32 +566,10 @@ async def generate_transaction_invoice(
     if not success:
         logger.warning(f"PDF generation failed for invoice {inv_number}")
 
-    raw_txid = (tx_data or {}).get("transaction_id", "") or ""
-    if raw_txid:
-        transaction_id = raw_txid
-    else:
-        transaction_id = await generate_unique_transaction_id(db, Invoice)
-
-    if tx_data is not None:
-        tx_data["transaction_id"] = transaction_id
-    else:
-        tx_data = {"transaction_id": transaction_id}
-
-    invoice = Invoice(
-        user_id=user.id,
-        invoice_type=invoice_type,
-        invoice_number=inv_number,
-        transaction_id=transaction_id,
-        amount=amount,
-        currency=currency,
-        status=status if success else "failed",
-        description=description,
-        pdf_url=f"/storage/invoices/{pdf_filename}" if success else None,
-        pdf_storage_key=pdf_filename if success else None,
-        reference_id=reference_id,
-        reference_type=reference_type,
-    )
-    db.add(invoice)
+    # Step 4: Finalize the record
+    invoice.status = status if success else "failed"
+    invoice.pdf_url = f"/storage/invoices/{pdf_filename}" if success else None
+    invoice.pdf_storage_key = pdf_filename if success else None
     await db.flush()
     await db.refresh(invoice)
     return invoice

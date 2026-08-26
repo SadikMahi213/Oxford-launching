@@ -1,7 +1,7 @@
 import secrets
 import string
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.base import Base
@@ -26,3 +26,21 @@ async def generate_unique_transaction_id(
         )
         if not result.scalar():
             return txid
+
+
+def format_invoice_number(record_id: int) -> str:
+    """Generate OFA invoice number: OFA + 6-digit zero-padded ID.
+
+    Uses the database auto-increment ID (post-insert) for guaranteed
+    uniqueness — no collision possible since IDs are sequential.
+    """
+    return f"OFA{record_id:06d}"
+
+
+def format_withdrawal_reference(record_id: int) -> str:
+    """Generate withdrawal reference: OFAWD + 6-digit zero-padded ID.
+
+    Uses the database auto-increment ID (post-insert) for guaranteed
+    uniqueness — no collision possible since IDs are sequential.
+    """
+    return f"OFAWD{record_id:06d}"
