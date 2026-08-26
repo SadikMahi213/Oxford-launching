@@ -210,3 +210,27 @@ class TestWithdrawalAtomicHold:
         # Ledger should reflect main_wallet = 120
         ledger_balance = Decimal(str(user.main_wallet))
         assert ledger_balance == Decimal("120.00000000000000")
+
+
+class TestWithdrawalTransactionId:
+    """Tests for withdrawal transaction_id generation."""
+
+    def test_11_transaction_id_is_generated(self):
+        """TEST 11: Withdrawal creation generates a transaction_id."""
+        from app.utils.transaction_id import generate_transaction_id
+
+        tx_id = generate_transaction_id(16)
+        assert tx_id is not None
+        assert len(tx_id) == 16
+        assert tx_id.isalnum()
+        assert tx_id.isupper()
+
+    def test_12_transaction_id_uniqueness(self):
+        """TEST 12: Generated transaction IDs are unique."""
+        from app.utils.transaction_id import generate_transaction_id
+
+        ids = set()
+        for _ in range(100):
+            tx_id = generate_transaction_id(16)
+            assert tx_id not in ids, "Transaction IDs should be unique"
+            ids.add(tx_id)

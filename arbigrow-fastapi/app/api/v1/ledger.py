@@ -430,8 +430,8 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         {"key": "generation_bonus", "amount": round(generation, 6), "currency": "USDT", "stream": "earning"},
         {"key": "matching_bonus", "amount": round(matching, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
-        {"key": "ofa_free_mining", "amount": round((Decimal(str(ofa_mining)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
-        {"key": "ofa_settlement_balance", "amount": round((Decimal(str(ofa_balance)) * ofa_to_usdt_rate), 6), "currency": "USDT", "stream": "balance", "balance_ofa": ofa_balance},
+        {"key": "ofa_free_mining", "amount": round(ofa_mining, 6), "currency": "OFA", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
+        {"key": "ofa_settlement_balance", "amount": round(ofa_balance, 6), "currency": "OFA", "stream": "balance", "balance_ofa": ofa_balance},
     ]
     soon = [
         {"key": key, "amount": 0.0, "currency": "USDT", "stream": "earning"}

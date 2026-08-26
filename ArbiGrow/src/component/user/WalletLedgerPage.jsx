@@ -140,7 +140,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
 
   const usdtTotal = wallets.reduce(
     (sum, w) =>
-      sum + (w.currency === "OFA" ? Number(w.balance_usdt) || 0 : Number(w.balance) || 0),
+      sum + (w.currency === "USDT" ? Number(w.balance) || 0 : 0),
     0
   );
 

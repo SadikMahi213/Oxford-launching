@@ -19,6 +19,7 @@ from app.utils.is_system_active import is_system_active
 from app.services.invoice_service import generate_withdrawal_invoice
 from app.utils.notifications import notify_admin
 from app.utils.kyc_helper import check_kyc_approved
+from app.utils.transaction_id import generate_unique_transaction_id
 from app.services.security_logger import SecurityLogger
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
@@ -190,6 +191,10 @@ async def create_withdrawal_request(
     new_balance = _to_wallet_precision(source_balance - amount)
     setattr(locked_user, data.source_wallet, new_balance)
 
+    withdrawal_transaction_id = await generate_unique_transaction_id(
+        db, Withdrawal, "transaction_id"
+    )
+
     withdrawal = Withdrawal(
         user_id=current_user.id,
         source_wallet=data.source_wallet,
@@ -203,6 +208,7 @@ async def create_withdrawal_request(
         bank_info_id=bank_info.id if bank_info else None,
         note=(data.note or "").strip() or None,
         status="pending",
+        transaction_id=withdrawal_transaction_id,
     )
     db.add(withdrawal)
 
