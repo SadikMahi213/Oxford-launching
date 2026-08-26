@@ -343,7 +343,7 @@ async def seed_marketplace(force: bool = False):
                         if force:
                             # Fix existing product: update description and images if missing/broken
                             needs_update = False
-                            if not existing_product.description or existing_product.description.strip() == "":
+                            if not existing_product.description or existing_product.description.strip() == "" or len(existing_product.description.strip()) < 50:
                                 existing_product.description = description
                                 needs_update = True
                             if not existing_product.image_url or "picsum.photos" in (existing_product.image_url or ""):
