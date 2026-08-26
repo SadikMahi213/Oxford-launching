@@ -16,7 +16,7 @@ class Invoice(Base):
 
     invoice_number = Column(String(64), unique=True, nullable=False, index=True)
 
-    transaction_id = Column(String(16), unique=True, nullable=False, index=True)
+    transaction_id = Column(String(128), unique=True, nullable=False, index=True)
 
     amount = Column(Numeric(24, 14), nullable=True)
     currency = Column(String(10), default="USDT")
