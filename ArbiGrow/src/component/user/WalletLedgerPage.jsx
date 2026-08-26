@@ -12,7 +12,6 @@ import {
   Users,
   GitMerge,
   Coins,
-  Pickaxe,
   ShieldCheck,
   MonitorPlay,
   ShoppingBag,
@@ -31,7 +30,6 @@ const WALLET_ICON = {
   ecommerce_wallet: ShoppingBag,
   matching_bonus_wallet: Trophy,
   arbx_wallet: Coins,
-  arbx_mining_wallet: Pickaxe,
 };
 
 const WALLET_THEME = {
@@ -45,7 +43,6 @@ const WALLET_THEME = {
   ecommerce_wallet:{ grad: "from-orange-400 to-amber-500", glow: "bg-orange-500/20" },
   matching_bonus_wallet:{ grad: "from-amber-400 to-yellow-500", glow: "bg-amber-500/20" },
   arbx_wallet:     { grad: "from-emerald-400 to-green-600", glow: "bg-emerald-500/20" },
-  arbx_mining_wallet:{ grad: "from-lime-400 to-green-600",  glow: "bg-lime-500/20" },
 };
 
 const WALLET_ORDER = [
@@ -56,7 +53,6 @@ const WALLET_ORDER = [
   "generation_wallet",
   "matching_bonus_wallet",
   "arbx_wallet",
-  "arbx_mining_wallet",
   "captcha_wallet",
   "ad_view_wallet",
   "ecommerce_wallet",
