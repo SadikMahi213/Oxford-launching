@@ -4,8 +4,6 @@ import {
   ChevronLeft,
   Loader2,
   Wallet,
-  Home,
-  User,
   DollarSign,
   Landmark,
   Banknote,
@@ -141,7 +139,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
   );
 
   return (
-    <div className="relative min-h-full bg-[#060B1A] text-white pb-24 md:pb-0">
+    <div className="relative min-h-full bg-[#060B1A] text-white pb-6">
       {/* Mobile header */}
       <div className="md:hidden flex items-center justify-between gap-3 px-3 py-3 border-b border-white/10">
         <div className="flex items-center gap-2 min-w-0">
@@ -213,30 +211,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
         </div>
       )}
 
-      {/* Bottom Navigation - Mobile only */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0B132B] border-t border-white/10 px-2 py-2 flex items-center justify-around">
-        <button onClick={() => setActivePage?.("overview")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
-          <Home size={18} aria-hidden="true" />
-          <span className="text-[10px] leading-none">Dashboard</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 px-3 py-1 text-blue-400">
-          <Wallet size={18} aria-hidden="true" />
-          <span className="text-[10px] font-semibold leading-none">Ledger</span>
-        </button>
-        <button onClick={() => setActivePage?.("deposit")} className="flex flex-col items-center justify-center -mt-4">
-          <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/30 border-2 border-[#0B132B]">
-            <DollarSign size={20} className="text-white" aria-hidden="true" />
-          </div>
-        </button>
-        <button onClick={() => setActivePage?.("transfer")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
-          <Wallet size={18} aria-hidden="true" />
-          <span className="text-[10px] leading-none">Wallet</span>
-        </button>
-        <button onClick={() => setActivePage?.("profile")} className="flex flex-col items-center gap-1 px-3 py-1 text-gray-400 hover:text-white transition-colors">
-          <User size={18} aria-hidden="true" />
-          <span className="text-[10px] leading-none">Profile</span>
-        </button>
-      </div>
+
     </div>
   );
 };
