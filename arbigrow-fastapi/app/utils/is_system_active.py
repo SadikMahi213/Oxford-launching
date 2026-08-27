@@ -18,6 +18,8 @@ FEATURE_CONFIG_KEYS: dict[FeatureType, str] = {
     "mining": "mining_enabled",
 }
 
+WEEKEND_PAUSED_FEATURES: set[FeatureType] = {"daily_work", "daily_earning", "withdrawal"}
+
 
 def _is_uk_weekend() -> bool:
     """Check if current time in Europe/London is Saturday (5) or Sunday (6)."""
@@ -40,12 +42,25 @@ def _is_uk_weekend() -> bool:
     return is_weekend
 
 
+async def _is_weekend_restricted(db: AsyncSession) -> bool:
+    """Check if weekend restriction is enabled (default: True)."""
+    result = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "system_weekend_restricted")
+    )
+    config = result.scalar_one_or_none()
+    if config is not None:
+        return config.value.lower() != "false"
+    return True
+
+
 async def is_system_active(feature: FeatureType, db: AsyncSession) -> bool:
     """Check whether a system feature is currently active.
 
     Rules:
     1. If admin override exists in SystemConfig, respect it.
-    2. On UK weekends (Sat/Sun): daily_work and daily_earning are disabled.
+    2. On UK weekends (Sat/Sun) with weekend restriction enabled:
+       daily_work, daily_earning, and withdrawal are disabled.
+       Mining remains ON.
     3. All other features (deposit, purchase) are always active.
     """
     if feature not in FEATURE_CONFIG_KEYS:
@@ -59,13 +74,17 @@ async def is_system_active(feature: FeatureType, db: AsyncSession) -> bool:
     config = result.scalar_one_or_none()
 
     if config is not None:
-        active = config.value.lower() == "true"
+        active = (config.value or "").lower() == "true"
         logger.info("System feature '%s' → %s (admin override)", feature, "active" if active else "paused")
         return active
 
-    if _is_uk_weekend():
-        logger.info("System feature '%s' → paused (UK weekend)", feature)
-        return False
+    if _is_uk_weekend() and feature in WEEKEND_PAUSED_FEATURES:
+        if await _is_weekend_restricted(db):
+            logger.info("System feature '%s' → paused (UK weekend, restriction enabled)", feature)
+            return False
+        else:
+            logger.info("System feature '%s' → active (UK weekend, but restriction disabled by admin)", feature)
+            return True
 
     logger.debug("System feature '%s' → active", feature)
     return True

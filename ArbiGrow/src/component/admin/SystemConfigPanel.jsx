@@ -12,6 +12,7 @@ const FEATURE_LABELS = {
   system_daily_work_enabled: "Daily Work (Mining)",
   system_daily_earning_enabled: "Daily Earnings (ROI)",
   system_withdrawal_enabled: "Withdrawals",
+  system_weekend_restricted: "Weekend Restriction (Sat/Sun)",
 };
 
 const SystemConfigPanel = () => {

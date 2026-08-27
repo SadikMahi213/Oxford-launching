@@ -83,15 +83,15 @@ export default function DashboardOverview() {
       : "text-red-400";
 
   return (
-    <div className="p-3 sm:p-4 md:p-6">
+    <div className="p-3 sm:p-4 md:p-6 overflow-hidden">
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
+        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
           Admin{" "}
           <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
             Dashboard Overview
           </span>
         </h1>
-        <p className="text-gray-400">Real-time admin system metrics (auto-refreshes every 15s)</p>
+        <p className="text-xs sm:text-sm text-gray-400">Real-time admin system metrics (auto-refreshes every 15s)</p>
       </div>
 
       {error && (
@@ -133,7 +133,6 @@ export default function DashboardOverview() {
             <StatCard key="matching" icon={GitCompare} label="Total Matching Bonus Distribution" value={`$${toAmount(realtime.total_matching_bonus).toLocaleString()}`} delay={0.1} iconColor="text-fuchsia-400" />,
             <StatCard key="captcha" icon={Shapes} label="Captcha Typing Distribution" value={`$${toAmount(realtime.total_captcha_distribution).toLocaleString()}`} delay={0.15} iconColor="text-indigo-400" />,
             <StatCard key="adview" icon={Tv} label="Ad View Distribution" value={`$${toAmount(realtime.total_ad_view_distribution).toLocaleString()}`} delay={0.2} iconColor="text-sky-400" />,
-            <StatCard key="free-package" icon={Gem} label="Total Free Package Distribution USD" value={`$${toAmount(realtime.total_free_package_distribution).toLocaleString()}`} delay={0.25} iconColor="text-teal-400" />,
             <StatCard key="signup-bonus" icon={Gift} label={t("admin.overview.totalSignupBonusDistributed", "Total Signup OFA Bonus Distributed")} value={`${toAmount(realtime.total_signup_bonus_distributed ?? 0).toLocaleString()} OFA`} delay={0.3} iconColor="text-emerald-400" />,
           ])}
 

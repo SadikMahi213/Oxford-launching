@@ -317,7 +317,7 @@ export default function WithdrawalMethodManager() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#0d1137] p-6 shadow-2xl">
+          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15 bg-[#0d1137] p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">
                 {editingMethod ? "Edit Withdrawal Method" : "Add Withdrawal Method"}
