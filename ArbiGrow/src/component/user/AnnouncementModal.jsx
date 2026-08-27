@@ -22,7 +22,7 @@ export function AnnouncementModal({ open, announcement, onClose }) {
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ duration: 0.2 }}
             onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-3 sm:p-5 shadow-2xl max-h-[calc(100dvh-0.75rem)] sm:max-h-[90dvh] overflow-y-auto"
+            className="relative w-full max-w-xs sm:max-w-sm md:max-w-md rounded-2xl border border-gray-200 bg-white p-3 sm:p-5 shadow-2xl max-h-[85dvh] sm:max-h-[80dvh] overflow-y-auto"
           >
             <button
               type="button"
@@ -34,30 +34,39 @@ export function AnnouncementModal({ open, announcement, onClose }) {
             </button>
 
             {announcement.image_url ? (
-              <div className="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+              <div className="mb-3 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
                 <img
                   src={announcement.image_url}
                   alt={announcement.title}
-                  className="w-full max-h-[46dvh] object-contain bg-gray-50"
+                  className="w-full max-h-[35dvh] sm:max-h-[40dvh] object-contain bg-gray-50"
                 />
               </div>
             ) : null}
 
             <div className="pr-8 sm:pr-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wide text-gray-700">
-                <Megaphone className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-100 px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-gray-700">
+                <Megaphone className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 {t("common.announcement")}
               </div>
-              <h3 className="mt-3 text-lg sm:text-xl font-bold leading-tight text-gray-900">
+              <h3 className="mt-2 sm:mt-3 text-base sm:text-lg md:text-xl font-bold leading-tight text-gray-900">
                 {announcement.title}
               </h3>
               {announcement.message && (
-                <p className="mt-2 text-xs sm:text-sm leading-relaxed text-gray-700 break-words">
+                <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs md:text-sm leading-relaxed text-gray-700 break-words">
                   {announcement.message}
                 </p>
               )}
             </div>
 
+            <div className="mt-3 sm:mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-gray-300 bg-white px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                {t("common.skip")}
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       )}
