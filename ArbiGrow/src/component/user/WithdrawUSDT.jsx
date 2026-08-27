@@ -453,13 +453,14 @@ export default function WithdrawPage() {
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.amount')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.refId')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.address')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.status')}</th>
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td colSpan="6" className="p-6 text-center text-gray-400">{t('withdraw.loadingHistory')}</td></tr>}
-              {!isLoading && withdrawals.length === 0 && <tr><td colSpan="6" className="p-6 text-center text-gray-400">{t('withdraw.noHistory')}</td></tr>}
+              {isLoading && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.loadingHistory')}</td></tr>}
+              {!isLoading && withdrawals.length === 0 && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.noHistory')}</td></tr>}
               {withdrawals.map((w) => {
                 const address = w.destination_address || "-";
                 const isLong = address.length > 20;
@@ -470,6 +471,13 @@ export default function WithdrawPage() {
                     <td className="p-4 font-semibold">{formatAmount(w.amount)} USDT</td>
                     <td className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
                     <td className="p-4 text-gray-400">{w.network_name || "-"}</td>
+                    <td className="p-4">
+                      {w.transaction_id ? (
+                        <button onClick={() => copyAddress(w.transaction_id)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
+                          {w.transaction_id.length > 16 ? `${w.transaction_id.slice(0, 10)}...${w.transaction_id.slice(-6)}` : w.transaction_id} <Copy size={14} />
+                        </button>
+                      ) : "-"}
+                    </td>
                     <td className="p-4">
                       <button onClick={() => copyAddress(address)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
                         {label} <Copy size={14} />

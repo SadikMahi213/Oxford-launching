@@ -47,6 +47,7 @@ def _serialize_withdrawal(withdrawal: Withdrawal, include_user: bool = False) ->
         "account_type": withdrawal.account_type,
         "note": withdrawal.note,
         "status": withdrawal.status,
+        "transaction_id": withdrawal.transaction_id,
         "created_at": withdrawal.created_at,
         "processed_at": withdrawal.processed_at,
         "approved_by": withdrawal.approved_by,

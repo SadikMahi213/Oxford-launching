@@ -1072,6 +1072,8 @@
 
     "address": "Address",
 
+    "refId": "Reference",
+
     "status": "Status",
 
     "loadingHistory": "Loading withdrawal history...",
