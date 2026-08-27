@@ -51,7 +51,6 @@ const getErrorMessage = (error) =>
   error?.message;
 
 const INITIAL_FIELD_ERRORS = {
-  wallet: "",
   amount: "",
   method: "",
   destination: "",
@@ -65,7 +64,6 @@ const getApiFieldErrors = (error) => {
   details.forEach((item) => {
     const field = item?.loc?.[item.loc.length - 1];
     const message = typeof item?.msg === "string" ? item.msg : "Invalid value";
-    if (field === "source_wallet") { mapped.wallet = message; hasMappedError = true; }
     if (field === "amount") { mapped.amount = message; hasMappedError = true; }
     if (field === "withdrawal_method_id") { mapped.method = message; hasMappedError = true; }
     if (field === "destination_address") { mapped.destination = message; hasMappedError = true; }
@@ -77,7 +75,6 @@ export default function WithdrawPage() {
   const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
-  const [selectedWalletKey, setSelectedWalletKey] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -97,25 +94,18 @@ export default function WithdrawPage() {
     return () => clearTimeout(timer);
   }, [feedback]);
 
-  const walletOptions = useMemo(
-    () => [
-      { key: "main_wallet", label: t('withdraw.mainWallet'), balance: toNumber(user?.main_wallet) },
-      { key: "referral_wallet", label: t('withdraw.referralWallet'), balance: toNumber(user?.referral_wallet) },
-      { key: "generation_wallet", label: t('withdraw.generationWallet'), balance: toNumber(user?.generation_wallet) },
-      { key: "captcha_wallet", label: t('withdraw.captchaWallet'), balance: toNumber(user?.captcha_wallet) },
-      { key: "ad_view_wallet", label: t('withdraw.adWallet'), balance: toNumber(user?.ad_view_wallet) },
-    ],
-    [user],
-  );
+  const mainWalletBalance = toNumber(user?.main_wallet);
 
   const selectedWallet = useMemo(
-    () => walletOptions.find((w) => w.key === selectedWalletKey),
-    [walletOptions, selectedWalletKey],
+    () => ({ key: "main_wallet", label: t('withdraw.mainWallet'), balance: mainWalletBalance }),
+    [mainWalletBalance, t],
   );
 
+  const selectedWalletKey = "main_wallet";
+
   const walletLabelMap = useMemo(
-    () => new Map(walletOptions.map((w) => [w.key, w.label])),
-    [walletOptions],
+    () => new Map([["main_wallet", t('withdraw.mainWallet')]]),
+    [t],
   );
 
   const selectedMethod = useMemo(
@@ -128,8 +118,6 @@ export default function WithdrawPage() {
     return Number.isNaN(p) || p <= 0 ? 0 : p;
   }, [amount]);
 
-  const EARNING_WALLETS = new Set(["captcha_wallet", "ad_view_wallet"]);
-  const mainWalletBalance = toNumber(user?.main_wallet);
   const requiredMainWalletBalance = useMemo(
     () => amountNumber * (1 + MAIN_WALLET_BUFFER_RATE),
     [amountNumber],
@@ -138,8 +126,7 @@ export default function WithdrawPage() {
     () => Math.max(requiredMainWalletBalance - mainWalletBalance, 0),
     [requiredMainWalletBalance, mainWalletBalance],
   );
-  const hasEnoughMainWalletBalance =
-    amountNumber <= 0 || EARNING_WALLETS.has(selectedWalletKey) || mainWalletShortfall === 0;
+  const hasEnoughMainWalletBalance = amountNumber <= 0 || mainWalletShortfall === 0;
 
   const hasApprovedBank = bankInfo?.status === "approved";
 
@@ -188,7 +175,6 @@ export default function WithdrawPage() {
     const normalizedAmount = amount.trim();
     const parsedAmount = Number(normalizedAmount);
 
-    if (!selectedWalletKey) nextFieldErrors.wallet = t('withdraw.err_field');
     if (!normalizedAmount) {
       nextFieldErrors.amount = t('withdraw.err_field');
     } else if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -283,34 +269,17 @@ export default function WithdrawPage() {
         <p className="text-sm text-gray-400">{t('withdraw.subtitle')}</p>
       </div>
 
-      {/* Wallet Selection */}
+      {/* Main Wallet Display */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-6 backdrop-blur-xl">
-        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.selectWallet')}</h3>
-        <div className="relative">
-          <select
-            value={selectedWalletKey}
-            onChange={(e) => { setSelectedWalletKey(e.target.value); setFieldErrors((p) => ({ ...p, wallet: "" })); }}
-            className={`w-full appearance-none rounded-xl border bg-[#0A122C] px-4 py-3 text-white ${fieldErrors.wallet ? "border-red-500/60" : "border-white/10"}`}
-          >
-            <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>{t('withdraw.selectWallet_plh')}</option>
-            {walletOptions.map((w) => (
-              <option key={w.key} value={w.key} style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
-                {w.label} ({w.balance.toFixed(7)})
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.withdrawFrom')}</h3>
+        <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3">
+          <p className="text-sm text-gray-400">{t('withdraw.sourceWallet')}</p>
+          <p className="text-lg font-semibold text-white">{t('withdraw.mainWallet')}</p>
         </div>
-        {fieldErrors.wallet && <p className="mt-2 text-xs text-red-300">{fieldErrors.wallet}</p>}
-
-        {selectedWallet && (
-          <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-              <p className="text-sm text-gray-400">{t('withdraw.availableBalance')}</p>
-              <p className="text-lg font-semibold text-cyan-400">{t('withdraw.balance', { balance: selectedWallet.balance.toFixed(7) })}</p>
-            </div>
-          </div>
-        )}
+        <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-sm text-gray-400">{t('withdraw.availableBalance')}</p>
+          <p className="text-lg font-semibold text-cyan-400">{t('withdraw.balance', { balance: mainWalletBalance.toFixed(7) })}</p>
+        </div>
       </div>
 
       {/* Withdrawal Form */}
@@ -444,7 +413,7 @@ export default function WithdrawPage() {
             </div>
           )}
 
-          {amountNumber > 0 && !EARNING_WALLETS.has(selectedWalletKey) && (
+          {amountNumber > 0 && (
             <div className={`rounded-xl border px-4 py-3 text-sm ${hasEnoughMainWalletBalance ? "border-green-500/30 bg-green-500/10 text-green-200" : "border-red-500/30 bg-red-500/10 text-red-200"}`}>
               <p>{t('withdraw.mainRequired', { amount: requiredMainWalletBalance.toFixed(7) })}</p>
               <p>{t('withdraw.mainAvailable', { balance: mainWalletBalance.toFixed(7) })}</p>
