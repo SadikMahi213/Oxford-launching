@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
@@ -177,33 +178,37 @@ const WalletLedgerPage = ({ setActivePage }) => {
       ) : (
         <div className="p-3 sm:p-6">
           {/* Total balance highlight */}
-          <div className="mb-5 sm:mb-7 rounded-2xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-white/[0.02] border border-white/10 p-4 sm:p-5 shadow-xl shadow-blue-900/10">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-5 sm:mb-7 rounded-2xl bg-gradient-to-br from-blue-600/20 via-indigo-600/10 to-white/[0.02] border border-white/10 p-4 sm:p-5 shadow-xl shadow-blue-900/10">
             <div className="text-[11px] sm:text-xs font-medium text-gray-400">{t("ledger.totalUsdt", "Total USDT Balance")}</div>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-bold text-white tracking-tight">${formatFiat(usdtTotal)}</span>
               <span className="text-[10px] sm:text-xs font-semibold text-gray-500">USDT</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Wallet cards */}
           {wallets.length > 0 && (
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 auto-rows-fr">
-              {wallets.map((w) => {
+              {wallets.map((w, idx) => {
                 const Icon = WALLET_ICON[w.key] || Wallet;
                 const theme = WALLET_THEME[w.key] || { grad: "from-slate-400 to-slate-600", glow: "bg-slate-500/20" };
                 const isOfa = w.currency === "OFA";
-                const usdtValue = isOfa ? (Number(w.balance_usdt) || 0) : (Number(w.balance) || 0);
-                const amount = formatFiat(usdtValue);
                 return (
-                  <WalletCard
+                  <motion.div
                     key={w.key}
-                    icon={Icon}
-                    title={t(`ledger.balance.${w.key}`, w.key)}
-                    value={`$${amount}`}
-                    unit="USDT"
-                    subtitle={isOfa ? `${formatAmount(w.balance)} OFA` : undefined}
-                    theme={theme}
-                  />
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 + idx * 0.05 }}
+                  >
+                    <WalletCard
+                      icon={Icon}
+                      title={t(`ledger.balance.${w.key}`, w.key)}
+                      value={isOfa ? formatAmount(w.balance) : `$${formatFiat(Number(w.balance) || 0)}`}
+                      unit={isOfa ? "OFA" : "USDT"}
+                      subtitle={undefined}
+                      theme={theme}
+                    />
+                  </motion.div>
                 );
               })}
             </div>

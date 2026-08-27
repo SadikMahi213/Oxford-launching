@@ -1004,6 +1004,8 @@
 
     "subtitle": "Submit a withdrawal request from your wallet balances",
 
+    "withdrawFrom": "Withdraw From",
+
     "selectWallet": "Select Wallet",
 
     "selectWallet_plh": "Select wallet",

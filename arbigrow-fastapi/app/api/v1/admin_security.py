@@ -251,8 +251,8 @@ async def update_security_settings(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    if body.login_max_attempts < 1 or body.login_max_attempts > 100:
-        raise HTTPException(status_code=400, detail="login_max_attempts must be between 1 and 100")
+    if body.login_max_attempts < 0 or body.login_max_attempts > 100:
+        raise HTTPException(status_code=400, detail="login_max_attempts must be between 0 and 100")
     if body.login_lockout_minutes < 1 or body.login_lockout_minutes > 1440:
         raise HTTPException(status_code=400, detail="login_lockout_minutes must be between 1 and 1440")
 

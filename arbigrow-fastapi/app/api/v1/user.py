@@ -153,6 +153,7 @@ async def get_me(
         current_user.team_volume = _tv
         db.add(current_user)
         await db.commit()
+        await db.refresh(current_user)
 
     user_resp = UserResponse.model_validate(current_user)
     if kyc:

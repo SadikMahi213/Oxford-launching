@@ -177,19 +177,19 @@ export default function BlockedAccounts() {
                   type="number"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  min={1}
+                  min={0}
                   max={100}
                   value={settings.login_max_attempts}
                   onChange={(e) => {
                     const v = e.target.value;
                     if (v === "") { setSettings(s => ({ ...s, login_max_attempts: "" })); return; }
                     const n = parseInt(v, 10);
-                    if (!isNaN(n)) setSettings(s => ({ ...s, login_max_attempts: Math.max(1, Math.min(100, n)) }));
+                    if (!isNaN(n)) setSettings(s => ({ ...s, login_max_attempts: Math.max(0, Math.min(100, n)) }));
                   }}
                   onBlur={(e) => { if (e.target.value === "") setSettings(s => ({ ...s, login_max_attempts: 5 })); }}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors focus:border-cyan-500/60"
                 />
-                <p className="mt-1 text-xs text-gray-500">Number of consecutive failed attempts before auto-blocking an account (1–100)</p>
+                <p className="mt-1 text-xs text-gray-500">Number of consecutive failed attempts before auto-blocking an account (0–100). Set to 0 to block on any failed attempt.</p>
               </div>
 
               <div>

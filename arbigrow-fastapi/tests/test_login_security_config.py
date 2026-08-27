@@ -107,12 +107,12 @@ def test_system_config_fallback_to_default():
 
 
 def test_zero_and_negative_protection():
-    """Config validation: values < 1 are rejected."""
-    for val in [0, -1, -100]:
-        assert val < 1, f"Value {val} should be rejected"
+    """Config validation: values < 0 are rejected."""
+    for val in [-1, -100]:
+        assert val < 0, f"Value {val} should be rejected"
 
-    for val in [1, 5, 30, 1440]:
-        assert val >= 1, f"Value {val} should be accepted"
+    for val in [0, 1, 5, 30, 1440]:
+        assert val >= 0, f"Value {val} should be accepted"
 
 
 def test_failed_attempts_counter_increment():
