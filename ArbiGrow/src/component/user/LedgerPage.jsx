@@ -53,14 +53,18 @@ const CATEGORIES = [
   "ofa_conversion",
   "manual_adjustment",
   "ofa_transaction",
-  "kyc_fee",
   "refund",
   "withdrawal",
   "service_fee",
-  "deposit",
   "ecommerce",
   "transfer",
 ];
+
+const EARNING_CATEGORIES = new Set([
+  "daily_earning", "ad_view", "captcha", "referral_bonus", "team_bonus",
+  "matching_bonus", "mining", "signup_bonus", "package_bonus",
+  "ecommerce_bonus", "ecommerce",
+]);
 
 const VALID_CATEGORIES = new Set(CATEGORIES);
 
@@ -85,11 +89,41 @@ const statusColor = (status) => {
   }
 };
 
+const displayStatus = (item) => {
+  if ((item.status === "pending" || item.status === "held") && Number(item.amount) === 0) {
+    return "rejected";
+  }
+  return item.status;
+};
+
 const formatDate = (iso) => {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString();
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${day}.${month}.${year} ${hours}:${minutes}:${seconds} ${ampm}`;
+};
+
+const formatDateParts = (iso) => {
+  if (!iso) return { date: "—", time: "" };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: iso, time: "" };
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return { date: `${day}.${month}.${year}`, time: `${hours}:${minutes}:${seconds} ${ampm}` };
 };
 
 // Format a numeric amount without JS float drift: keep up to 6 decimals but
@@ -556,6 +590,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
               items.map((item) => {
                 const isDebit = item.direction === "debit";
                 const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
+                const dispStatus = displayStatus(item);
                 return (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
                     <td className="p-4 text-sm text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
@@ -571,8 +606,8 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
                     </td>
                     <td className="p-4 text-sm text-gray-300">{item.currency}</td>
                     <td className="p-4 text-sm">
-                      <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${statusColor(item.status)}`}>
-                        {t(`ledger.status.${item.status}`, item.status)}
+                      <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${statusColor(dispStatus)}`}>
+                        {t(`ledger.status.${dispStatus}`, dispStatus)}
                       </span>
                     </td>
                     <td className="p-4 text-sm text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
@@ -584,74 +619,66 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
         </table>
       </div>
 
-      {/* Mobile horizontal scrollable table — preserves ALL desktop columns */}
-      <div className="md:hidden overflow-x-auto -mx-3 pb-3 touch-pan-x" style={{ WebkitOverflowScrolling: "touch" }}>
-        <table className="min-w-[720px] w-full">
-          <thead>
-            <tr className="border-b border-white/10">
-              <th className="p-3 text-left text-xs font-semibold text-gray-400 whitespace-nowrap">{t("ledger.col.date", "Date")}</th>
-              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.category", "Category")}</th>
-              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.type", "Type")}</th>
-              <th className="p-3 text-right text-xs font-semibold text-gray-400">{t("ledger.col.amount", "Amount")}</th>
-              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.currency", "Currency")}</th>
-              <th className="p-3 text-left text-xs font-semibold text-gray-400">{t("ledger.col.status", "Status")}</th>
-              <th className="p-3 text-left text-xs font-semibold text-gray-400 whitespace-nowrap">{t("ledger.col.reference", "Reference")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-gray-400">
-                  <Loader2 className="inline animate-spin mr-2" size={16} />
-                  {t("ledger.loading", "Loading…")}
-                </td>
-              </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</td>
-              </tr>
-            ) : (
-              items.map((item) => {
-                const isDebit = item.direction === "debit";
-                const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
-                const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
-                return (
-                  <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
-                    <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatDate(item.date)}</td>
-                    <td className="p-3 text-xs text-white whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Icon size={12} className="text-gray-500 shrink-0" aria-hidden="true" />
-                        {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
+      {/* Mobile: fintech-style compact rows */}
+      <div className="md:hidden px-3 pb-3">
+        {loading ? (
+          <div className="p-8 text-center text-gray-400">
+            <Loader2 className="inline animate-spin mr-2" size={16} />
+            {t("ledger.loading", "Loading…")}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">{t("ledger.noRecords", "No records found.")}</div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {items.map((item) => {
+              const isDebit = item.direction === "debit";
+              const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
+              const { date: dateStr, time: timeStr } = formatDateParts(item.date);
+              const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
+              const dispStatus = displayStatus(item);
+              return (
+                <div key={item.id} className="rounded-xl border border-white/10 bg-[#0B132B] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                        <Icon size={15} className="text-gray-400" aria-hidden="true" />
                       </span>
-                    </td>
-                    <td className="p-3 text-xs text-gray-400 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1">
-                        {isDebit ? <ArrowUpRight size={12} className="text-red-300" /> : <ArrowDownLeft size={12} className="text-emerald-300" />}
-                        {t(`ledger.type.${item.type}`, item.type)}
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-white leading-tight truncate">
+                          {t(item.category_label_key || `ledger.category.${item.category}`, item.category)}
+                        </div>
+                        <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                          {isDebit ? <ArrowUpRight size={10} className="text-red-300" /> : <ArrowDownLeft size={10} className="text-emerald-300" />}
+                          {t(`ledger.type.${item.type}`, item.type)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className={`text-sm font-bold whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+                        {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
                       </span>
-                    </td>
-                    <td className={`p-3 text-xs font-semibold text-right whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                      {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
-                    </td>
-                    <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{item.currency}</td>
-                    <td className="p-3 text-xs whitespace-nowrap">
-                      <span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] ${statusColor(item.status)}`}>
-                        {t(`ledger.status.${item.status}`, item.status)}
+                      <span className={`inline-block px-1.5 py-0.5 mt-0.5 rounded border text-[9px] font-semibold ${statusColor(dispStatus)}`}>
+                        {t(`ledger.status.${dispStatus}`, dispStatus)}
                       </span>
-                    </td>
-                    <td className="p-3 text-xs text-gray-400 whitespace-nowrap">{item.reference || "—"}</td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                    <div className="text-[11px] text-gray-500">
+                      {dateStr}
+                      {timeStr && <span className="ml-2">{timeStr}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </>
   );
 
   return (
-    <div className="animate-[fadeIn_0.4s_ease] rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden pb-20 md:pb-0">
+    <div className="animate-[fadeIn_0.4s_ease] rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-x-hidden pb-20 md:pb-0">
         {/* Header */}
         <div className="p-3 sm:p-6 border-b border-white/10">
           {/* Mobile header */}
@@ -739,11 +766,11 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
                     { id: "mining", label: t("ledger.category.mining", "Mining") },
                   ]
                 : [
-                    { id: "", label: "All" },
-                    { id: "deposit", label: "Deposit" },
-                    { id: "withdrawal", label: "Withdrawal" },
-                    { id: "matching_bonus", label: "Bonus" },
-                    { id: "ecommerce", label: "Spending" },
+                    { id: "", label: t("ledger.filter.all", "All") },
+                    { id: "deposit", label: t("ledger.category.deposit", "Deposit") },
+                    { id: "withdrawal", label: t("ledger.category.withdrawal", "Withdrawal") },
+                    { id: "matching_bonus", label: t("ledger.category.matching_bonus", "Bonus") },
+                    { id: "ecommerce", label: t("ledger.category.ecommerce", "Spending") },
                   ]
             ).map((tab) => {
               const active = filters.category === tab.id;
