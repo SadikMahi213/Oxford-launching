@@ -122,12 +122,12 @@ export function StatisticsForm({ initialStats, onSave }) {
         </div>
       )}
 
-      {/* Input Fields */}
+      {/* Input Fields — labels renamed to Oxford Financial Ads Live Statistics (values unchanged) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         <StatInputField
           icon={Users}
-          label="Total Users"
+          label="Total Registered Members"
           value={totalUsers}
           onChange={setTotalUsers}
           placeholder="1250000"
@@ -136,7 +136,7 @@ export function StatisticsForm({ initialStats, onSave }) {
 
         <StatInputField
           icon={UserCheck}
-          label="Active Investors"
+          label="Verified Freelancers"
           value={activeInvestors}
           onChange={setActiveInvestors}
           placeholder="793247"
@@ -145,7 +145,7 @@ export function StatisticsForm({ initialStats, onSave }) {
 
         <StatInputField
           icon={TrendingUp}
-          label="Total Invested"
+          label="Package Investment Overview"
           value={totalInvested}
           onChange={setTotalInvested}
           placeholder="9884731"
@@ -154,23 +154,22 @@ export function StatisticsForm({ initialStats, onSave }) {
         />
 
         <StatInputField
-          icon={DollarSign}
-          label="Total Profit Shared"
-          value={totalProfitShared}
-          onChange={setTotalProfitShared}
-          placeholder="940948000"
-          color="green"
-          isCurrency
-        />
-
-        <StatInputField
           icon={Download}
-          label="Total Withdrawn"
+          label="Successful Withdrawals"
           value={totalWithdrawn}
           onChange={setTotalWithdrawn}
           placeholder="22438296"
           color="orange"
           isCurrency
+        />
+
+        <StatInputField
+          icon={DollarSign}
+          label="Countries Connected"
+          value={totalProfitShared}
+          onChange={setTotalProfitShared}
+          placeholder="93"
+          color="green"
         />
 
       </div>

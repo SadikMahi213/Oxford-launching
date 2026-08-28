@@ -9,8 +9,8 @@ export function StatisticsHeader() {
           <Activity className="w-5 h-5 text-purple-400" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold">Platform Statistics</h2>
-          <p className="text-gray-400 text-sm">Manage live platform statistics displayed on homepage</p>
+          <h2 className="text-2xl font-bold">Oxford Financial Ads Live Statistics</h2>
+          <p className="text-gray-400 text-sm">Real-time transparency into our global network, active memberships, and successful financial engagements.</p>
         </div>
       </div>
     </div>
