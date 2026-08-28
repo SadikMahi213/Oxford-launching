@@ -167,8 +167,8 @@ export default function WithdrawalMethodManager() {
 
     try {
       setActionMethodId(method.id);
-      await deleteWithdrawalMethod(token, method.id);
-      setSuccessMessage("Withdrawal method deleted successfully.");
+      const res = await deleteWithdrawalMethod(token, method.id);
+      setSuccessMessage(res?.message || "Withdrawal method deleted successfully.");
       await loadMethods();
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -180,8 +180,8 @@ export default function WithdrawalMethodManager() {
   const sortedMethods = useMemo(
     () =>
       [...methods].sort((a, b) => {
-        const aDate = new Date(a.created_at || 0).getTime();
-        const bDate = new Date(b.created_at || 0).getTime();
+        const aDate = new Date(a.date_created || 0).getTime();
+        const bDate = new Date(b.date_created || 0).getTime();
         return bDate - aDate;
       }),
     [methods],

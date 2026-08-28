@@ -1,11 +1,15 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func as sa_func
 from app.models.withdrawal_method import WithdrawalMethod
+from app.models.withdrawal import Withdrawal
 from app.models.user import User
 from app.schemas.withdrawal_method import WithdrawalMethodCreate, WithdrawalMethodUpdate, WithdrawalMethodResponse
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
-from sqlalchemy import select
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(
@@ -104,6 +108,20 @@ async def delete_withdrawal_method(
     method = result.scalar_one_or_none()
     if not method:
         raise HTTPException(status_code=404, detail="Withdrawal method not found")
+
+    withdrawal_count_result = await db.execute(
+        select(sa_func.count(Withdrawal.id)).where(Withdrawal.withdrawal_method_id == method_id)
+    )
+    withdrawal_count = withdrawal_count_result.scalar() or 0
+
+    if withdrawal_count > 0:
+        method.status = False
+        await db.commit()
+        await db.refresh(method)
+        logger.info("Withdrawal method %d deactivated (has %d withdrawal records)", method_id, withdrawal_count)
+        return {"message": "Withdrawal method deactivated (has historical withdrawals)", "data": method}
+
     await db.delete(method)
     await db.commit()
+    logger.info("Withdrawal method %d permanently deleted", method_id)
     return {"message": "Withdrawal method deleted"}

@@ -95,7 +95,7 @@ const Home = () => {
         <WhyChooseUs />
       </div>
       <MemberBenefits />
-      <PlatformStatistics />
+      <PlatformStatistics stats={stats} />
       <div id="founders">
         <Founders />
       </div>

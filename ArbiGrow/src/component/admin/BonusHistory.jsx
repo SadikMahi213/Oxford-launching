@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import useUserStore from "../../store/userStore.js";
 import { getAllMatchingBonuses } from "../../api/admin.api.js";
-import RankDistribution from "./RankDistribution.jsx";
-import { DollarSign, Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { DollarSign } from "lucide-react";
 
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
@@ -17,7 +16,6 @@ export default function BonusHistory() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState("");
-  const [showDistribution, setShowDistribution] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,23 +55,6 @@ export default function BonusHistory() {
       )}
 
       <div className="space-y-4">
-        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] overflow-hidden">
-          <button
-            onClick={() => setShowDistribution(!showDistribution)}
-            className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Trophy className="size-4 text-yellow-400" />
-              Position List Check — Rank Distribution
-            </span>
-            {showDistribution ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-          </button>
-          {showDistribution && (
-            <div className="px-4 pb-4">
-              <RankDistribution />
-            </div>
-          )}
-        </div>
         <div className="flex gap-4">
           <select
             value={filterType}

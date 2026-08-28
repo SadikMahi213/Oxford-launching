@@ -58,35 +58,35 @@ export function PlatformStatistics({ stats }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <StatCard
             label={t("home.platformStats.totalRegisteredMembers")}
-            value="149,409"
+            value={formatInteger(stats?.total_users)}
             color="blue"
             icon={Users}
             index={0}
           />
           <StatCard
             label={t("home.platformStats.verifiedFreelancers")}
-            value="96,845"
+            value={formatInteger(stats?.verified_freelancers)}
             color="green"
             icon={UserCheck}
             index={1}
           />
           <StatCard
             label={t("home.platformStats.packageInvestmentOverview")}
-            value="$56,848"
+            value={formatCurrency(stats?.total_invested)}
             color="purple"
             icon={TrendingUp}
             index={2}
           />
           <StatCard
             label={t("home.platformStats.successfulWithdrawals")}
-            value="$98,160"
+            value={formatCurrency(stats?.total_withdrawn)}
             color="cyan"
             icon={Wallet}
             index={3}
           />
           <StatCard
             label={t("home.platformStats.countriesConnected")}
-            value="93+"
+            value={formatInteger(stats?.countries_connected)}
             color="orange"
             icon={Globe}
             index={4}
