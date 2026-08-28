@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import { Eye, EyeOff, CircleUser } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import loginImg from "../assets/login.jpeg";
+import DollarRain from "../component/DollarRain.jsx";
 
 export default function LoginForm() {
   const navigate = useNavigate();
@@ -86,10 +87,12 @@ export default function LoginForm() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center bg-[#0A122C] px-4 pt-24 pb-10">
+      <div className="min-h-screen flex items-center justify-center bg-[#0A122C] px-4 pt-24 pb-10 relative overflow-hidden">
+        {/* Dollar rain — premium subtle USD falling animation (non-blocking) */}
+        <DollarRain />
 
         {/* Outer card — split layout */}
-        <div className="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/40 border border-white/10 flex flex-col lg:flex-row">
+        <div className="relative z-10 w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/40 border border-white/10 flex flex-col lg:flex-row">
 
           {/* ── LEFT/TOP: Image Panel (top banner on mobile, left half on desktop) */}
           <div className="w-full h-52 lg:h-auto lg:w-1/2 relative flex-shrink-0">
