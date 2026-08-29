@@ -449,8 +449,8 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const activeCards = categories.filter((c) => {
     if (c.status === "soon") return false;
     if (earningOnly && c.stream !== "earning") return false;
-    // OFA Wallet conversion info only for KYC-approved users (authoritative ledger source)
-    if (!isKycApproved && (c.key === "ofa_settlement_balance" || c.key === "ofa_free_mining" || String(c.key).startsWith("ofa_"))) return false;
+    // OFA Wallet only for KYC-approved users — other OFA categories (mining, total_ofa_distribution) remain visible per spec 9
+    if (!isKycApproved && c.key === "ofa_settlement_balance") return false;
     return true;
   });
   const soonCards = categories.filter((c) => c.status === "soon");
