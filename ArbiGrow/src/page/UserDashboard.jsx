@@ -283,7 +283,7 @@ export function UserDashboard() {
     if (v === "processing") return "Processing";
     return "Pending";
   };
-  const _normalizeTransactions = (deps, wdws, ears, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs) => {
+  const _normalizeTransactions = (deps, wdws, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs) => {
     const rows = [];
     deps.forEach((d) =>
       rows.push({
@@ -322,32 +322,6 @@ export function UserDashboard() {
         status: _mapStatus(w.status),
         statusLabel: t("dashboard.status_" + _mapStatus(w.status).toLowerCase()),
         _ts: new Date(w.created_at).getTime(),
-      }),
-    );
-    ears.forEach((e) =>
-      rows.push({
-        id: `ear_${e.id}`,
-        transactionId: _genTransactionId("EAR", e.id, e.created_at, e.type),
-        date: _fmtDate(e.created_at),
-        type:
-          e.wallet_type === "referral" ? "Referral Bonus" : "Generation Bonus",
-        typeLabel:
-          e.wallet_type === "referral" ? t("dashboard.type_referral_bonus") : t("dashboard.type_generation_bonus"),
-        wallet:
-          e.wallet_type === "referral"
-            ? "Referral Wallet"
-            : "Generation Wallet",
-        walletLabel:
-          e.wallet_type === "referral" ? t("dashboard.wallet_referral") : t("dashboard.wallet_generation"),
-        amount: _fmtAmount(e.amount, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 14,
-        }),
-        amountDirection: "credit",
-        currency: "USDT",
-        status: "Completed",
-        statusLabel: t("dashboard.status_completed"),
-        _ts: new Date(e.created_at).getTime(),
       }),
     );
     pfts.forEach((p) =>
@@ -427,74 +401,6 @@ export function UserDashboard() {
         _ts: new Date(inv.created_at).getTime(),
       });
     });
-    matching_bonuses.forEach((b) =>
-      rows.push({
-        id: `bonus_${b.id}`,
-        transactionId: _genTransactionId("BONUS", b.id, b.created_at, b.bonus_type),
-        date: _fmtDate(b.created_at),
-        type: "Matching Bonus",
-        typeLabel: t("dashboard.type_matching_bonus"),
-        wallet: "Main Wallet",
-        walletLabel: t("dashboard.wallet_main"),
-        amount: _fmtAmount(b.bonus_amount),
-        amountDirection: "credit",
-        currency: "USDT",
-        status: "Completed",
-        statusLabel: t("dashboard.status_completed"),
-        _ts: new Date(b.created_at).getTime(),
-      }),
-    );
-    captcha_earnings.forEach((c) =>
-      rows.push({
-        id: `cap_${c.id}`,
-        transactionId: _genTransactionId("CAP", c.id, c.created_at, ""),
-        date: _fmtDate(c.created_at),
-        type: "Captcha Earning",
-        typeLabel: t("dashboard.type_captcha"),
-        wallet: "Captcha Wallet",
-        walletLabel: t("dashboard.wallet_captcha"),
-        amount: _fmtAmount(c.amount_earned),
-        amountDirection: "credit",
-        currency: "USDT",
-        status: c.is_correct ? "Completed" : "Rejected",
-        statusLabel: c.is_correct ? t("dashboard.status_completed") : t("dashboard.status_rejected"),
-        _ts: new Date(c.created_at).getTime(),
-      }),
-    );
-    mining_logs.forEach((m) =>
-      rows.push({
-        id: `mine_${m.id}`,
-        transactionId: _genTransactionId("MINE", m.id, m.created_at, ""),
-        date: _fmtDate(m.created_at),
-        type: "Mining Reward",
-        typeLabel: t("dashboard.type_mining"),
-        wallet: "OFA Token Wallet",
-        walletLabel: t("overview.wallets.ofa"),
-        amount: _fmtAmount(m.amount),
-        amountDirection: "credit",
-        currency: t("overview.wallets.ofaToken"),
-        status: "Completed",
-        statusLabel: t("dashboard.status_completed"),
-        _ts: new Date(m.created_at).getTime(),
-      }),
-    );
-    ad_views.forEach((a) =>
-      rows.push({
-        id: `ad_${a.id}`,
-        transactionId: _genTransactionId("AD", a.id, a.started_at, ""),
-        date: _fmtDate(a.started_at),
-        type: "Ad View Earning",
-        typeLabel: t("dashboard.type_ad_view"),
-        wallet: "Ad View Wallet",
-        walletLabel: t("dashboard.wallet_ad_view"),
-        amount: _fmtAmount(a.amount_earned),
-        amountDirection: "credit",
-        currency: "USDT",
-        status: a.is_completed ? "Completed" : "Pending",
-        statusLabel: a.is_completed ? t("dashboard.status_completed") : t("dashboard.status_pending"),
-        _ts: new Date(a.started_at).getTime(),
-      }),
-    );
     invoices.forEach((inv) =>
       rows.push({
         id: `inv_${inv.id}`,
@@ -579,10 +485,9 @@ export function UserDashboard() {
     const load = async () => {
       setTransactionsLoading(true);
       try {
-        const [depRes, wdwRes, earRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes, wtxRes] = await Promise.all([
+        const [depRes, wdwRes, pftRes, trfRes, invRes, bonusRes, captchaRes, mineRes, adRes, invoiceRes, vendorRes, ecomRes, wtxRes] = await Promise.all([
           _safeFetch(getMyDeposits, { data: [] }),
           _safeFetch(getMyWithdrawals, { data: [] }),
-          _safeFetch(getMyEarningsHistory, { data: [] }),
           _safeFetch(getMyProfitHistory, { data: [] }),
           _safeFetch(getTransferHistory, {}),
           _safeFetch(getMyInvestments, []),
@@ -598,7 +503,6 @@ export function UserDashboard() {
         const _arr = (v) => (Array.isArray(v) ? v : []);
         const deps = depRes?.data?.data;
         const wdws = wdwRes?.data?.data;
-        const ears = earRes?.data?.data;
         const pfts = pftRes?.data?.data;
         const transfers = trfRes?.data || {};
         const investments = invRes?.data;
@@ -611,7 +515,7 @@ export function UserDashboard() {
         const ecom_txs = ecomRes?.data?.data;
         const wallet_txs = wtxRes?.data?.data;
         setTransactions(_normalizeTransactions(
-          _arr(deps), _arr(wdws), _arr(ears), _arr(pfts),
+          _arr(deps), _arr(wdws), _arr(pfts),
           transfers && typeof transfers === "object" ? transfers : {},
           _arr(investments), _arr(matching_bonuses),
           _arr(captcha_earnings), _arr(mining_logs), _arr(ad_views),

@@ -22,10 +22,10 @@ export function StatisticsManagement() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load stats from API
+  // Load stats from API - runs on mount and when token changes
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [token]);
 
   const fetchStats = async () => {
     try {

@@ -18,12 +18,9 @@ const cleanNumber = (value) => {
   return Number(String(value).replace(/,/g, ""));
 };
 
-/* Format number for UI */
+/* Format number for UI - plain integer comma formatting */
 const formatDecimal = (value) => {
-  return Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 6,
-    maximumFractionDigits: 6,
-  });
+  return Number(value || 0).toLocaleString("en-US");
 };
 
 export function StatisticsForm({ initialStats, onSave }) {

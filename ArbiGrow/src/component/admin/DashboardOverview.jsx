@@ -8,7 +8,7 @@ import {
   TrendingUp, Wifi, CircleDollarSign, DollarSign, Coins,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { getAdminRealtimeStats } from "../../api/admin.api.js";
+import { getAdminRealtimeStats, getPlatformStats } from "../../api/admin.api.js";
 import useUserStore from "../../store/userStore.js";
 
 const toAmount = (value) => Number(value ?? 0);
@@ -56,11 +56,30 @@ export default function DashboardOverview() {
     }
   }, [token, navigate, logout]);
 
+  const [platform, setPlatform] = useState(null);
+  const [plLoading, setPlLoading] = useState(true);
+
+  const fetchPlatform = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await getPlatformStats(token);
+      setPlatform(data);
+    } catch (err) {
+      console.error("Failed to fetch platform stats", err);
+    } finally {
+      setPlLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchRealtime();
-    const iv = setInterval(fetchRealtime, 15000);
-    return () => clearInterval(iv);
+    const rtInterval = setInterval(fetchRealtime, 15000);
+    return () => clearInterval(rtInterval);
   }, [fetchRealtime]);
+
+  useEffect(() => {
+    fetchPlatform();
+  }, [token, fetchPlatform]);
 
   const section = (title, gradient, cards) => (
     <div className="mb-10">
@@ -110,7 +129,7 @@ export default function DashboardOverview() {
         <>
           {/* ── Dashboard Overview ────────────────────────── */}
           {section("Dashboard Overview", "from-blue-400 to-cyan-400", [
-            <StatCard key="members" icon={Users} label="Total Member" value={realtime.total_members ?? 0} delay={0} iconColor="text-blue-400" />,
+            <StatCard key="members" icon={Users} label="Total Member" value={platform?.total_users != null ? platform?.total_users : (realtime?.total_members ?? 0)} delay={0} iconColor="text-blue-400" />,
             <StatCard key="active-kyc" icon={UserCheck} label="Total Active KYC Member" value={realtime.total_active_kyc ?? 0} delay={0.05} iconColor="text-emerald-400" />,
             <StatCard key="inactive" icon={UserX} label="Total Inactive Member" value={realtime.total_inactive ?? 0} delay={0.1} iconColor="text-amber-400" />,
             <StatCard key="sellers" icon={Store} label="Total E-Commerce Seller" value={realtime.total_ecommerce_sellers ?? 0} delay={0.15} iconColor="text-violet-400" />,
@@ -119,7 +138,7 @@ export default function DashboardOverview() {
           {/* ── Balance Area ──────────────────────────────── */}
           {section("Balance Area", "from-emerald-400 to-teal-400", [
             <StatCard key="deposits" icon={Banknote} label="Total Deposit USD" value={`$${toAmount(realtime.total_deposited).toLocaleString()}`} delay={0} iconColor="text-emerald-400" />,
-            <StatCard key="withdrawals" icon={ArrowUpFromLine} label="Total Withdrawal USD" value={`$${toAmount(realtime.total_withdrawn).toLocaleString()}`} delay={0.05} iconColor="text-red-400" />,
+            <StatCard key="withdrawals" icon={ArrowUpFromLine} label="Total Withdrawal USD" value={platform?.total_withdrawn != null ? `$${toAmount(platform?.total_withdrawn).toLocaleString()}` : `$${toAmount(realtime?.total_withdrawn).toLocaleString()}`} delay={0.05} iconColor="text-red-400" />,
             <StatCard key="transfers" icon={ArrowRightLeft} label="ID to ID Fund Transfer" value={`$${toAmount(realtime.total_transferred).toLocaleString()}`} delay={0.1} iconColor="text-cyan-400" />,
             <StatCard key="kyc-purchases" icon={CreditCard} label="Total KYC Purchase USD" value={`$${toAmount(realtime.total_kyc_purchases_usd).toLocaleString()}`} delay={0.15} iconColor="text-yellow-400" />,
             <StatCard key="package-invest" icon={Package} label="Total Paid Package Investment USD" value={`$${toAmount(realtime.total_paid_package_investment).toLocaleString()}`} delay={0.2} iconColor="text-purple-400" />,
