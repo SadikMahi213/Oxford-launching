@@ -380,7 +380,7 @@ const sortByPriority = (cards) =>
 const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const { t } = useTranslation();
   const { user } = useUserStore();
-  const isKycApproved = String(user?.kyc_status || "").toLowerCase() === "approved";
+  const isKycApproved = String(user?.kyc_status || user?.admin_kyc_status || "").toLowerCase() === "approved" || String(user?.admin_kyc_status || "").toLowerCase() === "approved";
 
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState({ totals: {}, balances: {}, categories: [] });
@@ -415,11 +415,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
       });
       const data = res?.data || {};
       const rawItems = data.items || [];
-      let validItems = rawItems.filter((item) => VALID_CATEGORIES.has(item.category));
-      // Hide OFA conversion ledger for non-KYC users (authoritative: only KYC-approved can see OFA Wallet conversion)
-      if (!isKycApproved) {
-        validItems = validItems.filter((item) => item.category !== "ofa_conversion" && item.category !== "ofa_transaction" && item.currency !== "OFA");
-      }
+      const validItems = rawItems.filter((item) => VALID_CATEGORIES.has(item.category));
       setItems(validItems);
       setSummary(data.summary || { totals: {}, balances: {}, categories: [] });
       setTotal(data.total || 0);

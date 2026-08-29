@@ -343,7 +343,7 @@ _SOON_CATEGORIES = (
 )
 
 
-async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> list[dict]:
+async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user: User | None = None) -> list[dict]:
     async def _sum(query) -> float:
         row = await db.execute(query)
         return _num(row.scalar())
@@ -455,6 +455,10 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
+    # OFA Wallet KYC gate: only admin_kyc_status == approved can see OFA Wallet balance.
+    # Use existing authoritative conversion rate for display (mirrors user.py convert-ofa-to-usdt).
+    is_kyc_approved = bool(user and getattr(user, "admin_kyc_status", None) == "approved")
+    ofa_converted = round(float(Decimal(str(ofa_balance)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
     active = [
         {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
         {"key": "total_withdrawal", "amount": round(withdrawal, 6), "currency": "USDT", "stream": "transaction"},
@@ -465,7 +469,8 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         {"key": "matching_bonus", "amount": round(matching, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ofa_free_mining", "amount": round(ofa_mining, 6), "currency": "OFA", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
-        {"key": "ofa_settlement_balance", "amount": round(ofa_balance, 6), "currency": "OFA", "stream": "balance", "balance_ofa": ofa_balance},
+        # OFA Wallet: only included when KYC approved; when approved, display converted USDT using existing rate (raw OFA kept as balance_ofa)
+        *([{"key": "ofa_settlement_balance", "amount": ofa_converted, "currency": "USDT", "stream": "balance", "balance_ofa": round(ofa_balance, 6)}] if is_kyc_approved else []),
         {"key": "total_ofa_distribution", "amount": total_ofa_distribution, "currency": "OFA", "stream": "earning", "balance_ofa": total_ofa_distribution},
     ]
     soon = [
@@ -506,7 +511,7 @@ async def _build_ledger(user: User, db: AsyncSession, task_only: bool = False) -
         "arbx_mining_wallet": _num(user.arbx_mining_wallet),
         "ofa_balance": ofa_balance,
     }
-    categories = await _category_summary(db, uid, ofa_balance)
+    categories = await _category_summary(db, uid, ofa_balance, user)
     return records, balances, categories
 
 
