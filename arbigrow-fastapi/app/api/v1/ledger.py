@@ -423,7 +423,13 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
             OFACoinTransaction.tx_type == "ecommerce_seller_bonus",
         )
     )
-    deposit, withdrawal, captcha, ad_view, generation, matching, daily_earning, ecommerce, ofa_mining, ofa_signup, ofa_package, ofa_referral, ofa_ecommerce = (
+    ofa_to_usdt_ofa = _sum(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.user_id == uid,
+            OFACoinTransaction.tx_type == "ofa_to_usdt",
+        )
+    )
+    deposit, withdrawal, captcha, ad_view, generation, matching, daily_earning, ecommerce, ofa_mining, ofa_signup, ofa_package, ofa_referral, ofa_ecommerce, ofa_to_usdt_ofa = (
         await deposit,
         await withdrawal,
         await captcha,
@@ -437,6 +443,7 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         await ofa_package,
         await ofa_referral,
         await ofa_ecommerce,
+        await ofa_to_usdt_ofa,
     )
 
     # Authoritative OFA → USDT rate (mirrors user.py convert-ofa-to-usdt).
@@ -455,10 +462,11 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
-    # OFA Wallet KYC gate: only admin_kyc_status == approved can see OFA Wallet balance.
-    # Use existing authoritative conversion rate for display (mirrors user.py convert-ofa-to-usdt).
+    # OFA Wallet KYC gate: only admin_kyc_status == approved can see OFA Wallet.
+    # For KYC-approved, display actual converted USDT from authoritative ofa_to_usdt ledger (OFA amount * existing rate), not raw OFA balance.
+    # If no conversion yet, show 0 (zero/empty behavior).
     is_kyc_approved = bool(user and getattr(user, "admin_kyc_status", None) == "approved")
-    ofa_converted = round(float(Decimal(str(ofa_balance)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
+    ofa_converted = round(float(Decimal(str(ofa_to_usdt_ofa)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
     active = [
         {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
         {"key": "total_withdrawal", "amount": round(withdrawal, 6), "currency": "USDT", "stream": "transaction"},
