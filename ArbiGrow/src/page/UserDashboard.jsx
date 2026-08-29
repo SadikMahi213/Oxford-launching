@@ -277,6 +277,7 @@ export function UserDashboard() {
   };
   const _mapStatus = (s) => {
     const v = (s || "").toLowerCase();
+    if (v === "active") return "Active";
     if (v === "approved" || v === "completed") return "Completed";
     if (v === "rejected" || v === "failed") return "Rejected";
     if (v === "processing") return "Processing";
@@ -408,7 +409,8 @@ export function UserDashboard() {
         _ts: new Date(t.created_at).getTime(),
       }),
     );
-    investments.forEach((inv) =>
+    investments.forEach((inv) => {
+      const mapped = _mapStatus(inv.status);
       rows.push({
         id: `inv_${inv.id}`,
         transactionId: _genTransactionId("INV", inv.id, inv.created_at, inv.package_name),
@@ -420,11 +422,11 @@ export function UserDashboard() {
         amount: _fmtAmount(inv.invested_amount),
         amountDirection: "debit",
         currency: "USDT",
-        status: _mapStatus(inv.status),
-        statusLabel: t("dashboard.status_" + _mapStatus(inv.status).toLowerCase()),
+        status: mapped,
+        statusLabel: t(`dashboard.status_${mapped.toLowerCase()}`, mapped),
         _ts: new Date(inv.created_at).getTime(),
-      }),
-    );
+      });
+    });
     matching_bonuses.forEach((b) =>
       rows.push({
         id: `bonus_${b.id}`,

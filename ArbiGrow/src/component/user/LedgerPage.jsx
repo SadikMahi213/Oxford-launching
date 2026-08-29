@@ -38,6 +38,7 @@ import {
   Clock,
 } from "lucide-react";
 import { getLedgerTransactions } from "../../api/user.api.js";
+import useUserStore from "../../store/userStore.js";
 
 const CATEGORIES = [
   "daily_earning",
@@ -367,6 +368,8 @@ const sortByPriority = (cards) =>
 
 const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const { t } = useTranslation();
+  const { user } = useUserStore();
+  const isKycApproved = String(user?.kyc_status || "").toLowerCase() === "approved";
 
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState({ totals: {}, balances: {}, categories: [] });
@@ -401,7 +404,11 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
       });
       const data = res?.data || {};
       const rawItems = data.items || [];
-      const validItems = rawItems.filter((item) => VALID_CATEGORIES.has(item.category));
+      let validItems = rawItems.filter((item) => VALID_CATEGORIES.has(item.category));
+      // Hide OFA conversion ledger for non-KYC users (authoritative: only KYC-approved can see OFA Wallet conversion)
+      if (!isKycApproved) {
+        validItems = validItems.filter((item) => item.category !== "ofa_conversion" && item.category !== "ofa_transaction" && item.currency !== "OFA");
+      }
       setItems(validItems);
       setSummary(data.summary || { totals: {}, balances: {}, categories: [] });
       setTotal(data.total || 0);
@@ -412,7 +419,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, stream, filters, t]);
+  }, [page, pageSize, stream, filters, t, isKycApproved]);
 
   useEffect(() => {
     load();
@@ -435,6 +442,8 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const activeCards = categories.filter((c) => {
     if (c.status === "soon") return false;
     if (earningOnly && c.stream !== "earning") return false;
+    // OFA Wallet conversion info only for KYC-approved users (authoritative ledger source)
+    if (!isKycApproved && (c.key === "ofa_settlement_balance" || c.key === "ofa_free_mining" || String(c.key).startsWith("ofa_"))) return false;
     return true;
   });
   const soonCards = categories.filter((c) => c.status === "soon");
