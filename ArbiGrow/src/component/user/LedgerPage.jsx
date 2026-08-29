@@ -449,8 +449,7 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
   const activeCards = categories.filter((c) => {
     if (c.status === "soon") return false;
     if (earningOnly && c.stream !== "earning") return false;
-    // OFA Wallet only for KYC-approved users — other OFA categories (mining, total_ofa_distribution) remain visible per spec 9
-    if (!isKycApproved && c.key === "ofa_settlement_balance") return false;
+    // OFA Wallet (ofa_settlement_balance) is KYC-gated at API layer; frontend trusts backend (no CSS-only hide)
     return true;
   });
   const soonCards = categories.filter((c) => c.status === "soon");

@@ -37,6 +37,7 @@ from app.models.deposit import Deposit
 from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
+from app.models.kyc import KYC
 from app.models.matching_bonus import MatchingBonus
 from app.models.ofa_coin_transaction import OFACoinTransaction
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -462,10 +463,17 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
-    # OFA Wallet KYC gate: only admin_kyc_status == approved can see OFA Wallet.
+    # OFA Wallet KYC gate: only approved can see OFA Wallet (effective KYC = KYC table approved OR admin_kyc_status approved).
     # For KYC-approved, display actual converted USDT from authoritative ofa_to_usdt ledger (OFA amount * existing rate), not raw OFA balance.
     # If no conversion yet, show 0 (zero/empty behavior).
-    is_kyc_approved = bool(user and getattr(user, "admin_kyc_status", None) == "approved")
+    is_kyc_approved = False
+    if user and getattr(user, "admin_kyc_status", None) == "approved":
+        is_kyc_approved = True
+    else:
+        kyc_res = await db.execute(select(KYC).where(KYC.user_id == uid))
+        kyc_row = kyc_res.scalar_one_or_none()
+        if kyc_row and getattr(kyc_row.status, "value", str(kyc_row.status)) == "approved":
+            is_kyc_approved = True
     ofa_converted = round(float(Decimal(str(ofa_to_usdt_ofa)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
     active = [
         {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
