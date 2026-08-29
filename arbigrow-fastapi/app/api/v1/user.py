@@ -138,11 +138,11 @@ async def get_me(
 ):
     kyc_result = await db.execute(select(KYC).where(KYC.user_id == current_user.id))
     seller_result = await db.execute(
-        select(Seller).where(Seller.user_id == current_user.id, Seller.status == "approved")
+        select(Seller).where(Seller.user_id == current_user.id, Seller.status == "approved").limit(1)
     )
 
     kyc = kyc_result.scalar_one_or_none()
-    seller = seller_result.scalar_one_or_none()
+    seller = seller_result.scalars().first()
 
     # Ensure team_volume is live — recalculate if stored value is zero.
     # Rank-eligible volume is zero until KYC is approved (and only counts
