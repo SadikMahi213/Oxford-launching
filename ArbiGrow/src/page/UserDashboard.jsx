@@ -12,8 +12,8 @@ import {
   Repeat, LogOut, Building2,
 } from "lucide-react";
 import arbxCardImg from "../assets/Card-design.png";
-import arbxCoinImg from "../assets/Coin.png";
 import Logo from "../assets/oxford.png";
+import USDTRain from "../component/USDTRain.jsx";
 import { mockMarketPrices, mockUserData } from "../constants/mockdata.js";
 import { useNavigate } from "react-router";
 import useUserStore from "../store/userStore.js";
@@ -1034,7 +1034,6 @@ export function UserDashboard() {
           mockUserData={mockUserData}
           mockMarketPrices={mockMarketPrices}
           arbxCardImg={arbxCardImg}
-          arbxCoinImg={arbxCoinImg}
           transactionFilter={transactionFilter}
           setTransactionFilter={setTransactionFilter}
           currentTransactions={currentTransactions}
@@ -1060,37 +1059,8 @@ export function UserDashboard() {
         <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Coin Rain Animation */}
-      <AnimatePresence>
-        {showCoinRain && (
-          <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
-            {Array.from({ length: 30 }).map((_, i) => (
-              <motion.img
-                key={i}
-                src={arbxCoinImg}
-                alt="Coin"
-                initial={{
-                  y: -100,
-                  x: `${Math.random() * 100}vw`,
-                  rotate: 0,
-                  opacity: 0.8,
-                }}
-                animate={{
-                  y: "110vh",
-                  rotate: 360 * 3,
-                  opacity: 0,
-                }}
-                transition={{
-                  duration: 1,
-                  delay: i * 0.03,
-                  ease: "linear",
-                }}
-                className="absolute w-8 h-8 md:w-12 md:h-12"
-              />
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
+      {/* USDT Rain Animation — replaces JPG coin rain */}
+      <USDTRain enabled={showCoinRain} />
 
       {/* Mobile Menu Button */}
       <button
