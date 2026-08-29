@@ -5,7 +5,7 @@ import {
   Users, UserCheck, UserX, Store, Banknote, ArrowUpFromLine,
   ArrowRightLeft, CreditCard, Package, ShoppingCart, Gift,
   Layers, GitCompare, Shapes, Captions, Tv, Gem,
-  TrendingUp, Wifi, CircleDollarSign, DollarSign,
+  TrendingUp, Wifi, CircleDollarSign, DollarSign, Coins,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getAdminRealtimeStats } from "../../api/admin.api.js";
@@ -215,7 +215,25 @@ export default function DashboardOverview() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0 }}
+                transition={{ delay: 0.2 }}
+                className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-amber-500/10 to-yellow-500/10 backdrop-blur-xl border border-amber-500/20"
+              >
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <Coins className="w-4 h-4 text-amber-400" />
+                  <span>{t("admin.overview.totalOfaDistribution", "Total OFA Distribution")}</span>
+                </div>
+                <div className="text-2xl font-bold text-white">
+                  {toAmount(realtime.total_ofa_distribution ?? 0).toLocaleString()} <span className="text-base text-amber-400/70">OFA</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {t("admin.overview.totalOfaDistributionSubtitle", "Signup Bonus + Daily Mining")}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
                 className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
@@ -228,7 +246,7 @@ export default function DashboardOverview() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
+                transition={{ delay: 0.3 }}
                 className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
@@ -243,7 +261,7 @@ export default function DashboardOverview() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: 0.35 }}
                 className="p-3 xs:p-4 md:p-5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10"
               >
                 <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">

@@ -2584,6 +2584,9 @@ async def get_realtime_stats(
     total_profit_distribution = total_profit_shared
     company_running_profit = total_deposited - total_withdrawn - total_distributed
 
+    # Total OFA Distribution = Signup Bonus + Daily Mining (authoritative, no double count, Decimal-safe)
+    total_ofa_distribution = total_signup_bonus_distributed + total_mining
+
     return {
         # Overview
         "total_members": total_members,
@@ -2618,5 +2621,6 @@ async def get_realtime_stats(
         "total_mining_ofa": format_decimal(total_mining),
         "total_signup_bonus_distributed": format_decimal(total_signup_bonus_distributed),
         "total_mining_ofa_distributed": format_decimal(total_mining),
+        "total_ofa_distribution": format_decimal(total_ofa_distribution),
     }
 

@@ -463,17 +463,11 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
-    # OFA Wallet KYC gate: only approved can see OFA Wallet (effective KYC = KYC table approved OR admin_kyc_status approved).
-    # For KYC-approved, display actual converted USDT from authoritative ofa_to_usdt ledger (OFA amount * existing rate), not raw OFA balance.
-    # If no conversion yet, show 0 (zero/empty behavior).
-    is_kyc_approved = False
-    if user and getattr(user, "admin_kyc_status", None) == "approved":
-        is_kyc_approved = True
-    else:
-        kyc_res = await db.execute(select(KYC).where(KYC.user_id == uid))
-        kyc_row = kyc_res.scalar_one_or_none()
-        if kyc_row and getattr(kyc_row.status, "value", str(kyc_row.status)) == "approved":
-            is_kyc_approved = True
+    # OFA Wallet KYC gate: STRICT per task - only admin_kyc_status == "approved" is verified.
+    # pending / rejected / not submitted / null / empty / any other status => NOT verified => hide OFA Wallet.
+    # Display is gated; underlying OFA token records are NOT deleted.
+    # For verified users, show actual converted value from authoritative ofa_to_usdt ledger (OFA sum * existing ofa_to_usdt_rate).
+    is_kyc_approved = bool(user and getattr(user, "admin_kyc_status", None) == "approved")
     ofa_converted = round(float(Decimal(str(ofa_to_usdt_ofa)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
     active = [
         {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
@@ -678,8 +672,14 @@ async def get_wallet_balances(
     rate_cfg = rate_res.scalar_one_or_none()
     ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
 
+    # KYC gate: OFA wallets are only visible when admin_kyc_status == "approved".
+    is_kyc_approved = bool(getattr(current_user, "admin_kyc_status", None) == "approved")
+
     wallets = []
     for key, currency in _WALLET_META:
+        # Hide all OFA wallets for non-verified users (display rule only, underlying OFACoinTransaction records untouched)
+        if currency == "OFA" and not is_kyc_approved:
+            continue
         raw = getattr(current_user, key, None) if key != "ofa_balance" else ofa_balance
         balance = _num(raw)
         entry = {

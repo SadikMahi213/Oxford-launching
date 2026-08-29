@@ -446,12 +446,14 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const categories = summary.categories || [];
-  const activeCards = categories.filter((c) => {
+const activeCards = categories.filter((c) => {
     if (c.status === "soon") return false;
     if (earningOnly && c.stream !== "earning") return false;
     // OFA Wallet (ofa_settlement_balance) is KYC-gated at API layer; frontend trusts backend (no CSS-only hide)
+    // Total OFA Distribution has no purpose in User Earning History
+    if (c.key === "total_ofa_distribution") return false;
     return true;
-  });
+});
   const soonCards = categories.filter((c) => c.status === "soon");
 
   // Premium fintech overview card. Presentation-only: values, labels and
