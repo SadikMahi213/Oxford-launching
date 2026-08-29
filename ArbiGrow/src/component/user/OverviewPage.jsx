@@ -358,7 +358,7 @@ const OverviewPage = ({ setActivePage }) => {
               </div>
               <div className="text-[11px] text-gray-500 mb-0.5">{wallet.label}</div>
               <div className="text-xl font-bold text-white mb-1">
-                {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)}</> : <>{wallet.balance.toFixed(7)}</>}
+                {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)} USDT</> : <>{wallet.balance.toFixed(7)} {wallet.currency}</>}
               </div>
               <div className="text-[11px] text-gray-500 mb-3">{t("overview.wallets.usable")}</div>
               {wallet.historyType && (
@@ -391,7 +391,7 @@ const OverviewPage = ({ setActivePage }) => {
             </div>
             <div className="text-xs px-2 py-1 rounded-full bg-white/[0.08] text-blue-300 border border-white/[0.12] font-semibold">{t("overview.wallets.matching")}</div>
           </div>
-          <div className="text-xl md:text-2xl font-bold text-white mb-0.5">${matchingBonus.toFixed(2)}</div>
+          <div className="text-xl md:text-2xl font-bold text-white mb-0.5">${matchingBonus.toFixed(2)} USDT</div>
           <div className="text-xs text-blue-300/60 mb-3">{t("overview.wallets.matching_desc")}</div>
           <div className="flex gap-2">
             <button onClick={(e) => { e.stopPropagation(); loadMatchingBonusHistory(); setWalletHistoryModal("matching"); }} className="flex-1 py-2.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 backdrop-blur-md border border-blue-500/30 text-blue-300 text-xs font-semibold transition-all hover:brightness-110">
