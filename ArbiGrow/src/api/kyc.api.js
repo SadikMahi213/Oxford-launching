@@ -23,3 +23,8 @@ export const submitKYC = (data) => {
     },
   });
 };
+
+export const getMyKyc = async () => {
+  const res = await api.get("v1/kyc/me", authHeaders());
+  return res.data || {};
+};

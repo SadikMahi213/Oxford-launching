@@ -25,6 +25,53 @@ router = APIRouter(prefix="/kyc", tags=["KYC"])
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
+@router.get("/me")
+async def get_my_kyc(
+    db: AsyncSession = Depends(get_db),
+    user_id: int = Depends(get_current_user_id),
+):
+    """Read-only view of the authenticated user's own KYC submission (documents + metadata).
+    Backend enforces owner check: only the current user can view their own record."""
+    result = await db.execute(select(KYC).where(KYC.user_id == user_id))
+    kyc = result.scalar_one_or_none()
+    if not kyc:
+        return {"has_kyc": False, "kyc": None}
+    # Resolve presigned URLs for images/PDFs; front always exists, back may be None (passport)
+    front_url = _resolve_image_url(kyc.front_image_key)
+    back_url = _resolve_image_url(kyc.back_image_key) if kyc.back_image_key else None
+    # If B2 not configured, fall back to raw key (admin can still see key existence)
+    pkg_info = None
+    if kyc.kyc_package_id:
+        pkg_res = await db.execute(select(KycPackage).where(KycPackage.id == kyc.kyc_package_id))
+        pkg = pkg_res.scalar_one_or_none()
+        if pkg:
+            pkg_info = {"id": pkg.id, "name": pkg.name, "price": str(pkg.price)}
+    return {
+        "has_kyc": True,
+        "kyc": {
+            "id": kyc.id,
+            "user_id": kyc.user_id,
+            "full_name": kyc.full_name,
+            "country": kyc.country,
+            "phone_number": kyc.phone_number,
+            "document_type": kyc.document_type.value if kyc.document_type else None,
+            "document_number": kyc.document_number,
+            "front_image_key": kyc.front_image_key,
+            "front_image_url": front_url,
+            "back_image_key": kyc.back_image_key,
+            "back_image_url": back_url,
+            "status": kyc.status.value if kyc.status else None,
+            "payment_status": kyc.payment_status.value if kyc.payment_status else None,
+            "fee_paid": str(kyc.fee_paid) if kyc.fee_paid else "0",
+            "kyc_package_id": kyc.kyc_package_id,
+            "kyc_package": pkg_info,
+            "transaction_id": kyc.transaction_id,
+            "admin_note": kyc.admin_note,
+            "created_at": kyc.created_at.isoformat() if kyc.created_at else None,
+        },
+    }
+
+
 @router.get("/active-package")
 async def get_active_kyc_package(
     db: AsyncSession = Depends(get_db),

@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { Camera, Check, Lock, X } from "lucide-react";
+import { Camera, Check, Lock, X, FileText, ShieldCheck, Eye } from "lucide-react";
 import VerifiedBadge from "../common/VerifiedBadge";
 import profilePlaceholder from "../../assets/banner.jpeg";
 import useUserStore from "../../store/userStore";
 import api from "../../api/axiosInstance.js";
 import { useNavigate } from "react-router";
+import { getMyKyc } from "../../api/kyc.api.js";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -30,6 +31,39 @@ const ProfilePage = () => {
   const [photoMsg, setPhotoMsg] = useState("");
   const initials = getInitials(user?.full_name);
   const showInitials = !displayUrl || !photoLoaded;
+
+  // Read-only KYC submission view
+  const [kycData, setKycData] = useState(null);
+  const [kycLoading, setKycLoading] = useState(true);
+  const [kycError, setKycError] = useState("");
+
+  useEffect(() => {
+    let mounted = true;
+    getMyKyc()
+      .then((res) => {
+        if (!mounted) return;
+        if (res?.has_kyc && res?.kyc) setKycData(res.kyc);
+        else setKycData(null);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        setKycError(err?.response?.data?.detail || "");
+        setKycData(null);
+      })
+      .finally(() => {
+        if (mounted) setKycLoading(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  const isImageUrl = (url, key) => {
+    const src = (url || key || "").toLowerCase();
+    return src.endsWith(".jpg") || src.endsWith(".jpeg") || src.endsWith(".png") || src.endsWith(".webp") || src.endsWith(".gif");
+  };
+  const isPdfUrl = (url, key) => {
+    const src = (url || key || "").toLowerCase();
+    return src.endsWith(".pdf");
+  };
 
   const handleSavePhoto = async () => {
     setPhotoLoading(true);
@@ -266,6 +300,172 @@ const ProfilePage = () => {
               {t('profile.changePassword')}
             </button>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Submitted KYC Documents — Read-Only */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 overflow-hidden"
+      >
+        <div className="px-4 md:px-6 py-4 border-b border-white/10 bg-gradient-to-r from-cyan-600/10 via-blue-600/10 to-cyan-600/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-cyan-400" />
+            </div>
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white">Submitted KYC Documents</h3>
+              <p className="text-xs text-gray-400">Read-only view of your submitted information and documents</p>
+            </div>
+            {kycData?.status && (
+              <span className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold border ${kycData.status === "approved" ? "bg-green-500/20 border-green-500/40 text-green-400" : kycData.status === "pending" ? "bg-yellow-500/20 border-yellow-500/40 text-yellow-400" : "bg-red-500/20 border-red-500/40 text-red-400"}`}>
+                {kycData.status.charAt(0).toUpperCase() + kycData.status.slice(1)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 md:p-6">
+          {kycLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+              <span className="ml-3 text-sm text-gray-400">Loading submitted documents...</span>
+            </div>
+          ) : !kycData ? (
+            <div className="text-center py-8">
+              <FileText className="w-10 h-10 text-gray-500 mx-auto mb-3" />
+              <p className="text-sm text-gray-400">No KYC submission found.</p>
+              <p className="text-xs text-gray-500 mt-1">Submit your KYC to see documents here.</p>
+            </div>
+          ) : (
+            <>
+              {/* Submitted Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Full Name (KYC)</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">{kycData.full_name || "-"}</div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Country</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">{kycData.country || "-"}</div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Phone Number</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">{kycData.phone_number || "-"}</div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Document Type</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm capitalize">{kycData.document_type || "-"}</div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Document Number</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-mono">{kycData.document_number || "-"}</div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Transaction ID</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-mono break-all">{kycData.transaction_id || "-"}</div>
+                </div>
+                {kycData.kyc_package && (
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-400">KYC Package</label>
+                    <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">{kycData.kyc_package.name} — {kycData.kyc_package.price} USDT</div>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <label className="text-xs text-gray-400">Fee Paid</label>
+                  <div className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm">{kycData.fee_paid} USDT</div>
+                </div>
+                {kycData.admin_note && (
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs text-gray-400">Admin Note</label>
+                    <div className="px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 text-sm">{kycData.admin_note}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Document Previews — Read Only, no edit */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-cyan-400" />
+                  Document Previews
+                  <span className="text-xs font-normal text-gray-500">(read-only)</span>
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Front */}
+                  <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                    <div className="text-xs text-gray-400 mb-2 font-medium">Front Side</div>
+                    {!kycData.front_image_url ? (
+                      <div className="h-48 flex flex-col items-center justify-center rounded-lg bg-black/20 border border-dashed border-white/10">
+                        <FileText className="w-8 h-8 text-gray-500 mb-2" />
+                        <p className="text-xs text-gray-500">Document not available</p>
+                        <p className="text-[10px] text-gray-600 mt-1 break-all px-2 text-center">{kycData.front_image_key || ""}</p>
+                      </div>
+                    ) : isPdfUrl(kycData.front_image_url, kycData.front_image_key) ? (
+                      <a href={kycData.front_image_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center h-48 rounded-lg bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-colors group">
+                        <FileText className="w-10 h-10 text-cyan-400 group-hover:scale-110 transition-transform" />
+                        <span className="mt-2 text-sm text-cyan-300 font-medium">View PDF</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Opens in new tab</span>
+                      </a>
+                    ) : (
+                      <img
+                        src={kycData.front_image_url}
+                        alt="KYC Front Document"
+                        className="w-full h-48 object-contain rounded-lg bg-black/30 border border-white/10"
+                        onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+                      />
+                    )}
+                    {/* Fallback for broken image - hidden by default, shown onError */}
+                    {!kycData.front_image_url ? null : isPdfUrl(kycData.front_image_url, kycData.front_image_key) ? null : (
+                      <div style={{ display: "none" }} className="h-48 flex-col items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20">
+                        <p className="text-xs text-red-400">Failed to load image</p>
+                        <p className="text-[10px] text-gray-500 break-all px-2 text-center mt-1">{kycData.front_image_key}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Back */}
+                  <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+                    <div className="text-xs text-gray-400 mb-2 font-medium">Back Side {kycData.document_type === "passport" ? "(not required for passport)" : ""}</div>
+                    {!kycData.back_image_url && !kycData.back_image_key ? (
+                      <div className="h-48 flex flex-col items-center justify-center rounded-lg bg-black/20 border border-dashed border-white/10">
+                        <FileText className="w-8 h-8 text-gray-500 mb-2" />
+                        <p className="text-xs text-gray-500">{kycData.document_type === "passport" ? "Not required" : "No back document"}</p>
+                      </div>
+                    ) : !kycData.back_image_url ? (
+                      <div className="h-48 flex flex-col items-center justify-center rounded-lg bg-black/20 border border-dashed border-white/10">
+                        <FileText className="w-8 h-8 text-gray-500 mb-2" />
+                        <p className="text-xs text-gray-500">Document not available</p>
+                        <p className="text-[10px] text-gray-600 mt-1 break-all px-2 text-center">{kycData.back_image_key || ""}</p>
+                      </div>
+                    ) : isPdfUrl(kycData.back_image_url, kycData.back_image_key) ? (
+                      <a href={kycData.back_image_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center h-48 rounded-lg bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/20 hover:border-cyan-400/40 transition-colors group">
+                        <FileText className="w-10 h-10 text-cyan-400 group-hover:scale-110 transition-transform" />
+                        <span className="mt-2 text-sm text-cyan-300 font-medium">View PDF</span>
+                        <span className="text-[10px] text-gray-500 mt-1">Opens in new tab</span>
+                      </a>
+                    ) : (
+                      <img
+                        src={kycData.back_image_url}
+                        alt="KYC Back Document"
+                        className="w-full h-48 object-contain rounded-lg bg-black/30 border border-white/10"
+                        onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+                      />
+                    )}
+                    {!kycData.back_image_url ? null : isPdfUrl(kycData.back_image_url, kycData.back_image_key) ? null : (
+                      <div style={{ display: "none" }} className="h-48 flex-col items-center justify-center rounded-lg bg-red-500/10 border border-red-500/20">
+                        <p className="text-xs text-red-400">Failed to load image</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-500 text-center">This is a read-only view. To resubmit, use the KYC Verification page. Documents are visible only to you and admins.</p>
+              </div>
+            </>
+          )}
         </div>
       </motion.div>
 
