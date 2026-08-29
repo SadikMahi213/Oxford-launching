@@ -317,6 +317,16 @@ const SUMMARY_CATEGORY_META = {
     glowShadow: "hover:shadow-lime-500/25",
     currencyChip: "bg-lime-500/15 text-lime-300",
   },
+  total_ofa_distribution: {
+    icon: Coins,
+    gradient: "from-yellow-500/70 to-amber-600/60",
+    orb: "from-yellow-400/40 to-transparent",
+    iconWrap: "from-yellow-400 to-amber-600",
+    iconBg: "from-yellow-500/30 to-amber-600/15",
+    iconText: "text-yellow-200",
+    glowShadow: "hover:shadow-yellow-500/25",
+    currencyChip: "bg-yellow-500/15 text-yellow-300",
+  },
   international_achievement: {
     icon: Globe,
     gradient: "from-teal-500/70 to-cyan-600/60",
@@ -344,6 +354,7 @@ const SUMMARY_CATEGORY_META = {
 // Unknown/future keys fall through to the end in backend order (stable sort).
 const SUMMARY_PRIORITY = [
   "ofa_settlement_balance",
+  "total_ofa_distribution",
   "total_earning",
   "total_deposit",
   "total_withdrawal",

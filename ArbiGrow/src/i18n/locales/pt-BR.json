@@ -2629,7 +2629,9 @@
       "package_bonus": "Package Bonus",
       "ecommerce_bonus": "E-commerce Bonus",
       "ofa_free_mining": "OFA Free Mining",
-      "ofa_settlement_balance": "OFA Settlement Balance",
+      "ofa_settlement_balance": "OFA Settlement Balance",
+
+      "total_ofa_distribution": "Total OFA Distribution",
       "leadership_bonus": "Leadership Bonus",
       "extra_offer_achievement": "Extra Offer Achievement",
       "position_achievement": "Position Achievement",

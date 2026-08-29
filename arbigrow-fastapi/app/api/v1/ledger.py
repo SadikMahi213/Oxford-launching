@@ -398,7 +398,32 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
             OFACoinTransaction.tx_type == "mining_reward",
         )
     )
-    deposit, withdrawal, captcha, ad_view, generation, matching, daily_earning, ecommerce, ofa_mining = (
+    # Additional OFA distribution categories for Total OFA Distribution (authoritative OFACoinTransaction ledger, no double count)
+    ofa_signup = _sum(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.user_id == uid,
+            OFACoinTransaction.tx_type == "signup_bonus",
+        )
+    )
+    ofa_package = _sum(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.user_id == uid,
+            OFACoinTransaction.tx_type == "package_signup_bonus",
+        )
+    )
+    ofa_referral = _sum(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.user_id == uid,
+            OFACoinTransaction.tx_type == "referral_bonus",
+        )
+    )
+    ofa_ecommerce = _sum(
+        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+            OFACoinTransaction.user_id == uid,
+            OFACoinTransaction.tx_type == "ecommerce_seller_bonus",
+        )
+    )
+    deposit, withdrawal, captcha, ad_view, generation, matching, daily_earning, ecommerce, ofa_mining, ofa_signup, ofa_package, ofa_referral, ofa_ecommerce = (
         await deposit,
         await withdrawal,
         await captcha,
@@ -408,6 +433,10 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         await daily_earning,
         await ecommerce,
         await ofa_mining,
+        await ofa_signup,
+        await ofa_package,
+        await ofa_referral,
+        await ofa_ecommerce,
     )
 
     # Authoritative OFA → USDT rate (mirrors user.py convert-ofa-to-usdt).
@@ -419,6 +448,11 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
 
     total_earning = round(
         captcha + ad_view + generation + matching + daily_earning + ecommerce, 6
+    )
+    # Total OFA Distribution = sum of legitimate OFA distribution categories (no double count, each backed by OFACoinTransaction)
+    # Mining is already authoritative via OFACoinTransaction mining_reward (not MiningLog separately).
+    total_ofa_distribution = round(
+        ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
     active = [
@@ -432,6 +466,7 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float) -> l
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ofa_free_mining", "amount": round(ofa_mining, 6), "currency": "OFA", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
         {"key": "ofa_settlement_balance", "amount": round(ofa_balance, 6), "currency": "OFA", "stream": "balance", "balance_ofa": ofa_balance},
+        {"key": "total_ofa_distribution", "amount": total_ofa_distribution, "currency": "OFA", "stream": "earning", "balance_ofa": total_ofa_distribution},
     ]
     soon = [
         {"key": key, "amount": 0.0, "currency": "USDT", "stream": "earning"}
