@@ -31,22 +31,22 @@ async def get_platform_stats(
         return {
             "id": stored.id,
             "total_users": stored.total_users,
-            "total_invested": float(stored.total_invested),
-            "total_withdrawn": float(stored.total_withdrawn),
-            "total_profit_shared": float(stored.total_profit_shared),
+            "total_invested": stored.total_invested,
+            "total_withdrawn": stored.total_withdrawn,
+            "total_profit_shared": stored.total_profit_shared,
             "active_investors": stored.active_investors,
             # Homepage field aliases (map admin fields to homepage display names)
             "verified_freelancers": stored.active_investors,
-            "countries_connected": int(stored.total_profit_shared),
+            "countries_connected": stored.total_profit_shared,
         }
 
     # No admin-configured stats yet — return zeros (never live aggregates)
     return {
-        "total_users": 0,
-        "verified_freelancers": 0,
-        "total_invested": 0,
-        "total_withdrawn": 0,
-        "countries_connected": 0,
+        "total_users": "0",
+        "verified_freelancers": "0",
+        "total_invested": "0",
+        "total_withdrawn": "0",
+        "countries_connected": "0",
     }
 
 

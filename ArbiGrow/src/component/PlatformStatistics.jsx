@@ -6,24 +6,8 @@ import { useTranslation } from "react-i18next";
 
 export function PlatformStatistics({ stats }) {
   const { t } = useTranslation();
-  // Format large numbers with commas
-  const formatInteger = (num) => {
-    return Number(num || 0).toLocaleString("en-US");
-  };
-  const formatNumber = (num) => {
-    return Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 3,
-      maximumFractionDigits: 3,
-    });
-  };
-
-  // Format currency
-  const formatCurrency = (num) => {
-    return `$${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 3,
-      maximumFractionDigits: 3,
-    })}`;
-  };
+  // Values are now raw admin-configured strings — display as-is
+  const display = (val) => (val === null || val === undefined ? "" : String(val));
 
   return (
     <section className="relative py-8 md:py-12 px-2 sm:px-4">
@@ -58,35 +42,35 @@ export function PlatformStatistics({ stats }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <StatCard
             label={t("home.platformStats.totalRegisteredMembers")}
-            value={formatInteger(stats?.total_users)}
+            value={display(stats?.total_users)}
             color="blue"
             icon={Users}
             index={0}
           />
           <StatCard
             label={t("home.platformStats.verifiedFreelancers")}
-            value={formatInteger(stats?.verified_freelancers)}
+            value={display(stats?.verified_freelancers)}
             color="green"
             icon={UserCheck}
             index={1}
           />
           <StatCard
             label={t("home.platformStats.packageInvestmentOverview")}
-            value={formatCurrency(stats?.total_invested)}
+            value={display(stats?.total_invested)}
             color="purple"
             icon={TrendingUp}
             index={2}
           />
           <StatCard
             label={t("home.platformStats.successfulWithdrawals")}
-            value={formatCurrency(stats?.total_withdrawn)}
+            value={display(stats?.total_withdrawn)}
             color="cyan"
             icon={Wallet}
             index={3}
           />
           <StatCard
             label={t("home.platformStats.countriesConnected")}
-            value={formatInteger(stats?.countries_connected)}
+            value={display(stats?.countries_connected)}
             color="orange"
             icon={Globe}
             index={4}

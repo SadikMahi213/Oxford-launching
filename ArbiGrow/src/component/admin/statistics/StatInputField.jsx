@@ -40,11 +40,7 @@ export function StatInputField({
         <input
           type="text"
           value={value}
-          onChange={(e) => {
-            // Only allow numbers
-            const numValue = e.target.value.replace(/[^0-9.]/g, "");
-            onChange(numValue);
-          }}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={`w-full ${isCurrency ? "pl-8" : "pl-4"} pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-all`}
         />

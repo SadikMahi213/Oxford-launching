@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   TrendingUp,
@@ -13,51 +13,53 @@ import {
 
 import { StatInputField } from "./StatInputField";
 
-/* Remove comma before sending API */
-const cleanNumber = (value) => {
-  return Number(String(value).replace(/,/g, ""));
-};
-
-/* Format number for UI - integer comma formatting, no fractional digits */
-const formatDecimal = (value) => {
-  const num = Number(value || 0);
-  if (num === 0) return "0";
-  return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
+const formatForDisplay = (value) => {
+  if (value === null || value === undefined) return "";
+  return String(value);
 };
 
 export function StatisticsForm({ initialStats, onSave }) {
 
   const [totalUsers, setTotalUsers] = useState(
-    (initialStats?.total_users || 0).toString()
+    formatForDisplay(initialStats?.total_users)
   );
 
   const [activeInvestors, setActiveInvestors] = useState(
-    (initialStats?.active_investors || 0).toString()
+    formatForDisplay(initialStats?.active_investors)
   );
 
   const [totalInvested, setTotalInvested] = useState(
-    formatDecimal(initialStats?.total_invested)
+    formatForDisplay(initialStats?.total_invested)
   );
 
   const [totalProfitShared, setTotalProfitShared] = useState(
-    formatDecimal(initialStats?.total_profit_shared)
+    formatForDisplay(initialStats?.total_profit_shared)
   );
 
   const [totalWithdrawn, setTotalWithdrawn] = useState(
-    formatDecimal(initialStats?.total_withdrawn)
+    formatForDisplay(initialStats?.total_withdrawn)
   );
+
+  /* Re-sync form state when initialStats changes (after save re-fetch) */
+  useEffect(() => {
+    setTotalUsers(formatForDisplay(initialStats?.total_users));
+    setActiveInvestors(formatForDisplay(initialStats?.active_investors));
+    setTotalInvested(formatForDisplay(initialStats?.total_invested));
+    setTotalProfitShared(formatForDisplay(initialStats?.total_profit_shared));
+    setTotalWithdrawn(formatForDisplay(initialStats?.total_withdrawn));
+  }, [initialStats]);
 
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  /* Detect change — compare cleaned numeric values to handle comma-formatted input */
+  /* Detect change — compare raw string values */
   const isChanged =
-    parseInt(totalUsers || "0", 10) !== (initialStats?.total_users || 0) ||
-    parseInt(activeInvestors || "0", 10) !== (initialStats?.active_investors || 0) ||
-    cleanNumber(totalInvested) !== (initialStats?.total_invested || 0) ||
-    cleanNumber(totalProfitShared) !== (initialStats?.total_profit_shared || 0) ||
-    cleanNumber(totalWithdrawn) !== (initialStats?.total_withdrawn || 0);
+    totalUsers !== formatForDisplay(initialStats?.total_users) ||
+    activeInvestors !== formatForDisplay(initialStats?.active_investors) ||
+    totalInvested !== formatForDisplay(initialStats?.total_invested) ||
+    totalProfitShared !== formatForDisplay(initialStats?.total_profit_shared) ||
+    totalWithdrawn !== formatForDisplay(initialStats?.total_withdrawn);
 
   /* Save */
   const handleSave = async () => {
@@ -67,11 +69,11 @@ export function StatisticsForm({ initialStats, onSave }) {
     setErrorMessage("");
 
     const payload = {
-      total_users: parseInt(totalUsers || "0"),
-      active_investors: parseInt(activeInvestors || "0"),
-      total_invested: cleanNumber(totalInvested),
-      total_profit_shared: cleanNumber(totalProfitShared),
-      total_withdrawn: cleanNumber(totalWithdrawn),
+      total_users: totalUsers || "0",
+      active_investors: activeInvestors || "0",
+      total_invested: totalInvested || "0",
+      total_profit_shared: totalProfitShared || "0",
+      total_withdrawn: totalWithdrawn || "0",
     };
 
     try {
