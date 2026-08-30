@@ -51,13 +51,13 @@ export function StatisticsForm({ initialStats, onSave }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  /* Detect change */
+  /* Detect change — compare cleaned numeric values to handle comma-formatted input */
   const isChanged =
-    totalUsers !== (initialStats?.total_users || 0).toString() ||
-    activeInvestors !== (initialStats?.active_investors || 0).toString() ||
-    Number(totalInvested) !== Number(formatDecimal(initialStats?.total_invested)) ||
-    Number(totalProfitShared) !== Number(formatDecimal(initialStats?.total_profit_shared)) ||
-    Number(totalWithdrawn) !== Number(formatDecimal(initialStats?.total_withdrawn));
+    parseInt(totalUsers || "0", 10) !== (initialStats?.total_users || 0) ||
+    parseInt(activeInvestors || "0", 10) !== (initialStats?.active_investors || 0) ||
+    cleanNumber(totalInvested) !== (initialStats?.total_invested || 0) ||
+    cleanNumber(totalProfitShared) !== (initialStats?.total_profit_shared || 0) ||
+    cleanNumber(totalWithdrawn) !== (initialStats?.total_withdrawn || 0);
 
   /* Save */
   const handleSave = async () => {
