@@ -210,15 +210,10 @@ _OFA_CATEGORY = {
 }
 
 
-async def _ofa_transactions(db: AsyncSession, uid: int) -> list:
+async def _ofa_transactions(db: AsyncSession, uid: int, ofa_to_usdt_rate: Decimal | None = None) -> list:
     rows = (await db.execute(select(OFACoinTransaction).where(OFACoinTransaction.user_id == uid))).scalars().all()
     out = []
     for r in rows:
-        # Mining rewards are authoritative via the OFA coin ledger (each claim
-        # writes an OFACoinTransaction with wallet_balance_before/after proof —
-        # the same source admin.py uses for total mining distribution). Map
-        # them straight to the "mining" category; MiningLog rows are NOT added
-        # separately to avoid double-counting the same claim.
         if r.tx_type == "mining_reward":
             out.append(_to_record("ofa", r.id, r.created_at, "mining",
                                   "earning", "credit", r.amount, "OFA", "completed",
@@ -228,9 +223,12 @@ async def _ofa_transactions(db: AsyncSession, uid: int) -> list:
         category, kind, direction = mapping
         if direction == "auto":
             direction = "credit" if (r.amount or 0) >= 0 else "debit"
-        out.append(_to_record("ofa", r.id, r.created_at, category,
-                              kind, direction, r.amount, "OFA", "completed",
-                              reference=r.reference_id))
+        rec = _to_record("ofa", r.id, r.created_at, category,
+                         kind, direction, r.amount, "OFA", "completed",
+                         reference=r.reference_id)
+        if r.tx_type == "ofa_to_usdt" and ofa_to_usdt_rate is not None:
+            rec["usdt_received"] = round(float(Decimal(str(r.amount)) * ofa_to_usdt_rate), 6)
+        out.append(rec)
     return out
 
 
@@ -526,6 +524,14 @@ async def _build_ledger(user: User, db: AsyncSession, task_only: bool = False) -
 
 
 async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
+    ofa_to_usdt_rate: Decimal | None = None
+    if not task_only:
+        rate_res = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate")
+        )
+        rate_cfg = rate_res.scalar_one_or_none()
+        ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
+
     if task_only:
         tasks = [
             _ad_views(db, uid),
@@ -538,7 +544,7 @@ async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
             _captcha(db, uid),
             _referral_profits(db, uid),
             _matching_bonuses(db, uid),
-            _ofa_transactions(db, uid),
+            _ofa_transactions(db, uid, ofa_to_usdt_rate=ofa_to_usdt_rate),
             _wallet_transactions(db, uid),
             _withdrawals(db, uid),
             _deposits(db, uid),
@@ -577,6 +583,9 @@ async def get_ledger_transactions(
 
     # ── Apply filters ──
     filtered = records
+    # KYC gating: hide OFA → USDT conversion records for non-approved users.
+    if getattr(current_user, "admin_kyc_status", None) != "approved":
+        filtered = [r for r in filtered if r["category"] != "ofa_conversion"]
     if task_only:
         # Keep task-based records only; drop everything else explicitly.
         filtered = [r for r in filtered if r["category"] in TASK_CATEGORIES]

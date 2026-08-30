@@ -607,6 +607,7 @@ const activeCards = categories.filter((c) => {
               items.map((item) => {
                 const isDebit = item.direction === "debit";
                 const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
+                const isConversion = item.category === "ofa_conversion" && item.usdt_received != null;
                 const dispStatus = displayStatus(item);
                 return (
                   <tr key={item.id} className="border-b border-white/5 hover:bg-white/[0.03]">
@@ -618,8 +619,18 @@ const activeCards = categories.filter((c) => {
                         {t(`ledger.type.${item.type}`, item.type)}
                       </span>
                     </td>
-                    <td className={`p-4 text-sm font-semibold text-right ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                      {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
+                    <td className="p-4 text-sm font-semibold text-right">
+                      {isConversion ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span className="text-red-300">-{formatAmount(item.amount)} OFA</span>
+                          <span className="text-gray-500">→</span>
+                          <span className="text-emerald-300">+${formatAmount(item.usdt_received)} USDT</span>
+                        </span>
+                      ) : (
+                        <span className={isDebit ? "text-red-300" : "text-emerald-300"}>
+                          {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
+                        </span>
+                      )}
                     </td>
                     <td className="p-4 text-sm text-gray-300">{item.currency}</td>
                     <td className="p-4 text-sm">
@@ -652,6 +663,7 @@ const activeCards = categories.filter((c) => {
               const Icon = CATEGORY_ICON[item.category] || CircleDollarSign;
               const { date: dateStr, time: timeStr } = formatDateParts(item.date);
               const isTaskEarning = item.category === "captcha" || item.category === "ad_view";
+              const isConversion = item.category === "ofa_conversion" && item.usdt_received != null;
               const dispStatus = displayStatus(item);
               return (
                 <div key={item.id} className="rounded-xl border border-white/10 bg-[#0B132B] p-3">
@@ -671,9 +683,20 @@ const activeCards = categories.filter((c) => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end shrink-0">
-                      <span className={`text-sm font-bold whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
-                        {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
-                      </span>
+                      {isConversion ? (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="text-sm font-bold whitespace-nowrap text-red-300">
+                            -{formatAmount(item.amount)} OFA
+                          </span>
+                          <span className="text-sm font-bold whitespace-nowrap text-emerald-300">
+                            +${formatAmount(item.usdt_received)} USDT
+                          </span>
+                        </div>
+                      ) : (
+                        <span className={`text-sm font-bold whitespace-nowrap ${isDebit ? "text-red-300" : "text-emerald-300"}`}>
+                          {isDebit ? "-" : "+"}{isTaskEarning ? formatAmount3(item.amount) : formatAmount(item.amount)} {item.currency}
+                        </span>
+                      )}
                       <span className={`inline-block px-1.5 py-0.5 mt-0.5 rounded border text-[9px] font-semibold ${statusColor(dispStatus)}`}>
                         {t(`ledger.status.${dispStatus}`, dispStatus)}
                       </span>
