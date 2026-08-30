@@ -26,6 +26,11 @@ async def get_platform_stats(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    # Check for admin-curated values in platform_stats table
+    result = await db.execute(select(PlatformStats).limit(1))
+    stored = result.scalar_one_or_none()
+
+    # Compute live aggregates (always needed for fallback and homepage)
     total_users_result = await db.execute(select(sa_func.count(User.id)))
     total_users = total_users_result.scalar() or 0
 
@@ -51,6 +56,20 @@ async def get_platform_stats(
         .where(User.country_of_residence != "")
     )
     countries_connected = countries_result.scalar() or 0
+
+    # If admin has saved curated values, use them as the primary source
+    if stored:
+        return {
+            "id": stored.id,
+            "total_users": stored.total_users,
+            "total_invested": float(stored.total_invested),
+            "total_withdrawn": float(stored.total_withdrawn),
+            "total_profit_shared": float(stored.total_profit_shared),
+            "active_investors": stored.active_investors,
+            # Homepage field aliases (map admin fields to homepage display names)
+            "verified_freelancers": stored.active_investors,
+            "countries_connected": int(stored.total_profit_shared),
+        }
 
     return {
         "total_users": total_users,

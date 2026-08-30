@@ -39,7 +39,7 @@ from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
 from app.models.kyc import KYC
 from app.models.matching_bonus import MatchingBonus
-from app.models.ofa_coin_transaction import OFACoinTransaction
+from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.system_config import SystemConfig
 from app.models.transfer_log import TransferLog
