@@ -283,7 +283,7 @@ export function UserDashboard() {
     if (v === "processing") return "Processing";
     return "Pending";
   };
-  const _normalizeTransactions = (deps, wdws, pfts, transfers, investments, matching_bonuses, captcha_earnings, mining_logs, ad_views, invoices, vendor_withdraws, ecom_txs, wallet_txs) => {
+  const _normalizeTransactions = (deps, wdws, pfts, transfers, investments, invoices, vendor_withdraws, ecom_txs, wallet_txs) => {
     const rows = [];
     deps.forEach((d) =>
       rows.push({
@@ -517,9 +517,7 @@ export function UserDashboard() {
         setTransactions(_normalizeTransactions(
           _arr(deps), _arr(wdws), _arr(pfts),
           transfers && typeof transfers === "object" ? transfers : {},
-          _arr(investments), _arr(matching_bonuses),
-          _arr(captcha_earnings), _arr(mining_logs), _arr(ad_views),
-          _arr(invoices), _arr(vendor_withdraws), _arr(ecom_txs), _arr(wallet_txs),
+          _arr(investments), _arr(invoices), _arr(vendor_withdraws), _arr(ecom_txs), _arr(wallet_txs),
         ));
         setTransactionsLoaded(true);
       } catch (err) {

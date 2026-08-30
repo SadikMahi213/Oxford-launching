@@ -672,13 +672,21 @@ async def get_wallet_balances(
     rate_cfg = rate_res.scalar_one_or_none()
     ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
 
-    # KYC gate: OFA wallets are only visible when admin_kyc_status == "approved".
-    is_kyc_approved = bool(getattr(current_user, "admin_kyc_status", None) == "approved")
+    # Check if the user has performed an OFA conversion (ofa_to_usdt transaction).
+    # The OFA Wallet must not appear based on KYC alone; it must be triggered by an actual
+    # OFA-to-USDT conversion so that KYC = $10 does not create an OFA Ledger entry.
+    has_ofa_conversion = await db.execute(
+        select(func.count(OFACoinTransaction.id)).where(
+            OFACoinTransaction.user_id == current_user.id,
+            OFACoinTransaction.tx_type == OFATransactionType.ofa_to_usdt,
+        )
+    )
+    ofa_converted = has_ofa_conversion.scalar() > 0
 
     wallets = []
     for key, currency in _WALLET_META:
-        # Hide all OFA wallets for non-verified users (display rule only, underlying OFACoinTransaction records untouched)
-        if currency == "OFA" and not is_kyc_approved:
+        # Hide OFA wallets unless the user has an actual OFA conversion record.
+        if currency == "OFA" and not ofa_converted:
             continue
         raw = getattr(current_user, key, None) if key != "ofa_balance" else ofa_balance
         balance = _num(raw)

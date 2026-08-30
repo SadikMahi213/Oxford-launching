@@ -18,9 +18,11 @@ const cleanNumber = (value) => {
   return Number(String(value).replace(/,/g, ""));
 };
 
-/* Format number for UI - plain integer comma formatting */
+/* Format number for UI - integer comma formatting, no fractional digits */
 const formatDecimal = (value) => {
-  return Number(value || 0).toLocaleString("en-US");
+  const num = Number(value || 0);
+  if (num === 0) return "0";
+  return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 };
 
 export function StatisticsForm({ initialStats, onSave }) {
@@ -53,9 +55,9 @@ export function StatisticsForm({ initialStats, onSave }) {
   const isChanged =
     totalUsers !== (initialStats?.total_users || 0).toString() ||
     activeInvestors !== (initialStats?.active_investors || 0).toString() ||
-    totalInvested !== formatDecimal(initialStats?.total_invested) ||
-    totalProfitShared !== formatDecimal(initialStats?.total_profit_shared) ||
-    totalWithdrawn !== formatDecimal(initialStats?.total_withdrawn);
+    Number(totalInvested) !== Number(formatDecimal(initialStats?.total_invested)) ||
+    Number(totalProfitShared) !== Number(formatDecimal(initialStats?.total_profit_shared)) ||
+    Number(totalWithdrawn) !== Number(formatDecimal(initialStats?.total_withdrawn));
 
   /* Save */
   const handleSave = async () => {
