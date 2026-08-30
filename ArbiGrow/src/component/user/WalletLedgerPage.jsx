@@ -106,6 +106,7 @@ function WalletCard({ icon: Icon, title, value, unit, subtitle, theme }) {
 const WalletLedgerPage = ({ setActivePage }) => {
   const { t } = useTranslation();
   const [wallets, setWallets] = useState([]);
+  const [ofaConvertedUsdt, setOfaConvertedUsdt] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -120,6 +121,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
         .map((key) => list.find((w) => w.key === key))
         .filter(Boolean);
       setWallets(ordered);
+      setOfaConvertedUsdt(Number(data.ofa_converted_usdt) || 0);
     } catch (err) {
       console.error("WalletLedger load failed", err);
       setError(t("ledger.loadError", "Unable to load wallet balances."));
@@ -203,9 +205,9 @@ const WalletLedgerPage = ({ setActivePage }) => {
                     <WalletCard
                       icon={Icon}
                       title={t(`ledger.balance.${w.key}`, w.key)}
-                      value={isOfa ? formatAmount(w.balance) : `$${formatFiat(Number(w.balance) || 0)}`}
-                      unit={isOfa ? "OFA" : "USDT"}
-                      subtitle={undefined}
+                      value={isOfa ? `$${formatFiat(ofaConvertedUsdt)}` : `$${formatFiat(Number(w.balance) || 0)}`}
+                      unit="USDT"
+                      subtitle={isOfa && ofaConvertedUsdt > 0 ? `${formatAmount(w.balance)} OFA` : undefined}
                       theme={theme}
                     />
                   </motion.div>

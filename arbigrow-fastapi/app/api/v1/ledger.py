@@ -692,6 +692,17 @@ async def get_wallet_balances(
     )
     ofa_converted = has_ofa_conversion.scalar() > 0
 
+    # Compute total USDT received from OFA → USDT conversions (same formula as _category_summary).
+    ofa_to_usdt_sum = _num(
+        (await db.execute(
+            select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+                OFACoinTransaction.user_id == current_user.id,
+                OFACoinTransaction.tx_type == OFATransactionType.ofa_to_usdt,
+            )
+        )).scalar()
+    )
+    ofa_converted_usdt = round(ofa_to_usdt_sum * float(ofa_to_usdt_rate), 6)
+
     wallets = []
     for key, currency in _WALLET_META:
         # Hide OFA wallets unless the user has an actual OFA conversion record.
@@ -710,4 +721,5 @@ async def get_wallet_balances(
     return {
         "wallets": wallets,
         "ofa_to_usdt_rate": float(ofa_to_usdt_rate),
+        "ofa_converted_usdt": ofa_converted_usdt,
     }
