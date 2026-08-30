@@ -338,22 +338,25 @@ def test_snapshot_floor_plus_post_kyc_volume_grants_rank():
     assert bonuses == [] and histories == []
     assert seen == [Decimal("190")], "rank qualification uses the snapshot once"
 
-    # (b) Post-KYC deposit of 10. Rank qualification sees the accumulated
-    # volume (snapshot floor 190 + post-approval 10 = 200) -> Starter.
+    # (b) Post-KYC deposit pushes team_volume past Starter threshold.
+    # team_volume from get_team_volume (with cutover) = 210 (post-KYC only).
+    # Band formula: Starter band is [200, 500]. floor = max(190, 0) = 190.
+    # payout_from = max(190, 200) = 200, payout_to = min(210, 500) = 210.
+    # eligible = 210 - 200 = 10. At 10% = 1 bonus.
     result2, db2, _, seen2 = _run_eval(
-        user, kyc_approved=True, personal=Decimal("10"), team=Decimal("10"),
+        user, kyc_approved=True, personal=Decimal("210"), team=Decimal("210"),
         qualified_rank=RANKS[0],
     )
-    assert seen2 == [Decimal("200"), Decimal("10")], (
-        "rank qualification uses accumulated volume (snapshot floor + post-KYC)"
+    assert seen2 == [Decimal("210")], (
+        "rank qualification uses team_volume from get_team_volume"
     )
     assert result2["rank_upgraded"] is True
     assert result2["new_rank"] == 1
     assert user.current_rank_id == 1
-    assert user.team_volume == Decimal("200")
+    assert user.team_volume == Decimal("210")
     bonuses2, histories2 = _split_added(db2)
     assert len(bonuses2) == 1 and bonuses2[0].rank_id == 1 and not bonuses2[0].is_reversed, (
-        "Starter must pay a bonus only on the post-KYC 10 (10% = 1)"
+        "Starter must pay a bonus on volume above rank threshold (210-200=10, 10%=1)"
     )
     assert user.matching_bonus_wallet == Decimal("1")
     assert len(histories2) == 1
@@ -411,22 +414,24 @@ def test_kyc_approval_retry_does_not_duplicate_bonus():
 def test_post_kyc_deposit_triggers_bonuses_and_rank_upgrade():
     user = _FakeUser(4)
     user.kyc_approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
-    # Post-approval deposit drives team volume from the cutover. The volume is
-    # handed to the rank qualification check TWICE now: once for the 10-gen Team
-    # Volume (rank upgrade) and once for the matching volume (same 10-gen scope).
+    # Post-approval deposit drives team volume from the cutover.
     result, db, gtv, seen = _run_eval(
         user, kyc_approved=True, personal=Decimal("500"), team=Decimal("50000"),
         qualified_rank=RANKS[3],
     )
-    assert seen == [Decimal("50000"), Decimal("50000")]
+    assert seen == [Decimal("50000")]
     assert result["rank_upgraded"] is True
     assert result["new_rank"] == 4
     assert user.current_rank_id == 4
     bonuses, histories = _split_added(db)
     assert len(bonuses) == 4, "each newly achieved rank pays a matching bonus"
     assert all(not b.is_reversed for b in bonuses)
-    assert sum(b.bonus_amount for b in bonuses) == Decimal("2000")  # 10% of each tier delta (200+300+500+19000)
-    assert user.matching_bonus_wallet == Decimal("2000")
+    # Band formula: each rank pays on band from its own target to next rank's target.
+    # Starter(200)->Silver(500)=300, Silver(500)->Gold(1000)=500,
+    # Gold(1000)->Global(20000)=19000, Global(20000)->50000=30000.
+    # Total eligible = 300+500+19000+30000 = 49800. At 10% = 4980.
+    assert sum(b.bonus_amount for b in bonuses) == Decimal("4980")
+    assert user.matching_bonus_wallet == Decimal("4980")
     assert len(result["bonuses_paid"]) == 4
     assert len(histories) == 4
 

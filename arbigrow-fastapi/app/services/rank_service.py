@@ -680,7 +680,7 @@ async def evaluate_and_process_rank(
     if use_snapshot_volume and snapshot_volume is not None:
         team_volume = Decimal(snapshot_volume)
     else:
-        _, team_volume = await get_team_volume(user_id, db)
+        _, team_volume = await get_team_volume(user_id, db, cutover=getattr(user, "kyc_approved_at", None))
     team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
     user.team_volume = team_volume
 
@@ -695,13 +695,33 @@ async def evaluate_and_process_rank(
         result["new_rank"] = desired_rank_id
         result["rank_upgraded"] = bool(qualified_rank)
         if qualified_rank:
-            await _create_rank_history(
-                user_id=user_id,
-                rank_id=qualified_rank.id,
-                previous_rank_id=previous_rank_id,
-                team_volume=team_volume,
-                db=db,
+            # Create rank history entries for ALL intermediate ranks between the
+            # previous rank and the newly qualified rank.
+            current_sort = 0
+            if previous_rank_id:
+                prev_rank = await db.get(Rank, previous_rank_id)
+                if prev_rank:
+                    current_sort = prev_rank.sort_order
+            all_ranks_result = await db.execute(
+                select(Rank)
+                .where(
+                    Rank.is_active == True,
+                    Rank.sort_order > current_sort,
+                    Rank.sort_order <= qualified_rank.sort_order,
+                )
+                .order_by(Rank.sort_order.asc())
             )
+            new_ranks = all_ranks_result.scalars().all()
+            prev_id = previous_rank_id
+            for r in new_ranks:
+                await _create_rank_history(
+                    user_id=user_id,
+                    rank_id=r.id,
+                    previous_rank_id=prev_id,
+                    team_volume=team_volume,
+                    db=db,
+                )
+                prev_id = r.id
 
     # KYC approval establishes the rank from the snapshot but must never pay
     # for historical volume. The KYC handler initializes the watermark to the
@@ -734,11 +754,12 @@ async def evaluate_and_process_rank(
             (config.bonus_type, config.bonus_percent)
         )
 
-    # A rank's percentage applies *after* that rank has been achieved, until
-    # the next rank's target. For example, Starter (200) pays 2% from
-    # 200 -> 500; Silver (500) pays 3% from 500 -> 1000. No matching bonus is
-    # paid for volume below the first rank target. A deposit ending inside a
-    # band receives that exact partial band at the current rank's percentage.
+    # A rank's percentage applies on the band from its own target_volume to the
+    # next rank's target.  For example, Starter (200) pays on 200 -> 500;
+    # Silver (500) pays on 500 -> 1000.  No matching bonus is paid for volume
+    # below the first rank target.  The floor (kyc_approved_team_volume or
+    # bonused_up_to) ensures pre-KYC volume and already-bonused volume is
+    # never counted twice.
     for index, rank in enumerate(ranks):
         band_start = rank.target_volume
         band_end = (
@@ -757,9 +778,6 @@ async def evaluate_and_process_rank(
         )
         configs = bonus_map.get(rank.id, [])
         if not configs:
-            # Do not move the watermark past an unpayable segment. That keeps
-            # the ledger and watermark gapless and makes a configuration repair
-            # safely retryable.
             break
 
         distributed = await _distribute_rank_bonuses(
