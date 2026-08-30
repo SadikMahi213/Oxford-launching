@@ -130,10 +130,12 @@ async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
     If ``user`` is NOT KYC-approved this strips every rank artifact so no later
     code can re-expose it:
       * clears ``current_rank_id``
-      * zeroes ``team_volume``
       * reverses all active ``matching_bonuses`` and recomputes
         ``matching_bonus_wallet`` from the remaining (non-reversed) rows
       * marks active ``rank_histories`` as ``reversed``
+
+    Team Volume is intentionally preserved: it continues accumulating regardless
+    of KYC status (volume is always calculated from approved deposits on the fly).
 
     Returns True when the user is blocked (not KYC-approved).
     """
@@ -161,10 +163,6 @@ async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
     if user.current_rank_id is not None:
         changed = True
         user.current_rank_id = None
-    if (user.team_volume or Decimal("0")) > 0:
-        changed = True
-        user.team_volume = Decimal("0")
-
     histories = (
         await db.execute(
             select(RankHistory).where(
@@ -384,260 +382,6 @@ async def _legacy_evaluate_and_process_rank(
         snapshot_volume=snapshot_volume,
     )
 
-    # Deprecated implementation retained below temporarily for source-history
-    # context only. It is unreachable; all calls are routed above.
-    result = {"rank_upgraded": False, "bonuses_paid": [], "previous_rank": None, "new_rank": None}
-
-    user_result = await db.execute(
-        select(User).where(User.id == user_id).with_for_update()
-    )
-    user = user_result.scalar_one_or_none()
-    if not user:
-        return result
-
-    # KYC guard: a user must be fully KYC-verified (approved) before they can qualify
-    # for any rank or receive any matching bonus. Not-approved users are stripped of
-    # any existing rank artifacts so a stale rank can never survive or be re-exposed.
-    if await enforce_kyc_rank_gate(user, db):
-        return result
-
-    # Only deposits created at/after KYC approval count toward team volume, so
-    # pre-approval deposits never drive rank eligibility or matching bonuses.
-    cutover = getattr(user, "kyc_approved_at", None)
-
-    # Step 1: Calculate personal deposit and total team volume
-    if use_snapshot_volume and snapshot_volume is not None:
-        team_volume = snapshot_volume
-        personal_volume, _ = await get_team_volume(user_id, db, cutover=cutover)
-    else:
-        personal_volume, fresh_team_volume = await get_team_volume(user_id, db, cutover=cutover)
-        # A KYC-approved user's rank-eligible Team Volume is the ACCUMULATED
-        # total: the permanent pre-approval snapshot floor (kyc_approved_team_volume)
-        # plus all post-approval volume. The cutover already excludes pre-approval
-        # deposits, so adding the floor never double-counts. This is what lets a
-        # KYC-approved user cross a threshold on a new deposit (e.g. 180 snapshot
-        # + 20 deposit = 200 = Starter) and have the rank persisted.
-        team_volume = _snapshot_floor(user) + fresh_team_volume
-
-    # Update user's team_volume (even if personal_volume is 0)
-    user.team_volume = team_volume
-
-    # Skip evaluation only when no post-approval volume has accumulated beyond
-    # the snapshot floor - nothing has changed since the KYC snapshot assigned
-    # the rank, so a rank decision cannot change. This also lets a downline
-    # deposit upgrade a KYC-approved ancestor (personal_volume may be 0) as long
-    # as post-approval team volume moved. The snapshot path
-    # (use_snapshot_volume=True) always evaluates because it assigns the rank
-    # ONCE from the full historical snapshot on approval, even when the user has
-    # no post-approval personal deposits yet.
-    if not use_snapshot_volume and team_volume <= _snapshot_floor(user):
-        return result
-
-    # Step 2: Find highest qualified rank (10-generation Team Volume)
-    qualified_rank = await _get_highest_qualified_rank(team_volume, db)
-    if not qualified_rank:
-        return result
-
-    # Matching Bonus uses the same 10-generation descendant scope as Team Volume
-    # (single NETWORK_GENERATION_LIMIT), so the matching volume (and the rank it
-    # supports) equals the team-volume rank. Compute the matching volume and the
-    # highest rank it supports; bonuses are capped at that rank.
-    #
-    # Business policy: pre-KYC volume NEVER generates a matching bonus ("Matching
-    # Bonus generated from previous 100,000 = 0"). The matching volume is ALWAYS
-    # the post-cutover eligible volume (deposits created at/after kyc_approved_at)
-    # -- never the historical snapshot. So even when KYC approval assigns a rank
-    # from the snapshot (use_snapshot_volume=True), the matching basis stays the
-    # post-cutover volume, which is zero at approval time and only grows with
-    # future post-approval deposits.
-    matching_rank_sort = 0
-    matching_volume = Decimal("0")
-    if not skip_bonus:
-        _, matching_volume = await get_matching_bonus_volume(user_id, db, cutover=cutover)
-        matching_qualified_rank = await _get_highest_qualified_rank(matching_volume, db)
-        if matching_qualified_rank:
-            matching_rank_sort = matching_qualified_rank.sort_order
-
-    # Step 3: Determine current rank sort order
-    current_rank_sort = 0
-    previous_rank_id = None
-    if user.current_rank_id:
-        current_rank = await db.get(Rank, user.current_rank_id)
-        if current_rank:
-            current_rank_sort = current_rank.sort_order
-            previous_rank_id = current_rank.id
-
-    if qualified_rank.sort_order <= current_rank_sort:
-        # Even when no rank upgrade is needed, the user may still be owed matching
-        # bonuses for ranks they hold but were never paid.  This happens when:
-        #   1. KYC approval assigned a rank with skip_bonus=True (no bonus paid).
-        #   2. A later deposit triggers rank evaluation but doesn't push the user
-        #      to a higher rank, so the normal bonus-distribution path is skipped.
-        # Without this, the bonus for the KYC-assigned rank is never paid.
-        # Pay EVERY unpaid rank from the lowest upward, up to the highest rank the
-        # matching volume supports (same 10-generation limit as Team Volume), so
-        # an owed rank is never skipped just because a higher rank was assigned.
-        if not skip_bonus:
-            catchup_limit = min(current_rank_sort, matching_rank_sort)
-            if catchup_limit > 0:
-                catchup_ranks_result = await db.execute(
-                    select(Rank)
-                    .where(
-                        Rank.is_active == True,
-                        Rank.sort_order <= catchup_limit,
-                    )
-                    .order_by(Rank.sort_order.asc())
-                )
-                catchup_ranks = [
-                    r for r in catchup_ranks_result.scalars().all()
-                    if r.sort_order <= catchup_limit
-                ]
-                catchup_ids = [r.id for r in catchup_ranks]
-                if catchup_ids:
-                    config_rows = await db.execute(
-                        select(RankBonusConfig)
-                        .where(RankBonusConfig.rank_id.in_(catchup_ids))
-                        .order_by(RankBonusConfig.sort_order)
-                    )
-                    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
-                    for c in config_rows.scalars().all():
-                        bonus_map.setdefault(c.rank_id, []).append((c.bonus_type, c.bonus_percent))
-
-                    previous_target = Decimal("0")
-                    for rank in catchup_ranks:
-                        if await _has_rank_bonus_been_paid(user_id, rank.id, db):
-                            previous_target = rank.target_volume
-                            continue
-
-                        eligible = _compute_band_eligible(user, rank, previous_target)
-                        previous_target = rank.target_volume
-                        if eligible <= 0:
-                            continue
-
-                        configs = bonus_map.get(rank.id, [])
-                        if not configs:
-                            continue
-
-                        distributed = await _distribute_rank_bonuses(
-                            user_id=user_id,
-                            source_user_id=source_user_id,
-                            rank=rank,
-                            eligible_amount=eligible,
-                            db=db,
-                            bonus_configs=configs,
-                            reference_id=reference_id,
-                            reference_type=reference_type,
-                        )
-                        if distributed:
-                            _advance_bonused_up_to(user, rank.target_volume)
-                        result["bonuses_paid"].append({
-                            "rank_id": rank.id,
-                            "rank_name": rank.name,
-                            "eligible_amount": str(eligible),
-                        })
-        return result
-
-    # Step 4: Get all newly achievable ranks between current and qualified
-    new_ranks_result = await db.execute(
-        select(Rank)
-        .where(
-            Rank.is_active == True,
-            Rank.sort_order > current_rank_sort,
-            Rank.sort_order <= qualified_rank.sort_order,
-        )
-        .order_by(Rank.sort_order.asc())
-    )
-    new_ranks = new_ranks_result.scalars().all()
-    if not new_ranks:
-        return result
-
-    # Step 5: Get the previous rank's target volume for eligible calculation
-    previous_target = Decimal("0")
-    if previous_rank_id:
-        prev_rank = await db.get(Rank, previous_rank_id)
-        if prev_rank:
-            previous_target = prev_rank.target_volume
-
-    # Pre-load bonus configs for all new ranks
-    new_rank_ids = [r.id for r in new_ranks]
-    config_rows = await db.execute(
-        select(RankBonusConfig)
-        .where(RankBonusConfig.rank_id.in_(new_rank_ids))
-        .order_by(RankBonusConfig.sort_order)
-    )
-    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
-    for c in config_rows.scalars().all():
-        bonus_map.setdefault(c.rank_id, []).append((c.bonus_type, c.bonus_percent))
-
-    # Step 6: Process each newly achieved rank
-    last_achieved_rank = None
-    for rank in new_ranks:
-        # Skip if bonus already paid for this rank (prevents double pay)
-        if await _has_rank_bonus_been_paid(user_id, rank.id, db):
-            previous_target = rank.target_volume
-            last_achieved_rank = rank
-            continue
-
-        # Calculate eligible amount for this rank (snapshot-in-band: the band
-        # never includes the permanent KYC snapshot floor or already-bonused
-        # volume, so pre-KYC volume generates zero bonus).
-        eligible = _compute_band_eligible(user, rank, previous_target)
-        if eligible <= 0:
-            previous_target = rank.target_volume
-            last_achieved_rank = rank
-            continue
-
-        # Get bonus configs for this rank
-        configs = bonus_map.get(rank.id, [])
-        if not configs:
-            previous_target = rank.target_volume
-            last_achieved_rank = rank
-            continue
-
-        # Distribute bonuses for this rank (skip only when skip_bonus=True, e.g.
-        # for ancestor re-evaluation during KYC approval, or when the rank is
-        # beyond the matching bonus scope).
-        if not skip_bonus and rank.sort_order <= matching_rank_sort:
-            distributed = await _distribute_rank_bonuses(
-                user_id=user_id,
-                source_user_id=source_user_id,
-                rank=rank,
-                eligible_amount=eligible,
-                db=db,
-                bonus_configs=configs,
-                reference_id=reference_id,
-                reference_type=reference_type,
-            )
-            if distributed:
-                _advance_bonused_up_to(user, rank.target_volume)
-            result["bonuses_paid"].append({
-                "rank_id": rank.id,
-                "rank_name": rank.name,
-                "eligible_amount": str(eligible),
-            })
-
-        # Save rank history
-        await _create_rank_history(
-            user_id=user_id,
-            rank_id=rank.id,
-            previous_rank_id=previous_rank_id,
-            team_volume=team_volume,
-            db=db,
-        )
-
-        previous_rank_id = rank.id
-        previous_target = rank.target_volume
-        last_achieved_rank = rank
-
-    # Step 7: Update user's current rank (highest achieved)
-    if last_achieved_rank:
-        result["previous_rank"] = user.current_rank_id
-        user.current_rank_id = last_achieved_rank.id
-        result["new_rank"] = last_achieved_rank.id
-        result["rank_upgraded"] = True
-
-    return result
-
 
 async def evaluate_and_process_rank(
     user_id: int,
@@ -680,7 +424,7 @@ async def evaluate_and_process_rank(
     if use_snapshot_volume and snapshot_volume is not None:
         team_volume = Decimal(snapshot_volume)
     else:
-        _, team_volume = await get_team_volume(user_id, db, cutover=getattr(user, "kyc_approved_at", None))
+        _, team_volume = await get_team_volume(user_id, db)
     team_volume = team_volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
     user.team_volume = team_volume
 

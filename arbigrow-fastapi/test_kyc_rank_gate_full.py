@@ -130,14 +130,14 @@ def test_approved_kyc_deposit_eligible():
     assert "bonuses_paid" in result
 
 
-def test_pending_to_approved_uses_kyc_approved_at_cutover():
+def test_pending_to_approved_uses_lifetime_volume_for_rank():
     approved_at = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
     user = _FakeUser(4)
     user.kyc_approved_at = approved_at
     _, gtv = _eval_rank(user, kyc_approved=True)
     assert gtv.await_count == 1
     _, kwargs = gtv.call_args
-    assert kwargs.get("cutover") == approved_at, "eligible volume must start at kyc_approved_at"
+    assert kwargs.get("cutover") is None, "rank evaluation must use lifetime volume (no cutover)"
 
 
 def test_enforce_gate_strips_artifacts_for_rejected_user():
@@ -156,7 +156,7 @@ def test_enforce_gate_strips_artifacts_for_rejected_user():
     blocked = asyncio.run(run())
     assert blocked is True
     assert user.current_rank_id is None
-    assert user.team_volume == Decimal("0")
+    assert user.team_volume == Decimal("3411"), "team_volume must be preserved (volume always accumulates)"
     assert user.matching_bonus_wallet == Decimal("0")
     assert all(b.is_reversed for b in bonuses)
     assert all(h.status == "reversed" for h in histories)
