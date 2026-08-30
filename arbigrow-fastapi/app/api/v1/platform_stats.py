@@ -1,13 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import select
 
 from app.core.database import get_db
 from app.models.platform_stats import PlatformStats
-from app.models.user import User
-from app.models.kyc import KYC
-from app.models.investments import Investment
-from app.models.withdrawal import Withdrawal
 from app.schemas.platform_stats import (
     PlatformStatsCreate,
     PlatformStatsUpdate,
@@ -26,38 +22,11 @@ async def get_platform_stats(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    # Check for admin-curated values in platform_stats table
+    # The homepage Live Platform Statistics section is ENTIRELY admin-controlled.
+    # No live database aggregates are used — only the saved admin values.
     result = await db.execute(select(PlatformStats).limit(1))
     stored = result.scalar_one_or_none()
 
-    # Compute live aggregates (always needed for fallback and homepage)
-    total_users_result = await db.execute(select(sa_func.count(User.id)))
-    total_users = total_users_result.scalar() or 0
-
-    verified_result = await db.execute(
-        select(sa_func.count(KYC.id)).where(KYC.status == "approved")
-    )
-    verified_freelancers = verified_result.scalar() or 0
-
-    invested_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Investment.invested_amount), 0))
-    )
-    total_invested = float(invested_result.scalar() or 0)
-
-    withdrawn_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Withdrawal.amount), 0))
-        .where(Withdrawal.status == "approved")
-    )
-    total_withdrawn = float(withdrawn_result.scalar() or 0)
-
-    countries_result = await db.execute(
-        select(sa_func.count(sa_func.distinct(User.country_of_residence)))
-        .where(User.country_of_residence.isnot(None))
-        .where(User.country_of_residence != "")
-    )
-    countries_connected = countries_result.scalar() or 0
-
-    # If admin has saved curated values, use them as the primary source
     if stored:
         return {
             "id": stored.id,
@@ -71,12 +40,13 @@ async def get_platform_stats(
             "countries_connected": int(stored.total_profit_shared),
         }
 
+    # No admin-configured stats yet — return zeros (never live aggregates)
     return {
-        "total_users": total_users,
-        "verified_freelancers": verified_freelancers,
-        "total_invested": total_invested,
-        "total_withdrawn": total_withdrawn,
-        "countries_connected": countries_connected,
+        "total_users": 0,
+        "verified_freelancers": 0,
+        "total_invested": 0,
+        "total_withdrawn": 0,
+        "countries_connected": 0,
     }
 
 
