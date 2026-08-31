@@ -590,9 +590,6 @@ export default function MatchingBonusInfo({ setActivePage }) {
                             {t("matchingBonusInfo.bonusType", "Bonus Type")}
                           </th>
                           <th className="text-right p-4 text-gray-400 font-medium">
-                            {t("matchingBonusInfo.eligibleVolume")}
-                          </th>
-                          <th className="text-right p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.rate")}
                           </th>
                           <th className="text-right p-4 text-gray-400 font-medium">
@@ -620,12 +617,6 @@ export default function MatchingBonusInfo({ setActivePage }) {
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 capitalize">
                                 {displayBonusType}
                               </span>
-                            </td>
-                            <td data-label={t("matchingBonusInfo.eligibleVolume")} className="p-4 text-right text-gray-300">
-                              {parseFloat(
-                                b.eligible_amount || 0
-                              ).toFixed(2)}{" "}
-                              USDT
                             </td>
                             <td data-label={t("matchingBonusInfo.rate")} className="p-4 text-right text-gray-300">
                               {parseFloat(b.bonus_percent || 0)}%
