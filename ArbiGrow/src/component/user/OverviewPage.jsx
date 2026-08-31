@@ -356,11 +356,11 @@ const OverviewPage = ({ setActivePage }) => {
                 </div>
                 <div className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-white/[0.08] ${wallet.accentColor} border border-white/[0.12] font-semibold`}>{wallet.currency}</div>
               </div>
-              <div className="text-[10px] sm:text-[11px] text-gray-500 mb-0.5 leading-tight">{wallet.label}</div>
+              <div className="text-[10px] sm:text-[11px] text-gray-300 mb-0.5 leading-tight">{wallet.label}</div>
               <div className="text-base sm:text-xl font-bold text-white mb-0.5 sm:mb-1 leading-tight">
                 {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)} USDT</> : <>{wallet.balance.toFixed(7)} {wallet.currency}</>}
               </div>
-              <div className="text-[10px] sm:text-[11px] text-gray-500 mb-2 sm:mb-3 leading-none">{t("overview.wallets.usable")}</div>
+              <div className="text-[10px] sm:text-[11px] text-gray-300 mb-2 sm:mb-3 leading-none">{t("overview.wallets.usable")}</div>
               {wallet.historyType && (
                 <div className="mt-auto">
                   <span className={`text-[9px] sm:text-[10px] ${wallet.footerColor} font-semibold leading-none`}>{t("overview.wallets.clickHistory")}</span>
