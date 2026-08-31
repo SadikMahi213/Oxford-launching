@@ -221,6 +221,12 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
+    // Profile picture is mandatory (required to compare with NID/passport photo)
+    if (!user?.profile_image_url && !profileImageFile) {
+      setError(t("kycVerification.errors.profileImageRequired") || "Profile picture is required for KYC verification. Please upload your profile picture.");
+      return;
+    }
+
     if (!frontImage) {
       setError(t("kycVerification.errors.uploadFront"));
       return;
@@ -351,10 +357,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Profile Image */}
+              {/* Profile Image - MANDATORY for KYC (required to compare with NID/passport photo) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t("kycVerification.profileImage")} <span className="text-gray-500">{t("kycVerification.optional")}</span>
+                  {t("kycVerification.profileImage")} <span className="text-red-400">*</span>
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"

@@ -136,6 +136,20 @@ async def submit_kyc(
 
         user_result = await db.execute(select(User).where(User.id == user_id))
         user = user_result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        # Profile picture is mandatory for KYC (required to compare with NID/passport photo)
+        if not user.profile_image_url:
+            raise HTTPException(status_code=400, detail="Profile picture is required for KYC verification")
+        # All KYC fields are mandatory
+        if not country or not country.strip():
+            raise HTTPException(status_code=400, detail="Country is required")
+        if not phone_number or not phone_number.strip():
+            raise HTTPException(status_code=400, detail="Phone number is required")
+        if not document_number or not document_number.strip():
+            raise HTTPException(status_code=400, detail="Document number is required")
+        if not document_type:
+            raise HTTPException(status_code=400, detail="Document type is required")
 
         existing_kyc.full_name = full_name.strip()
         existing_kyc.country = country
@@ -248,6 +262,9 @@ async def submit_kyc(
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    # Profile picture is mandatory for KYC (required to compare with NID/passport photo)
+    if not user.profile_image_url:
+        raise HTTPException(status_code=400, detail="Profile picture is required for KYC verification")
 
     deposit_balance = user.deposit_wallet or Decimal("0")
     if total_fee > 0:

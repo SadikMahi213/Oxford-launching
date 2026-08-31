@@ -586,6 +586,9 @@ export default function MatchingBonusInfo({ setActivePage }) {
                           <th className="text-left p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.rank")}
                           </th>
+                          <th className="text-left p-4 text-gray-400 font-medium">
+                            {t("matchingBonusInfo.bonusType", "Bonus Type")}
+                          </th>
                           <th className="text-right p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.eligibleVolume")}
                           </th>
@@ -601,13 +604,22 @@ export default function MatchingBonusInfo({ setActivePage }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {pagedBonuses.map((b) => (
+                        {pagedBonuses.map((b) => {
+                          const displayBonusType = b.bonus_type
+                            ? t(`matchingBonusInfo.bonusTypes.${b.bonus_type}`, b.bonus_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()))
+                            : t("matchingBonusInfo.matching", "Matching");
+                          return (
                           <tr
                             key={b.id}
                             className="border-b border-white/5 hover:bg-white/5"
                           >
                             <td data-label={t("matchingBonusInfo.rank")} className="p-4 text-white">
                               {b.rank_name || `Rank #${b.rank_id}`}
+                            </td>
+                            <td data-label={t("matchingBonusInfo.bonusType", "Bonus Type")} className="p-4 text-left">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 capitalize">
+                                {displayBonusType}
+                              </span>
                             </td>
                             <td data-label={t("matchingBonusInfo.eligibleVolume")} className="p-4 text-right text-gray-300">
                               {parseFloat(
@@ -633,7 +645,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                                 : "-"}
                             </td>
                           </tr>
-                        ))}
+                        )})}
                       </tbody>
                     </table>
                   </div>
