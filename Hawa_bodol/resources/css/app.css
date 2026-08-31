@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --color-forest: #1a3a2a;
+    --color-forest-light: #2d5016;
+    --color-earth: #8b6f47;
+    --color-cream: #f5f1e8;
+    --color-gold: #c9a961;
+    --color-gold-dark: #a68c4a;
+}
+* { scroll-behavior: smooth; }
+body { font-family: 'Inter', 'Instrument Sans', system-ui, sans-serif; color: #1a2e1a; background: #fdfcf8; }
+.font-display { font-family: 'Playfair Display', serif; }
+.font-bengali { font-family: 'Noto Serif Bengali', 'Playfair Display', serif; }
+.reveal { opacity:0; transform: translateY(16px); transition: all 0.7s ease; }
+.reveal.active { opacity:1; transform: translateY(0); }
