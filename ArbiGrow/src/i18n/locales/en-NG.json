@@ -2450,7 +2450,7 @@
     "verifiedMember": "VERIFIED MEMBER",
     "congratulations": "Congratulations!",
     "officiallyVerified": "You Don Officially Verify",
-    "kycApproved": "Your <strong>${{fee}} USDT</strong> KYC verification don approve successfully.",
+    "kycApproved": "Your KYC verification don approve successfully.",
     "trusted": "Trusted",
     "trustedDesc": "Stronger trust for safe experience",
     "secure": "Secure",

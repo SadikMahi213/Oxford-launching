@@ -207,7 +207,7 @@ const WalletLedgerPage = ({ setActivePage }) => {
                       title={t(`ledger.balance.${w.key}`, w.key)}
                       value={isOfa ? `$${formatFiat(ofaConvertedUsdt)}` : `$${formatFiat(Number(w.balance) || 0)}`}
                       unit="USDT"
-                      subtitle={isOfa && ofaConvertedUsdt > 0 ? `${formatAmount(w.balance)} OFA` : undefined}
+                      subtitle={undefined}
                       theme={theme}
                     />
                   </motion.div>

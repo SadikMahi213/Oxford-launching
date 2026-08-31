@@ -2450,7 +2450,7 @@
     "verifiedMember": "सत्यापित सदस्य",
     "congratulations": "बधाई हो!",
     "officiallyVerified": "आप आधिकारिक रूप से सत्यापित हैं",
-    "kycApproved": "आपका <strong>${{fee}} यूएसडीटी</strong> KYC सत्यापन सफलतापूर्वक स्वीकृत हो गया है।",
+    "kycApproved": "आपका KYC सत्यापन सफलतापूर्वक स्वीकृत हो गया है।",
     "trusted": "भरोसेमंद",
     "trustedDesc": "सुरक्षित अनुभव के लिए मजबूत विश्वास",
     "secure": "सुरक्षित",

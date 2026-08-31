@@ -461,12 +461,10 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         ofa_signup + ofa_package + ofa_referral + ofa_ecommerce + ofa_mining, 6
     )
 
-    # OFA Wallet KYC gate: STRICT per task - only admin_kyc_status == "approved" is verified.
-    # pending / rejected / not submitted / null / empty / any other status => NOT verified => hide OFA Wallet.
-    # Display is gated; underlying OFA token records are NOT deleted.
-    # For verified users, show actual converted value from authoritative ofa_to_usdt ledger (OFA sum * existing ofa_to_usdt_rate).
-    is_kyc_approved = bool(user and getattr(user, "admin_kyc_status", None) == "approved")
-    ofa_converted = round(float(Decimal(str(ofa_to_usdt_ofa)) * ofa_to_usdt_rate), 6) if is_kyc_approved else 0.0
+    # OFA Wallet visibility: VIEW is allowed for all users (KYC pending/rejected/non-KYC can SEE the wallet).
+    # USE/CONVERT/WITHDRAW remains KYC-gated at the operation layer (convert-ofa-to-usdt etc.).
+    # Therefore ofa_settlement_balance is always included; converted USDT is calculated from authoritative ledger.
+    ofa_converted = round(float(Decimal(str(ofa_to_usdt_ofa)) * ofa_to_usdt_rate), 6)
     active = [
         {"key": "total_deposit", "amount": round(deposit, 6), "currency": "USDT", "stream": "transaction"},
         {"key": "total_withdrawal", "amount": round(withdrawal, 6), "currency": "USDT", "stream": "transaction"},
@@ -477,8 +475,7 @@ async def _category_summary(db: AsyncSession, uid: int, ofa_balance: float, user
         {"key": "matching_bonus", "amount": round(matching, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ecommerce_bonus", "amount": round(ecommerce, 6), "currency": "USDT", "stream": "earning"},
         {"key": "ofa_free_mining", "amount": round(ofa_mining, 6), "currency": "OFA", "stream": "earning", "balance_ofa": round(ofa_mining, 6)},
-        # OFA Wallet: only included when KYC approved; when approved, display converted USDT using existing rate (raw OFA kept as balance_ofa)
-        *([{"key": "ofa_settlement_balance", "amount": ofa_converted, "currency": "USDT", "stream": "balance", "balance_ofa": round(ofa_balance, 6)}] if is_kyc_approved else []),
+        {"key": "ofa_settlement_balance", "amount": ofa_converted, "currency": "USDT", "stream": "balance", "balance_ofa": round(ofa_balance, 6)},
         {"key": "total_ofa_distribution", "amount": total_ofa_distribution, "currency": "OFA", "stream": "earning", "balance_ofa": total_ofa_distribution},
     ]
     soon = [
@@ -705,9 +702,8 @@ async def get_wallet_balances(
 
     wallets = []
     for key, currency in _WALLET_META:
-        # Hide OFA wallets unless the user has an actual OFA conversion record.
-        if currency == "OFA" and not ofa_converted:
-            continue
+        # OFA wallets are visible to all users (including non-KYC) per TASK 1.1 — VIEW vs USE distinction.
+        # Conversion/use remains KYC-gated at operation layer, but display is always allowed.
         raw = getattr(current_user, key, None) if key != "ofa_balance" else ofa_balance
         balance = _num(raw)
         entry = {

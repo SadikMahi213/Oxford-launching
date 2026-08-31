@@ -2420,7 +2420,7 @@
     "verifiedMember": "VERIFIED MEMBER",
     "congratulations": "Congratulations!",
     "officiallyVerified": "You're Officially Verified",
-    "kycApproved": "Your <strong>${{fee}} USDT</strong> KYC Verification has been successfully approved.",
+    "kycApproved": "Your KYC Verification has been successfully approved.",
     "trusted": "Trusted",
     "trustedDesc": "Stronger trust for a secure experience",
     "secure": "Secure",

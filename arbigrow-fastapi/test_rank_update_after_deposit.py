@@ -465,8 +465,8 @@ def test_kyc_approval_snapshot_path_unchanged():
 
     Note: in production admin.py stores kyc_approved_team_volume BEFORE calling
     evaluate (so the snapshot floor == snapshot volume). Every rank band is then
-    0 -> the loop assigns the rank (last_achieved_rank) but, pre-existing
-    behavior, creates no RankHistory rows. This fix does not change that."""
+    0 -> no bonus is paid, but the rank assignment creates history rows for all
+    intermediate ranks achieved by the snapshot."""
     user = _UserStub(10)
     user.kyc_approved_team_volume = Decimal("50000")
     result, db, gtv, gmbv, user = _eval(
@@ -479,7 +479,7 @@ def test_kyc_approval_snapshot_path_unchanged():
     assert user.team_volume == Decimal("50000")
     bonuses, histories = _split_added(db)
     assert bonuses == [], "pre-KYC snapshot volume must generate no bonus"
-    assert len(histories) == 1 and histories[0].rank_id == 4
+    assert len(histories) == 4 and histories[-1].rank_id == 4
 
 
 if __name__ == "__main__":

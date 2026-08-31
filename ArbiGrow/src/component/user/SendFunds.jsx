@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle } from "lucide-react";
-import { sendFunds, searchUsers, getTransferMinimum } from "../../api/user.api.js";
+import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle, CalendarDays, ArrowUpRight, ArrowDownLeft, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { sendFunds, searchUsers, getTransferMinimum, getTransferHistory } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
 
@@ -20,6 +20,23 @@ export default function SendFunds({ setActivePage }) {
   const [minCurrency, setMinCurrency] = useState("OFA");
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  // Fund Transfer History state
+  const [transferHistory, setTransferHistory] = useState({ sent: [], received: [] });
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+  const historyPageSize = 10;
+
+  const loadTransferHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const res = await getTransferHistory();
+      setTransferHistory(res.data || { sent: [], received: [] });
+    } catch {
+      // silent
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     getTransferMinimum()
@@ -28,7 +45,8 @@ export default function SendFunds({ setActivePage }) {
         if (res?.data?.currency) setMinCurrency(res.data.currency);
       })
       .catch(() => setMinTransfer(0));
-  }, []);
+    loadTransferHistory();
+  }, [loadTransferHistory]);
 
   const handleSearch = async () => {
     if (!recipient.trim()) return;
@@ -83,11 +101,34 @@ export default function SendFunds({ setActivePage }) {
       setNote("");
       setRecipient("");
       setSearchedUser(null);
+      loadTransferHistory();
     } catch (err) {
       setMsg(err.response?.data?.detail || t('sendFunds.err_failed'));
     } finally {
       setLoading(false);
     }
+  };
+
+  // Prepare paginated transfer history (authoritative source: transfer_logs)
+  const allTransfers = [
+    ...(transferHistory.sent || []).map((tr) => ({ ...tr, dir: "sent" })),
+    ...(transferHistory.received || []).map((tr) => ({ ...tr, dir: "received" })),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const totalHistory = allTransfers.length;
+  const totalHistoryPages = Math.max(1, Math.ceil(totalHistory / historyPageSize));
+  const paginatedTransfers = allTransfers.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
+  const formatHistoryDate = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes} ${ampm}`;
   };
 
   return (
@@ -209,6 +250,95 @@ export default function SendFunds({ setActivePage }) {
                 {loading ? t('sendFunds.sending') : t('sendFunds.send', { amount: amount || "0" })}
               </button>
             </form>
+          )}
+        </div>
+
+        {/* Fund Transfer History */}
+        <div className="mt-6 md:mt-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden">
+          <div className="p-4 md:p-5 border-b border-white/10">
+            <h2 className="text-sm md:text-base font-bold text-white">{t('sendFunds.historyTitle', 'Fund Transfer History')}</h2>
+            <p className="text-xs text-gray-400 mt-1">{t('sendFunds.historySubtitle', 'Your complete fund transfer records')}</p>
+          </div>
+
+          {historyLoading ? (
+            <div className="flex items-center justify-center gap-2 p-8 text-sm text-gray-400">
+              <Loader className="w-4 h-4 animate-spin" />
+              {t('sendFunds.loadingHistory', 'Loading history...')}
+            </div>
+          ) : allTransfers.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400">{t('sendFunds.noHistory', 'No fund transfers yet.')}</div>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">#</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Date/Time</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Recipient</th>
+                      <th className="text-right p-3 text-xs font-semibold text-gray-400">Amount</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Transaction ID</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Status</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Direction</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedTransfers.map((tr, idx) => {
+                      const serial = (historyPage - 1) * historyPageSize + idx + 1;
+                      const isSent = tr.dir === "sent";
+                      return (
+                        <tr key={`${tr.dir}-${tr.id}`} className="border-b border-white/5 hover:bg-white/[0.03]">
+                          <td className="p-3 text-xs text-gray-400">{serial}</td>
+                          <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatHistoryDate(tr.created_at)}</td>
+                          <td className="p-3 text-xs text-white max-w-[150px] truncate">{isSent ? (tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_name || `#${tr.sender_id}`)}</td>
+                          <td className={`p-3 text-xs font-semibold text-right ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</td>
+                          <td className="p-3 text-xs text-gray-400 font-mono">#{tr.id}</td>
+                          <td className="p-3 text-xs"><span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span></td>
+                          <td className="p-3 text-xs"><span className={`inline-flex items-center gap-1 ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? <ArrowUpRight size={12} /> : <ArrowDownLeft size={12} />}{isSent ? "Sent" : "Received"}</span></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="md:hidden p-3 space-y-2">
+                {paginatedTransfers.map((tr) => {
+                  const isSent = tr.dir === "sent";
+                  return (
+                    <div key={`${tr.dir}-${tr.id}`} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isSent ? "bg-red-500/10" : "bg-emerald-500/10"}`}>
+                            {isSent ? <ArrowUpRight size={14} className="text-red-400" /> : <ArrowDownLeft size={14} className="text-emerald-400" />}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-semibold text-white truncate">{isSent ? (tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_name || `#${tr.sender_id}`)}</div>
+                            <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5"><CalendarDays size={10} />{formatHistoryDate(tr.created_at)}</div>
+                          </div>
+                        </div>
+                        <div className={`text-xs font-bold shrink-0 ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</div>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                        <span className="text-[11px] text-gray-500 font-mono">#{tr.id} {tr.note ? `• ${tr.note}` : ""}</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between p-3 md:p-4 border-t border-white/10">
+                <div className="text-xs text-gray-400">Page {historyPage} of {totalHistoryPages} • {totalHistory} records</div>
+                <div className="flex items-center gap-2">
+                  <button disabled={historyPage <= 1} onClick={() => setHistoryPage((p) => Math.max(1, p - 1))} className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-40 hover:border-white/20"><ChevronLeft size={16} /></button>
+                  <button disabled={historyPage >= totalHistoryPages} onClick={() => setHistoryPage((p) => Math.min(totalHistoryPages, p + 1))} className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-40 hover:border-white/20"><ChevronRight size={16} /></button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

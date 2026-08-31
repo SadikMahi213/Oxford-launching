@@ -933,7 +933,7 @@ async def update_kyc_status(
         if refunded > 0 and refund_txn is not None:
             ts = refunded_at or datetime.now(timezone.utc)
             message += (
-                f" Refund of {float(refunded):.2f} USDT credited to Deposit Wallet"
+                f" Refund of ${float(refunded):.2f} USDT credited to Deposit Wallet"
                 f" (Ref #{refund_txn.id}) at {ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
             )
             notif_metadata = {
@@ -1105,7 +1105,7 @@ async def update_kyc_status(
         ts = refunded_at or datetime.now(timezone.utc)
         message = (
             f"User #{user_id} KYC was {new_kyc_status.value} by admin. "
-            f"Refund of {float(refunded):.2f} USDT credited to Deposit Wallet"
+            f"Refund of ${float(refunded):.2f} USDT credited to Deposit Wallet"
             f" (Ref #{refund_txn.id if refund_txn else 'N/A'}) at "
             f"{ts.strftime('%Y-%m-%d %H:%M:%S')} UTC."
         )
