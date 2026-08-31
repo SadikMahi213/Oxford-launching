@@ -332,7 +332,7 @@ const OverviewPage = ({ setActivePage }) => {
       <QuickShortcuts setActivePage={setActivePage} />
       <MarketsCrawl />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {[
           { label: t("overview.wallets.main"), balance: Number(user?.main_wallet ?? 0), icon: Wallet, currency: "USDT", gradient: "from-blue-600/50 via-blue-600/15 to-transparent", border: "border-blue-500/30", iconBg: "from-blue-500 to-cyan-300", iconBorder: "border-blue-400/40", shadowColor: "shadow-blue-600/25", accentColor: "text-blue-400", footerColor: "text-blue-400" },
           { label: t("overview.wallets.ofa"), balance: Number(user?.arbx_wallet ?? 0), icon: Coins, currency: t("overview.wallets.ofaToken"), gradient: "from-amber-600/50 via-amber-600/15 to-transparent", border: "border-amber-500/30", iconBg: "from-amber-500 to-yellow-300", iconBorder: "border-amber-400/40", shadowColor: "shadow-amber-600/25", accentColor: "text-amber-400", footerColor: "text-amber-400" },
@@ -347,23 +347,23 @@ const OverviewPage = ({ setActivePage }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.05 }}
             onClick={() => handleWalletCardClick(wallet)}
-            className={`p-4 rounded-2xl bg-gradient-to-tl ${wallet.gradient} backdrop-blur-xl border ${wallet.border} hover:brightness-110 transition-all duration-300 relative overflow-hidden ${wallet.historyType ? "cursor-pointer" : ""}`}
+            className={`p-2.5 sm:p-4 rounded-2xl bg-gradient-to-tl ${wallet.gradient} backdrop-blur-xl border ${wallet.border} hover:brightness-110 transition-all duration-300 relative overflow-hidden ${wallet.historyType ? "cursor-pointer" : ""}`}
           >
             <div className="relative z-10 flex flex-col h-full">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${wallet.iconBg} flex items-center justify-center shadow-xl ${wallet.shadowColor} border ${wallet.iconBorder}`}>
-                  <wallet.icon className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${wallet.iconBg} flex items-center justify-center shadow-xl ${wallet.shadowColor} border ${wallet.iconBorder}`}>
+                  <wallet.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
                 </div>
-                <div className={`text-[10px] px-2 py-0.5 rounded-full bg-white/[0.08] ${wallet.accentColor} border border-white/[0.12] font-semibold`}>{wallet.currency}</div>
+                <div className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-white/[0.08] ${wallet.accentColor} border border-white/[0.12] font-semibold`}>{wallet.currency}</div>
               </div>
-              <div className="text-[11px] text-gray-500 mb-0.5">{wallet.label}</div>
-              <div className="text-xl font-bold text-white mb-1">
+              <div className="text-[10px] sm:text-[11px] text-gray-500 mb-0.5 leading-tight">{wallet.label}</div>
+              <div className="text-base sm:text-xl font-bold text-white mb-0.5 sm:mb-1 leading-tight">
                 {wallet.currency === "USDT" ? <>${wallet.balance.toFixed(2)} USDT</> : <>{wallet.balance.toFixed(7)} {wallet.currency}</>}
               </div>
-              <div className="text-[11px] text-gray-500 mb-3">{t("overview.wallets.usable")}</div>
+              <div className="text-[10px] sm:text-[11px] text-gray-500 mb-2 sm:mb-3 leading-none">{t("overview.wallets.usable")}</div>
               {wallet.historyType && (
                 <div className="mt-auto">
-                  <span className={`text-[10px] ${wallet.footerColor} font-semibold`}>{t("overview.wallets.clickHistory")}</span>
+                  <span className={`text-[9px] sm:text-[10px] ${wallet.footerColor} font-semibold leading-none`}>{t("overview.wallets.clickHistory")}</span>
                 </div>
               )}
             </div>
