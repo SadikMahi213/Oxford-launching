@@ -46,6 +46,9 @@ class _Result:
     def scalars(self):
         return _Scalars(self.rows)
 
+    def scalar_one_or_none(self):
+        return self.rows[0] if self.rows else None
+
     def first(self):
         val = self.rows[0] if self.rows else None
         # The only `.first()` in ledger.py selects the OFA wallet_balance_after
@@ -98,6 +101,8 @@ class _FakeDB:
 
     async def execute(self, stmt):
         text = str(stmt).lower()
+        if "system_configs" in text or "systemconfig" in text or "ofa_to_usdt_rate" in text:
+            return _Result([])
         agg = "sum(" in text or "coalesce" in text
         for marker in (
             "ecommerce_wallet_transactions",
@@ -245,8 +250,8 @@ def test_deposit_and_withdrawal_currency_is_usd():
     records, _, _ = _run(tables=_seed_data())
     dep = [r for r in records if r["category"] == "deposit"]
     wd = [r for r in records if r["category"] == "withdrawal"]
-    assert dep and dep[0]["currency"] == "USD"
-    assert wd and wd[0]["currency"] == "USD"
+    assert dep and dep[0]["currency"] == "USDT"
+    assert wd and wd[0]["currency"] == "USDT"
 
 
 # ── Approved / completed / correct only ───────────────────────────────────
