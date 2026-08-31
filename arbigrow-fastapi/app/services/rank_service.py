@@ -498,19 +498,17 @@ async def evaluate_and_process_rank(
             (config.bonus_type, config.bonus_percent)
         )
 
-    # A rank's percentage applies on the band from its own target_volume to the
-    # next rank's target.  For example, Starter (200) pays on 200 -> 500;
-    # Silver (500) pays on 500 -> 1000.  No matching bonus is paid for volume
-    # below the first rank target.  The floor (kyc_approved_team_volume or
-    # bonused_up_to) ensures pre-KYC volume and already-bonused volume is
-    # never counted twice.
+    # Matching bonus uses R1 - R0 (newly achieved rank threshold minus previous
+    # achieved rank threshold) per dynamic Rank Management. For Starter R0=0,
+    # R1=200 => 200*2%=$4 at 200 Team Volume (not $10*2%=$0.20). The floor
+    # (kyc_approved_team_volume / bonused_up_to) excludes pre-KYC and
+    # already-bonused volume. Bonus is only paid when team_volume >= rank.target.
     for index, rank in enumerate(ranks):
-        band_start = rank.target_volume
-        band_end = (
-            ranks[index + 1].target_volume
-            if index + 1 < len(ranks)
-            else team_volume
-        )
+        if team_volume < rank.target_volume:
+            break
+        prev_target = ranks[index - 1].target_volume if index > 0 else Decimal("0")
+        band_start = prev_target
+        band_end = rank.target_volume
 
         payout_from = max(floor, band_start)
         payout_to = min(team_volume, band_end)
