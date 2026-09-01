@@ -271,6 +271,18 @@ class TransferLogSchema(BaseModel):
     note: str | None = None
     status: str
     created_at: str
+    source_wallet: str | None = None
+    destination_wallet: str | None = None
+    sender_full_name: str | None = None
+    sender_user_no: str | None = None
+    sender_username: str | None = None
+    sender_email: str | None = None
+    sender_mobile: str | None = None
+    receiver_full_name: str | None = None
+    receiver_user_no: str | None = None
+    receiver_username: str | None = None
+    receiver_email: str | None = None
+    receiver_mobile: str | None = None
 
 
 class TransferHistoryResponse(BaseModel):

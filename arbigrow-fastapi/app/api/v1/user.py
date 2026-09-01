@@ -880,6 +880,8 @@ async def wallet_transfer(
         fee=Decimal("0"),
         note=f"{data.from_wallet} → {data.to_wallet}",
         status="completed",
+        source_wallet=data.from_wallet,
+        destination_wallet=data.to_wallet,
     )
     db.add(transfer)
     await db.commit()
@@ -1101,7 +1103,7 @@ async def send_funds(
     current_user.main_wallet = (current_user.main_wallet - total_deduction).quantize(WALLET_PRECISION)
     recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
 
-    # Log transfer
+    # Log transfer with full sender/receiver audit snapshots
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=recipient.id,
@@ -1109,6 +1111,18 @@ async def send_funds(
         fee=charge_amount,
         note=data.note,
         status="completed",
+        source_wallet="main_wallet",
+        destination_wallet="main_wallet",
+        sender_full_name=current_user.full_name,
+        sender_user_no=current_user.user_no,
+        sender_username=current_user.username,
+        sender_email=current_user.email,
+        sender_mobile=current_user.mobile_number,
+        receiver_full_name=recipient.full_name,
+        receiver_user_no=recipient.user_no,
+        receiver_username=recipient.username,
+        receiver_email=recipient.email,
+        receiver_mobile=recipient.mobile_number,
     )
     db.add(transfer)
     await db.commit()
@@ -1184,7 +1198,7 @@ async def transfer_matching_bonus(
     # Credit recipient's main wallet
     recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
 
-    # Log transfer
+    # Log transfer with full sender/receiver audit snapshots
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=recipient.id,
@@ -1192,6 +1206,18 @@ async def transfer_matching_bonus(
         fee=charge_amount,
         note=data.note or "Matching bonus transfer",
         status="completed",
+        source_wallet="matching_bonus_wallet",
+        destination_wallet="main_wallet",
+        sender_full_name=current_user.full_name,
+        sender_user_no=current_user.user_no,
+        sender_username=current_user.username,
+        sender_email=current_user.email,
+        sender_mobile=current_user.mobile_number,
+        receiver_full_name=recipient.full_name,
+        receiver_user_no=recipient.user_no,
+        receiver_username=recipient.username,
+        receiver_email=recipient.email,
+        receiver_mobile=recipient.mobile_number,
     )
     db.add(transfer)
     await db.commit()
@@ -1223,37 +1249,44 @@ async def get_transfer_history(
     current_user: User = Depends(get_current_user),
 ):
     sent_result = await db.execute(
-        select(TransferLog).where(TransferLog.sender_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+        select(TransferLog).where(
+            TransferLog.sender_id == current_user.id,
+            TransferLog.sender_id != TransferLog.receiver_id,
+        ).order_by(TransferLog.created_at.desc()).limit(50)
     )
     sent_logs = sent_result.scalars().all()
 
     received_result = await db.execute(
-        select(TransferLog).where(TransferLog.receiver_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+        select(TransferLog).where(
+            TransferLog.receiver_id == current_user.id,
+            TransferLog.sender_id != TransferLog.receiver_id,
+        ).order_by(TransferLog.created_at.desc()).limit(50)
     )
     received_logs = received_result.scalars().all()
 
-    user_ids = {current_user.id}
-    for tx in sent_logs:
-        user_ids.add(tx.receiver_id)
-        user_ids.add(tx.sender_id)
-    for tx in received_logs:
-        user_ids.add(tx.sender_id)
-        user_ids.add(tx.receiver_id)
-    users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
-    user_map = {u.id: u.full_name for u in users_result.scalars().all()}
-
     def enrich(tx: TransferLog, as_sender: bool) -> TransferLogSchema:
-        other_id = tx.receiver_id if as_sender else tx.sender_id
         return TransferLogSchema(
             id=tx.id,
             sender_id=tx.sender_id,
-            sender_name=user_map.get(tx.sender_id, ""),
+            sender_name=tx.sender_full_name or "",
             receiver_id=tx.receiver_id,
-            receiver_name=user_map.get(tx.receiver_id, ""),
+            receiver_name=tx.receiver_full_name or "",
             amount=float(tx.amount),
             note=tx.note,
             status=tx.status,
             created_at=tx.created_at.isoformat() if tx.created_at else "",
+            source_wallet=tx.source_wallet,
+            destination_wallet=tx.destination_wallet,
+            sender_full_name=tx.sender_full_name,
+            sender_user_no=tx.sender_user_no,
+            sender_username=tx.sender_username,
+            sender_email=tx.sender_email,
+            sender_mobile=tx.sender_mobile,
+            receiver_full_name=tx.receiver_full_name,
+            receiver_user_no=tx.receiver_user_no,
+            receiver_username=tx.receiver_username,
+            receiver_email=tx.receiver_email,
+            receiver_mobile=tx.receiver_mobile,
         )
 
     return TransferHistoryResponse(

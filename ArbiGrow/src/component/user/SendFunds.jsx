@@ -1,10 +1,85 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle, CalendarDays, ArrowUpRight, ArrowDownLeft, FileText, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle, CalendarDays, ArrowUpRight, ArrowDownLeft, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { sendFunds, searchUsers, getTransferMinimum, getTransferHistory } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
+
+function InlineTransferCard({ tr }) {
+  const isSent = tr.dir === "sent";
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+      <div className="flex items-center justify-between gap-3 p-3 cursor-pointer hover:bg-white/[0.03]" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isSent ? "bg-red-500/10" : "bg-emerald-500/10"}`}>
+            {isSent ? <ArrowUpRight size={14} className="text-red-400" /> : <ArrowDownLeft size={14} className="text-emerald-400" />}
+          </span>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-white truncate">{isSent ? (tr.receiver_full_name || tr.receiver_name || `User #${tr.receiver_id}`) : (tr.sender_full_name || tr.sender_name || `User #${tr.sender_id}`)}</div>
+            <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5"><CalendarDays size={10} />{formatHistoryDate(tr.created_at)}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className={`text-xs font-bold ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</div>
+          {expanded ? <ChevronUp size={12} className="text-gray-500" /> : <ChevronDown size={12} className="text-gray-500" />}
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="px-3 pb-3 space-y-2.5 border-t border-white/5 pt-2.5">
+          <div className="grid grid-cols-1 gap-2">
+            <div className="rounded-lg bg-white/[0.03] p-2.5 space-y-1">
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Sender</p>
+              {(tr.sender_full_name || tr.sender_name) && <p className="text-xs text-white">{tr.sender_full_name || tr.sender_name}</p>}
+              {tr.sender_user_no && <p className="text-[11px] text-gray-400">User ID: <span className="text-gray-300">{tr.sender_user_no}</span></p>}
+              {tr.sender_username && <p className="text-[11px] text-gray-400">Member ID: <span className="text-gray-300">{tr.sender_username}</span></p>}
+              {tr.sender_email && <p className="text-[11px] text-gray-400">Email: <span className="text-gray-300">{tr.sender_email}</span></p>}
+              {tr.sender_mobile && <p className="text-[11px] text-gray-400">Mobile: <span className="text-gray-300">{tr.sender_mobile}</span></p>}
+              {!tr.sender_full_name && !tr.sender_name && !tr.sender_user_no && !tr.sender_username && !tr.sender_email && !tr.sender_mobile && (
+                <p className="text-[11px] text-gray-500">User #{tr.sender_id}</p>
+              )}
+            </div>
+            <div className="rounded-lg bg-white/[0.03] p-2.5 space-y-1">
+              <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Receiver</p>
+              {(tr.receiver_full_name || tr.receiver_name) && <p className="text-xs text-white">{tr.receiver_full_name || tr.receiver_name}</p>}
+              {tr.receiver_user_no && <p className="text-[11px] text-gray-400">User ID: <span className="text-gray-300">{tr.receiver_user_no}</span></p>}
+              {tr.receiver_username && <p className="text-[11px] text-gray-400">Member ID: <span className="text-gray-300">{tr.receiver_username}</span></p>}
+              {tr.receiver_email && <p className="text-[11px] text-gray-400">Email: <span className="text-gray-300">{tr.receiver_email}</span></p>}
+              {tr.receiver_mobile && <p className="text-[11px] text-gray-400">Mobile: <span className="text-gray-300">{tr.receiver_mobile}</span></p>}
+              {!tr.receiver_full_name && !tr.receiver_name && !tr.receiver_user_no && !tr.receiver_username && !tr.receiver_email && !tr.receiver_mobile && (
+                <p className="text-[11px] text-gray-500">User #{tr.receiver_id}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[11px] text-gray-400">
+            <span>Tx: <span className="text-gray-300 font-mono">#{tr.id}</span></span>
+            <span className={`px-1.5 py-0.5 rounded border text-[10px] ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span>
+            {tr.source_wallet && <span>From: <span className="text-gray-300">{tr.source_wallet}</span></span>}
+            {tr.destination_wallet && <span>To: <span className="text-gray-300">{tr.destination_wallet}</span></span>}
+          </div>
+          {tr.note && <p className="text-[11px] text-gray-500 flex items-center gap-1"><FileText className="w-3 h-3" /> {tr.note}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatHistoryDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  let hours = d.getHours();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${day}.${month}.${year} ${hours}:${minutes} ${ampm}`;
+}
 
 export default function SendFunds({ setActivePage }) {
   const { t } = useTranslation();
@@ -20,7 +95,6 @@ export default function SendFunds({ setActivePage }) {
   const [minCurrency, setMinCurrency] = useState("OFA");
   const [msg, setMsg] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
-  // Fund Transfer History state
   const [transferHistory, setTransferHistory] = useState({ sent: [], received: [] });
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
@@ -109,7 +183,6 @@ export default function SendFunds({ setActivePage }) {
     }
   };
 
-  // Prepare paginated transfer history (authoritative source: transfer_logs)
   const allTransfers = [
     ...(transferHistory.sent || []).map((tr) => ({ ...tr, dir: "sent" })),
     ...(transferHistory.received || []).map((tr) => ({ ...tr, dir: "received" })),
@@ -117,19 +190,6 @@ export default function SendFunds({ setActivePage }) {
   const totalHistory = allTransfers.length;
   const totalHistoryPages = Math.max(1, Math.ceil(totalHistory / historyPageSize));
   const paginatedTransfers = allTransfers.slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize);
-  const formatHistoryDate = (iso) => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return iso;
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    let hours = d.getHours();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    const minutes = String(d.getMinutes()).padStart(2, "0");
-    return `${day}.${month}.${year} ${hours}:${minutes} ${ampm}`;
-  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen p-3 md:p-6">
@@ -291,7 +351,7 @@ export default function SendFunds({ setActivePage }) {
                         <tr key={`${tr.dir}-${tr.id}`} className="border-b border-white/5 hover:bg-white/[0.03]">
                           <td className="p-3 text-xs text-gray-400">{serial}</td>
                           <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatHistoryDate(tr.created_at)}</td>
-                          <td className="p-3 text-xs text-white max-w-[150px] truncate">{isSent ? (tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_name || `#${tr.sender_id}`)}</td>
+                          <td className="p-3 text-xs text-white max-w-[150px] truncate">{isSent ? (tr.receiver_full_name || tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_full_name || tr.sender_name || `#${tr.sender_id}`)}</td>
                           <td className={`p-3 text-xs font-semibold text-right ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</td>
                           <td className="p-3 text-xs text-gray-400 font-mono">#{tr.id}</td>
                           <td className="p-3 text-xs"><span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span></td>
@@ -305,29 +365,9 @@ export default function SendFunds({ setActivePage }) {
 
               {/* Mobile cards */}
               <div className="md:hidden p-3 space-y-2">
-                {paginatedTransfers.map((tr) => {
-                  const isSent = tr.dir === "sent";
-                  return (
-                    <div key={`${tr.dir}-${tr.id}`} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isSent ? "bg-red-500/10" : "bg-emerald-500/10"}`}>
-                            {isSent ? <ArrowUpRight size={14} className="text-red-400" /> : <ArrowDownLeft size={14} className="text-emerald-400" />}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-xs font-semibold text-white truncate">{isSent ? (tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_name || `#${tr.sender_id}`)}</div>
-                            <div className="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5"><CalendarDays size={10} />{formatHistoryDate(tr.created_at)}</div>
-                          </div>
-                        </div>
-                        <div className={`text-xs font-bold shrink-0 ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                        <span className="text-[11px] text-gray-500 font-mono">#{tr.id} {tr.note ? `• ${tr.note}` : ""}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+                {paginatedTransfers.map((tr) => (
+                  <InlineTransferCard key={`${tr.dir}-${tr.id}`} tr={tr} />
+                ))}
               </div>
 
               {/* Pagination */}
