@@ -742,6 +742,7 @@
     "title": "Tukar OFA ke USDT",
     "subtitle": "Tukar token OFA anda kepada USDT",
     "ofaBalance": "Baki OFA Anda",
+    "convertedBalance": "Baki Dikuasakan",
     "usdtBalance": "Baki USDT Anda",
     "rate": "Kadar Tukaran",
     "ofaAmount": "Jumlah OFA",

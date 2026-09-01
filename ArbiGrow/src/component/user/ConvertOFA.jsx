@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Repeat, Coins, Wallet } from "lucide-react";
-import { convertOFAtoUSDT, getOFAConversionRate } from "../../api/user.api.js";
+import { convertOFAtoUSDT, getOFAConversionRate, getOfaConversionTotal } from "../../api/user.api.js";
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
 
@@ -14,9 +14,9 @@ export default function ConvertOFA() {
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [conversionRate, setConversionRate] = useState(null);
+  const [convertedBalance, setConvertedBalance] = useState(0);
 
   const arbxBalance = Number(user?.arbx_wallet ?? 0);
-  const mainBalance = Number(user?.main_wallet ?? 0);
   const usdtAmount = ofaAmount ? (parseFloat(ofaAmount) * (conversionRate || 0)) : 0;
   const kycApproved = user?.kyc_status === "approved";
 
@@ -25,6 +25,11 @@ export default function ConvertOFA() {
     getOFAConversionRate()
       .then((res) => {
         if (active) setConversionRate(Number(res.data?.ofa_to_usdt_rate));
+      })
+      .catch(() => {});
+    getOfaConversionTotal()
+      .then((res) => {
+        if (active) setConvertedBalance(Number(res.data?.ofa_converted_usdt) || 0);
       })
       .catch(() => {});
     return () => {
@@ -65,6 +70,12 @@ export default function ConvertOFA() {
       setMessage(res.data.message);
       setIsSuccess(true);
       setOfaAmount("");
+
+      getOfaConversionTotal()
+        .then((res2) => {
+          setConvertedBalance(Number(res2.data?.ofa_converted_usdt) || 0);
+        })
+        .catch(() => {});
     } catch (err) {
       const msg = err.response?.data?.detail || t('convertOFA.err_failed');
       setMessage(msg);
@@ -104,8 +115,8 @@ export default function ConvertOFA() {
             <div className="flex items-center gap-3">
               <Wallet className="w-8 h-8 text-cyan-400" />
               <div>
-                <div className="text-sm text-gray-400">{t('convertOFA.usdtBalance')}</div>
-                <div className="text-xl font-bold text-white">${mainBalance.toFixed(2)}</div>
+                <div className="text-sm text-gray-400">{t('convertOFA.convertedBalance')}</div>
+                <div className="text-xl font-bold text-white">${convertedBalance.toFixed(2)}</div>
               </div>
             </div>
           </div>

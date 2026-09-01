@@ -958,6 +958,37 @@ async def convert_ofa_to_usdt(
     )
 
 
+@router.get("/ofa-conversion-total")
+@limiter.limit("60/minute")
+async def get_ofa_conversion_total(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return total USDT received from actual OFA→USDT conversions (authoritative).
+
+    This is NOT the main_wallet balance. It is the sum of all USDT credited
+    from ofa_to_usdt conversion transactions, multiplied by the current rate.
+    """
+    rate_res = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate")
+    )
+    rate_cfg = rate_res.scalar_one_or_none()
+    ofa_to_usdt_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
+
+    ofa_to_usdt_sum = (
+        await db.execute(
+            select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
+                OFACoinTransaction.user_id == current_user.id,
+                OFACoinTransaction.tx_type == OFATransactionType.ofa_to_usdt,
+            )
+        )
+    ).scalar()
+
+    converted_usdt = round(float(Decimal(str(ofa_to_usdt_sum)) * ofa_to_usdt_rate), 6)
+    return {"ofa_converted_usdt": converted_usdt}
+
+
 @router.post("/profile-image")
 @limiter.limit("10/minute")
 async def update_profile_image(

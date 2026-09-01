@@ -742,6 +742,7 @@
     "title": "I-convert ang OFA sa USDT",
     "subtitle": "I-swap ang iyong OFA tokens para sa USDT",
     "ofaBalance": "Iyong OFA Balance",
+    "convertedBalance": "Na-convert na Balanse",
     "usdtBalance": "Iyong USDT Balance",
     "rate": "Conversion Rate",
     "ofaAmount": "OFA Amount",

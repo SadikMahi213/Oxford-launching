@@ -795,6 +795,7 @@
     "title": "Convert OFA to USDT",
     "subtitle": "Swap your OFA tokens for USDT",
     "ofaBalance": "Your OFA Balance",
+    "convertedBalance": "Converted Balance",
     "usdtBalance": "Your USDT Balance",
     "rate": "Conversion Rate",
     "ofaAmount": "OFA Amount",

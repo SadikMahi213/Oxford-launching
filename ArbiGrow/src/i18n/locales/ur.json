@@ -742,6 +742,7 @@
     "title": "OFA کو USDT میں تبدیل کریں",
     "subtitle": "اپنے OFA ٹوکن USDT میں تبدیل کریں",
     "ofaBalance": "آپ کا OFA بیلنس",
+    "convertedBalance": "تبدیل شدہ بیلنس",
     "usdtBalance": "آپ کا USDT بیلنس",
     "rate": "تبدیلی کی شرح",
     "ofaAmount": "OFA رقم",

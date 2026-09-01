@@ -148,6 +148,10 @@ export const getOFAConversionRate = () => {
   return api.get("v1/user/conversion-rate", authHeaders());
 };
 
+export const getOfaConversionTotal = () => {
+  return api.get("v1/user/ofa-conversion-total", authHeaders());
+};
+
 export const getTransferMinimum = () => {
   return api.get("v1/user/transfer-minimum", authHeaders());
 };

@@ -742,6 +742,7 @@
     "title": "OFA কে USDT-তে রূপান্তর করুন",
     "subtitle": "আপনার OFA টোকেন USDT-তে সোয়াপ করুন",
     "ofaBalance": "আপনার OFA ব্যালেন্স",
+    "convertedBalance": "রূপান্তরিত ব্যালেন্স",
     "usdtBalance": "আপনার USDT ব্যালেন্স",
     "rate": "রূপান্তর হার",
     "ofaAmount": "OFA পরিমাণ",

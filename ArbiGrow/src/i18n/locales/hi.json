@@ -742,6 +742,7 @@
     "title": "OFA को USDT में बदलें",
     "subtitle": "अपने OFA टोकन को USDT में स्वैप करें",
     "ofaBalance": "आपका OFA शेष",
+    "convertedBalance": "रूपांतरित बैलेंस",
     "usdtBalance": "आपका USDT शेष",
     "rate": "रूपांतरण दर",
     "ofaAmount": "OFA राशि",
