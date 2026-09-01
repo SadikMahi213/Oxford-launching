@@ -33,7 +33,6 @@ import {
   Globe,
   Building2,
   Network,
-  Wallet,
   TrendingUp,
   Clock,
 } from "lucide-react";
@@ -449,7 +448,6 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
 const activeCards = categories.filter((c) => {
     if (c.status === "soon") return false;
     if (earningOnly && c.stream !== "earning") return false;
-    // OFA Wallet (ofa_settlement_balance) is KYC-gated at API layer; frontend trusts backend (no CSS-only hide)
     // Total OFA Distribution has no purpose in User Earning History
     if (c.key === "total_ofa_distribution") return false;
     return true;
@@ -465,7 +463,7 @@ const activeCards = categories.filter((c) => {
     const Icon = meta.icon;
     const label = t(`ledger.category.${c.key}`, c.key);
     const streamName = c.stream || "earning";
-    const StreamIcon = streamName === "transaction" ? ArrowLeftRight : streamName === "balance" ? Wallet : TrendingUp;
+    const StreamIcon = streamName === "transaction" ? ArrowLeftRight : TrendingUp;
     const featured = c.key === "ofa_settlement_balance";
 
     if (isSoon) {
@@ -526,12 +524,6 @@ const activeCards = categories.filter((c) => {
             <span className="text-[9px] sm:text-[11px] font-semibold text-gray-400">{c.currency}</span>
           </div>
 
-          {c.balance_ofa != null && c.key !== "ofa_settlement_balance" && (
-            <div className="relative text-[10px] text-gray-500 leading-none">
-              {formatAmount(c.balance_ofa)} OFA
-            </div>
-          )}
-
           <div className="relative mt-auto pt-1.5 sm:pt-2.5 hidden sm:block">
             <div className="mb-2.5 border-t border-white/5" />
             <div className="flex items-center justify-between">
@@ -548,7 +540,7 @@ const activeCards = categories.filter((c) => {
     );
   };
 
-  // Compact wallet-shortcut card for the mobile 4-per-row grid. Same meta,
+  // Compact shortcut card for the mobile 4-per-row grid. Same meta,
   // labels, amounts and currencies as the desktop cards — only small sizes,
   // tight padding and zero horizontal overflow.
   const renderMobileShortcutCard = (c, isSoon) => {
@@ -757,7 +749,7 @@ const activeCards = categories.filter((c) => {
           <div className="p-3 sm:p-4 text-sm text-red-300 bg-red-500/10 border-b border-red-500/20">{error}</div>
         )}
 
-        {/* Earning History overview cards - earnings only (no wallet/deposit/withdrawal) */}
+        {/* Earning History overview cards - earnings only */}
         <div className="p-3 sm:p-6 border-b border-white/10">
           <h3 className="hidden md:block text-xs sm:text-sm font-semibold text-gray-300 mb-2 sm:mb-3">{t("ledger.overview", "Overview")}</h3>
 
