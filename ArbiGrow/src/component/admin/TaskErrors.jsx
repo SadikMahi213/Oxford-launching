@@ -34,7 +34,21 @@ const CONFIG_LABELS = {
   suspension_threshold: "Suspension Threshold",
   suspension_duration_hours: "Suspension Duration (hours)",
   error_expiry_days: "Error Expiry (days)",
+  captcha_incorrect_threshold: "Captcha Incorrect Threshold",
+  ad_early_exit_threshold: "Ad Early Exit Threshold",
+  duplicate_check_window_minutes: "Duplicate Check Window (minutes)",
 };
+
+const CONFIG_ORDER = [
+  "restriction_threshold",
+  "suspension_threshold",
+  "error_expiry_days",
+  "ad_early_exit_threshold",
+  "captcha_incorrect_threshold",
+  "duplicate_check_window_minutes",
+  "warning_threshold",
+  "suspension_duration_hours",
+];
 
 const ERROR_CODE_LABELS = {
   captcha_incorrect: "Incorrect Captcha",
@@ -220,7 +234,11 @@ export default function TaskErrors({ setActivePage }) {
           <h3 className="text-base sm:text-lg font-semibold text-white">Disciplinary Thresholds</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {config.map((cfg) => (
+          {[...config].sort((a, b) => {
+            const ai = CONFIG_ORDER.indexOf(a.key);
+            const bi = CONFIG_ORDER.indexOf(b.key);
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          }).map((cfg) => (
             <div key={cfg.key} className="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4">
               <div className="text-xs text-gray-400 mb-1">{getConfigLabel(cfg.key)}</div>
               {editingConfig === cfg.key ? (
