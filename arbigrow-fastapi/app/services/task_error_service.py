@@ -316,7 +316,7 @@ async def _apply_suspension(
     suspension = AccountSuspension(
         user_id=user_id,
         suspension_type="task_only_block",
-        reason=f"Your account has been suspended due to repeated task violations ({error_count} errors). Please contact support or wait for account review.",
+        reason=f"Your account has been suspended due to repeated task violations ({error_count} errors). Please contact the OFA KYC Support Team or wait until your account review is completed.",
         triggering_error_id=task_error.id,
         error_count_at_suspension=error_count,
         status="active",
