@@ -1,3 +1,4 @@
+from decimal import Decimal
 from sqlalchemy import ForeignKey, DateTime, Integer, String, Numeric, Boolean, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
