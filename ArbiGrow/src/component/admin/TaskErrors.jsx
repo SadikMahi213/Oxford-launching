@@ -54,7 +54,7 @@ const TASK_TYPE_LABELS = {
   ad_view: "Ad View",
 };
 
-export default function TaskErrors() {
+export default function TaskErrors({ setActivePage }) {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState([]);
@@ -484,7 +484,7 @@ export default function TaskErrors() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {errors.map((error) => (
-                    <ErrorRow key={error.id} error={error} expandedError={expandedError} setExpandedError={setExpandedError} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} formatDate={formatDate} getErrorCodeLabel={getErrorCodeLabel} getTaskTypeLabel={getTaskTypeLabel} getActionBadge={getActionBadge} getStatusBadge={getStatusBadge} />
+                    <ErrorRow key={error.id} error={error} expandedError={expandedError} setExpandedError={setExpandedError} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} formatDate={formatDate} getErrorCodeLabel={getErrorCodeLabel} getTaskTypeLabel={getTaskTypeLabel} getActionBadge={getActionBadge} getStatusBadge={getStatusBadge} />
                   ))}
                 </tbody>
               </table>
@@ -493,7 +493,7 @@ export default function TaskErrors() {
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-white/5">
               {errors.map((error) => (
-                <ErrorCard key={error.id} error={error} expandedError={expandedError} setExpandedError={setExpandedError} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} formatDate={formatDate} getErrorCodeLabel={getErrorCodeLabel} getTaskTypeLabel={getTaskTypeLabel} getActionBadge={getActionBadge} getStatusBadge={getStatusBadge} />
+                <ErrorCard key={error.id} error={error} expandedError={expandedError} setExpandedError={setExpandedError} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} formatDate={formatDate} getErrorCodeLabel={getErrorCodeLabel} getTaskTypeLabel={getTaskTypeLabel} getActionBadge={getActionBadge} getStatusBadge={getStatusBadge} />
               ))}
             </div>
           </>
@@ -528,7 +528,7 @@ export default function TaskErrors() {
   );
 }
 
-function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
+function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
   return (
     <>
       <tr className="hover:bg-white/5 transition-colors">
@@ -567,7 +567,7 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
       {expandedError === error.id && (
         <tr>
           <td colSpan="8" className="px-4 py-4 bg-white/[0.02]">
-            <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} />
+            <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} />
           </td>
         </tr>
       )}
@@ -575,7 +575,7 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
   );
 }
 
-function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
+function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
   const isExpanded = expandedError === error.id;
   return (
     <div className="p-3">
@@ -604,14 +604,19 @@ function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, 
       </div>
       {isExpanded && (
         <div className="mt-3 pt-3 border-t border-white/5">
-          <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} />
+          <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} />
         </div>
       )}
     </div>
   );
 }
 
-function ExpandedDetails({ error, handleReviewError, fetchUserDetail }) {
+function ExpandedDetails({ error, handleReviewError, fetchUserDetail, setActivePage }) {
+  const handleViewUser = () => {
+    useUserStore.getState().setViewingUserId(error.user_id);
+    setActivePage("users");
+  };
+
   return (
     <div>
       <div className="flex flex-wrap gap-2">
@@ -634,7 +639,7 @@ function ExpandedDetails({ error, handleReviewError, fetchUserDetail }) {
           </>
         )}
         <button
-          onClick={() => fetchUserDetail(error.user_id)}
+          onClick={handleViewUser}
           className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg text-sm hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
         >
           <User className="w-4 h-4 inline mr-1" />

@@ -142,6 +142,22 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
     fetchUsers();
   }, [fetchUsers]);
 
+  const viewingUserId = useUserStore((state) => state.viewingUserId);
+  const setViewingUserId = useUserStore((state) => state.setViewingUserId);
+
+  useEffect(() => {
+    if (!viewingUserId) return;
+    const uid = viewingUserId;
+    setViewingUserId(null);
+
+    const found = users.find((u) => u.id === uid);
+    if (found) {
+      handleUserClick(found);
+    } else {
+      handleUserClick({ id: uid });
+    }
+  }, [viewingUserId]);
+
   const handleUserClick = async (user) => {
     setSelectedUser(user);
     setUserStatus(normalizeStatus(user?.status));

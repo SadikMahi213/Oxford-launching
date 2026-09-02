@@ -118,7 +118,7 @@ export default function AdminDashboard() {
       case "security":
         return <BlockedAccounts />;
       case "task-errors":
-        return <TaskErrors />;
+        return <TaskErrors setActivePage={setActivePage} />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
       case "kyc-requests":
