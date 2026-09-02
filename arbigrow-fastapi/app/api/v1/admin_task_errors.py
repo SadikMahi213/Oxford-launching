@@ -107,6 +107,10 @@ async def list_errors(
     users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
     users_map = {u.id: u for u in users_result.scalars().all()}
 
+    user_access_map = {}
+    for uid in user_ids:
+        user_access_map[uid] = await check_task_access(db, uid)
+
     return {
         "total": total,
         "limit": limit,
@@ -125,6 +129,8 @@ async def list_errors(
                 "review_status": e.review_status,
                 "admin_notes": e.admin_notes,
                 "created_at": e.created_at.isoformat(),
+                "user_access_allowed": user_access_map.get(e.user_id, {}).get("allowed", True),
+                "user_access_status": user_access_map.get(e.user_id, {}).get("status", "active"),
             }
             for e in errors
         ],

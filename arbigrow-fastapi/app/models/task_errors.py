@@ -250,6 +250,71 @@ class TaskDisciplinaryConfig(Base):
     )
 
 
+class AccountRestoreRecord(Base):
+    __tablename__ = "account_restore_records"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+
+    issue_type: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True
+    )  # missing_earning | incorrect_earning | duplicate_earning | wallet_mismatch
+
+    task_type: Mapped[str] = mapped_column(
+        String(20), nullable=False
+    )  # captcha | ad_view
+
+    reference_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reference_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    expected_amount: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), nullable=False
+    )
+    actual_amount: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), nullable=False
+    )
+    difference: Mapped[Decimal] = mapped_column(
+        Numeric(24, 14), nullable=False
+    )
+
+    affected_wallet: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # captcha_wallet | ad_view_wallet
+
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    restore_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="pending", index=True
+    )  # pending | restored | dismissed
+
+    restored_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(24, 14), nullable=True
+    )
+    restored_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    restored_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    restore_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    detected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    user = relationship("User", foreign_keys=[user_id], backref="restore_records")
+
+
 class AdminAuditLog(Base):
     __tablename__ = "admin_audit_logs"
 

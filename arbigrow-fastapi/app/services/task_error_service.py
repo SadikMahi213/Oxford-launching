@@ -436,4 +436,4 @@ async def expire_stale_suspensions(db: AsyncSession):
                 if user and user.account_status == "on_hold":
                     user.account_status = "active"
                     user.account_issue = None
-        await db.flush()
+        await db.commit()

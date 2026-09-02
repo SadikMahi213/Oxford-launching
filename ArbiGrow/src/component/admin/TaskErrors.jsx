@@ -496,6 +496,7 @@ export default function TaskErrors({ setActivePage }) {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Error</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Action</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">User Status</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Date</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Details</th>
                   </tr>
@@ -547,6 +548,17 @@ export default function TaskErrors({ setActivePage }) {
 }
 
 function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
+  const userStatusBadge = (allowed, status) => {
+    if (allowed) {
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">Active</span>;
+    }
+    const colors = {
+      suspended: "bg-red-500/20 text-red-400 border border-red-500/30",
+      restricted: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || colors.suspended}`}>{status || "Blocked"}</span>;
+  };
+
   return (
     <>
       <tr className="hover:bg-white/5 transition-colors">
@@ -568,6 +580,7 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
         </td>
         <td className="px-4 py-3">{getActionBadge(error.system_action)}</td>
         <td className="px-4 py-3">{getStatusBadge(error.review_status)}</td>
+        <td className="px-4 py-3">{userStatusBadge(error.user_access_allowed, error.user_access_status)}</td>
         <td className="px-4 py-3 text-sm text-gray-400">{formatDate(error.created_at)}</td>
         <td className="px-4 py-3">
           <button
@@ -584,7 +597,7 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
       </tr>
       {expandedError === error.id && (
         <tr>
-          <td colSpan="8" className="px-4 py-4 bg-white/[0.02]">
+          <td colSpan="9" className="px-4 py-4 bg-white/[0.02]">
             <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} />
           </td>
         </tr>
@@ -595,6 +608,17 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
 
 function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
   const isExpanded = expandedError === error.id;
+  const userStatusBadge = (allowed, status) => {
+    if (allowed) {
+      return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">Active</span>;
+    }
+    const colors = {
+      suspended: "bg-red-500/20 text-red-400 border border-red-500/30",
+      restricted: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+    };
+    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || colors.suspended}`}>{status || "Blocked"}</span>;
+  };
+
   return (
     <div className="p-3">
       <div className="flex items-start justify-between gap-2">
@@ -607,6 +631,7 @@ function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, 
             </span>
             {getStatusBadge(error.review_status)}
             {getActionBadge(error.system_action)}
+            {userStatusBadge(error.user_access_allowed, error.user_access_status)}
           </div>
           <div className="text-sm font-medium text-white">{error.username || `User #${error.user_id}`}</div>
           <div className="text-sm font-medium text-red-400 mt-1">{getErrorCodeLabel(error.error_code)}</div>
