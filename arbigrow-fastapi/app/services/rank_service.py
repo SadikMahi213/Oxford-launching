@@ -508,7 +508,11 @@ async def evaluate_and_process_rank(
             break
         prev_target = ranks[index - 1].target_volume if index > 0 else Decimal("0")
         band_start = prev_target
-        band_end = rank.target_volume
+        # For the highest qualified rank, extend band_end to team_volume
+        # so that volume above the rank threshold (but below the next rank)
+        # is still eligible for matching bonus at this rank's rate.
+        is_last_qualified = (index + 1 >= len(ranks) or team_volume < ranks[index + 1].target_volume)
+        band_end = team_volume if is_last_qualified else rank.target_volume
 
         payout_from = max(floor, band_start)
         payout_to = min(team_volume, band_end)

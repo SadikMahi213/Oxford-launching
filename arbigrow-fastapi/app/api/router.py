@@ -33,6 +33,7 @@ from app.api.v1 import (
     order_management,
     live_stats,
     ledger,
+    admin_task_errors,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -70,3 +71,4 @@ api_router.include_router(marketplace.router)
 api_router.include_router(order_management.router)
 api_router.include_router(live_stats.router)
 api_router.include_router(ledger.router)
+api_router.include_router(admin_task_errors.router)

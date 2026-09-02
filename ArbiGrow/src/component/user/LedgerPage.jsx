@@ -50,6 +50,9 @@ const CATEGORIES = [
   "service_fee",
   "ecommerce",
   "transfer",
+  "deposit",
+  "kyc_fee",
+  "package_investment",
 ];
 
 const EARNING_CATEGORIES = new Set([
@@ -157,6 +160,7 @@ const CATEGORY_ICON = {
   deposit: Landmark,
   ecommerce: ShoppingCart,
   transfer: ArrowLeftRight,
+  package_investment: CircleDollarSign,
 };
 
 const LedgerPage = ({ setActivePage, earningOnly = false }) => {
@@ -430,8 +434,9 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
                     { id: "", label: t("ledger.filter.all", "All") },
                     { id: "deposit", label: t("ledger.category.deposit", "Deposit") },
                     { id: "withdrawal", label: t("ledger.category.withdrawal", "Withdrawal") },
-                    { id: "matching_bonus", label: t("ledger.category.matching_bonus", "Bonus") },
-                    { id: "ecommerce", label: t("ledger.category.ecommerce", "Spending") },
+                    { id: "kyc_fee", label: t("ledger.category.kyc_fee", "KYC Fee") },
+                    { id: "refund", label: t("ledger.category.refund", "Refund") },
+                    { id: "package_investment", label: t("ledger.category.package_investment", "Package") },
                   ]
             ).map((tab) => {
               const active = filters.category === tab.id;
@@ -478,7 +483,10 @@ const LedgerPage = ({ setActivePage, earningOnly = false }) => {
               className="w-full px-3 py-2 rounded-lg bg-[#0A122C] border border-white/10 text-white text-sm focus:border-cyan-500/50 focus:outline-none"
             >
               <option value="">{t("ledger.filter.allCategories", "All Categories")}</option>
-              {CATEGORIES.map((cat) => (
+              {(stream === "transaction"
+                ? ["deposit", "withdrawal", "kyc_fee", "refund", "package_investment"]
+                : CATEGORIES
+              ).map((cat) => (
                 <option key={cat} value={cat}>{t(`ledger.category.${cat}`, cat)}</option>
               ))}
             </select>

@@ -23,6 +23,15 @@ from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
 from app.services.captcha_generator import generate_captcha_image
 from app.models.package import Package, TaskType
+from app.services.task_error_service import (
+    log_task_attempt,
+    log_task_error,
+    check_task_access,
+    ERR_CAPTCHA_INCORRECT,
+    ERR_CAPTCHA_TIMEOUT,
+    ERR_CAPTCHA_DUPLICATE,
+    ERR_CAPTCHA_RAPID_SUBMISSION,
+)
 
 router = APIRouter(prefix="/captcha", tags=["Captcha"])
 
@@ -163,6 +172,10 @@ async def submit_captcha(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    task_access = await check_task_access(db, user_id)
+    if not task_access["allowed"]:
+        raise HTTPException(403, detail=task_access["reason"])
+
     result = await db.execute(
         select(CaptchaChallenge).where(
             and_(
@@ -178,6 +191,15 @@ async def submit_captcha(
         raise HTTPException(400, detail="Captcha already used")
     if datetime.now(timezone.utc) > challenge.expires_at:
         challenge.is_used = True
+        attempt = await log_task_attempt(
+            db, user_id, "captcha", status="expired",
+            reference_id=challenge.id, reference_type="CaptchaChallenge",
+            error_code=ERR_CAPTCHA_TIMEOUT,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent", ""),
+        )
+        await log_task_error(db, user_id, "captcha", ERR_CAPTCHA_TIMEOUT,
+            task_attempt_id=attempt.id, attempt_number=attempt.attempt_number)
         await db.commit()
         raise HTTPException(400, detail="Captcha expired")
 
@@ -217,6 +239,23 @@ async def submit_captcha(
     is_correct = expected_hash == challenge.captcha_text_hash
 
     challenge.is_used = True
+
+    attempt = await log_task_attempt(
+        db, user_id, "captcha",
+        status="completed" if is_correct else "failed",
+        reference_id=challenge.id,
+        reference_type="CaptchaChallenge",
+        error_code=None if is_correct else ERR_CAPTCHA_INCORRECT,
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent", ""),
+    )
+
+    if not is_correct:
+        await log_task_error(
+            db, user_id, "captcha", ERR_CAPTCHA_INCORRECT,
+            task_attempt_id=attempt.id,
+            attempt_number=attempt.attempt_number,
+        )
 
     earning = CaptchaEarning(
         user_id=user_id,
@@ -380,6 +419,17 @@ async def get_captcha_stats(
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,
     )
+
+
+@router.get("/task-access")
+@limiter.limit("30/minute")
+async def get_task_access(
+    request: Request,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    access = await check_task_access(db, user_id)
+    return access
 
 
 @router.get("/my-earnings")

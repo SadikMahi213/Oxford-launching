@@ -27,7 +27,23 @@ export default function DailyTasks() {
   const [cooldown, setCooldown] = useState(0);
   const [timer, setTimer] = useState(0);
   const [expired, setExpired] = useState(false);
+  const [taskAccess, setTaskAccess] = useState(null);
   const { setUser } = useUserStore();
+
+  const fetchTaskAccess = useCallback(async () => {
+    try {
+      const res = await api.get("v1/captcha/task-access", {
+        headers: { Authorization: `Bearer ${useUserStore.getState().token}` },
+      });
+      setTaskAccess(res.data || res);
+    } catch {
+      setTaskAccess({ allowed: true });
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTaskAccess();
+  }, [fetchTaskAccess]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -173,6 +189,50 @@ export default function DailyTasks() {
             <div className="text-2xl font-bold text-green-400">
               ${Number(stats.total_earned_all || 0).toFixed(4)}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Task Access Blocked */}
+      {taskAccess && !taskAccess.allowed && (
+        <div className="max-w-lg mx-auto">
+          <div className={`p-6 rounded-2xl border ${
+            taskAccess.status === "suspended" 
+              ? "bg-red-900/30 border-red-500/30" 
+              : "bg-orange-900/30 border-orange-500/30"
+          }`}>
+            <div className="flex items-center gap-3 mb-4">
+              {taskAccess.status === "suspended" ? (
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              ) : (
+                <AlertCircle className="w-8 h-8 text-orange-400" />
+              )}
+              <div>
+                <h3 className={`text-lg font-bold ${
+                  taskAccess.status === "suspended" ? "text-red-400" : "text-orange-400"
+                }`}>
+                  {taskAccess.status === "suspended" ? "Account Suspended" : "Task Access Restricted"}
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  {taskAccess.status === "suspended" 
+                    ? "Your account has been temporarily suspended due to task violations."
+                    : "Your daily task access has been restricted."}
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-300 mb-4">{taskAccess.reason}</p>
+            {taskAccess.expires_at && (
+              <p className="text-sm text-gray-400">
+                Expires: {new Date(taskAccess.expires_at).toLocaleString()}
+              </p>
+            )}
+            {taskAccess.status === "warning" && (
+              <div className="mt-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
+                <p className="text-yellow-400 text-sm">
+                  Warning: {taskAccess.warning}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -23,6 +23,7 @@ import AdminWhatsAppConfig from "../component/admin/AdminWhatsAppConfig.jsx";
 import SelfAnalyticsDashboard from "../component/admin/self_analytics/SelfAnalyticsDashboard.jsx";
 import NotificationHistory from "../component/admin/notifications/NotificationHistory.jsx";
 import BlockedAccounts from "../component/admin/security/BlockedAccounts.jsx";
+import TaskErrors from "../component/admin/TaskErrors.jsx";
 import RankManagement from "../component/admin/RankManagement.jsx";
 import RankHistoryPage from "../component/admin/RankHistory.jsx";
 import BonusHistory from "../component/admin/BonusHistory.jsx";
@@ -116,6 +117,8 @@ export default function AdminDashboard() {
         return <NotificationHistory />;
       case "security":
         return <BlockedAccounts />;
+      case "task-errors":
+        return <TaskErrors />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
       case "kyc-requests":

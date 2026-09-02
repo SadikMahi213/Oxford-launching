@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { motion } from "motion/react";
 import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle, CalendarDays, ArrowUpRight, ArrowDownLeft, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { sendFunds, searchUsers, getTransferMinimum, getTransferHistory } from "../../api/user.api.js";
@@ -98,6 +98,7 @@ export default function SendFunds({ setActivePage }) {
   const [transferHistory, setTransferHistory] = useState({ sent: [], received: [] });
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
+  const [expandedRow, setExpandedRow] = useState(null);
   const historyPageSize = 10;
 
   const loadTransferHistory = useCallback(async () => {
@@ -336,27 +337,71 @@ export default function SendFunds({ setActivePage }) {
                     <tr className="border-b border-white/10">
                       <th className="text-left p-3 text-xs font-semibold text-gray-400">#</th>
                       <th className="text-left p-3 text-xs font-semibold text-gray-400">Date/Time</th>
-                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Recipient</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">User</th>
                       <th className="text-right p-3 text-xs font-semibold text-gray-400">Amount</th>
-                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Transaction ID</th>
+                      <th className="text-left p-3 text-xs font-semibold text-gray-400">Tx ID</th>
                       <th className="text-left p-3 text-xs font-semibold text-gray-400">Status</th>
                       <th className="text-left p-3 text-xs font-semibold text-gray-400">Direction</th>
+                      <th className="w-8"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedTransfers.map((tr, idx) => {
                       const serial = (historyPage - 1) * historyPageSize + idx + 1;
                       const isSent = tr.dir === "sent";
+                      const rowKey = `${tr.dir}-${tr.id}`;
+                      const isExpanded = expandedRow === rowKey;
                       return (
-                        <tr key={`${tr.dir}-${tr.id}`} className="border-b border-white/5 hover:bg-white/[0.03]">
-                          <td className="p-3 text-xs text-gray-400">{serial}</td>
-                          <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatHistoryDate(tr.created_at)}</td>
-                          <td className="p-3 text-xs text-white max-w-[150px] truncate">{isSent ? (tr.receiver_full_name || tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_full_name || tr.sender_name || `#${tr.sender_id}`)}</td>
-                          <td className={`p-3 text-xs font-semibold text-right ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</td>
-                          <td className="p-3 text-xs text-gray-400 font-mono">#{tr.id}</td>
-                          <td className="p-3 text-xs"><span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span></td>
-                          <td className="p-3 text-xs"><span className={`inline-flex items-center gap-1 ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? <ArrowUpRight size={12} /> : <ArrowDownLeft size={12} />}{isSent ? "Sent" : "Received"}</span></td>
-                        </tr>
+                        <Fragment key={rowKey}>
+                          <tr
+                            className={`border-b border-white/5 hover:bg-white/[0.03] cursor-pointer ${isExpanded ? "bg-white/[0.04]" : ""}`}
+                            onClick={() => setExpandedRow(isExpanded ? null : rowKey)}
+                          >
+                            <td className="p-3 text-xs text-gray-400">{serial}</td>
+                            <td className="p-3 text-xs text-gray-300 whitespace-nowrap">{formatHistoryDate(tr.created_at)}</td>
+                            <td className="p-3 text-xs text-white max-w-[150px] truncate">{isSent ? (tr.receiver_full_name || tr.receiver_name || `#${tr.receiver_id}`) : (tr.sender_full_name || tr.sender_name || `#${tr.sender_id}`)}</td>
+                            <td className={`p-3 text-xs font-semibold text-right ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? "-" : "+"}{Number(tr.amount).toFixed(2)} USDT</td>
+                            <td className="p-3 text-xs text-gray-400 font-mono">#{tr.id}</td>
+                            <td className="p-3 text-xs"><span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] ${tr.status === "completed" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/20" : "text-amber-300 bg-amber-500/10 border-amber-500/20"}`}>{tr.status || "completed"}</span></td>
+                            <td className="p-3 text-xs"><span className={`inline-flex items-center gap-1 ${isSent ? "text-red-300" : "text-emerald-300"}`}>{isSent ? <ArrowUpRight size={12} /> : <ArrowDownLeft size={12} />}{isSent ? "Sent" : "Received"}</span></td>
+                            <td className="p-3 text-xs text-gray-500">{isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</td>
+                          </tr>
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={8} className="px-4 pb-3 pt-1 bg-white/[0.02]">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="rounded-lg bg-white/[0.03] p-3 space-y-1">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Sender</p>
+                                    {(tr.sender_full_name || tr.sender_name) && <p className="text-xs text-white">{tr.sender_full_name || tr.sender_name}</p>}
+                                    {tr.sender_user_no && <p className="text-[11px] text-gray-400">User ID: <span className="text-gray-300">{tr.sender_user_no}</span></p>}
+                                    {tr.sender_username && <p className="text-[11px] text-gray-400">Member ID: <span className="text-gray-300">{tr.sender_username}</span></p>}
+                                    {tr.sender_email && <p className="text-[11px] text-gray-400">Email: <span className="text-gray-300">{tr.sender_email}</span></p>}
+                                    {tr.sender_mobile && <p className="text-[11px] text-gray-400">Mobile: <span className="text-gray-300">{tr.sender_mobile}</span></p>}
+                                    {!tr.sender_full_name && !tr.sender_name && !tr.sender_user_no && !tr.sender_username && !tr.sender_email && !tr.sender_mobile && (
+                                      <p className="text-[11px] text-gray-500">User #{tr.sender_id}</p>
+                                    )}
+                                  </div>
+                                  <div className="rounded-lg bg-white/[0.03] p-3 space-y-1">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Receiver</p>
+                                    {(tr.receiver_full_name || tr.receiver_name) && <p className="text-xs text-white">{tr.receiver_full_name || tr.receiver_name}</p>}
+                                    {tr.receiver_user_no && <p className="text-[11px] text-gray-400">User ID: <span className="text-gray-300">{tr.receiver_user_no}</span></p>}
+                                    {tr.receiver_username && <p className="text-[11px] text-gray-400">Member ID: <span className="text-gray-300">{tr.receiver_username}</span></p>}
+                                    {tr.receiver_email && <p className="text-[11px] text-gray-400">Email: <span className="text-gray-300">{tr.receiver_email}</span></p>}
+                                    {tr.receiver_mobile && <p className="text-[11px] text-gray-400">Mobile: <span className="text-gray-300">{tr.receiver_mobile}</span></p>}
+                                    {!tr.receiver_full_name && !tr.receiver_name && !tr.receiver_user_no && !tr.receiver_username && !tr.receiver_email && !tr.receiver_mobile && (
+                                      <p className="text-[11px] text-gray-500">User #{tr.receiver_id}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-3 text-[11px] text-gray-400 mt-2">
+                                  {tr.source_wallet && <span>From: <span className="text-gray-300">{tr.source_wallet}</span></span>}
+                                  {tr.destination_wallet && <span>To: <span className="text-gray-300">{tr.destination_wallet}</span></span>}
+                                  {tr.note && <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> {tr.note}</span>}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
                       );
                     })}
                   </tbody>

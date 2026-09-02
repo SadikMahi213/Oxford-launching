@@ -28,6 +28,7 @@ import {
   IdCard,
   Building2,
   ArrowDownFromLine,
+  AlertTriangle,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -67,6 +68,12 @@ export default function AdminLayout({
       label: "Login Security",
       icon: ShieldAlert,
       description: "Blocked accounts & logs",
+    },
+    {
+      id: "task-errors",
+      label: "Task Errors",
+      icon: AlertTriangle,
+      description: "Error detection & suspensions",
     },
     {
       id: "users",

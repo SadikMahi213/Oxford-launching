@@ -18,6 +18,14 @@ from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
 from app.services.b2_service import generate_presigned_url
+from app.services.task_error_service import (
+    log_task_attempt,
+    log_task_error,
+    check_task_access,
+    ERR_AD_EARLY_EXIT,
+    ERR_AD_INSUFFICIENT_TIME,
+    ERR_AD_DUPLICATE_VIEW,
+)
 
 router = APIRouter(prefix="/ads", tags=["Ads"])
 
@@ -47,6 +55,10 @@ async def start_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    task_access = await check_task_access(db, user_id)
+    if not task_access["allowed"]:
+        raise HTTPException(403, detail=task_access["reason"])
+
     inv_result = await db.execute(
         select(Investment).where(
             and_(
@@ -177,6 +189,15 @@ async def complete_ad(
         if ad and ad.required_watch_seconds:
             required_seconds = ad.required_watch_seconds
     if elapsed < required_seconds:
+        attempt = await log_task_attempt(
+            db, user_id, "ad_view", status="failed",
+            reference_id=ad_view.id, reference_type="AdView",
+            error_code=ERR_AD_EARLY_EXIT,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent", ""),
+        )
+        await log_task_error(db, user_id, "ad_view", ERR_AD_EARLY_EXIT,
+            task_attempt_id=attempt.id, attempt_number=attempt.attempt_number)
         raise HTTPException(400, detail=f"Please watch at least {required_seconds} seconds of the ad.")
 
     user_result = await db.execute(
@@ -218,6 +239,13 @@ async def complete_ad(
     total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached")
+
+    await log_task_attempt(
+        db, user_id, "ad_view", status="completed",
+        reference_id=ad_view.id, reference_type="AdView",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent", ""),
+    )
 
     earned = (ad_investments[0][1].earn_per_captcha or Decimal("0")).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP

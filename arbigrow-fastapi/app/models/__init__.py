@@ -61,3 +61,12 @@ from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
 from app.models.order_attachment import OrderAttachment
 from app.models.wallet_audit_log import WalletAuditLog
 from app.models.delivery_zone import DeliveryZone
+from app.models.task_errors import (
+    TaskAttempt,
+    TaskError,
+    UserWarning,
+    UserRestriction,
+    AccountSuspension,
+    TaskDisciplinaryConfig,
+    AdminAuditLog,
+)

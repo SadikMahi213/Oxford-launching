@@ -334,8 +334,9 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Payment</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Limit</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Required</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Max</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">OFA Bonus</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
@@ -367,6 +368,7 @@ export default function PackageManagement() {
                         {pkg.task_type === "ad_view" ? "Ad View" : "Captcha"}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.daily_captcha_limit}</td>
                     <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
                     <td className="px-4 py-3 text-purple-300">{(pkg.signup_arbx_bonus || 0).toFixed(2)} OFA</td>
@@ -552,7 +554,21 @@ export default function PackageManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-400 block mb-1">Daily Tasks Allowed</label>
+                  <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Daily Ads Required" : "Daily Captchas Required"}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.captcha_required_per_day}
+                    onChange={(e) => setForm({ ...form, captcha_required_per_day: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum tasks required per day for ROI payout</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Max Ads Per Day" : "Max Captchas Per Day"}</label>
                   <input
                     type="number"
                     min="0"
@@ -560,20 +576,19 @@ export default function PackageManagement() {
                     onChange={(e) => setForm({ ...form, daily_captcha_limit: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Max tasks a user can complete per day</p>
+                  <p className="text-xs text-gray-500 mt-1">Maximum tasks a user can complete per day</p>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-400 block mb-1">OFA Signup Bonus</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.signup_arbx_bonus}
-                  onChange={(e) => setForm({ ...form, signup_arbx_bonus: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
-                />
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">OFA Signup Bonus</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.signup_arbx_bonus}
+                    onChange={(e) => setForm({ ...form, signup_arbx_bonus: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                </div>
               </div>
 
               {showEdit && (

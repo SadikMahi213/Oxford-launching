@@ -66,6 +66,11 @@ EARNING_STREAM_CATEGORIES = frozenset({
     "ecommerce_bonus", "ecommerce",
 })
 
+# Only these five categories appear in Transaction History.
+TRANSACTION_STREAM_CATEGORIES = frozenset({
+    "deposit", "withdrawal", "kyc_fee", "refund", "package_investment",
+})
+
 
 def _stream_of(category: str, kind: str) -> str:
     if category in EARNING_STREAM_CATEGORIES:
@@ -276,6 +281,19 @@ async def _deposits(db: AsyncSession, uid: int) -> list:
         out.append(_to_record("dp", r.id, r.created_at, "deposit",
                               "adjustment", "credit", r.amount, "USDT", status,
                               reference=r.txid))
+    return out
+
+
+async def _investment_purchases(db: AsyncSession, uid: int) -> list:
+    rows = (await db.execute(
+        select(Investment).where(Investment.user_id == uid)
+    )).scalars().all()
+    out = []
+    for r in rows:
+        if r.invested_amount and r.invested_amount > 0:
+            out.append(_to_record("inv", r.id, r.created_at, "package_investment",
+                                  "deduction", "debit", r.invested_amount, "USDT",
+                                  "completed", reference=r.package_name))
     return out
 
 
@@ -545,6 +563,7 @@ async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
             _wallet_transactions(db, uid),
             _withdrawals(db, uid),
             _deposits(db, uid),
+            _investment_purchases(db, uid),
             _ecommerce(db, uid),
             _transfers(db, uid),
         ]
@@ -588,6 +607,9 @@ async def get_ledger_transactions(
         filtered = [r for r in filtered if r["category"] in TASK_CATEGORIES]
     if stream:
         filtered = [r for r in filtered if r["stream"] == stream]
+        # Transaction History shows only the five allowed categories.
+        if stream == "transaction":
+            filtered = [r for r in filtered if r["category"] in TRANSACTION_STREAM_CATEGORIES]
     if category:
         filtered = [r for r in filtered if r["category"] == category]
     if type:
