@@ -29,7 +29,6 @@ import {
   Building2,
   ArrowDownFromLine,
   AlertTriangle,
-  RotateCcw,
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
@@ -75,12 +74,6 @@ export default function AdminLayout({
       label: "Task Errors",
       icon: AlertTriangle,
       description: "Error detection & suspensions",
-    },
-    {
-      id: "account-restore",
-      label: "Account Restore",
-      icon: RotateCcw,
-      description: "Restore affected accounts",
     },
     {
       id: "users",

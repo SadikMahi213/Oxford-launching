@@ -68,6 +68,5 @@ from app.models.task_errors import (
     UserRestriction,
     AccountSuspension,
     TaskDisciplinaryConfig,
-    AccountRestoreRecord,
     AdminAuditLog,
 )

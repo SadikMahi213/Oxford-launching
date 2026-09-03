@@ -34,7 +34,6 @@ from app.api.v1 import (
     live_stats,
     ledger,
     admin_task_errors,
-    admin_restore,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -73,4 +72,3 @@ api_router.include_router(order_management.router)
 api_router.include_router(live_stats.router)
 api_router.include_router(ledger.router)
 api_router.include_router(admin_task_errors.router)
-api_router.include_router(admin_restore.router)

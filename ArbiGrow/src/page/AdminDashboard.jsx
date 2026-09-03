@@ -24,7 +24,6 @@ import SelfAnalyticsDashboard from "../component/admin/self_analytics/SelfAnalyt
 import NotificationHistory from "../component/admin/notifications/NotificationHistory.jsx";
 import BlockedAccounts from "../component/admin/security/BlockedAccounts.jsx";
 import TaskErrors from "../component/admin/TaskErrors.jsx";
-import AccountRestore from "../component/admin/AccountRestore.jsx";
 import RankManagement from "../component/admin/RankManagement.jsx";
 import RankHistoryPage from "../component/admin/RankHistory.jsx";
 import BonusHistory from "../component/admin/BonusHistory.jsx";
@@ -120,8 +119,6 @@ export default function AdminDashboard() {
         return <BlockedAccounts />;
       case "task-errors":
         return <TaskErrors setActivePage={setActivePage} />;
-      case "account-restore":
-        return <AccountRestore />;
       case "users":
         return <UserManagement users={users} setUsers={setUsers} />;
       case "kyc-requests":
