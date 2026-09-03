@@ -373,6 +373,12 @@ async def update_withdrawal_status(
     await db.commit()
     await db.refresh(withdrawal)
 
+    if withdrawal.bank_info_id:
+        bi_result = await db.execute(
+            select(BankInfo).where(BankInfo.id == withdrawal.bank_info_id)
+        )
+        withdrawal.bank_info = bi_result.scalar_one_or_none()
+
     notif_type = "withdrawal_approved" if data.status == "approved" else "withdrawal_rejected"
     await notify_admin(
         db=db, type=notif_type,
