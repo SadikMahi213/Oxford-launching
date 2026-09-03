@@ -80,8 +80,57 @@ class User(Base):
         nullable=False,
         default="inactive",
         server_default="inactive",
-    )
+    )  # inactive | pending_payment | active | on_hold | suspended | permanently_closed
     account_issue: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── Error cycle tracking ──────────────────────────────────────
+    error_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    error_cycle_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    error_cycle_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # ── Hold tracking (within current cycle) ──────────────────────
+    hold_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    last_hold_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    hold_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # ── Suspension tracking ───────────────────────────────────────
+    suspension_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    suspended_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    suspension_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # ── Permanent closure ─────────────────────────────────────────
+    permanent_closed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    # ── Communication tracking ────────────────────────────────────
+    company_contact_status: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    contact_recorded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    recorded_by_admin: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Email verification OTP (hashed + expiry)
     otp_code: Mapped[str | None] = mapped_column(String(64), nullable=True)

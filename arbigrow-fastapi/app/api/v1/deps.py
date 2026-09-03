@@ -26,7 +26,17 @@ def check_earning_access(user: User) -> None:
     if status == "on_hold":
         raise HTTPException(
             status_code=403,
-            detail="Your account is on hold. Earning features are disabled."
+            detail="Your account is temporarily on hold due to task errors. Please wait until the hold expires."
+        )
+    if status == "suspended":
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been suspended due to repeated task errors. Please contact support for assistance."
+        )
+    if status == "permanently_closed":
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been permanently closed according to the company policy."
         )
     if status == "inactive":
         raise HTTPException(

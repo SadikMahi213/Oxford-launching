@@ -197,30 +197,58 @@ export default function DailyTasks() {
       {taskAccess && !taskAccess.allowed && (
         <div className="max-w-lg mx-auto">
           <div className={`p-6 rounded-2xl border ${
-            taskAccess.status === "suspended" 
-              ? "bg-red-900/30 border-red-500/30" 
+            taskAccess.status === "permanently_closed"
+              ? "bg-red-950/30 border-red-700/30"
+              : taskAccess.status === "suspended"
+              ? "bg-red-900/30 border-red-500/30"
+              : taskAccess.status === "on_hold"
+              ? "bg-yellow-900/30 border-yellow-500/30"
               : "bg-orange-900/30 border-orange-500/30"
           }`}>
             <div className="flex items-center gap-3 mb-4">
-              {taskAccess.status === "suspended" ? (
+              {taskAccess.status === "permanently_closed" ? (
+                <AlertCircle className="w-8 h-8 text-red-300" />
+              ) : taskAccess.status === "suspended" ? (
                 <AlertCircle className="w-8 h-8 text-red-400" />
+              ) : taskAccess.status === "on_hold" ? (
+                <AlertCircle className="w-8 h-8 text-yellow-400" />
               ) : (
                 <AlertCircle className="w-8 h-8 text-orange-400" />
               )}
               <div>
                 <h3 className={`text-lg font-bold ${
-                  taskAccess.status === "suspended" ? "text-red-400" : "text-orange-400"
+                  taskAccess.status === "permanently_closed" ? "text-red-300"
+                  : taskAccess.status === "suspended" ? "text-red-400"
+                  : taskAccess.status === "on_hold" ? "text-yellow-400"
+                  : "text-orange-400"
                 }`}>
-                  {taskAccess.status === "suspended" ? "Account Suspended" : "Task Access Restricted"}
+                  {taskAccess.status === "permanently_closed" && "Account Permanently Closed"}
+                  {taskAccess.status === "suspended" && "Account Suspended"}
+                  {taskAccess.status === "on_hold" && "Account On Hold"}
+                  {taskAccess.status === "restricted" && "Task Access Restricted"}
                 </h3>
                 <p className="text-gray-400 text-sm">
-                  {taskAccess.status === "suspended" 
-                    ? "Your account has been temporarily suspended due to task violations."
+                  {taskAccess.status === "permanently_closed"
+                    ? "Your account has been permanently closed according to the company policy."
+                    : taskAccess.status === "suspended"
+                    ? "Your account has been suspended due to repeated task errors."
+                    : taskAccess.status === "on_hold"
+                    ? "Your account has been temporarily placed on hold due to repeated task errors."
                     : "Your daily task access has been restricted."}
                 </p>
               </div>
             </div>
             <p className="text-gray-300 mb-4">{taskAccess.reason}</p>
+            {taskAccess.hold_until && (
+              <p className="text-sm text-gray-400">
+                Hold ends: {new Date(taskAccess.hold_until).toLocaleString()}
+              </p>
+            )}
+            {taskAccess.suspension_until && (
+              <p className="text-sm text-gray-400">
+                Suspension ends: {new Date(taskAccess.suspension_until).toLocaleString()}
+              </p>
+            )}
             {taskAccess.expires_at && (
               <p className="text-sm text-gray-400">
                 Expires: {new Date(taskAccess.expires_at).toLocaleString()}
@@ -228,9 +256,28 @@ export default function DailyTasks() {
             )}
             {taskAccess.status === "warning" && (
               <div className="mt-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
-                <p className="text-yellow-400 text-sm">
+                <p className="text-yellow-400 text-sm font-medium mb-1">
                   Warning: {taskAccess.warning}
                 </p>
+                {taskAccess.error_count > 0 && taskAccess.hold_threshold > 0 && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <span>Errors: {taskAccess.error_count} / {taskAccess.hold_threshold}</span>
+                      <span>{taskAccess.hold_threshold - taskAccess.error_count} more before hold</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(100, (taskAccess.error_count / taskAccess.hold_threshold) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {taskAccess.cycle_end && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Cycle resets: {new Date(taskAccess.cycle_end).toLocaleString()}
+                  </p>
+                )}
               </div>
             )}
           </div>

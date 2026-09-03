@@ -19,6 +19,10 @@ from app.services.task_error_service import (
     check_task_access,
     expire_stale_suspensions,
     _get_config_int,
+    STATUS_ACTIVE,
+    STATUS_ON_HOLD,
+    STATUS_SUSPENDED,
+    STATUS_PERMANENTLY_CLOSED,
 )
 
 router = APIRouter(prefix="/admin/task-errors", tags=["Admin Task Errors"])
@@ -75,6 +79,7 @@ async def list_errors(
     status: str = Query(None, description="Filter by review_status: pending, reviewed, dismissed"),
     task_type: str = Query(None, description="Filter by task_type: captcha, ad_view"),
     user_id: int = Query(None, description="Filter by user_id"),
+    account_status: str = Query(None, description="Filter by user account_status"),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -90,15 +95,22 @@ async def list_errors(
     if user_id:
         conditions.append(TaskError.user_id == user_id)
 
+    # Join with User for account_status filter
+    query = select(TaskError)
+    if account_status:
+        query = query.join(User, TaskError.user_id == User.id)
+        conditions.append(User.account_status == account_status)
+
+    if conditions:
+        query = query.where(and_(*conditions))
+
     count_result = await db.execute(
         select(func.count(TaskError.id)).where(and_(*conditions) if conditions else True)
     )
     total = count_result.scalar() or 0
 
     result = await db.execute(
-        select(TaskError)
-        .where(and_(*conditions) if conditions else True)
-        .order_by(desc(TaskError.created_at))
+        query.order_by(desc(TaskError.created_at))
         .limit(limit)
         .offset(offset)
     )
@@ -107,10 +119,6 @@ async def list_errors(
     user_ids = list(set(e.user_id for e in errors))
     users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
     users_map = {u.id: u for u in users_result.scalars().all()}
-
-    user_access_map = {}
-    for uid in user_ids:
-        user_access_map[uid] = await check_task_access(db, uid)
 
     return {
         "total": total,
@@ -127,11 +135,15 @@ async def list_errors(
                 "error_reason": e.error_reason,
                 "attempt_number": e.attempt_number,
                 "system_action": e.system_action,
+                "action_taken": e.action_taken,
                 "review_status": e.review_status,
                 "admin_notes": e.admin_notes,
+                "error_count_at_time": e.error_count_at_time,
+                "cycle_start": e.cycle_start.isoformat() if e.cycle_start else None,
+                "cycle_end": e.cycle_end.isoformat() if e.cycle_end else None,
                 "created_at": e.created_at.isoformat(),
-                "user_access_allowed": user_access_map.get(e.user_id, {}).get("allowed", True),
-                "user_access_status": user_access_map.get(e.user_id, {}).get("status", "active"),
+                "user_access_allowed": users_map.get(e.user_id) and users_map[e.user_id].account_status in (STATUS_ACTIVE, "inactive", "pending_payment"),
+                "user_access_status": users_map.get(e.user_id, User()).account_status if users_map.get(e.user_id) else "active",
             }
             for e in errors
         ],
@@ -182,6 +194,12 @@ async def get_user_task_status(
 
     access = await check_task_access(db, user_id)
 
+    # Get error count in current cycle
+    errors_result = await db.execute(
+        select(func.count(TaskError.id)).where(TaskError.user_id == user_id)
+    )
+    total_errors = errors_result.scalar() or 0
+
     warnings_result = await db.execute(
         select(UserWarning)
         .where(UserWarning.user_id == user_id)
@@ -206,16 +224,26 @@ async def get_user_task_status(
     )
     suspensions = suspensions_result.scalars().all()
 
-    errors_result = await db.execute(
-        select(func.count(TaskError.id)).where(TaskError.user_id == user_id)
-    )
-    total_errors = errors_result.scalar() or 0
-
     return {
         "user_id": user_id,
         "username": user.username,
+        "email": user.email,
         "access": access,
         "total_errors": total_errors,
+        "account_status": user.account_status,
+        "error_count": user.error_count,
+        "error_cycle_start": user.error_cycle_start.isoformat() if user.error_cycle_start else None,
+        "error_cycle_end": user.error_cycle_end.isoformat() if user.error_cycle_end else None,
+        "hold_count": user.hold_count,
+        "last_hold_at": user.last_hold_at.isoformat() if user.last_hold_at else None,
+        "hold_until": user.hold_until.isoformat() if user.hold_until else None,
+        "suspension_count": user.suspension_count,
+        "suspended_at": user.suspended_at.isoformat() if user.suspended_at else None,
+        "suspension_until": user.suspension_until.isoformat() if user.suspension_until else None,
+        "permanent_closed_at": user.permanent_closed_at.isoformat() if user.permanent_closed_at else None,
+        "company_contact_status": user.company_contact_status,
+        "contact_recorded_at": user.contact_recorded_at.isoformat() if user.contact_recorded_at else None,
+        "account_issue": user.account_issue,
         "warnings": [
             {
                 "id": w.id,
@@ -353,8 +381,11 @@ async def suspend_user(
     )
     db.add(suspension)
 
-    user.account_status = "on_hold"
+    user.account_status = STATUS_SUSPENDED
     user.account_issue = f"Suspended for {hours}h by admin"
+    user.suspended_at = now
+    user.suspension_until = now + timedelta(hours=hours)
+    user.suspension_count += 1
 
     log = AdminAuditLog(
         admin_id=admin.id,
@@ -414,9 +445,12 @@ async def lift_suspension(
     )
 
     user = await db.get(User, user_id)
-    if user and user.account_status == "on_hold":
-        user.account_status = "active"
+    if user:
+        user.account_status = STATUS_ACTIVE
         user.account_issue = None
+        user.suspended_at = None
+        user.suspension_until = None
+        user.hold_until = None
 
     log = AdminAuditLog(
         admin_id=admin.id,
@@ -429,10 +463,66 @@ async def lift_suspension(
     return {"success": True, "lifted_count": result.rowcount}
 
 
+@router.post("/users/{user_id}/record-contact")
+async def record_company_contact(
+    user_id: int,
+    body: dict,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    """Record that a suspended user has contacted the company."""
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, detail="User not found")
+
+    user.company_contact_status = True
+    user.contact_recorded_at = datetime.now(timezone.utc)
+    user.recorded_by_admin = admin.id
+
+    notes = body.get("notes", "")
+    log = AdminAuditLog(
+        admin_id=admin.id,
+        action="record_company_contact",
+        target_user_id=user_id,
+        details=f"Company contact recorded. Notes: {notes}" if notes else "Company contact recorded",
+    )
+    db.add(log)
+    await db.commit()
+    return {"success": True}
+
+
+@router.post("/users/{user_id}/reset-cycle")
+async def reset_error_cycle(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
+    """Manually reset a user's error cycle."""
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, detail="User not found")
+
+    user.error_count = 0
+    user.hold_count = 0
+    user.error_cycle_start = None
+    user.error_cycle_end = None
+
+    log = AdminAuditLog(
+        admin_id=admin.id,
+        action="reset_error_cycle",
+        target_user_id=user_id,
+        details="Manually reset error cycle",
+    )
+    db.add(log)
+    await db.commit()
+    return {"success": True}
+
+
 @router.get("/audit-log")
 async def get_audit_log(
     admin_id: int = Query(None),
     action: str = Query(None),
+    target_user_id: int = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -443,6 +533,8 @@ async def get_audit_log(
         conditions.append(AdminAuditLog.admin_id == admin_id)
     if action:
         conditions.append(AdminAuditLog.action == action)
+    if target_user_id:
+        conditions.append(AdminAuditLog.target_user_id == target_user_id)
 
     count_result = await db.execute(
         select(func.count(AdminAuditLog.id)).where(and_(*conditions) if conditions else True)

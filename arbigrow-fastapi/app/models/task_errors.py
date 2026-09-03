@@ -77,13 +77,25 @@ class TaskError(Base):
 
     system_action: Mapped[str] = mapped_column(
         String(50), nullable=False, default="none"
-    )  # none | warning | restriction | suspension | review
+    )  # none | warning | hold | suspension | permanent_closure
 
     review_status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="pending"
     )  # pending | reviewed | dismissed
 
     admin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ── Audit trail fields ────────────────────────────────────────
+    error_count_at_time: Mapped[int] = mapped_column(Integer, default=0)
+    cycle_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    cycle_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    action_taken: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="none"
+    )  # none | warning | hold | suspension | permanent_closure
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

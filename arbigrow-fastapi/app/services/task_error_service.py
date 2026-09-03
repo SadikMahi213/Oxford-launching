@@ -1,8 +1,14 @@
-"""Task Error Detection & Disciplinary System.
+"""Task Error Detection & Disciplinary System (Cycle-Based).
 
-Detects errors in captcha and ad view tasks, logs them, evaluates thresholds,
-and applies warnings / restrictions / suspensions according to admin-configured
-rules stored in `task_disciplinary_config`.
+Implements error cycle tracking, account hold, suspension, and permanent closure
+with configurable thresholds and durations.
+
+Cycle Logic:
+- Errors accumulate within a configurable cycle (default 24h)
+- When cycle expires, error_count and hold_count reset to 0
+- Hold: max 1 per cycle, configurable duration
+- Suspension: overrides hold, configurable duration
+- Permanent closure: after suspension deadline if no company contact
 """
 
 from datetime import datetime, timedelta, timezone
@@ -24,14 +30,12 @@ from app.models.user import User
 
 # ── Error codes ──────────────────────────────────────────────────────────────
 
-# Captcha errors
 ERR_CAPTCHA_INCORRECT = "captcha_incorrect"
 ERR_CAPTCHA_INVALID_INPUT = "captcha_invalid_input"
 ERR_CAPTCHA_TIMEOUT = "captcha_timeout"
 ERR_CAPTCHA_DUPLICATE = "captcha_duplicate"
 ERR_CAPTCHA_RAPID_SUBMISSION = "captcha_rapid_submission"
 
-# Ad view errors
 ERR_AD_EARLY_EXIT = "ad_early_exit"
 ERR_AD_INSUFFICIENT_TIME = "ad_insufficient_time"
 ERR_AD_ABNORMAL_REFRESH = "ad_abnormal_refresh"
@@ -49,6 +53,21 @@ ERROR_REASONS = {
     ERR_AD_ABNORMAL_REFRESH: "Abnormal page refresh during ad view",
     ERR_AD_DUPLICATE_VIEW: "Duplicate ad view detected within window",
     ERR_AD_BOT_LIKE: "Automated or bot-like ad view activity detected",
+}
+
+
+# ── Account status constants ─────────────────────────────────────────────────
+STATUS_ACTIVE = "active"
+STATUS_ON_HOLD = "on_hold"
+STATUS_SUSPENDED = "suspended"
+STATUS_PERMANENTLY_CLOSED = "permanently_closed"
+
+# Status priority (higher index = stronger)
+STATUS_PRIORITY = {
+    STATUS_ACTIVE: 0,
+    STATUS_ON_HOLD: 1,
+    STATUS_SUSPENDED: 2,
+    STATUS_PERMANENTLY_CLOSED: 3,
 }
 
 
@@ -72,6 +91,23 @@ async def _get_config_int(db: AsyncSession, key: str, default: int = 0) -> int:
         return default
 
 
+async def _get_config_float(db: AsyncSession, key: str, default: float = 0.0) -> float:
+    val = await _get_config(db, key, str(default))
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
+async def get_config_message(db: AsyncSession, key: str, **kwargs) -> str:
+    """Get a config message and format it with kwargs."""
+    template = await _get_config(db, key, "")
+    try:
+        return template.format(**kwargs)
+    except (KeyError, ValueError):
+        return template
+
+
 # ── Error logging ────────────────────────────────────────────────────────────
 
 async def log_task_attempt(
@@ -85,7 +121,7 @@ async def log_task_attempt(
     ip_address: str | None = None,
     user_agent: str | None = None,
 ) -> TaskAttempt:
-    """Record a task attempt. Returns the created TaskAttempt."""
+    """Record a task attempt."""
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     count_result = await db.execute(
         select(func.count(TaskAttempt.id)).where(
@@ -127,6 +163,60 @@ async def log_task_error(
     """Record a task error and evaluate disciplinary thresholds."""
     error_reason = ERROR_REASONS.get(error_code, f"Unknown error: {error_code}")
 
+    # Lock user row for atomic cycle + threshold evaluation
+    user_result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = user_result.scalar_one_or_none()
+    if not user:
+        raise ValueError(f"User {user_id} not found")
+
+    now = datetime.now(timezone.utc)
+
+    # ── Phase 4: Error Cycle Logic ────────────────────────────────
+    cycle_duration_hours = await _get_config_int(db, "error_cycle_duration_hours", 24)
+    cycle_duration = timedelta(hours=cycle_duration_hours)
+
+    cycle_expired = (
+        user.error_cycle_end is not None
+        and now >= user.error_cycle_end
+    )
+
+    if user.error_cycle_start is None or cycle_expired:
+        # Start a new cycle
+        user.error_count = 0
+        user.hold_count = 0
+        user.error_cycle_start = now
+        user.error_cycle_end = now + cycle_duration
+
+    # ── Phase 6: Hold Expiry ──────────────────────────────────────
+    if (
+        user.account_status == STATUS_ON_HOLD
+        and user.hold_until is not None
+        and now >= user.hold_until
+        and user.suspended_at is None or (
+            user.suspension_until is not None and now >= user.suspension_until
+        )
+    ):
+        # Hold expired - check if suspension also expired
+        if user.account_status == STATUS_SUSPENDED and user.suspension_until and now >= user.suspension_until:
+            # Suspension expired too - check communication deadline
+            user.account_status = STATUS_ACTIVE
+            user.account_issue = None
+            user.hold_until = None
+            user.suspended_at = None
+            user.suspension_until = None
+        elif user.account_status == STATUS_ON_HOLD and user.hold_until and now >= user.hold_until:
+            # Only hold expired
+            user.account_status = STATUS_ACTIVE
+            user.account_issue = None
+            user.hold_until = None
+
+    # ── Increment error count ─────────────────────────────────────
+    user.error_count += 1
+    current_count = user.error_count
+
+    # ── Create error record with cycle context ────────────────────
     task_error = TaskError(
         user_id=user_id,
         task_type=task_type,
@@ -136,11 +226,17 @@ async def log_task_error(
         attempt_number=attempt_number,
         system_action="none",
         review_status="pending",
+        error_count_at_time=current_count,
+        cycle_start=user.error_cycle_start,
+        cycle_end=user.error_cycle_end,
+        action_taken="none",
     )
     db.add(task_error)
     await db.flush()
 
-    system_action = await _evaluate_thresholds(db, user_id, task_type, task_error)
+    # ── Phase 5-9: Evaluate thresholds ────────────────────────────
+    system_action = await _evaluate_thresholds(db, user, task_error, now)
+    task_error.action_taken = system_action
     task_error.system_action = system_action
 
     if task_attempt_id:
@@ -154,127 +250,70 @@ async def log_task_error(
 
 # ── Threshold evaluation ─────────────────────────────────────────────────────
 
-async def _count_recent_errors(
-    db: AsyncSession,
-    user_id: int,
-    task_type: str | None = None,
-) -> int:
-    expiry_days = await _get_config_int(db, "error_expiry_days", 30)
-    cutoff = datetime.now(timezone.utc) - timedelta(days=expiry_days)
-
-    conditions = [
-        TaskError.user_id == user_id,
-        TaskError.created_at >= cutoff,
-    ]
-    if task_type:
-        conditions.append(TaskError.task_type == task_type)
-
-    result = await db.execute(
-        select(func.count(TaskError.id)).where(and_(*conditions))
-    )
-    return result.scalar() or 0
-
-
 async def _evaluate_thresholds(
     db: AsyncSession,
-    user_id: int,
-    task_type: str,
+    user: User,
     task_error: TaskError,
+    now: datetime,
 ) -> str:
-    """Evaluate error thresholds and apply appropriate disciplinary action.
+    """Evaluate error thresholds and apply disciplinary action.
 
-    Returns the system_action string applied.
+    Returns the action_taken string applied.
+    Priority: PERMANENTLY_CLOSED > SUSPENDED > ON_HOLD > ACTIVE
     """
-    total_errors = await _count_recent_errors(db, user_id)
-    task_errors = await _count_recent_errors(db, user_id, task_type)
-
-    warning_threshold = await _get_config_int(db, "warning_threshold", 3)
-    restriction_threshold = await _get_config_int(db, "restriction_threshold", 6)
-    suspension_threshold = await _get_config_int(db, "suspension_threshold", 10)
-
-    has_active_suspension = await _has_active_suspension(db, user_id)
-    if has_active_suspension:
+    # ── Status priority: never downgrade ──────────────────────────
+    if user.account_status == STATUS_PERMANENTLY_CLOSED:
         return "none"
 
-    has_active_restriction = await _has_active_restriction(db, user_id)
-    has_active_warning = await _has_active_warning(db, user_id)
-
-    if total_errors >= suspension_threshold and not has_active_suspension:
-        await _apply_suspension(db, user_id, task_type, total_errors, task_error)
+    # ── Phase 8: Suspension Logic ─────────────────────────────────
+    suspension_threshold = await _get_config_int(db, "suspension_threshold", 5)
+    if user.error_count >= suspension_threshold and user.account_status != STATUS_SUSPENDED:
+        await _apply_suspension(db, user, task_error, now)
         return "suspension"
 
-    if total_errors >= restriction_threshold and not has_active_restriction and not has_active_suspension:
-        await _apply_restriction(db, user_id, task_type, total_errors, task_error)
-        return "restriction"
+    # ── Phase 5: Account Hold Logic ───────────────────────────────
+    hold_threshold = await _get_config_int(db, "hold_threshold", 3)
+    max_hold_per_cycle = await _get_config_int(db, "max_hold_per_cycle", 1)
 
-    if total_errors >= warning_threshold and not has_active_warning and not has_active_restriction and not has_active_suspension:
-        await _apply_warning(db, user_id, task_type, total_errors, task_error)
+    if (
+        user.error_count >= hold_threshold
+        and user.hold_count < max_hold_per_cycle
+        and user.account_status == STATUS_ACTIVE
+    ):
+        await _apply_hold(db, user, task_error, now)
+        return "hold"
+
+    # ── Warning (always issued on first error thresholds) ─────────
+    # Check if we've crossed any warning threshold but not hold yet
+    if user.error_count < hold_threshold:
+        # Issue a warning for every error below hold threshold
+        await _apply_warning(db, user, task_error, now)
         return "warning"
 
     return "none"
-
-
-async def _has_active_suspension(db: AsyncSession, user_id: int) -> bool:
-    now = datetime.now(timezone.utc)
-    result = await db.execute(
-        select(func.count(AccountSuspension.id)).where(
-            and_(
-                AccountSuspension.user_id == user_id,
-                AccountSuspension.status == "active",
-                or_(
-                    AccountSuspension.expires_at.is_(None),
-                    AccountSuspension.expires_at > now,
-                ),
-            )
-        )
-    )
-    return (result.scalar() or 0) > 0
-
-
-async def _has_active_restriction(db: AsyncSession, user_id: int) -> bool:
-    now = datetime.now(timezone.utc)
-    result = await db.execute(
-        select(func.count(UserRestriction.id)).where(
-            and_(
-                UserRestriction.user_id == user_id,
-                UserRestriction.is_active == True,
-                or_(
-                    UserRestriction.expires_at.is_(None),
-                    UserRestriction.expires_at > now,
-                ),
-            )
-        )
-    )
-    return (result.scalar() or 0) > 0
-
-
-async def _has_active_warning(db: AsyncSession, user_id: int) -> bool:
-    result = await db.execute(
-        select(func.count(UserWarning.id)).where(
-            and_(
-                UserWarning.user_id == user_id,
-                UserWarning.is_active == True,
-            )
-        )
-    )
-    return (result.scalar() or 0) > 0
 
 
 # ── Apply disciplinary actions ───────────────────────────────────────────────
 
 async def _apply_warning(
     db: AsyncSession,
-    user_id: int,
-    task_type: str,
-    error_count: int,
+    user: User,
     task_error: TaskError,
+    now: datetime,
 ):
+    hold_threshold = await _get_config_int(db, "hold_threshold", 3)
+    warning_msg = await get_config_message(
+        db, "warning_message",
+        error_count=user.error_count,
+        hold_threshold=hold_threshold,
+    )
+
     warning = UserWarning(
-        user_id=user_id,
+        user_id=user.id,
         warning_type="task_error_threshold",
-        reason=f"You have received a task warning due to repeated task errors ({error_count} errors). Please complete future tasks carefully.",
-        error_count_at_warning=error_count,
-        task_type=task_type,
+        reason=warning_msg or f"You have received a valid task error. Current error count: {user.error_count} of {hold_threshold} before account hold.",
+        error_count_at_warning=user.error_count,
+        task_type=task_error.task_type,
         issued_by="system",
         is_active=True,
     )
@@ -282,132 +321,267 @@ async def _apply_warning(
     await db.flush()
 
 
-async def _apply_restriction(
+async def _apply_hold(
     db: AsyncSession,
-    user_id: int,
-    task_type: str,
-    error_count: int,
+    user: User,
     task_error: TaskError,
+    now: datetime,
 ):
+    hold_duration_hours = await _get_config_float(db, "hold_duration_hours", 2)
+    hold_until = now + timedelta(hours=hold_duration_hours)
+
+    hold_msg = await get_config_message(
+        db, "hold_message",
+        hold_until=hold_until.strftime("%Y-%m-%d %H:%M UTC"),
+        error_count=user.error_count,
+    )
+
+    # Update user state (already locked via with_for_update)
+    user.account_status = STATUS_ON_HOLD
+    user.account_issue = hold_msg or f"Account on hold until {hold_until.strftime('%Y-%m-%d %H:%M UTC')} due to task errors"
+    user.hold_count += 1
+    user.last_hold_at = now
+    user.hold_until = hold_until
+
+    # Create restriction record for backward compatibility
     restriction = UserRestriction(
-        user_id=user_id,
+        user_id=user.id,
         restriction_type="daily_task_blocked",
-        reason=f"Your daily task access has been temporarily restricted due to repeated task violations ({error_count} errors).",
-        error_count_at_restriction=error_count,
-        task_type=task_type,
+        reason=hold_msg or f"Account on hold for {hold_duration_hours}h due to task errors",
+        error_count_at_restriction=user.error_count,
+        task_type=task_error.task_type,
         is_active=True,
+        expires_at=hold_until,
         issued_by="system",
     )
     db.add(restriction)
-    await db.flush()
 
-
-async def _apply_suspension(
-    db: AsyncSession,
-    user_id: int,
-    task_type: str,
-    error_count: int,
-    task_error: TaskError,
-):
-    duration_hours = await _get_config_int(db, "suspension_duration_hours", 24)
-    now = datetime.now(timezone.utc)
-    expires_at = now + timedelta(hours=duration_hours)
-
+    # Create suspension record for backward compatibility (hold = short suspension)
     suspension = AccountSuspension(
-        user_id=user_id,
+        user_id=user.id,
         suspension_type="task_only_block",
-        reason=f"Your account has been suspended due to repeated task violations ({error_count} errors). Please contact the OFA KYC Support Team or wait until your account review is completed.",
+        reason=hold_msg or f"Account on hold for {hold_duration_hours}h due to task errors",
         triggering_error_id=task_error.id,
-        error_count_at_suspension=error_count,
+        error_count_at_suspension=user.error_count,
         status="active",
-        duration_hours=duration_hours,
+        duration_hours=int(hold_duration_hours),
         suspended_at=now,
-        expires_at=expires_at,
+        expires_at=hold_until,
         suspended_by="system",
     )
     db.add(suspension)
     await db.flush()
 
-    user = await db.get(User, user_id)
-    if user:
-        user.account_status = "on_hold"
-        user.account_issue = f"Account suspended for {duration_hours}h due to task violations"
-        await db.flush()
+
+async def _apply_suspension(
+    db: AsyncSession,
+    user: User,
+    task_error: TaskError,
+    now: datetime,
+):
+    suspension_duration_hours = await _get_config_int(db, "suspension_duration_hours", 168)
+    suspension_until = now + timedelta(hours=suspension_duration_hours)
+
+    susp_msg = await get_config_message(
+        db, "suspension_message",
+        suspension_until=suspension_until.strftime("%Y-%m-%d %H:%M UTC"),
+        error_count=user.error_count,
+    )
+
+    # Update user state (already locked)
+    user.account_status = STATUS_SUSPENDED
+    user.account_issue = susp_msg or f"Account suspended until {suspension_until.strftime('%Y-%m-%d %H:%M UTC')} due to task errors"
+    user.suspended_at = now
+    user.suspension_until = suspension_until
+    user.suspension_count += 1
+
+    # Clear any hold state since suspension overrides
+    user.hold_until = None
+
+    # Create suspension record
+    suspension = AccountSuspension(
+        user_id=user.id,
+        suspension_type="task_only_block",
+        reason=susp_msg or f"Account suspended for {suspension_duration_hours}h due to task errors",
+        triggering_error_id=task_error.id,
+        error_count_at_suspension=user.error_count,
+        status="active",
+        duration_hours=suspension_duration_hours,
+        suspended_at=now,
+        expires_at=suspension_until,
+        suspended_by="system",
+    )
+    db.add(suspension)
+    await db.flush()
 
 
 # ── Check access ─────────────────────────────────────────────────────────────
 
 async def check_task_access(db: AsyncSession, user_id: int) -> dict:
-    """Check if user can perform daily tasks. Returns access info."""
+    """Check if user can perform daily tasks. Returns access info.
+
+    Checks user account_status first (most reliable), then falls back
+    to checking individual restriction/suspension records.
+    """
     now = datetime.now(timezone.utc)
 
-    suspension_result = await db.execute(
-        select(AccountSuspension).where(
-            and_(
-                AccountSuspension.user_id == user_id,
-                AccountSuspension.status == "active",
-                or_(
-                    AccountSuspension.expires_at.is_(None),
-                    AccountSuspension.expires_at > now,
-                ),
-            )
-        ).order_by(AccountSuspension.suspended_at.desc()).limit(1)
-    )
-    active_suspension = suspension_result.scalar_one_or_none()
-    if active_suspension:
+    user = await db.get(User, user_id)
+    if not user:
+        return {"allowed": True, "status": "active"}
+
+    # ── Check account_status field (source of truth) ──────────────
+    status = user.account_status
+
+    if status == STATUS_PERMANENTLY_CLOSED:
         return {
             "allowed": False,
-            "reason": active_suspension.reason,
-            "status": "suspended",
-            "expires_at": active_suspension.expires_at.isoformat() if active_suspension.expires_at else None,
-            "suspension_type": active_suspension.suspension_type,
+            "reason": user.account_issue or "Your account has been permanently closed according to the company policy.",
+            "status": "permanently_closed",
+            "permanent_closed_at": user.permanent_closed_at.isoformat() if user.permanent_closed_at else None,
         }
 
-    restriction_result = await db.execute(
-        select(UserRestriction).where(
-            and_(
-                UserRestriction.user_id == user_id,
-                UserRestriction.is_active == True,
-                or_(
-                    UserRestriction.expires_at.is_(None),
-                    UserRestriction.expires_at > now,
-                ),
+    if status == STATUS_SUSPENDED:
+        # Check if suspension actually expired
+        if user.suspension_until and now >= user.suspension_until:
+            # Suspension expired - check communication deadline
+            comm_deadline_days = await _get_config_int(db, "communication_deadline_days", 7)
+            deadline = user.suspended_at + timedelta(days=comm_deadline_days) if user.suspended_at else None
+            if deadline and now >= deadline and not user.company_contact_status:
+                # Permanent closure
+                user.account_status = STATUS_PERMANENTLY_CLOSED
+                user.permanent_closed_at = now
+                closure_msg = await get_config_message(db, "permanent_closure_message")
+                user.account_issue = closure_msg or "Your account has been permanently closed according to the company policy."
+                await db.flush()
+                return {
+                    "allowed": False,
+                    "reason": user.account_issue,
+                    "status": "permanently_closed",
+                    "permanent_closed_at": user.permanent_closed_at.isoformat(),
+                }
+            else:
+                # Suspension expired, restore to active
+                user.account_status = STATUS_ACTIVE
+                user.account_issue = None
+                user.suspended_at = None
+                user.suspension_until = None
+                await db.flush()
+        else:
+            susp_msg = await get_config_message(
+                db, "suspension_message",
+                suspension_until=user.suspension_until.strftime("%Y-%m-%d %H:%M UTC") if user.suspension_until else "N/A",
+                error_count=user.error_count,
             )
-        ).order_by(UserRestriction.created_at.desc()).limit(1)
-    )
-    active_restriction = restriction_result.scalar_one_or_none()
-    if active_restriction:
-        return {
-            "allowed": False,
-            "reason": active_restriction.reason,
-            "status": "restricted",
-        }
+            return {
+                "allowed": False,
+                "reason": user.account_issue or susp_msg or "Your account has been suspended due to repeated task errors.",
+                "status": "suspended",
+                "suspended_at": user.suspended_at.isoformat() if user.suspended_at else None,
+                "suspension_until": user.suspension_until.isoformat() if user.suspension_until else None,
+                "company_contact_status": user.company_contact_status,
+            }
 
-    warning_result = await db.execute(
-        select(UserWarning).where(
-            and_(
-                UserWarning.user_id == user_id,
-                UserWarning.is_active == True,
+    if status == STATUS_ON_HOLD:
+        # Check if hold actually expired
+        if user.hold_until and now >= user.hold_until:
+            user.account_status = STATUS_ACTIVE
+            user.account_issue = None
+            user.hold_until = None
+            await db.flush()
+        else:
+            hold_msg = await get_config_message(
+                db, "hold_message",
+                hold_until=user.hold_until.strftime("%Y-%m-%d %H:%M UTC") if user.hold_until else "N/A",
+                error_count=user.error_count,
             )
-        ).order_by(UserWarning.created_at.desc()).limit(1)
-    )
-    active_warning = warning_result.scalar_one_or_none()
-    if active_warning:
+            return {
+                "allowed": False,
+                "reason": user.account_issue or hold_msg or "Your account has been temporarily placed on hold due to repeated task errors.",
+                "status": "on_hold",
+                "hold_until": user.hold_until.isoformat() if user.hold_until else None,
+                "error_count": user.error_count,
+            }
+
+    # ── ACTIVE status ─────────────────────────────────────────────
+    # Still show warning info if errors exist
+    hold_threshold = await _get_config_int(db, "hold_threshold", 3)
+    if user.error_count > 0 and user.error_count < hold_threshold:
+        warning_msg = await get_config_message(
+            db, "warning_message",
+            error_count=user.error_count,
+            hold_threshold=hold_threshold,
+        )
         return {
             "allowed": True,
-            "warning": active_warning.reason,
             "status": "warning",
+            "warning": warning_msg or f"You have received a valid task error. Current error count: {user.error_count} of {hold_threshold} before account hold.",
+            "error_count": user.error_count,
+            "hold_threshold": hold_threshold,
+            "cycle_end": user.error_cycle_end.isoformat() if user.error_cycle_end else None,
         }
 
-    return {"allowed": True, "status": "active"}
+    return {
+        "allowed": True,
+        "status": "active",
+        "error_count": user.error_count,
+        "cycle_end": user.error_cycle_end.isoformat() if user.error_cycle_end else None,
+    }
 
 
-# ── Auto-expire suspensions ─────────────────────────────────────────────────
+# ── Auto-expire holds and suspensions ───────────────────────────────────────
 
 async def expire_stale_suspensions(db: AsyncSession):
-    """Lift suspensions whose expiry has passed."""
+    """Process automatic expiry of holds and suspensions.
+
+    Called periodically and before status checks.
+    """
     now = datetime.now(timezone.utc)
-    result = await db.execute(
+
+    # ── Expire holds ──────────────────────────────────────────────
+    hold_result = await db.execute(
+        select(User).where(
+            and_(
+                User.account_status == STATUS_ON_HOLD,
+                User.hold_until.isnot(None),
+                User.hold_until <= now,
+            )
+        )
+    )
+    for user in hold_result.scalars().all():
+        user.account_status = STATUS_ACTIVE
+        user.account_issue = None
+        user.hold_until = None
+
+    # ── Process suspensions ───────────────────────────────────────
+    susp_result = await db.execute(
+        select(User).where(
+            and_(
+                User.account_status == STATUS_SUSPENDED,
+                User.suspension_until.isnot(None),
+                User.suspension_until <= now,
+            )
+        )
+    )
+    for user in susp_result.scalars().all():
+        # Suspension expired - check communication deadline
+        comm_deadline_days = await _get_config_int(db, "communication_deadline_days", 7)
+        deadline = user.suspended_at + timedelta(days=comm_deadline_days) if user.suspended_at else None
+
+        if deadline and now >= deadline and not user.company_contact_status:
+            # Permanent closure
+            user.account_status = STATUS_PERMANENTLY_CLOSED
+            user.permanent_closed_at = now
+            closure_msg = await get_config_message(db, "permanent_closure_message")
+            user.account_issue = closure_msg or "Your account has been permanently closed according to the company policy."
+        else:
+            # Suspension expired but within deadline - restore to active
+            user.account_status = STATUS_ACTIVE
+            user.account_issue = None
+            user.suspended_at = None
+            user.suspension_until = None
+
+    # Also expire old AccountSuspension records for backward compatibility
+    susp_update = await db.execute(
         update(AccountSuspension)
         .where(
             and_(
@@ -418,22 +592,6 @@ async def expire_stale_suspensions(db: AsyncSession):
         )
         .values(status="expired", lifted_at=now)
     )
-    if result.rowcount > 0:
-        suspended_user_ids = (
-            await db.execute(
-                select(AccountSuspension.user_id).where(
-                    and_(
-                        AccountSuspension.status == "expired",
-                        AccountSuspension.lifted_at == now,
-                    )
-                )
-            )
-        ).scalars().all()
-        for uid in suspended_user_ids:
-            has_other_active = await _has_active_suspension(db, uid)
-            if not has_other_active:
-                user = await db.get(User, uid)
-                if user and user.account_status == "on_hold":
-                    user.account_status = "active"
-                    user.account_issue = None
+
+    if hold_result.rowcount > 0 or susp_result.rowcount > 0 or susp_update.rowcount > 0:
         await db.commit()

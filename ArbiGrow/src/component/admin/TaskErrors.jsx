@@ -16,6 +16,9 @@ import {
   RefreshCw,
   Settings,
   Pencil,
+  Phone,
+  RotateCcw,
+  Ban,
 } from "lucide-react";
 import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
@@ -30,25 +33,41 @@ const authHeaders = (token) =>
     : {};
 
 const CONFIG_LABELS = {
-  warning_threshold: "Warning Threshold",
-  restriction_threshold: "Restriction Threshold",
+  hold_threshold: "Hold Threshold",
+  hold_duration_hours: "Hold Duration (hours)",
   suspension_threshold: "Suspension Threshold",
   suspension_duration_hours: "Suspension Duration (hours)",
-  error_expiry_days: "Error Expiry (days)",
+  error_cycle_duration_hours: "Cycle Duration (hours)",
+  max_hold_per_cycle: "Max Hold Per Cycle",
+  communication_deadline_days: "Communication Deadline (days)",
+  warning_threshold: "Legacy Warning Threshold",
+  error_expiry_days: "Legacy Error Expiry (days)",
   captcha_incorrect_threshold: "Captcha Incorrect Threshold",
   ad_early_exit_threshold: "Ad Early Exit Threshold",
-  duplicate_check_window_minutes: "Duplicate Check Window (minutes)",
+  duplicate_check_window_minutes: "Duplicate Check Window (min)",
+  warning_message: "Warning Message",
+  hold_message: "Hold Message",
+  suspension_message: "Suspension Message",
+  permanent_closure_message: "Closure Message",
 };
 
 const CONFIG_ORDER = [
-  "restriction_threshold",
+  "hold_threshold",
+  "hold_duration_hours",
   "suspension_threshold",
-  "error_expiry_days",
-  "ad_early_exit_threshold",
-  "captcha_incorrect_threshold",
-  "duplicate_check_window_minutes",
-  "warning_threshold",
   "suspension_duration_hours",
+  "error_cycle_duration_hours",
+  "max_hold_per_cycle",
+  "communication_deadline_days",
+  "warning_threshold",
+  "error_expiry_days",
+  "captcha_incorrect_threshold",
+  "ad_early_exit_threshold",
+  "duplicate_check_window_minutes",
+  "warning_message",
+  "hold_message",
+  "suspension_message",
+  "permanent_closure_message",
 ];
 
 const ERROR_CODE_LABELS = {
@@ -69,11 +88,25 @@ const TASK_TYPE_LABELS = {
   ad_view: "Ad View",
 };
 
+const ACCOUNT_STATUS_LABELS = {
+  active: "Active",
+  on_hold: "On Hold",
+  suspended: "Suspended",
+  permanently_closed: "Permanently Closed",
+};
+
+const ACCOUNT_STATUS_COLORS = {
+  active: "bg-green-500/20 text-green-400 border border-green-500/30",
+  on_hold: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+  suspended: "bg-red-500/20 text-red-400 border border-red-500/30",
+  permanently_closed: "bg-red-700/20 text-red-300 border border-red-700/30",
+};
+
 export default function TaskErrors({ setActivePage }) {
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [config, setConfig] = useState([]);
-  const [filters, setFilters] = useState({ status: "", task_type: "", user_id: "" });
+  const [filters, setFilters] = useState({ status: "", task_type: "", user_id: "", account_status: "" });
   const [expandedError, setExpandedError] = useState(null);
   const [userDetail, setUserDetail] = useState(null);
   const [userSearchId, setUserSearchId] = useState("");
@@ -90,6 +123,7 @@ export default function TaskErrors({ setActivePage }) {
       if (filters.status) params.append("status", filters.status);
       if (filters.task_type) params.append("task_type", filters.task_type);
       if (filters.user_id) params.append("user_id", filters.user_id);
+      if (filters.account_status) params.append("account_status", filters.account_status);
       params.append("limit", pagination.limit);
       params.append("offset", pagination.offset);
 
@@ -158,6 +192,19 @@ export default function TaskErrors({ setActivePage }) {
     }
   };
 
+  const handleRecordContact = async (userId) => {
+    const notes = prompt("Notes about the contact (optional):");
+    if (notes !== null) {
+      await handleAction(userId, "record-contact", { notes });
+    }
+  };
+
+  const handleResetCycle = async (userId) => {
+    if (confirm("Reset this user's error cycle? Error count and hold count will go to 0.")) {
+      await handleAction(userId, "reset-cycle");
+    }
+  };
+
   const handleUserSearch = () => {
     if (userSearchId.trim()) {
       fetchUserDetail(userSearchId.trim());
@@ -179,14 +226,18 @@ export default function TaskErrors({ setActivePage }) {
     const colors = {
       none: "bg-white/5 text-gray-400 border border-white/10",
       warning: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",
+      hold: "bg-orange-500/10 text-orange-300 border border-orange-500/30",
       restriction: "bg-orange-500/10 text-orange-300 border border-orange-500/30",
       suspension: "bg-red-500/10 text-red-400 border border-red-500/30",
+      permanent_closure: "bg-red-700/10 text-red-300 border border-red-700/30",
     };
     const labels = {
       none: "None",
       warning: "Warning",
-      restriction: "Restriction",
-      suspension: "Suspension",
+      hold: "Hold",
+      restriction: "Hold",
+      suspension: "Suspended",
+      permanent_closure: "Closed",
     };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[action] || colors.none}`}>
@@ -213,6 +264,8 @@ export default function TaskErrors({ setActivePage }) {
     );
   };
 
+  const isMessageConfig = (key) => key.endsWith("_message");
+
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Page Header */}
@@ -222,9 +275,9 @@ export default function TaskErrors({ setActivePage }) {
         </div>
         <div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">
-            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Task Errors</span> & Suspensions
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Task Errors</span> & Account Status
           </h2>
-          <p className="text-xs sm:text-sm text-gray-400">Monitor and manage task error detection</p>
+          <p className="text-xs sm:text-sm text-gray-400">Monitor errors, holds, suspensions and permanent closures</p>
         </div>
       </div>
 
@@ -232,7 +285,7 @@ export default function TaskErrors({ setActivePage }) {
       <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-xl p-3 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
           <Settings className="w-4 h-4 text-cyan-400" />
-          <h3 className="text-base sm:text-lg font-semibold text-white">Disciplinary Thresholds</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-white">Disciplinary Configuration</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[...config].sort((a, b) => {
@@ -240,16 +293,25 @@ export default function TaskErrors({ setActivePage }) {
             const bi = CONFIG_ORDER.indexOf(b.key);
             return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
           }).map((cfg) => (
-            <div key={cfg.key} className="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4">
+            <div key={cfg.key} className={`bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4 ${isMessageConfig(cfg.key) ? "sm:col-span-2" : ""}`}>
               <div className="text-xs text-gray-400 mb-1">{getConfigLabel(cfg.key)}</div>
               {editingConfig === cfg.key ? (
                 <div className="flex flex-col gap-2">
-                  <input
-                    type="number"
-                    value={configValue}
-                    onChange={(e) => setConfigValue(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white/10 border border-cyan-500/40 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/30"
-                  />
+                  {isMessageConfig(cfg.key) ? (
+                    <textarea
+                      value={configValue}
+                      onChange={(e) => setConfigValue(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-xl bg-white/10 border border-cyan-500/40 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/30 resize-none"
+                    />
+                  ) : (
+                    <input
+                      type="number"
+                      value={configValue}
+                      onChange={(e) => setConfigValue(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-white/10 border border-cyan-500/40 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/30"
+                    />
+                  )}
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleConfigUpdate(cfg.key)}
@@ -267,17 +329,19 @@ export default function TaskErrors({ setActivePage }) {
                 </div>
               ) : (
                 <div
-                  className="flex items-center gap-2 text-2xl font-bold text-white cursor-pointer hover:text-cyan-400 transition-colors group"
+                  className="flex items-center gap-2 text-lg font-bold text-white cursor-pointer hover:text-cyan-400 transition-colors group"
                   onClick={() => {
                     setEditingConfig(cfg.key);
                     setConfigValue(cfg.value);
                   }}
                 >
-                  {cfg.value}
-                  <Pencil className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100" />
+                  <span className={isMessageConfig(cfg.key) ? "text-sm font-normal truncate max-w-full" : "text-2xl"}>
+                    {isMessageConfig(cfg.key) ? (cfg.value.length > 80 ? cfg.value.substring(0, 80) + "..." : cfg.value) : cfg.value}
+                  </span>
+                  <Pencil className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0" />
                 </div>
               )}
-              <div className="text-xs text-gray-500 mt-1">{cfg.key}</div>
+              <div className="text-xs text-gray-500 mt-1 break-words">{cfg.description || cfg.key}</div>
             </div>
           ))}
         </div>
@@ -309,102 +373,134 @@ export default function TaskErrors({ setActivePage }) {
             animate={{ opacity: 1, y: 0 }}
             className="border border-white/10 rounded-xl p-3 sm:p-4 bg-white/[0.02]"
           >
+            {/* User Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div>
                 <h4 className="font-semibold text-white">{userDetail.username || `User #${userDetail.user_id}`}</h4>
-                <p className="text-sm text-gray-400">Total Errors: {userDetail.total_errors}</p>
+                <p className="text-sm text-gray-400">{userDetail.email}</p>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {!userDetail.access?.allowed && userDetail.access?.status === "suspended" && (
+                {userDetail.account_status === "suspended" && (
+                  <>
+                    <button
+                      onClick={() => handleAction(userDetail.user_id, "lift-suspension")}
+                      className="px-3 py-1.5 border border-green-500/30 bg-green-600/20 text-green-400 rounded-lg text-sm hover:bg-green-600/30 transition-all"
+                    >
+                      <Shield className="w-4 h-4 inline mr-1" />
+                      Lift Suspension
+                    </button>
+                    <button
+                      onClick={() => handleRecordContact(userDetail.user_id)}
+                      className="px-3 py-1.5 border border-blue-500/30 bg-blue-600/20 text-blue-400 rounded-lg text-sm hover:bg-blue-600/30 transition-all"
+                    >
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      Record Contact
+                    </button>
+                  </>
+                )}
+                {userDetail.account_status === "on_hold" && (
                   <button
                     onClick={() => handleAction(userDetail.user_id, "lift-suspension")}
                     className="px-3 py-1.5 border border-green-500/30 bg-green-600/20 text-green-400 rounded-lg text-sm hover:bg-green-600/30 transition-all"
                   >
-                    Lift Suspension
+                    <Shield className="w-4 h-4 inline mr-1" />
+                    Lift Hold
                   </button>
                 )}
-                {!userDetail.access?.allowed && userDetail.access?.status === "restricted" && (
-                  <button
-                    onClick={() => handleAction(userDetail.user_id, "lift-restriction")}
-                    className="px-3 py-1.5 border border-green-500/30 bg-green-600/20 text-green-400 rounded-lg text-sm hover:bg-green-600/30 transition-all"
-                  >
-                    Lift Restriction
-                  </button>
-                )}
+                <button
+                  onClick={() => handleResetCycle(userDetail.user_id)}
+                  className="px-3 py-1.5 border border-yellow-500/30 bg-yellow-600/20 text-yellow-400 rounded-lg text-sm hover:bg-yellow-600/30 transition-all"
+                >
+                  <RotateCcw className="w-4 h-4 inline mr-1" />
+                  Reset Cycle
+                </button>
               </div>
             </div>
 
-            <div className={`p-3 rounded-xl mb-4 ${userDetail.access?.allowed ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
-              <div className={`font-medium ${userDetail.access?.allowed ? "text-green-400" : "text-red-400"}`}>
-                {userDetail.access?.allowed ? "Access Allowed" : "Access Blocked"}
+            {/* Account Status Badge */}
+            <div className={`p-3 rounded-xl mb-4 ${userDetail.account_status === "active" ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${ACCOUNT_STATUS_COLORS[userDetail.account_status] || ACCOUNT_STATUS_COLORS.active}`}>
+                  {ACCOUNT_STATUS_LABELS[userDetail.account_status] || userDetail.account_status}
+                </span>
+                {userDetail.error_count > 0 && (
+                  <span className="text-sm text-gray-300">
+                    Errors: {userDetail.error_count}
+                  </span>
+                )}
               </div>
-              {userDetail.access?.reason && (
-                <div className="text-sm text-gray-300 mt-1 break-words">{userDetail.access.reason}</div>
+              {userDetail.account_issue && (
+                <div className="text-sm text-gray-300 mt-2 break-words">{userDetail.account_issue}</div>
               )}
-              {userDetail.access?.expires_at && (
-                <div className="text-sm text-gray-500 mt-1">
-                  Expires: {formatDate(userDetail.access.expires_at)}
+            </div>
+
+            {/* Cycle Info */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-gray-400">Error Count</div>
+                <div className="text-lg font-bold text-white">{userDetail.error_count}</div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-gray-400">Hold Count</div>
+                <div className="text-lg font-bold text-white">{userDetail.hold_count}</div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-gray-400">Suspensions</div>
+                <div className="text-lg font-bold text-white">{userDetail.suspension_count}</div>
+              </div>
+              <div className="bg-white/5 rounded-xl p-3">
+                <div className="text-xs text-gray-400">Cycle Ends</div>
+                <div className="text-sm font-medium text-white">{formatDate(userDetail.error_cycle_end)}</div>
+              </div>
+            </div>
+
+            {/* Hold Info */}
+            {userDetail.hold_until && (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-4">
+                <div className="text-sm font-medium text-yellow-400">Active Hold</div>
+                <div className="text-sm text-gray-300">Until: {formatDate(userDetail.hold_until)}</div>
+              </div>
+            )}
+
+            {/* Suspension Info */}
+            {userDetail.suspended_at && userDetail.account_status === "suspended" && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4">
+                <div className="text-sm font-medium text-red-400">Active Suspension</div>
+                <div className="text-sm text-gray-300">Since: {formatDate(userDetail.suspended_at)}</div>
+                <div className="text-sm text-gray-300">Until: {formatDate(userDetail.suspension_until)}</div>
+                <div className="text-sm text-gray-300 mt-1">
+                  Contact Status: {userDetail.company_contact_status ? (
+                    <span className="text-green-400">Contacted ({formatDate(userDetail.contact_recorded_at)})</span>
+                  ) : (
+                    <span className="text-yellow-400">No contact recorded</span>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
+            {/* Permanent Closure Info */}
+            {userDetail.account_status === "permanently_closed" && (
+              <div className="bg-red-700/10 border border-red-700/30 rounded-xl p-3 mb-4">
+                <div className="text-sm font-medium text-red-300">Permanently Closed</div>
+                <div className="text-sm text-gray-300">Since: {formatDate(userDetail.permanent_closed_at)}</div>
+                <div className="text-sm text-gray-300">
+                  Contact Status: {userDetail.company_contact_status ? "Contacted" : "No contact recorded"}
+                </div>
+              </div>
+            )}
+
+            {/* Warnings */}
             {userDetail.warnings?.length > 0 && (
               <div className="mb-4">
                 <h5 className="font-medium text-white mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-yellow-400" />
                   Warnings ({userDetail.warnings.length})
                 </h5>
-                {userDetail.warnings.map((w) => (
+                {userDetail.warnings.slice(0, 5).map((w) => (
                   <div key={w.id} className="text-sm border-b border-white/5 py-2 last:border-b-0">
                     <span className="text-yellow-400 font-medium">{w.warning_type?.replace(/_/g, " ")}</span>
                     <span className="text-gray-300">: {w.reason}</span>
                     <span className="text-gray-500 ml-2 text-xs">({formatDate(w.created_at)})</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {userDetail.restrictions?.length > 0 && (
-              <div className="mb-4">
-                <h5 className="font-medium text-white mb-2 flex items-center gap-2">
-                  <ShieldOff className="w-4 h-4 text-orange-300" />
-                  Restrictions ({userDetail.restrictions.length})
-                </h5>
-                {userDetail.restrictions.map((r) => (
-                  <div key={r.id} className="text-sm border-b border-white/5 py-2 last:border-b-0">
-                    <span className="text-orange-300 font-medium">{r.restriction_type?.replace(/_/g, " ")}</span>
-                    <span className="text-gray-300">: {r.reason}</span>
-                    {r.expires_at && (
-                      <span className="text-gray-500 ml-2 text-xs">
-                        (expires: {formatDate(r.expires_at)})
-                      </span>
-                    )}
-                    <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${r.is_active ? "bg-orange-500/20 text-orange-300" : "bg-white/5 text-gray-500"}`}>
-                      {r.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {userDetail.suspensions?.length > 0 && (
-              <div className="mb-4">
-                <h5 className="font-medium text-white mb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-red-400" />
-                  Suspensions ({userDetail.suspensions.length})
-                </h5>
-                {userDetail.suspensions.map((s) => (
-                  <div key={s.id} className="text-sm border-b border-white/5 py-2 last:border-b-0">
-                    <span className={`font-medium ${s.status === "active" ? "text-red-400" : "text-gray-400"}`}>
-                      {s.status}
-                    </span>
-                    <span className="text-gray-300">: {s.reason}</span>
-                    <span className="text-gray-500 ml-2 text-xs">({formatDate(s.suspended_at)})</span>
-                    {s.expires_at && (
-                      <span className="text-gray-500 ml-2 text-xs">
-                        (expires: {formatDate(s.expires_at)})
-                      </span>
-                    )}
                   </div>
                 ))}
               </div>
@@ -426,7 +522,7 @@ export default function TaskErrors({ setActivePage }) {
               onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
               className="flex-1 sm:flex-none px-3 py-1.5 border border-white/10 bg-white/5 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50"
             >
-              <option value="">All Status</option>
+              <option value="">All Review Status</option>
               <option value="pending">Pending</option>
               <option value="reviewed">Reviewed</option>
               <option value="dismissed">Dismissed</option>
@@ -439,6 +535,17 @@ export default function TaskErrors({ setActivePage }) {
               <option value="">All Tasks</option>
               <option value="captcha">Captcha</option>
               <option value="ad_view">Ad View</option>
+            </select>
+            <select
+              value={filters.account_status}
+              onChange={(e) => setFilters((f) => ({ ...f, account_status: e.target.value }))}
+              className="flex-1 sm:flex-none px-3 py-1.5 border border-white/10 bg-white/5 rounded-xl text-sm text-white focus:outline-none focus:border-cyan-500/50"
+            >
+              <option value="">All Account Status</option>
+              <option value="active">Active</option>
+              <option value="on_hold">On Hold</option>
+              <option value="suspended">Suspended</option>
+              <option value="permanently_closed">Permanently Closed</option>
             </select>
             <input
               type="number"
@@ -458,7 +565,7 @@ export default function TaskErrors({ setActivePage }) {
             </button>
             <button
               onClick={() => {
-                setFilters({ status: "", task_type: "", user_id: "" });
+                setFilters({ status: "", task_type: "", user_id: "", account_status: "" });
                 setPagination((p) => ({ ...p, offset: 0 }));
               }}
               className="px-3 py-1.5 bg-white/5 border border-white/10 text-gray-300 rounded-xl text-sm hover:bg-white/10 transition-all"
@@ -497,10 +604,11 @@ export default function TaskErrors({ setActivePage }) {
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Task</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Error</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">User Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Review</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Account</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Errors</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">Details</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -550,16 +658,11 @@ export default function TaskErrors({ setActivePage }) {
 }
 
 function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
-  const userStatusBadge = (allowed, status) => {
-    if (allowed) {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">Active</span>;
-    }
-    const colors = {
-      suspended: "bg-red-500/20 text-red-400 border border-red-500/30",
-      restricted: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
-    };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || colors.suspended}`}>{status || "Blocked"}</span>;
-  };
+  const accountStatusBadge = (status) => (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${ACCOUNT_STATUS_COLORS[status] || ACCOUNT_STATUS_COLORS.active}`}>
+      {ACCOUNT_STATUS_LABELS[status] || status}
+    </span>
+  );
 
   return (
     <>
@@ -580,27 +683,24 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
           <div className="text-sm font-medium text-red-400">{getErrorCodeLabel(error.error_code)}</div>
           <div className="text-xs text-gray-500 max-w-xs truncate" title={error.error_reason}>{error.error_reason}</div>
         </td>
-        <td className="px-4 py-3">{getActionBadge(error.system_action)}</td>
+        <td className="px-4 py-3">{getActionBadge(error.action_taken || error.system_action)}</td>
         <td className="px-4 py-3">{getStatusBadge(error.review_status)}</td>
-        <td className="px-4 py-3">{userStatusBadge(error.user_access_allowed, error.user_access_status)}</td>
+        <td className="px-4 py-3">{accountStatusBadge(error.user_access_status)}</td>
+        <td className="px-4 py-3 text-sm text-gray-300">{error.error_count_at_time}</td>
         <td className="px-4 py-3 text-sm text-gray-400">{formatDate(error.created_at)}</td>
         <td className="px-4 py-3">
           <button
             onClick={() => setExpandedError(expandedError === error.id ? null : error.id)}
             className="p-1 hover:bg-white/5 rounded-lg transition-all text-gray-400 hover:text-white"
           >
-            {expandedError === error.id ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
+            {expandedError === error.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </td>
       </tr>
       {expandedError === error.id && (
         <tr>
-          <td colSpan="9" className="px-4 py-4 bg-white/[0.02]">
-            <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} />
+          <td colSpan="10" className="px-4 py-4 bg-white/[0.02]">
+            <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} formatDate={formatDate} />
           </td>
         </tr>
       )}
@@ -610,16 +710,6 @@ function ErrorRow({ error, expandedError, setExpandedError, handleReviewError, f
 
 function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, fetchUserDetail, setActivePage, formatDate, getErrorCodeLabel, getTaskTypeLabel, getActionBadge, getStatusBadge }) {
   const isExpanded = expandedError === error.id;
-  const userStatusBadge = (allowed, status) => {
-    if (allowed) {
-      return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">Active</span>;
-    }
-    const colors = {
-      suspended: "bg-red-500/20 text-red-400 border border-red-500/30",
-      restricted: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
-    };
-    return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] || colors.suspended}`}>{status || "Blocked"}</span>;
-  };
 
   return (
     <div className="p-3">
@@ -632,13 +722,18 @@ function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, 
               {getTaskTypeLabel(error.task_type)}
             </span>
             {getStatusBadge(error.review_status)}
-            {getActionBadge(error.system_action)}
-            {userStatusBadge(error.user_access_allowed, error.user_access_status)}
+            {getActionBadge(error.action_taken || error.system_action)}
+            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ACCOUNT_STATUS_COLORS[error.user_access_status] || ACCOUNT_STATUS_COLORS.active}`}>
+              {ACCOUNT_STATUS_LABELS[error.user_access_status] || error.user_access_status}
+            </span>
           </div>
           <div className="text-sm font-medium text-white">{error.username || `User #${error.user_id}`}</div>
           <div className="text-sm font-medium text-red-400 mt-1">{getErrorCodeLabel(error.error_code)}</div>
           <div className="text-xs text-gray-500 mt-0.5 break-words">{error.error_reason}</div>
-          <div className="text-xs text-gray-500 mt-1">{formatDate(error.created_at)}</div>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="text-xs text-gray-500">{formatDate(error.created_at)}</span>
+            <span className="text-xs text-gray-400">Errors: {error.error_count_at_time}</span>
+          </div>
         </div>
         <button
           onClick={() => setExpandedError(isExpanded ? null : error.id)}
@@ -649,14 +744,14 @@ function ErrorCard({ error, expandedError, setExpandedError, handleReviewError, 
       </div>
       {isExpanded && (
         <div className="mt-3 pt-3 border-t border-white/5">
-          <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} />
+          <ExpandedDetails error={error} handleReviewError={handleReviewError} fetchUserDetail={fetchUserDetail} setActivePage={setActivePage} formatDate={formatDate} />
         </div>
       )}
     </div>
   );
 }
 
-function ExpandedDetails({ error, handleReviewError, fetchUserDetail, setActivePage }) {
+function ExpandedDetails({ error, handleReviewError, fetchUserDetail, setActivePage, formatDate }) {
   const handleViewUser = () => {
     useUserStore.getState().setViewingUserId(error.user_id);
     setActivePage("users");
@@ -691,6 +786,11 @@ function ExpandedDetails({ error, handleReviewError, fetchUserDetail, setActiveP
           View User
         </button>
       </div>
+      {error.cycle_start && (
+        <div className="mt-2 text-xs text-gray-500">
+          <strong className="text-gray-400">Cycle:</strong> {formatDate(error.cycle_start)} → {formatDate(error.cycle_end)}
+        </div>
+      )}
       {error.admin_notes && (
         <div className="mt-2 text-sm text-gray-300 break-words">
           <strong className="text-white">Notes:</strong> {error.admin_notes}

@@ -27,4 +27,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.investment_tasks.process_daily_roi",
         "schedule": crontab(hour=0, minute=0),
     },
+    "process-account-expiry": {
+        "task": "app.tasks.error_cycle_tasks.process_account_expiry",
+        "schedule": crontab(minute="*/5"),
+    },
 }
