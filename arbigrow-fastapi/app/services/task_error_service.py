@@ -547,7 +547,8 @@ async def expire_stale_suspensions(db: AsyncSession):
             )
         )
     )
-    for user in hold_result.scalars().all():
+    hold_users = hold_result.scalars().all()
+    for user in hold_users:
         user.account_status = STATUS_ACTIVE
         user.account_issue = None
         user.hold_until = None
@@ -562,7 +563,8 @@ async def expire_stale_suspensions(db: AsyncSession):
             )
         )
     )
-    for user in susp_result.scalars().all():
+    susp_users = susp_result.scalars().all()
+    for user in susp_users:
         # Suspension expired - check communication deadline
         comm_deadline_days = await _get_config_int(db, "communication_deadline_days", 7)
         deadline = user.suspended_at + timedelta(days=comm_deadline_days) if user.suspended_at else None
@@ -593,5 +595,6 @@ async def expire_stale_suspensions(db: AsyncSession):
         .values(status="expired", lifted_at=now)
     )
 
-    if hold_result.rowcount > 0 or susp_result.rowcount > 0 or susp_update.rowcount > 0:
+    affected = len(hold_users) + len(susp_users)
+    if affected > 0 or susp_update.rowcount > 0:
         await db.commit()

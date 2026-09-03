@@ -97,16 +97,17 @@ async def list_errors(
 
     # Join with User for account_status filter
     query = select(TaskError)
+    count_query = select(func.count(TaskError.id))
     if account_status:
         query = query.join(User, TaskError.user_id == User.id)
+        count_query = count_query.join(User, TaskError.user_id == User.id)
         conditions.append(User.account_status == account_status)
 
     if conditions:
         query = query.where(and_(*conditions))
+        count_query = count_query.where(and_(*conditions))
 
-    count_result = await db.execute(
-        select(func.count(TaskError.id)).where(and_(*conditions) if conditions else True)
-    )
+    count_result = await db.execute(count_query)
     total = count_result.scalar() or 0
 
     result = await db.execute(
