@@ -15,6 +15,7 @@ import {
   User,
   RefreshCw,
   Settings,
+  Pencil,
 } from "lucide-react";
 import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
@@ -244,10 +245,10 @@ export default function TaskErrors({ setActivePage }) {
               {editingConfig === cfg.key ? (
                 <div className="flex flex-col gap-2">
                   <input
-                    type="text"
+                    type="number"
                     value={configValue}
                     onChange={(e) => setConfigValue(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+                    className="w-full px-3 py-2 rounded-xl bg-white/10 border border-cyan-500/40 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/30"
                   />
                   <div className="flex gap-2">
                     <button
@@ -266,13 +267,14 @@ export default function TaskErrors({ setActivePage }) {
                 </div>
               ) : (
                 <div
-                  className="text-2xl font-bold text-white cursor-pointer hover:text-cyan-400 transition-colors"
+                  className="flex items-center gap-2 text-2xl font-bold text-white cursor-pointer hover:text-cyan-400 transition-colors group"
                   onClick={() => {
                     setEditingConfig(cfg.key);
                     setConfigValue(cfg.value);
                   }}
                 >
                   {cfg.value}
+                  <Pencil className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100" />
                 </div>
               )}
               <div className="text-xs text-gray-500 mt-1">{cfg.key}</div>

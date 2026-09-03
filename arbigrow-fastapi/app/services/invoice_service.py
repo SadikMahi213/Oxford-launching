@@ -617,7 +617,7 @@ async def generate_withdrawal_invoice(
         bi = withdrawal.bank_info
         data["bank_info"] = {
             "bank_name": getattr(bi, "bank_name", ""),
-            "account_holder": getattr(bi, "account_holder", ""),
+            "account_holder": getattr(bi, "account_holder_name", ""),
             "account_number": getattr(bi, "account_number", ""),
             "network": getattr(bi, "network", withdrawal.network_name or ""),
         }

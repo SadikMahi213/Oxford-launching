@@ -57,12 +57,13 @@ async def update_disciplinary_config(
     if not config:
         raise HTTPException(404, detail=f"Config key '{key}' not found")
 
+    old_value = config.value
     config.value = str(value)
 
     log = AdminAuditLog(
         admin_id=admin.id,
         action="update_disciplinary_config",
-        details=f"Updated {key} from '{config.value}' to '{value}'",
+        details=f"Updated {key} from '{old_value}' to '{value}'",
     )
     db.add(log)
     await db.commit()

@@ -317,9 +317,10 @@ async def update_withdrawal_status(
     result = await db.execute(
         select(Withdrawal)
         .where(Withdrawal.id == withdrawal_id)
+        .options(joinedload(Withdrawal.bank_info))
         .with_for_update()
     )
-    withdrawal = result.scalar_one_or_none()
+    withdrawal = result.scalars().unique().one_or_none()
 
     if not withdrawal:
         raise HTTPException(status_code=404, detail="Withdrawal not found")
