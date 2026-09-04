@@ -688,8 +688,8 @@ export function UserDashboard() {
   const filteredTransactions =
     transactionFilter === "All"
       ? transactions
-      : transactions.filter((t) =>
-          t.type.toLowerCase().includes(transactionFilter.toLowerCase()),
+      : transactions.filter((tx) =>
+          tx.type.toLowerCase().includes(transactionFilter.toLowerCase()),
         );
 
   // Pagination
