@@ -349,38 +349,38 @@ export function UserDashboard() {
         _ts: new Date(p.created_at).getTime(),
       }),
     );
-    (transfers?.sent || []).forEach((t) =>
+    (transfers?.sent || []).forEach((trf) =>
       rows.push({
-        id: `trf_s_${t.id}`,
-        transactionId: _genTransactionId("TRF", t.id, t.created_at, "sent"),
-        date: _fmtDate(t.created_at),
-        type: `Transfer to @${t.receiver_name || "user"}`,
+        id: `trf_s_${trf.id}`,
+        transactionId: _genTransactionId("TRF", trf.id, trf.created_at, "sent"),
+        date: _fmtDate(trf.created_at),
+        type: `Transfer to @${trf.receiver_name || "user"}`,
         typeLabel: t("transactions.filter_transfer"),
         wallet: "Main Wallet",
         walletLabel: t("dashboard.wallet_main"),
-        amount: _fmtAmount(t.amount),
+        amount: _fmtAmount(trf.amount),
         amountDirection: "debit",
         currency: "USDT",
-        status: _mapStatus(t.status),
-        statusLabel: t("dashboard.status_" + _mapStatus(t.status).toLowerCase()),
-        _ts: new Date(t.created_at).getTime(),
+        status: _mapStatus(trf.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(trf.status).toLowerCase()),
+        _ts: new Date(trf.created_at).getTime(),
       }),
     );
-    (transfers?.received || []).forEach((t) =>
+    (transfers?.received || []).forEach((trf) =>
       rows.push({
-        id: `trf_r_${t.id}`,
-        transactionId: _genTransactionId("TRF", t.id, t.created_at, "recv"),
-        date: _fmtDate(t.created_at),
-        type: `Transfer from @${t.sender_name || "user"}`,
+        id: `trf_r_${trf.id}`,
+        transactionId: _genTransactionId("TRF", trf.id, trf.created_at, "recv"),
+        date: _fmtDate(trf.created_at),
+        type: `Transfer from @${trf.sender_name || "user"}`,
         typeLabel: t("transactions.filter_transfer"),
         wallet: "Main Wallet",
         walletLabel: t("dashboard.wallet_main"),
-        amount: _fmtAmount(t.amount),
+        amount: _fmtAmount(trf.amount),
         amountDirection: "credit",
         currency: "USDT",
-        status: _mapStatus(t.status),
-        statusLabel: t("dashboard.status_" + _mapStatus(t.status).toLowerCase()),
-        _ts: new Date(t.created_at).getTime(),
+        status: _mapStatus(trf.status),
+        statusLabel: t("dashboard.status_" + _mapStatus(trf.status).toLowerCase()),
+        _ts: new Date(trf.created_at).getTime(),
       }),
     );
     investments.forEach((inv) => {
