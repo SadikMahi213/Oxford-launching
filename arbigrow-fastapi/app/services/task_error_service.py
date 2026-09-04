@@ -260,23 +260,35 @@ async def _evaluate_thresholds(
 
     Returns the action_taken string applied.
     Priority: PERMANENTLY_CLOSED > SUSPENDED > ON_HOLD > ACTIVE
+
+    A threshold of 0 (or below) disables that action.
+    Hold fires exactly when the cumulative count reaches the hold
+    threshold (threshold crossing), so it never repeats on later
+    errors; suspension (>=) always takes priority over hold.
     """
     # ── Status priority: never downgrade ──────────────────────────
     if user.account_status == STATUS_PERMANENTLY_CLOSED:
         return "none"
 
-    # ── Phase 8: Suspension Logic ─────────────────────────────────
+    # ── Phase 8: Suspension Logic (highest priority) ──────────────
     suspension_threshold = await _get_config_int(db, "suspension_threshold", 5)
-    if user.error_count >= suspension_threshold and user.account_status != STATUS_SUSPENDED:
+    if (
+        suspension_threshold > 0
+        and user.error_count >= suspension_threshold
+        and user.account_status != STATUS_SUSPENDED
+    ):
         await _apply_suspension(db, user, task_error, now)
         return "suspension"
 
     # ── Phase 5: Account Hold Logic ───────────────────────────────
+    # Fires only on the exact crossing (prev < threshold <= new) so a
+    # later error (e.g. 4 after a hold at 3) never triggers another hold.
     hold_threshold = await _get_config_int(db, "hold_threshold", 3)
     max_hold_per_cycle = await _get_config_int(db, "max_hold_per_cycle", 1)
 
     if (
-        user.error_count >= hold_threshold
+        hold_threshold > 0
+        and user.error_count == hold_threshold
         and user.hold_count < max_hold_per_cycle
         and user.account_status == STATUS_ACTIVE
     ):
