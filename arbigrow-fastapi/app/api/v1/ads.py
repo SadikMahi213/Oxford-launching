@@ -133,6 +133,10 @@ async def start_ad(
 
     selected_ad = all_ads[0] if len(all_ads) == 1 else random.choice(all_ads)
 
+    # Increment counter when a new ad is assigned (task delivered).
+    # This ensures failed/abandoned ads still count toward the daily limit.
+    investment.captchas_typed_today = (investment.captchas_typed_today or 0) + 1
+
     ad_view = AdView(
         user_id=user_id,
         ad_id=selected_ad.id,
@@ -198,6 +202,9 @@ async def complete_ad(
         )
         await log_task_error(db, user_id, "ad_view", ERR_AD_EARLY_EXIT,
             task_attempt_id=attempt.id, attempt_number=attempt.attempt_number)
+        # Persist the failed attempt + error before rejecting: without this
+        # commit the records roll back and early exits would never count.
+        await db.commit()
         raise HTTPException(400, detail=f"Please watch at least {required_seconds} seconds of the ad.")
 
     user_result = await db.execute(
@@ -235,11 +242,6 @@ async def complete_ad(
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
 
-    total_typed = sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
-    total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
-    if total_typed >= total_limit:
-        raise HTTPException(400, detail="Daily ad view limit reached")
-
     await log_task_attempt(
         db, user_id, "ad_view", status="completed",
         reference_id=ad_view.id, reference_type="AdView",
@@ -253,8 +255,6 @@ async def complete_ad(
     user.ad_view_wallet = (user.ad_view_wallet + earned).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
-
-    ad_investments[0][0].captchas_typed_today = (ad_investments[0][0].captchas_typed_today or 0) + 1
 
     ad_view.is_completed = True
     ad_view.completed_at = now
@@ -286,6 +286,7 @@ async def complete_ad(
             )
             db.add(uav)
 
+    total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
     remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
 
     await db.commit()

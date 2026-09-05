@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Eye,
   Youtube,
+  X,
 } from "lucide-react";
 import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
 import api from "../../api/axiosInstance.js";
@@ -167,6 +168,47 @@ export default function AdsView() {
     }
   };
 
+  const stopWatching = () => {
+    setWatching(false);
+    setCanComplete(false);
+    setPlayerReady(false);
+    setTimer(0);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (playerRef.current) {
+      playerRef.current.destroy();
+      playerRef.current = null;
+    }
+  };
+
+  // Deliberate early exit: ends the session through the existing complete
+  // endpoint. The backend stays authoritative — an early session is rejected
+  // (no reward, early-exit error per existing business rules), while a fully
+  // watched session completes normally even via this button.
+  const handleExitAd = async () => {
+    if (!adSession || !watching) return;
+    setError("");
+    try {
+      const res = await completeAd(adSession.ad_view_id);
+      const data = res.data || res;
+      setResult(data);
+      stopWatching();
+      if (data.success) {
+        setUser({ ad_view_wallet: data.new_balance });
+      }
+      await fetchStats();
+    } catch (err) {
+      stopWatching();
+      setAdSession(null);
+      setResult({ success: false, exited: true });
+      setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+    } finally {
+      await fetchTaskAccess();
+    }
+  };
+
   const resetTime = () => {
     const now = new Date();
     const tomorrow = new Date(now);
@@ -306,10 +348,34 @@ export default function AdsView() {
                     <><RefreshCw className="w-5 h-5 animate-spin" /> {t('adsView.watchingSeconds', { count: timer })}</>
                   )}
                 </button>
+                {!canComplete && (
+                  <button
+                    onClick={handleExitAd}
+                    className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-gray-300 font-bold hover:text-red-300 hover:border-red-500/40 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <X className="w-5 h-5" /> Exit Ad
+                  </button>
+                )}
               </div>
             )}
 
-            {result && (
+            {result && result.exited && (
+              <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <X className="w-5 h-5 text-yellow-400" />
+                  <span className="font-bold text-yellow-400">Ad session ended</span>
+                </div>
+                <p className="text-yellow-300/70 text-xs mb-3">Exited before completion — no reward earned.</p>
+                <button
+                  onClick={handleStart}
+                  className="mt-1 w-full p-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-bold"
+                >
+                  {t('adsView.watchNextAd')}
+                </button>
+              </div>
+            )}
+
+            {result && !result.exited && (
               <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 className="w-5 h-5 text-green-400" />
