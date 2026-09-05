@@ -122,7 +122,7 @@ async def get_next_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
-    if investment.captchas_typed_today >= (investment.daily_captcha_limit or 0):
+    if (investment.captchas_typed_today or 0) >= (investment.daily_captcha_limit or 0):
         raise HTTPException(400, detail="Daily captcha limit reached. Come back tomorrow.")
 
     captcha_text = _generate_captcha_text()
@@ -240,6 +240,10 @@ async def submit_captcha(
 
     challenge.is_used = True
 
+    # Task Progress: every validated submission counts exactly once,
+    # regardless of correctness. Reward/penalty branching below is unchanged.
+    investment.captchas_typed_today = (investment.captchas_typed_today or 0) + 1
+
     attempt = await log_task_attempt(
         db, user_id, "captcha",
         status="completed" if is_correct else "failed",
@@ -265,7 +269,6 @@ async def submit_captcha(
         amount_earned=Decimal("0"),
     )
 
-    remaining_today = (investment.daily_captcha_limit or 0) - investment.captchas_typed_today
     earned = Decimal("0")
 
     if is_correct:
@@ -275,9 +278,9 @@ async def submit_captcha(
         user.captcha_wallet = (user.captcha_wallet + earned).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
-        investment.captchas_typed_today += 1
         earning.amount_earned = earned
-        remaining_today = (investment.daily_captcha_limit or 0) - investment.captchas_typed_today
+
+    remaining_today = (investment.daily_captcha_limit or 0) - (investment.captchas_typed_today or 0)
 
     db.add(earning)
     await db.commit()
@@ -324,21 +327,16 @@ async def expire_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
-    if investment.captchas_expired_today < (investment.daily_captcha_limit or 0):
-        investment.captchas_expired_today += 1
-
     await db.commit()
 
     daily_limit = investment.daily_captcha_limit or 0
     typed_today = investment.captchas_typed_today or 0
-    expired_today = investment.captchas_expired_today or 0
-    remaining = max(0, daily_limit - typed_today - expired_today)
+    remaining = max(0, daily_limit - typed_today)
 
     return {
         "success": True,
         "remaining_today": remaining,
         "typed_today": typed_today,
-        "expired_today": expired_today,
     }
 
 
@@ -407,14 +405,12 @@ async def get_captcha_stats(
 
     daily_limit = investment.daily_captcha_limit or 0
     typed_today = investment.captchas_typed_today or 0
-    expired_today = investment.captchas_expired_today or 0
-    remaining = max(0, daily_limit - typed_today - expired_today)
+    remaining = max(0, daily_limit - typed_today)
 
     return CaptchaStatsResponse(
         earn_per_captcha=investment.earn_per_captcha or Decimal("0"),
         daily_limit=daily_limit,
         typed_today=typed_today,
-        expired_today=expired_today,
         remaining=remaining,
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,

@@ -125,13 +125,13 @@ export default function DailyTasks() {
       setResult(data);
       if (data.success) {
         setUser({ captcha_wallet: data.new_balance });
-        await fetchStats();
       }
     } catch (err) {
       const detail = err.response?.data?.detail || err.message || t('dailyTasks.verifying');
       setError(detail);
     } finally {
       setSubmitting(false);
+      await fetchStats();
       await fetchTaskAccess();
     }
   };
