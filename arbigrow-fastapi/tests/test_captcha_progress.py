@@ -50,6 +50,11 @@ class FakeResult:
         return self._rows[0] if self._rows else None
 
 
+class FakeUpdateResult:
+    def __init__(self, rowcount):
+        self.rowcount = rowcount
+
+
 class FakeSession:
     """Serves preset ORM objects based on the compiled SQL. Mutations apply
     to the in-memory objects; commit/refresh/flush are no-ops."""
@@ -70,6 +75,13 @@ class FakeSession:
         if "task_disciplinary_config" in sql:
             m = re.search(r"key = '([^']+)'", sql)
             return FakeResult([self.configs[m.group(1)]] if m and m.group(1) in self.configs else [])
+        if "captcha_challenges" in sql and sql.lstrip().upper().startswith("UPDATE"):
+            m = re.search(r"captcha_challenges\.id = (\d+)", sql)
+            ch = self.challenges.get(int(m.group(1))) if m else None
+            if ch is not None and ch.is_used is False:
+                ch.is_used = True
+                return FakeUpdateResult(1)
+            return FakeUpdateResult(0)
         if "captcha_challenges" in sql and not sql.lstrip().upper().startswith("UPDATE"):
             m = re.search(r"captcha_challenges\.id = (\d+)", sql)
             ch = self.challenges.get(int(m.group(1))) if m else None
@@ -228,6 +240,43 @@ def test_expired_correct_completes_with_earning():
     assert float(resp.earned) > 0
     assert user.captcha_wallet > before_wallet
     assert user.error_count == 0
+
+
+def test_expire_ping_counts_unsubmitted_task_once():
+    db, user, inv, req = _env(typed=4)
+    resp = run(cap.expire_captcha.__wrapped__(req, {"captcha_id": 101}, 1, db))
+    assert resp["success"] is True
+    assert resp["typed_today"] == 5
+    assert inv.captchas_typed_today == 5
+    assert user.error_count == 0
+    assert not [o for o in db.added if isinstance(o, CaptchaEarning)]
+
+
+def test_expire_ping_is_idempotent():
+    db, user, inv, req = _env(typed=4)
+    run(cap.expire_captcha.__wrapped__(req, {"captcha_id": 101}, 1, db))
+    resp = run(cap.expire_captcha.__wrapped__(req, {"captcha_id": 101}, 1, db))
+    assert resp["typed_today"] == 5
+    assert inv.captchas_typed_today == 5
+
+
+def test_expire_ping_then_submit_no_double_count():
+    db, user, inv, req = _env(typed=4)
+    run(cap.expire_captcha.__wrapped__(req, {"captcha_id": 101}, 1, db))
+    assert inv.captchas_typed_today == 5
+    with pytest.raises(Exception) as exc:
+        _submit(db, req, "K7M9QA")
+    assert "already used" in str(exc.value.detail).lower()
+    assert inv.captchas_typed_today == 5
+
+
+def test_expire_ping_without_known_challenge_counts_nothing():
+    db, user, inv, req = _env(typed=4)
+    resp = run(cap.expire_captcha.__wrapped__(req, {}, 1, db))
+    assert resp["typed_today"] == 4
+    resp = run(cap.expire_captcha.__wrapped__(req, {"captcha_id": 9999}, 1, db))
+    assert resp["typed_today"] == 4
+    assert inv.captchas_typed_today == 4
 
 
 def test_challenge_select_uses_row_lock_against_races():

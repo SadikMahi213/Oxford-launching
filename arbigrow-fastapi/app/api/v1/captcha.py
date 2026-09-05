@@ -330,6 +330,7 @@ async def submit_captcha(
 @limiter.limit("30/minute")
 async def expire_captcha(
     request: Request,
+    body: dict | None = None,
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
@@ -358,6 +359,29 @@ async def expire_captcha(
 
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
+
+    # An expired task left unsubmitted also reaches a terminal state and
+    # counts exactly once. The conditional consume is atomic: only the
+    # first ping for a given unused challenge increments (no earning,
+    # no error is logged here — penalties apply to submitted answers).
+    try:
+        expired_cid = int((body or {}).get("captcha_id")) if (body or {}).get("captcha_id") is not None else None
+    except (TypeError, ValueError):
+        expired_cid = None
+    if expired_cid is not None:
+        consume_result = await db.execute(
+            update(CaptchaChallenge)
+            .where(
+                and_(
+                    CaptchaChallenge.id == expired_cid,
+                    CaptchaChallenge.user_id == user_id,
+                    CaptchaChallenge.is_used == False,
+                )
+            )
+            .values(is_used=True)
+        )
+        if consume_result.rowcount:
+            investment.captchas_typed_today = (investment.captchas_typed_today or 0) + 1
 
     await db.commit()
 

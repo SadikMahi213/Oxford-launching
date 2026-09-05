@@ -107,7 +107,7 @@ export default function DailyTasks() {
   const handleExpire = async () => {
     setExpired(true);
     try {
-      await api.post("v1/captcha/expire", {}, {
+      await api.post("v1/captcha/expire", { captcha_id: captcha?.captcha_id ?? null }, {
         headers: { Authorization: `Bearer ${useUserStore.getState().token}` },
       });
       await fetchStats();
