@@ -536,6 +536,7 @@ async def check_task_access(db: AsyncSession, user_id: int) -> dict:
         "allowed": True,
         "status": "active",
         "error_count": user.error_count,
+        "hold_threshold": hold_threshold,
         "cycle_end": user.error_cycle_end.isoformat() if user.error_cycle_end else None,
     }
 

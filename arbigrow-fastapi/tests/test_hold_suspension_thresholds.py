@@ -22,6 +22,7 @@ from app.services.task_error_service import (
     STATUS_PERMANENTLY_CLOSED,
     STATUS_SUSPENDED,
     _evaluate_thresholds,
+    check_task_access,
 )
 
 
@@ -37,9 +38,10 @@ class FakeResult:
 
 
 class FakeSession:
-    def __init__(self, configs):
+    def __init__(self, configs, user=None):
         self.configs = configs
         self.added = []
+        self.user = user
 
     async def execute(self, stmt):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
@@ -53,6 +55,11 @@ class FakeSession:
         self.added.append(obj)
 
     async def flush(self):
+        return None
+
+    async def get(self, model, pk):
+        if model is User:
+            return self.user
         return None
 
 
@@ -176,3 +183,27 @@ def test_permanently_closed_never_downgraded():
     user = _user(account_status=STATUS_PERMANENTLY_CLOSED, error_count=99)
     assert run(_step(db, user, 99)) == "none"
     assert user.account_status == STATUS_PERMANENTLY_CLOSED
+
+
+def test_task_access_reports_real_count_and_threshold():
+    # Powers the "Errors: X / Y" UI: zero errors must still report
+    # the real count AND the real configured threshold.
+    user = _user(error_count=0)
+    db = _session()
+    db.user = user
+    access = run(check_task_access(db, user.id))
+    assert access["allowed"] is True
+    assert access["status"] == "active"
+    assert access["error_count"] == 0
+    assert access["hold_threshold"] == 3
+
+
+def test_task_access_reports_count_below_threshold():
+    user = _user(error_count=2)
+    db = _session()
+    db.user = user
+    access = run(check_task_access(db, user.id))
+    assert access["allowed"] is True
+    assert access["status"] == "warning"
+    assert access["error_count"] == 2
+    assert access["hold_threshold"] == 3

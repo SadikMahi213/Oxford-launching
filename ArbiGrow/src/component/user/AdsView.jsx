@@ -12,7 +12,9 @@ import {
   Youtube,
 } from "lucide-react";
 import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
+import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
+import ErrorWarningCounter from "./ErrorWarningCounter.jsx";
 
 export default function AdsView() {
   const { t } = useTranslation();
@@ -25,6 +27,7 @@ export default function AdsView() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [playerReady, setPlayerReady] = useState(false);
+  const [taskAccess, setTaskAccess] = useState(null);
   const { setUser } = useUserStore();
   const timerRef = useRef(null);
   const playerRef = useRef(null);
@@ -41,9 +44,24 @@ export default function AdsView() {
     }
   }, []);
 
+  const fetchTaskAccess = useCallback(async () => {
+    try {
+      const res = await api.get("v1/captcha/task-access", {
+        headers: { Authorization: `Bearer ${useUserStore.getState().token}` },
+      });
+      setTaskAccess(res.data || res);
+    } catch {
+      setTaskAccess({ allowed: true });
+    }
+  }, []);
+
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  useEffect(() => {
+    fetchTaskAccess();
+  }, [fetchTaskAccess]);
 
   const initPlayer = useCallback((videoId) => {
     if (!window.YT || !window.YT.Player) {
@@ -144,6 +162,8 @@ export default function AdsView() {
       }
     } catch (err) {
       setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+    } finally {
+      await fetchTaskAccess();
     }
   };
 
@@ -202,6 +222,13 @@ export default function AdsView() {
               ${Number(stats.total_earned_all || 0).toFixed(4)}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Error warning counter */}
+      {taskAccess && taskAccess.allowed !== false && (
+        <div className="p-3 bg-white/[0.03] border border-white/10 rounded-lg">
+          <ErrorWarningCounter taskAccess={taskAccess} />
         </div>
       )}
 
