@@ -253,6 +253,7 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Ang iyong account ay kasalukuyang naka-hold. Pwedeng mag-deposit lang muna ngayon.",
+    "accountSuspended": "Ang iyong account ay pansamantalang naka-suspend dahil sa mga paulit-ulit na error sa task. Maghintay hanggang matapos ang suspension.",
     "comingSoon": "Malapit Na",
     "inDevelopment": "Ang page na ito ay under development",
     "sidebar": {

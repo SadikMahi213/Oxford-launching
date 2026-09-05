@@ -53,6 +53,27 @@ async def check_earning_access_by_id(user_id: int, db: AsyncSession) -> None:
         check_earning_access(user)
 
 
+def check_no_suspension(user: User) -> None:
+    """Raise 403 if the account is suspended or permanently closed.
+
+    Unlike check_earning_access (which also restricts on_hold accounts),
+    this gate deliberately allows ON_HOLD users through: a hold keeps only
+    task/earning restrictions, while suspension applies the full lock on
+    fund movements (transfers, checkout, vendor withdrawals).
+    """
+    status = (user.account_status or "").lower()
+    if status == "suspended":
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been suspended due to repeated task errors. Fund transfers, checkout and withdrawals are disabled while the suspension is active."
+        )
+    if status == "permanently_closed":
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been permanently closed according to the company policy."
+        )
+
+
 async def get_current_user(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),

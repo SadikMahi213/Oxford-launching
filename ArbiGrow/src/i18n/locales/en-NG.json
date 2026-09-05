@@ -253,6 +253,7 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Your account dey on hold. You fit only deposit for now.",
+    "accountSuspended": "Your account dey suspended. Abeg wait until the suspension expire.",
     "comingSoon": "Coming Soon",
     "inDevelopment": "Dis page dey under development",
     "sidebar": {

@@ -239,6 +239,7 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Your account is currently on hold. You can only use deposits right now.",
+    "accountSuspended": "Your account has been temporarily suspended due to task errors. Please wait until the suspension expires.",
     "comingSoon": "Coming Soon",
     "inDevelopment": "This page is under development",
     "sidebar": {

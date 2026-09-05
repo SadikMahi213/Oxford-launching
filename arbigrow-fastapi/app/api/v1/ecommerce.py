@@ -10,7 +10,7 @@ import re
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.api.v1.deps import get_current_user, get_current_admin_user
+from app.api.v1.deps import get_current_user, get_current_admin_user, check_no_suspension
 from app.models.user import User
 from app.models.seller import Seller
 from app.models.product import Product
@@ -305,6 +305,7 @@ async def transfer_to_ecommerce_wallet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    check_no_suspension(current_user)
     dec_amount = Decimal(str(amount)).quantize(WALLET_PRECISION)
     available = current_user.main_wallet or Decimal("0")
     if available < dec_amount:

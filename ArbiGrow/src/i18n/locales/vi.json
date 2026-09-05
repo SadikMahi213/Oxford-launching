@@ -253,6 +253,7 @@
   "userDashboard": {
     "header": "Cổng Người Dùng",
     "accountOnHold": "Tài khoản của bạn đang tạm giữ. Hiện tại bạn chỉ có thể thực hiện nạp tiền.",
+    "accountSuspended": "Tài khoản của bạn đã bị đình chỉ tạm thời do lỗi nhiệm vụ. Vui lòng đợi cho đến khi thời gian đình chỉ kết thúc.",
     "comingSoon": "Sắp Ra Mắt",
     "inDevelopment": "Trang này đang được phát triển",
     "sidebar": {

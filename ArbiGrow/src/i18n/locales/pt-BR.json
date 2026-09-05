@@ -252,7 +252,8 @@
   },
   "userDashboard": {
     "header": "Portal do Usuário",
-    "accountOnHold": "Sua conta está suspensa. No momento, você só pode fazer depósitos.",
+    "accountOnHold": "Sua conta está em espera. No momento, você só pode fazer depósitos.",
+    "accountSuspended": "Sua conta foi temporariamente suspensa devido a erros nas tarefas. Aguarde até o fim da suspensão.",
     "comingSoon": "Em Breve",
     "inDevelopment": "Esta página está em desenvolvimento",
     "sidebar": {

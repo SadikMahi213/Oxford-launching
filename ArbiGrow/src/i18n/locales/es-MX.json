@@ -253,6 +253,7 @@
   "userDashboard": {
     "header": "Portal del Usuario",
     "accountOnHold": "Tu cuenta está en pausa. Solo puedes hacer depósitos por ahora.",
+    "accountSuspended": "Tu cuenta ha sido suspendida temporalmente por errores en las tareas. Espera hasta que termine la suspensión.",
     "comingSoon": "Próximamente",
     "inDevelopment": "Esta página está en desarrollo",
     "sidebar": {

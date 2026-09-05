@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.core.config import settings
-from app.api.v1.deps import get_current_user, get_current_admin_user
+from app.api.v1.deps import get_current_user, get_current_admin_user, check_no_suspension
 from app.utils.notifications import notify_admin
 from app.models.user import User
 from app.models.seller import Seller
@@ -682,6 +682,7 @@ async def validate_coupon(data: dict = Body(...), db: AsyncSession = Depends(get
 
 @router.post("/checkout")
 async def checkout(data: dict = Body(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    check_no_suspension(current_user)
     items_data = data.get("items", [])
     if not items_data:
         raise HTTPException(400, "No items in order")
@@ -1139,6 +1140,7 @@ async def vendor_earnings_history(page: int = Query(1, ge=1), per_page: int = Qu
 
 @router.post("/vendor/withdraw")
 async def vendor_withdraw_request(data: dict = Body(...), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    check_no_suspension(current_user)
     seller = await _get_seller_for_user(db, current_user.id)
     amount = dec(data.get("amount", 0))
     if amount <= 0:

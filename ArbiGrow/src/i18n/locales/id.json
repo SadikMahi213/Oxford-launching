@@ -253,6 +253,7 @@
   "userDashboard": {
     "header": "Portal Pengguna",
     "accountOnHold": "Akun Anda saat ini ditahan. Anda hanya dapat menggunakan deposit sekarang.",
+    "accountSuspended": "Akun Anda telah ditangguhkan sementara karena kesalahan tugas. Harap tunggu hingga masa penangguhan berakhir.",
     "comingSoon": "Segera Hadir",
     "inDevelopment": "Halaman ini sedang dalam pengembangan",
     "sidebar": {

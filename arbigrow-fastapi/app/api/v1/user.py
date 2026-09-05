@@ -20,7 +20,7 @@ from app.models.wallet_transaction import WalletTransaction
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
 from app.core.rate_limiter import limiter
 
-from app.api.v1.deps import get_current_user, check_earning_access
+from app.api.v1.deps import get_current_user, check_earning_access, check_no_suspension
 from app.utils.is_system_active import is_system_active
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
@@ -853,6 +853,7 @@ async def wallet_transfer(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    check_no_suspension(current_user)
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
 

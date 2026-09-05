@@ -72,7 +72,7 @@ const EMPTY_REFERRAL_LEVELS = [
   { level: 4, commissionRate: "7%", totalEarnings: 0, users: [] },
   { level: 5, commissionRate: "5%", totalEarnings: 0, users: [] },
 ];
-const HOLD_ALLOWED_PAGES = new Set([
+const SUSPENSION_ALLOWED_PAGES = new Set([
   "overview",
   "deposit",
   "invoices",
@@ -110,6 +110,8 @@ export function UserDashboard() {
   const { logout, setUser } = useUserStore();
   const isAccountOnHold =
     String(user?.account_status || "").toLowerCase() === "on_hold";
+  const isAccountSuspended =
+    String(user?.account_status || "").toLowerCase() === "suspended";
 
   useEffect(() => {
     // console.log("userrr", user);
@@ -162,13 +164,13 @@ export function UserDashboard() {
   };
 
   useEffect(() => {
-    if (isAccountOnHold && !HOLD_ALLOWED_PAGES.has(activePage)) {
+    if (isAccountSuspended && !SUSPENSION_ALLOWED_PAGES.has(activePage)) {
       setActivePage("deposit");
     }
-  }, [activePage, isAccountOnHold]);
+  }, [activePage, isAccountSuspended]);
 
   const safeSetActivePage = (pageId) => {
-    if (isAccountOnHold && !HOLD_ALLOWED_PAGES.has(pageId)) {
+    if (isAccountSuspended && !SUSPENSION_ALLOWED_PAGES.has(pageId)) {
       return;
     }
     startTransition(() => {
@@ -1074,7 +1076,7 @@ export function UserDashboard() {
                     safeSetActivePage("kyc");
                     return;
                   }
-                  if (isAccountOnHold && !HOLD_ALLOWED_PAGES.has(page.id)) {
+                  if (isAccountSuspended && !SUSPENSION_ALLOWED_PAGES.has(page.id)) {
                     return;
                   }
 
@@ -1084,7 +1086,7 @@ export function UserDashboard() {
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                   activePage === page.id
                     ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
-                    : isAccountOnHold && !HOLD_ALLOWED_PAGES.has(page.id)
+                    : isAccountSuspended && !SUSPENSION_ALLOWED_PAGES.has(page.id)
                       ? "text-gray-600 cursor-not-allowed opacity-50"
                     : page.comingSoon
                       ? "text-gray-600 cursor-default"
@@ -1181,6 +1183,12 @@ export function UserDashboard() {
         {isAccountOnHold && (
           <div className="mx-4 mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {t("userDashboard.accountOnHold")}
+            {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
+          </div>
+        )}
+        {isAccountSuspended && (
+          <div className="mx-4 mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {t("userDashboard.accountSuspended")}
             {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
           </div>
         )}
