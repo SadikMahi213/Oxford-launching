@@ -14,7 +14,6 @@ import {
 import { getNextCaptcha, submitCaptcha, getCaptchaStats } from "../../api/user.api.js";
 import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
-import ErrorWarningCounter from "./ErrorWarningCounter.jsx";
 
 export default function DailyTasks() {
   const { t } = useTranslation();
@@ -258,22 +257,6 @@ export default function DailyTasks() {
               </p>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Warning */}
-      {taskAccess?.status === "warning" && (
-        <div className="max-w-lg mx-auto mt-4 p-3 bg-yellow-900/30 border border-yellow-500/30 rounded-lg">
-          <p className="text-yellow-400 text-sm font-medium mb-1">
-            Warning: {taskAccess.warning}
-          </p>
-        </div>
-      )}
-
-      {/* Error warning counter */}
-      {taskAccess && taskAccess.allowed !== false && (
-        <div className="max-w-lg mx-auto mt-4 p-3 bg-white/[0.03] border border-white/10 rounded-lg">
-          <ErrorWarningCounter taskAccess={taskAccess} />
         </div>
       )}
 
