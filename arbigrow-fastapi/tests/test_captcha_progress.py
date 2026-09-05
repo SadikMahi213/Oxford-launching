@@ -62,13 +62,15 @@ class FakeSession:
         self.configs = configs
         self.added = []
         self.attempts = []
+        self.seen_sql = []
 
     async def execute(self, stmt):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+        self.seen_sql.append(sql)
         if "task_disciplinary_config" in sql:
             m = re.search(r"key = '([^']+)'", sql)
             return FakeResult([self.configs[m.group(1)]] if m and m.group(1) in self.configs else [])
-        if "captcha_challenges" in sql and "UPDATE" not in sql.upper():
+        if "captcha_challenges" in sql and not sql.lstrip().upper().startswith("UPDATE"):
             m = re.search(r"captcha_challenges\.id = (\d+)", sql)
             ch = self.challenges.get(int(m.group(1))) if m else None
             return FakeResult([ch] if ch else [])
@@ -206,9 +208,21 @@ def test_same_submission_not_counted_twice():
     assert inv.captchas_typed_today == 5
 
 
-def test_expired_challenge_rejected_without_progress():
+def test_expired_challenge_counts_progress_keeps_timeout_behavior():
     db, user, inv, req = _env(typed=4, expired=True)
     with pytest.raises(Exception) as exc:
         _submit(db, req, "K7M9QA")
     assert "expired" in str(exc.value.detail).lower()
-    assert inv.captchas_typed_today == 4
+    assert inv.captchas_typed_today == 4 + 1
+    assert user.error_count == 1
+    assert not [o for o in db.added if isinstance(o, CaptchaEarning) and float(o.amount_earned or 0) > 0]
+
+
+def test_challenge_select_uses_row_lock_against_races():
+    # Concurrent duplicate submits must serialize on the challenge row so
+    # exactly one of them can consume it (single progress increment).
+    db, user, inv, req = _env(typed=4)
+    _submit(db, req, "WR0NGX")
+    selects = [s for s in db.seen_sql if "captcha_challenges" in s and s.lstrip().upper().startswith("SELECT")]
+    assert selects, "challenge must be read via SELECT"
+    assert any("FOR UPDATE" in s for s in selects), "challenge SELECT must carry FOR UPDATE"

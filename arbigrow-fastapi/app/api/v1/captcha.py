@@ -87,6 +87,28 @@ def _reset_daily_counter_if_needed(investment: Investment, today: date):
         investment.last_captcha_date = today
 
 
+async def _get_active_captcha_investment(db, user_id: int):
+    """Return the user's active captcha investment, or None.
+
+    Same package-eligibility rule as the other endpoints; raises nothing,
+    so timeout/validation paths can use it without changing their errors.
+    """
+    inv_result = await db.execute(
+        select(Investment).where(
+            and_(
+                Investment.user_id == user_id,
+                Investment.status == "active",
+            )
+        ).order_by(Investment.id.desc())
+    )
+    for inv in inv_result.scalars().all():
+        pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
+        pkg = pkg_result.scalar_one_or_none()
+        if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
+            return inv
+    return None
+
+
 @router.get("/next", response_model=CaptchaNextResponse)
 @limiter.limit("12/minute")
 async def get_next_captcha(
@@ -176,13 +198,15 @@ async def submit_captcha(
     if not task_access["allowed"]:
         raise HTTPException(403, detail=task_access["reason"])
 
+    # Row-lock the challenge so concurrent duplicate submits of the same
+    # captcha serialize: exactly one of them can consume it.
     result = await db.execute(
         select(CaptchaChallenge).where(
             and_(
                 CaptchaChallenge.id == body.captcha_id,
                 CaptchaChallenge.user_id == user_id,
             )
-        )
+        ).with_for_update()
     )
     challenge = result.scalars().first()
     if not challenge:
@@ -191,6 +215,12 @@ async def submit_captcha(
         raise HTTPException(400, detail="Captcha already used")
     if datetime.now(timezone.utc) > challenge.expires_at:
         challenge.is_used = True
+        # Expired submissions also consume one Task Progress unit.
+        # Timeout error behavior below is unchanged (no earning granted).
+        exp_investment = await _get_active_captcha_investment(db, user_id)
+        if exp_investment is not None:
+            _reset_daily_counter_if_needed(exp_investment, date.today())
+            exp_investment.captchas_typed_today = (exp_investment.captchas_typed_today or 0) + 1
         attempt = await log_task_attempt(
             db, user_id, "captcha", status="expired",
             reference_id=challenge.id, reference_type="CaptchaChallenge",
