@@ -213,7 +213,11 @@ async def submit_captcha(
         raise HTTPException(404, detail="Captcha not found")
     if challenge.is_used:
         raise HTTPException(400, detail="Captcha already used")
-    if datetime.now(timezone.utc) > challenge.expires_at:
+    # Validate the answer before checking expiry so a successfully
+    # completed task is recorded as completed even if late.
+    expected_hash = _hash_captcha(_normalize_captcha_input(body.user_input), challenge.salt)
+    is_correct = expected_hash == challenge.captcha_text_hash
+    if not is_correct and datetime.now(timezone.utc) > challenge.expires_at:
         challenge.is_used = True
         # Expired submissions also consume one Task Progress unit.
         # Timeout error behavior below is unchanged (no earning granted).
@@ -265,9 +269,7 @@ async def submit_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
-    expected_hash = _hash_captcha(_normalize_captcha_input(body.user_input), challenge.salt)
-    is_correct = expected_hash == challenge.captcha_text_hash
-
+    # is_correct was computed up front so expiry never blocks a completion.
     challenge.is_used = True
 
     # Task Progress: every validated submission counts exactly once,

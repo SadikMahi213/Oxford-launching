@@ -326,8 +326,8 @@ export default function DailyTasks() {
               </div>
             )}
 
-            {/* Expired state */}
-            {expired && (
+            {/* Expired state (info only — the answer can still be submitted below for validation) */}
+            {expired && !result && (
               <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-center">
                 <Clock className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
                 <p className="text-yellow-300 font-bold mb-1">{t('dailyTasks.expired')}</p>
@@ -341,8 +341,8 @@ export default function DailyTasks() {
               </div>
             )}
 
-            {/* Captcha display */}
-            {captcha && !result && !expired && (
+            {/* Captcha display (stays submittable after the countdown so late completions validate) */}
+            {captcha && !result && (
               <div className="space-y-4">
                 <div className="flex items-center justify-center gap-3">
                   <div className="p-3 rounded-xl bg-black/40 border border-white/10 text-center flex-1 max-w-[340px]">

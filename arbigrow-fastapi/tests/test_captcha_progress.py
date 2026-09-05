@@ -208,14 +208,26 @@ def test_same_submission_not_counted_twice():
     assert inv.captchas_typed_today == 5
 
 
-def test_expired_challenge_counts_progress_keeps_timeout_behavior():
+def test_expired_wrong_keeps_timeout_behavior():
     db, user, inv, req = _env(typed=4, expired=True)
     with pytest.raises(Exception) as exc:
-        _submit(db, req, "K7M9QA")
+        _submit(db, req, "WR0NGX")
     assert "expired" in str(exc.value.detail).lower()
     assert inv.captchas_typed_today == 4 + 1
     assert user.error_count == 1
     assert not [o for o in db.added if isinstance(o, CaptchaEarning) and float(o.amount_earned or 0) > 0]
+
+
+def test_expired_correct_completes_with_earning():
+    # A successfully completed task counts even when the countdown is over.
+    db, user, inv, req = _env(typed=4, expired=True)
+    before_wallet = user.captcha_wallet
+    resp = _submit(db, req, "K7M9QA")
+    assert resp.success is True
+    assert inv.captchas_typed_today == 4 + 1
+    assert float(resp.earned) > 0
+    assert user.captcha_wallet > before_wallet
+    assert user.error_count == 0
 
 
 def test_challenge_select_uses_row_lock_against_races():
