@@ -1520,6 +1520,8 @@
   "investmentDetails": {
     "captchas": "کیپچا",
     "dailyCaptchaRequirement": "روزانہ کیپچا ضرورت",
+    "adsRequirement": "روزانہ ایڈ ضرورت",
+    "ads": "ایڈ",
     "dailyPayment": "روزانہ ادائیگی",
     "dailyProfit": "روزانہ منافع",
     "investedAmount": "سرمایہ کاری کی رقم",

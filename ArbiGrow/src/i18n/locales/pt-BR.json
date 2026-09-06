@@ -1520,6 +1520,8 @@
   "investmentDetails": {
     "captchas": "Captchas",
     "dailyCaptchaRequirement": "Requisito Diário de Captcha",
+ "adsRequirement": "Requisito Diário de Anúncios",
+ "ads": "Anúncios",
     "dailyPayment": "Pagamento Diário",
     "dailyProfit": "Lucro Diário",
     "investedAmount": "Valor Investido",

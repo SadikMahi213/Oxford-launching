@@ -1481,6 +1481,8 @@
   "investmentDetails": {
     "captchas": "ক্যাপচা",
     "dailyCaptchaRequirement": "দৈনিক ক্যাপচা প্রয়োজন",
+    "adsRequirement": "দৈনিক এড প্রয়োজন",
+    "ads": "এড",
     "dailyPayment": "দৈনিক পেমেন্ট",
     "dailyProfit": "দৈনিক লাভ",
     "investedAmount": "বিনিয়োগকৃত পরিমাণ",

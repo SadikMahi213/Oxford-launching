@@ -1518,6 +1518,8 @@
   "investmentDetails": {
     "captchas": "Captcha",
     "dailyCaptchaRequirement": "Araw-araw na Kinakailangang Captcha",
+    "adsRequirement": "Araw-araw na Kinakailangang Ad",
+    "ads": "Ad",
     "dailyPayment": "Araw-araw na Bayad",
     "dailyProfit": "Araw-araw na Profit",
     "investedAmount": "Halaga ng Na-invest",

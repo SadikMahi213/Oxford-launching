@@ -270,6 +270,7 @@ async def get_my_investments(
             "end_date": inv.end_date,
             "status": inv.status,
             "package_is_active": pkg.is_active,
+            "task_type": pkg.task_type.value if pkg.task_type else "captcha",
         }
         for inv, pkg in rows
     ]

@@ -1520,6 +1520,8 @@
   "investmentDetails": {
     "captchas": "कैप्चा",
     "dailyCaptchaRequirement": "दैनिक कैप्चा आवश्यकता",
+    "adsRequirement": "दैनिक एड आवश्यकता",
+    "ads": "एड",
     "dailyPayment": "दैनिक भुगतान",
     "dailyProfit": "दैनिक लाभ",
     "investedAmount": "निवेशित राशि",

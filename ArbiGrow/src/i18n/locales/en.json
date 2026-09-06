@@ -1984,6 +1984,8 @@
     "dailyPayment": "Daily Payment",
     "totalReturn": "Total Return",
     "dailyCaptchaRequirement": "Daily Captcha Requirement",
+ "adsRequirement": "Ads Requirement",
+ "ads": "Ads",
     "profitEarned": "Profit Earned",
     "progress": "Progress",
     "startDate": "Start Date",

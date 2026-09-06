@@ -1520,6 +1520,8 @@
   "investmentDetails": {
     "captchas": "Captcha",
     "dailyCaptchaRequirement": "Kebutuhan Captcha Harian",
+ "adsRequirement": "Kebutuhan Iklan Harian",
+ "ads": "Iklan",
     "dailyPayment": "Pembayaran Harian",
     "dailyProfit": "Profit Harian",
     "investedAmount": "Jumlah Investasi",

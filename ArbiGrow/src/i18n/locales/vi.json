@@ -1520,6 +1520,8 @@
   "investmentDetails": {
     "captchas": "Captcha",
     "dailyCaptchaRequirement": "Yêu Cầu Captcha Hàng Ngày",
+    "adsRequirement": "Yêu Cầu Quảng Cáo Hàng Ngày",
+    "ads": "Quảng cáo",
     "dailyPayment": "Thanh Toán Hàng Ngày",
     "dailyProfit": "Lợi Nhuận Hàng Ngày",
     "investedAmount": "Số Tiền Đã Đầu Tư",

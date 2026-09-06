@@ -39,6 +39,7 @@ const mapInvestment = (investment) => {
   return {
     id: investment.id,
     packageName: investment.package_name,
+    taskType: investment.task_type || "captcha",
     status: investment.status,
     packageIsActive: investment.package_is_active !== false,
     investedAmount,

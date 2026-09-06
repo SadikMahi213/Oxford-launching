@@ -1438,6 +1438,8 @@
   "investmentDetails": {
     "captchas": "Captchas",
     "dailyCaptchaRequirement": "Daily Captcha Requirement",
+ "adsRequirement": "Ads Requirement",
+ "ads": "Ads",
     "dailyPayment": "Daily Payment",
     "dailyProfit": "Daily Profit",
     "investedAmount": "Invested Amount",
