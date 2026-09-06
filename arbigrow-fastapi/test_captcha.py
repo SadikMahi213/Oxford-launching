@@ -17,6 +17,7 @@ import asyncio
 import base64
 import importlib
 import io
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from PIL import Image
@@ -156,6 +157,56 @@ def test_image_is_valid_multicolor_png():
     assert img.size[0] / CAPTCHA_LEN >= 40, "each character should occupy ample width"
 
 
+def _decode(b64):
+    raw = base64.b64decode(b64)
+    return raw, Image.open(io.BytesIO(raw))
+
+
+# --- K. Style rendering (explicit styles) ---------------------------------
+def test_k_all_styles_render_valid_png():
+    import app.services.captcha_generator as gen
+
+    assert set(gen.STYLES) == {"textile", "grid", "blocks", "ink", "noisy"}, "exactly 5 styles expected"
+    for style in gen.STYLES:
+        b64 = gen.generate_captcha_image("K7M9QA", style=style)
+        raw, img = _decode(b64)
+        assert img.format == "PNG", f"{style} must be PNG"
+        assert img.size == (340, 110), f"{style} must keep 340x110 dimensions, got {img.size}"
+        colors = img.convert("RGB").getcolors(maxcolors=500000)
+        assert colors is not None and len(colors) >= 5, f"{style} needs interference colors"
+        assert "K7M9QA" not in b64, f"{style} must not leak the answer"
+
+
+# --- L. Random mode variance + fallback ------------------------------------
+def test_l_random_styles_vary_and_fallback_safe():
+    import app.services.captcha_generator as gen
+
+    seen = set()
+    for _ in range(30):
+        text = "".join(secrets.choice(cap.CAPTCHA_CHARSET) for _ in range(6))
+        b64 = gen.generate_captcha_image(text)
+        seen.add(b64)
+        assert text not in b64, "render must not leak its answer"
+    assert len(seen) == 30, f"30 random renders must all differ, got {len(seen)} unique"
+    # Unknown style must fall back, never crash.
+    b64 = gen.generate_captcha_image("RT4PQA", style="no-such-style")
+    _, img = _decode(b64)
+    assert img.size == (340, 110)
+
+
+# --- M. Performance ----------------------------------------------------------
+def test_m_generation_is_fast():
+    import time
+
+    import app.services.captcha_generator as gen
+
+    for style in gen.STYLES:
+        t0 = time.time()
+        gen.generate_captcha_image("K7M9QA", style=style)
+        dt = time.time() - t0
+        assert dt < 1.0, f"{style} took {dt:.2f}s, must stay lightweight"
+
+
 def _run_all():
     tests = [
         ("A correct uppercase", test_a_correct_uppercase),
@@ -168,6 +219,9 @@ def _run_all():
         ("G update stmt targets unused", test_g_refresh_update_statement_targets_unused),
         ("H 20 generations valid", test_h_20_generations_valid),
         ("I/J image valid multicolor PNG", test_image_is_valid_multicolor_png),
+        ("K all styles render valid PNG", test_k_all_styles_render_valid_png),
+        ("L random variance + fallback", test_l_random_styles_vary_and_fallback_safe),
+        ("M generation is fast", test_m_generation_is_fast),
     ]
     failed = 0
     for name, fn in tests:
