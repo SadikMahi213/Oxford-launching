@@ -95,11 +95,14 @@ async def start_ad(
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached. Come back tomorrow.")
 
+    # Resume only live sessions: ended ones (completed_at set without
+    # completion) are terminal and must not become rewardable later.
     existing = await db.execute(
         select(AdView).where(
             and_(
                 AdView.user_id == user_id,
                 AdView.is_completed == False,
+                AdView.completed_at.is_(None),
             )
         )
     )
@@ -169,19 +172,24 @@ async def complete_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    # Row-lock the session so concurrent duplicate completes serialize:
+    # exactly one of them can transition it.
     result = await db.execute(
         select(AdView).where(
             and_(
                 AdView.id == ad_view_id,
                 AdView.user_id == user_id,
             )
-        )
+        ).with_for_update()
     )
     ad_view = result.scalars().first()
     if not ad_view:
         raise HTTPException(404, detail="Ad view session not found")
     if ad_view.is_completed:
         raise HTTPException(400, detail="Ad already completed")
+    if ad_view.completed_at is not None:
+        # Session already ended (early exit): never rewardable, no new penalty.
+        raise HTTPException(400, detail="Ad session already ended")
 
     now = datetime.now(timezone.utc)
     elapsed = (now - ad_view.started_at).total_seconds()
@@ -204,6 +212,9 @@ async def complete_ad(
             task_attempt_id=attempt.id, attempt_number=attempt.attempt_number)
         # Persist the failed attempt + error before rejecting: without this
         # commit the records roll back and early exits would never count.
+        # Terminally end the session: a later completion attempt must not
+        # become rewardable merely because wall-clock time has passed.
+        ad_view.completed_at = now
         await db.commit()
         raise HTTPException(400, detail=f"Please watch at least {required_seconds} seconds of the ad.")
 

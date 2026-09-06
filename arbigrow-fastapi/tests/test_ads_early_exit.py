@@ -58,9 +58,11 @@ class FakeSession:
         self.added = []
         self.attempts = []
         self.commits = 0
+        self.seen_sql = []
 
     async def execute(self, stmt):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+        self.seen_sql.append(sql)
         if "task_disciplinary_config" in sql:
             m = re.search(r"key = '([^']+)'", sql)
             return FakeResult([self.configs[m.group(1)]] if m and m.group(1) in self.configs else [])
@@ -146,6 +148,40 @@ def test_early_exit_rejected_and_error_persisted():
     assert session.is_completed is False
     assert float(session.amount_earned or 0) == 0
     assert any(isinstance(o, TaskError) and o.error_code == "ad_early_exit" for o in db.added)
+
+
+def test_early_exit_marks_session_ended():
+    db, user, session, req = _env(watched=5)
+    assert session.completed_at is None
+    with pytest.raises(Exception):
+        _complete(db, req)
+    assert session.is_completed is False
+    assert session.completed_at is not None
+
+
+def test_ended_session_retry_rejected_without_new_penalty():
+    db, user, session, req = _env(watched=5)
+    session.completed_at = datetime.now(timezone.utc) - timedelta(minutes=10)
+    before_errors = user.error_count
+    before_wallet = user.ad_view_wallet
+    with pytest.raises(Exception) as exc:
+        _complete(db, req)
+    assert "already ended" in str(exc.value.detail).lower()
+    assert user.error_count == before_errors
+    assert user.ad_view_wallet == before_wallet
+    assert not [o for o in db.added if isinstance(o, TaskError)]
+    assert session.is_completed is False
+
+
+def test_adview_complete_select_uses_row_lock():
+    db, user, session, req = _env(watched=5)
+    try:
+        _complete(db, req)
+    except Exception:
+        pass
+    selects = [s for s in db.seen_sql if "ad_views" in s and s.lstrip().upper().startswith("SELECT")]
+    assert selects, "session must be read via SELECT"
+    assert any("FOR UPDATE" in s for s in selects), "complete SELECT must carry FOR UPDATE"
 
 
 def test_completed_session_rejected_without_side_effects():
