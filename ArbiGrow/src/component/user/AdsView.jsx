@@ -30,6 +30,8 @@ export default function AdsView() {
   const timerRef = useRef(null);
   const playerRef = useRef(null);
   const playerContainerRef = useRef(null);
+  const openSessionRef = useRef(null);
+  const completingRef = useRef(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -45,6 +47,44 @@ export default function AdsView() {
   useEffect(() => {
     fetchStats();
   }, [fetchStats]);
+
+  // Tracks the currently open (uncompleted, no-result) session id so that
+  // leaving the page reports the abandon. Null-safe: cleared on completion.
+  openSessionRef.current =
+    watching && adSession && !result ? adSession.ad_view_id : null;
+
+  const sendAbandon = useCallback((adViewId) => {
+    if (!adViewId || completingRef.current) return;
+    try {
+      const token = useUserStore.getState().token;
+      fetch(`/api/v1/ads/abandon?ad_view_id=${adViewId}`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    // SPA route navigation away from this page.
+    // Page refresh / tab close.
+    const onPageHide = () => {
+      const vid = openSessionRef.current;
+      if (vid) {
+        openSessionRef.current = null;
+        sendAbandon(vid);
+      }
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      const vid = openSessionRef.current;
+      if (vid) {
+        openSessionRef.current = null;
+        sendAbandon(vid);
+      }
+    };
+  }, [sendAbandon]);
 
   const initPlayer = useCallback((videoId) => {
     if (!window.YT || !window.YT.Player) {
@@ -130,6 +170,7 @@ export default function AdsView() {
   const handleComplete = async () => {
     if (!adSession) return;
     setError("");
+    completingRef.current = true;
     try {
       const res = await completeAd(adSession.ad_view_id);
       const data = res.data || res;
@@ -145,6 +186,8 @@ export default function AdsView() {
       }
     } catch (err) {
       setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+    } finally {
+      completingRef.current = false;
     }
   };
 
@@ -170,6 +213,7 @@ export default function AdsView() {
   const handleExitAd = async () => {
     if (!adSession || !watching) return;
     setError("");
+    completingRef.current = true;
     try {
       const res = await completeAd(adSession.ad_view_id);
       const data = res.data || res;
@@ -184,6 +228,8 @@ export default function AdsView() {
       setAdSession(null);
       setResult({ success: false, exited: true });
       setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+    } finally {
+      completingRef.current = false;
     }
   };
 

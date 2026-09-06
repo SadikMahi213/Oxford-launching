@@ -3,7 +3,7 @@ from datetime import datetime, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -309,6 +309,47 @@ async def complete_ad(
         "remaining_today": remaining,
         "new_balance": user.ad_view_wallet,
     }
+
+
+@router.post("/abandon")
+@limiter.limit("12/minute")
+async def abandon_ad(
+    request: Request,
+    ad_view_id: int,
+    user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Terminally end an open ad session without reward or penalty.
+
+    Used when the viewer leaves before completion (navigation, refresh,
+    tab close, explicit exit). Deliberately NOT gated by earning access:
+    ending a session must always be possible. The conditional consume is
+    atomic, so concurrent abandons (or an abandon racing a completion)
+    end the session exactly once and a late completion can never pay.
+    """
+    now = datetime.now(timezone.utc)
+    result = await db.execute(
+        update(AdView)
+        .where(
+            and_(
+                AdView.id == ad_view_id,
+                AdView.user_id == user_id,
+                AdView.is_completed == False,
+                AdView.completed_at.is_(None),
+            )
+        )
+        .values(completed_at=now)
+    )
+    ended = (result.rowcount or 0) > 0
+    if ended:
+        await log_task_attempt(
+            db, user_id, "ad_view", status="cancelled",
+            reference_id=ad_view_id, reference_type="AdView",
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent", ""),
+        )
+    await db.commit()
+    return {"success": True, "ended": ended}
 
 
 @router.get("/stats", response_model=CaptchaStatsResponse)

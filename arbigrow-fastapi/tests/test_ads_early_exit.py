@@ -49,10 +49,16 @@ class FakeResult:
         return self._rows[0] if self._rows else None
 
 
+class FakeUpdateResult:
+    def __init__(self, rowcount):
+        self.rowcount = rowcount
+
+
 class FakeSession:
     def __init__(self, user, session, ad, configs):
         self.user = user
         self.session = session
+        self.sessions = {session.id: session} if session is not None else {}
         self.ad = ad
         self.configs = configs
         self.added = []
@@ -63,6 +69,13 @@ class FakeSession:
     async def execute(self, stmt):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
         self.seen_sql.append(sql)
+        if sql.lstrip().upper().startswith("UPDATE") and "ad_views" in sql:
+            m = re.search(r"ad_views\.id = (\d+)", sql)
+            s = self.sessions.get(int(m.group(1))) if m else None
+            if s is not None and s.user_id == 1 and not s.is_completed and s.completed_at is None:
+                s.completed_at = datetime.now(timezone.utc)
+                return FakeUpdateResult(1)
+            return FakeUpdateResult(0)
         if "task_disciplinary_config" in sql:
             m = re.search(r"key = '([^']+)'", sql)
             return FakeResult([self.configs[m.group(1)]] if m and m.group(1) in self.configs else [])
@@ -182,6 +195,49 @@ def test_adview_complete_select_uses_row_lock():
     selects = [s for s in db.seen_sql if "ad_views" in s and s.lstrip().upper().startswith("SELECT")]
     assert selects, "session must be read via SELECT"
     assert any("FOR UPDATE" in s for s in selects), "complete SELECT must carry FOR UPDATE"
+
+
+def _abandon(db, req, vid=777):
+    return run(ads.abandon_ad.__wrapped__(req, vid, 1, db))
+
+
+def test_abandon_open_session_ends_without_reward_or_error():
+    db, user, session, req = _env(watched=5)
+    resp = _abandon(db, req)
+    assert resp["success"] is True and resp["ended"] is True
+    assert session.is_completed is False
+    assert session.completed_at is not None
+    assert user.error_count == 0
+    assert float(user.ad_view_wallet or 0) == 0
+    assert not [o for o in db.added if isinstance(o, TaskError)]
+
+
+def test_abandon_then_complete_pays_nothing():
+    db, user, session, req = _env(watched=5)
+    _abandon(db, req)
+    with pytest.raises(Exception) as exc:
+        _complete(db, req)
+    assert "already ended" in str(exc.value.detail).lower()
+    assert user.error_count == 0
+    assert float(user.ad_view_wallet or 0) == 0
+    assert session.is_completed is False
+
+
+def test_abandon_completed_session_is_noop():
+    db, user, session, req = _env(watched=60, completed=True)
+    session.is_completed = True
+    session.completed_at = datetime.now(timezone.utc)
+    resp = _abandon(db, req)
+    assert resp["success"] is True and resp["ended"] is False
+    assert user.error_count == 0
+
+
+def test_abandon_unknown_or_foreign_session_is_noop():
+    db, user, session, req = _env(watched=5)
+    resp = _abandon(db, req, vid=9999)
+    assert resp["success"] is True and resp["ended"] is False
+    assert session.completed_at is None
+    assert user.error_count == 0
 
 
 def test_completed_session_rejected_without_side_effects():
