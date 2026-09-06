@@ -314,13 +314,16 @@ async def update_withdrawal_status(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
+    # Lock only the withdrawal row. PostgreSQL forbids FOR UPDATE on the
+    # nullable side of an outer join, so the bank_info eager-load cannot
+    # share this locking query (bank_info is re-fetched explicitly below
+    # after commit instead).
     result = await db.execute(
         select(Withdrawal)
         .where(Withdrawal.id == withdrawal_id)
-        .options(joinedload(Withdrawal.bank_info))
         .with_for_update()
     )
-    withdrawal = result.scalars().unique().one_or_none()
+    withdrawal = result.scalar_one_or_none()
 
     if not withdrawal:
         raise HTTPException(status_code=404, detail="Withdrawal not found")

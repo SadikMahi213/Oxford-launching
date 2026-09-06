@@ -3,7 +3,7 @@
 Validates the new CAPTCHA behavior implemented for the readability/reliability
 fix on the ``ahanaf`` branch:
 
-  * 6-character, uppercase alphanumeric captcha (no ambiguous O/0, I/1, S/5, B/8)
+  * 6-character, mixed-case alphanumeric captcha (no ambiguous O/0, I/1/l, S/5, B/8)
   * case-insensitive validation (input is trimmed + uppercased before compare)
   * trimming of accidental whitespace
   * wrong character / wrong length are rejected
@@ -133,13 +133,27 @@ def test_h_20_generations_valid():
         text = cap._generate_captcha_text()
         assert len(text) == CAPTCHA_LEN, f"length must be {CAPTCHA_LEN}, got {len(text)}: {text}"
         assert text.isalnum(), f"must be alphanumeric: {text}"
-        assert text == text.upper(), f"must be uppercase: {text}"
-        assert all(ch in cap.CAPTCHA_CHARSET for ch in text), f"charset violation: {text}"
+        assert any(c.islower() for c in text), f"must contain lowercase: {text}"
+        assert any(c.isupper() for c in text), f"must contain uppercase: {text}"
+        allowed = set(cap.CAPTCHA_CHARSET) | set(cap.CAPTCHA_LOWERCASE)
+        assert all(ch in allowed for ch in text), f"charset violation: {text}"
         assert text not in seen, "captchas should be visually distinct/unique"
         seen.add(text)
     assert len(seen) == 20
     assert len(set(cap.CAPTCHA_CHARSET)) == len(cap.CAPTCHA_CHARSET), "no duplicate charset chars"
     assert not any(a in cap.CAPTCHA_CHARSET for a in "OISB0158"), "ambiguous chars must be excluded"
+    assert not any(a in cap.CAPTCHA_LOWERCASE for a in "losb"), "ambiguous lowercase must be excluded"
+
+
+# --- H2. Mixed-case generation verifies through the submit path ------------
+def test_h2_mixed_case_roundtrip():
+    # Generation + storage normalization + submit normalization must agree.
+    for _ in range(10):
+        text = cap._generate_captcha_text()
+        stored = cap._hash_captcha(cap._normalize_captcha_input(text), "somesalt")
+        for variant in (text, text.lower(), text.upper(), "  " + text + "  "):
+            attempt = cap._hash_captcha(cap._normalize_captcha_input(variant), "somesalt")
+            assert attempt == stored, f"{variant!r} must verify against {text!r}"
 
 
 # --- I/J. Image generation (readable, multi-color PNG) --------------------
@@ -218,6 +232,7 @@ def _run_all():
         ("G refresh invalidates old", test_g_refresh_invalidates_old),
         ("G update stmt targets unused", test_g_refresh_update_statement_targets_unused),
         ("H 20 generations valid", test_h_20_generations_valid),
+        ("H2 mixed-case roundtrip", test_h2_mixed_case_roundtrip),
         ("I/J image valid multicolor PNG", test_image_is_valid_multicolor_png),
         ("K all styles render valid PNG", test_k_all_styles_render_valid_png),
         ("L random variance + fallback", test_l_random_styles_vary_and_fallback_safe),

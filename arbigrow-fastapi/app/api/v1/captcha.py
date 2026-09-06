@@ -1,4 +1,5 @@
 import hashlib
+import random
 import secrets
 from datetime import datetime, timedelta, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
@@ -39,10 +40,15 @@ CAPTCHA_EXPIRY_MINUTES = 2
 CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
-# Controlled, unambiguous uppercase alphanumeric charset.
-# Uppercase-only so validation can safely be case-insensitive, and
-# characters that are easily confused (O/0, I/1/l, S/5, B/8) are excluded.
+# Controlled, unambiguous alphanumeric charset.
+# Validation stays case-insensitive (input is uppercased before comparing),
+# and characters that are easily confused (O/0, I/1/l, S/5, B/8) are excluded
+# in both cases.
 CAPTCHA_CHARSET = "ACDEFGHJKLMNPQRTUVWXYZ234679"
+# Lowercase extension for mixed-case challenges. Excludes the lowercase
+# counterparts of the ambiguous pairs above: l (I/1), o (O/0), s (S/5),
+# b (B/8).
+CAPTCHA_LOWERCASE = "acdefghjkmnpqrtuvwxyz"
 
 
 async def _get_captcha_timer_seconds(db, package: Package = None) -> int:
@@ -64,7 +70,15 @@ async def _get_captcha_timer_seconds(db, package: Package = None) -> int:
 
 
 def _generate_captcha_text(length: int = 6) -> str:
-    return "".join(secrets.choice(CAPTCHA_CHARSET) for _ in range(length))
+    chars = [secrets.choice(CAPTCHA_CHARSET) for _ in range(length)]
+    # Guarantee a realistic mix: at least one lowercase and at least one
+    # uppercase letter (digits alone satisfy neither case requirement).
+    uppers = "".join(c for c in CAPTCHA_CHARSET if c.isalpha())
+    positions = random.sample(range(length), k=min(2, length))
+    chars[positions[0]] = secrets.choice(CAPTCHA_LOWERCASE)
+    if length >= 2:
+        chars[positions[1]] = secrets.choice(uppers)
+    return "".join(chars)
 
 
 def _normalize_captcha_input(value: str) -> str:
@@ -149,7 +163,9 @@ async def get_next_captcha(
 
     captcha_text = _generate_captcha_text()
     salt = secrets.token_hex(8)
-    text_hash = _hash_captcha(captcha_text, salt)
+    # Hash the normalized form so mixed-case challenges verify exactly like
+    # the case-insensitive submit path (which uppercases before comparing).
+    text_hash = _hash_captcha(_normalize_captcha_input(captcha_text), salt)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=CAPTCHA_EXPIRY_MINUTES)
 
     # Refresh behavior: once a new captcha is issued, any previously issued
