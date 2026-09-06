@@ -4,7 +4,7 @@ Validates the new CAPTCHA behavior implemented for the readability/reliability
 fix on the ``ahanaf`` branch:
 
   * 6-character, mixed-case alphanumeric captcha (no ambiguous O/0, I/1/l, S/5, B/8)
-  * case-insensitive validation (input is trimmed + uppercased before compare)
+  * case-SENSITIVE validation (input is only trimmed; case must match exactly)
   * trimming of accidental whitespace
   * wrong character / wrong length are rejected
   * expired captcha is rejected
@@ -52,21 +52,28 @@ def test_a_correct_uppercase():
     assert _matches(ch, "K7M9QA") is True, "exact uppercase input must match"
 
 
-# --- B. Lowercase input (case-insensitive) --------------------------------
-def test_b_lowercase_accepted():
-    text = "K7M9QA"
+# --- B. Case must match exactly (case-sensitive) ---------------------------
+def test_b_case_must_match_exactly():
+    text = "AbC9x"
     ch = _FakeChallenge(text)
-    assert _matches(ch, "k7m9qa") is True, "lowercase must be accepted (case-insensitive)"
-    assert _matches(ch, "k7M9qA") is True, "mixed case must be accepted"
+    assert _matches(ch, "AbC9x") is True, "exact input must match"
+    assert _matches(ch, "ABC9X") is False, "all-uppercase must be rejected"
+    assert _matches(ch, "abc9x") is False, "all-lowercase must be rejected"
+    assert _matches(ch, "Abc9X") is False, "wrong case mix must be rejected"
+    # Uppercase-only legacy text still verifies exactly.
+    legacy = _FakeChallenge("K7M9QA")
+    assert _matches(legacy, "K7M9QA") is True
+    assert _matches(legacy, "k7m9qa") is False, "lowercase variant must be rejected"
 
 
 # --- C. Accidental whitespace ---------------------------------------------
 def test_c_whitespace_trimmed():
-    text = "K7M9QA"
+    text = "AbC9x"
     ch = _FakeChallenge(text)
-    assert _matches(ch, "  K7M9QA") is True, "leading spaces must be trimmed"
-    assert _matches(ch, "K7M9QA  ") is True, "trailing spaces must be trimmed"
-    assert _matches(ch, "   k7m9qa   ") is True, "spaces + lowercase must be accepted"
+    assert _matches(ch, "  AbC9x") is True, "leading spaces must be trimmed"
+    assert _matches(ch, "AbC9x  ") is True, "trailing spaces must be trimmed"
+    assert _matches(ch, "   AbC9x   ") is True, "spaces + exact case must be accepted"
+    assert _matches(ch, "   abc9x   ") is False, "spaces do not excuse wrong case"
 
 
 # --- D. Wrong character ---------------------------------------------------
@@ -147,13 +154,21 @@ def test_h_20_generations_valid():
 
 # --- H2. Mixed-case generation verifies through the submit path ------------
 def test_h2_mixed_case_roundtrip():
-    # Generation + storage normalization + submit normalization must agree.
+    # Generation + storage + submit must agree on the EXACT string.
     for _ in range(10):
         text = cap._generate_captcha_text()
+        assert any(c.islower() for c in text), f"must contain lowercase: {text}"
+        assert any(c.isupper() for c in text), f"must contain uppercase: {text}"
+        assert any(c.isdigit() for c in text), f"must contain a digit: {text}"
         stored = cap._hash_captcha(cap._normalize_captcha_input(text), "somesalt")
-        for variant in (text, text.lower(), text.upper(), "  " + text + "  "):
+        for variant in (text, "  " + text + "  "):
             attempt = cap._hash_captcha(cap._normalize_captcha_input(variant), "somesalt")
             assert attempt == stored, f"{variant!r} must verify against {text!r}"
+        for variant in (text.lower(), text.upper(), text.swapcase()):
+            if variant == text:
+                continue
+            attempt = cap._hash_captcha(cap._normalize_captcha_input(variant), "somesalt")
+            assert attempt != stored, f"{variant!r} must NOT verify against {text!r}"
 
 
 # --- I/J. Image generation (readable, multi-color PNG) --------------------
@@ -224,7 +239,7 @@ def test_m_generation_is_fast():
 def _run_all():
     tests = [
         ("A correct uppercase", test_a_correct_uppercase),
-        ("B lowercase accepted", test_b_lowercase_accepted),
+        ("B case must match exactly", test_b_case_must_match_exactly),
         ("C whitespace trimmed", test_c_whitespace_trimmed),
         ("D wrong character rejected", test_d_wrong_character_rejected),
         ("E wrong length rejected", test_e_wrong_length_rejected),

@@ -358,9 +358,9 @@ export default function DailyTasks() {
                   autoFocus
                   autoComplete="off"
                   autoCorrect="off"
-                  autoCapitalize="characters"
+                  autoCapitalize="off"
                   spellCheck={false}
-                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-xl tracking-widest uppercase"
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-xl tracking-widest"
                 />
 
                 <button

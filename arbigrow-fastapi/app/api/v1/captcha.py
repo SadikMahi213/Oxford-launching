@@ -41,9 +41,8 @@ CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 # Controlled, unambiguous alphanumeric charset.
-# Validation stays case-insensitive (input is uppercased before comparing),
-# and characters that are easily confused (O/0, I/1/l, S/5, B/8) are excluded
-# in both cases.
+# Validation is case-sensitive (no case conversion anywhere), and characters
+# that are easily confused (O/0, I/1/l, S/5, B/8) are excluded in both cases.
 CAPTCHA_CHARSET = "ACDEFGHJKLMNPQRTUVWXYZ234679"
 # Lowercase extension for mixed-case challenges. Excludes the lowercase
 # counterparts of the ambiguous pairs above: l (I/1), o (O/0), s (S/5),
@@ -71,23 +70,26 @@ async def _get_captcha_timer_seconds(db, package: Package = None) -> int:
 
 def _generate_captcha_text(length: int = 6) -> str:
     chars = [secrets.choice(CAPTCHA_CHARSET) for _ in range(length)]
-    # Guarantee a realistic mix: at least one lowercase and at least one
-    # uppercase letter (digits alone satisfy neither case requirement).
+    # Guarantee a realistic mix: at least one lowercase letter, at least one
+    # uppercase letter, and at least one digit (when length allows it).
     uppers = "".join(c for c in CAPTCHA_CHARSET if c.isalpha())
-    positions = random.sample(range(length), k=min(2, length))
+    digits = "".join(c for c in CAPTCHA_CHARSET if c.isdigit())
+    positions = random.sample(range(length), k=min(3, length))
     chars[positions[0]] = secrets.choice(CAPTCHA_LOWERCASE)
     if length >= 2:
         chars[positions[1]] = secrets.choice(uppers)
+    if length >= 3:
+        chars[positions[2]] = secrets.choice(digits)
     return "".join(chars)
 
 
 def _normalize_captcha_input(value: str) -> str:
-    """Trim whitespace and normalize case before comparing.
+    """Trim surrounding whitespace only.
 
-    Generated captchas are uppercase-only, so uppercasing user input makes
-    validation case-insensitive without weakening it.
+    Comparison is case-sensitive by design: no .lower()/.upper()/.casefold()
+    is applied here or anywhere in the validation flow.
     """
-    return (value or "").strip().upper()
+    return (value or "").strip()
 
 
 def _hash_captcha(text: str, salt: str) -> str:
@@ -163,8 +165,8 @@ async def get_next_captcha(
 
     captcha_text = _generate_captcha_text()
     salt = secrets.token_hex(8)
-    # Hash the normalized form so mixed-case challenges verify exactly like
-    # the case-insensitive submit path (which uppercases before comparing).
+    # Hash the exact generated text (trimmed only): submit compares the
+    # user's exact input, so validation is case-sensitive end to end.
     text_hash = _hash_captcha(_normalize_captcha_input(captcha_text), salt)
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=CAPTCHA_EXPIRY_MINUTES)
 
