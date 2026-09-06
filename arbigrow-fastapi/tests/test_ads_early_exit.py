@@ -19,8 +19,11 @@ from types import SimpleNamespace
 import pytest
 
 import app.api.v1.ads as ads
+from datetime import date
 from app.models.ad import Ad
 from app.models.ad_view import AdView
+from app.models.investments import Investment
+from app.models.package import Package, TaskType
 from app.models.task_errors import TaskDisciplinaryConfig, TaskAttempt, TaskError
 from app.models.user import User
 
@@ -65,10 +68,17 @@ class FakeSession:
         self.attempts = []
         self.commits = 0
         self.seen_sql = []
+        self.consumed_ids = []
+        self.ads_list = []
+        self.open_sessions = []
+        self.investment = None
+        self.package = None
 
     async def execute(self, stmt):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
         self.seen_sql.append(sql)
+        if re.search(r"SELECT\s+ad_views\.ad_id\s+FROM", sql):
+            return FakeResult(list(self.consumed_ids))
         if sql.lstrip().upper().startswith("UPDATE") and "ad_views" in sql:
             m = re.search(r"ad_views\.id = (\d+)", sql)
             s = self.sessions.get(int(m.group(1))) if m else None
@@ -80,9 +90,17 @@ class FakeSession:
             m = re.search(r"key = '([^']+)'", sql)
             return FakeResult([self.configs[m.group(1)]] if m and m.group(1) in self.configs else [])
         if "FROM ad_views" in sql:
-            return FakeResult([self.session])
+            m = re.search(r"ad_views\.id = (\d+)", sql)
+            if m:
+                s = self.sessions.get(int(m.group(1)))
+                return FakeResult([s] if s else [])
+            return FakeResult(list(self.open_sessions))
         if "FROM ads" in sql:
-            return FakeResult([self.ad])
+            return FakeResult(list(self.ads_list) or ([self.ad] if self.ad else []))
+        if "FROM investments" in sql:
+            return FakeResult([self.investment] if self.investment else [])
+        if "FROM packages" in sql:
+            return FakeResult([self.package] if self.package else [])
         if "FROM users" in sql:
             return FakeResult([self.user])
         if "count(" in sql.lower():
@@ -195,6 +213,68 @@ def test_adview_complete_select_uses_row_lock():
     selects = [s for s in db.seen_sql if "ad_views" in s and s.lstrip().upper().startswith("SELECT")]
     assert selects, "session must be read via SELECT"
     assert any("FOR UPDATE" in s for s in selects), "complete SELECT must carry FOR UPDATE"
+
+
+def _start_env(typed=5, consumed=()):
+    user = User(
+        id=1,
+        email="adstart@oxford.com",
+        username="ad_start_tester",
+        account_status="active",
+        error_count=0,
+        hold_count=0,
+        suspension_count=0,
+        ad_view_wallet=Decimal("0"),
+    )
+    investment = Investment(
+        user_id=1,
+        status="active",
+        package_name="AdPack",
+        daily_captcha_limit=20,
+        captchas_typed_today=typed,
+        captchas_expired_today=0,
+        last_captcha_date=date.today(),
+    )
+    package = Package(
+        name="AdPack",
+        is_active=True,
+        task_type=TaskType.ad_view,
+        daily_captcha_limit=20,
+        ad_duration_seconds=30,
+    )
+    db = FakeSession(user, None, None, {})
+    db.investment = investment
+    db.package = package
+    db.ads_list = [
+        Ad(id=1, video_id="v1", title="A1", thumbnail=None, required_watch_seconds=30),
+        Ad(id=2, video_id="v2", title="A2", thumbnail=None, required_watch_seconds=30),
+        Ad(id=3, video_id="v3", title="A3", thumbnail=None, required_watch_seconds=30),
+    ]
+    db.consumed_ids = list(consumed)
+    req = SimpleNamespace(client=SimpleNamespace(host="127.0.0.1"), headers={})
+    return db, user, investment, req
+
+
+def _start(db, req):
+    return run(ads.start_ad.__wrapped__(req, 1, db))
+
+
+def test_start_skips_consumed_ads():
+    db, user, inv, req = _start_env(typed=5, consumed=[1])
+    resp = _start(db, req)
+    assert resp["ad_id"] in (2, 3)
+    assert inv.captchas_typed_today == 5 + 1
+    created = [o for o in db.added if isinstance(o, AdView)]
+    assert len(created) == 1 and not created[0].is_completed
+
+
+def test_start_falls_back_when_all_consumed():
+    # Repeat views must still be possible so the daily earning limit
+    # stays reachable when only a few distinct ads exist.
+    db, user, inv, req = _start_env(typed=5, consumed=[1, 2, 3])
+    resp = _start(db, req)
+    assert resp["ad_id"] in (1, 2, 3)
+    assert inv.captchas_typed_today == 5 + 1
 
 
 def _abandon(db, req, vid=777):

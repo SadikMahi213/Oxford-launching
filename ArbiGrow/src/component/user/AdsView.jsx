@@ -119,6 +119,8 @@ export default function AdsView() {
       setWatching(true);
       setTimer(data.duration_seconds || 30);
       setCanComplete(false);
+      // A start consumes one daily unit server-side: refresh the display.
+      await fetchStats();
     } catch (err) {
       setError(err.response?.data?.detail || err.message || t('adsView.failedStartAd'));
     }
@@ -182,10 +184,12 @@ export default function AdsView() {
       }
       if (data.success) {
         setUser({ ad_view_wallet: data.new_balance });
-        await fetchStats();
       }
+      await fetchStats();
     } catch (err) {
       setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+      // Refresh counts even on rejection: early exits still consume units.
+      await fetchStats();
     } finally {
       completingRef.current = false;
     }
@@ -228,6 +232,7 @@ export default function AdsView() {
       setAdSession(null);
       setResult({ success: false, exited: true });
       setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+      await fetchStats();
     } finally {
       completingRef.current = false;
     }

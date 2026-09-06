@@ -3,7 +3,7 @@ from datetime import datetime, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select, func, and_, update
+from sqlalchemy import select, func, and_, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -134,7 +134,26 @@ async def start_ad(
     if not all_ads:
         raise HTTPException(400, detail="No ads available. Please check back later.")
 
-    selected_ad = all_ads[0] if len(all_ads) == 1 else random.choice(all_ads)
+    # Prefer ads not yet consumed today: an exited or completed ad must not
+    # come back as available while fresh ads exist. Fall back to the full
+    # pool when everything is consumed so the daily earning limit stays
+    # reachable (repeat views still consume one unit each via the counter).
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    consumed_result = await db.execute(
+        select(AdView.ad_id).where(
+            and_(
+                AdView.user_id == user_id,
+                AdView.ad_id.isnot(None),
+                or_(AdView.is_completed == True, AdView.completed_at.isnot(None)),
+                AdView.started_at >= today_start,
+            )
+        )
+    )
+    consumed_ids = {row for row in consumed_result.scalars().all() if row is not None}
+    fresh_pool = [a for a in all_ads if a.id not in consumed_ids]
+    pool = fresh_pool or all_ads
+
+    selected_ad = pool[0] if len(pool) == 1 else random.choice(pool)
 
     # Increment counter when a new ad is assigned (task delivered).
     # This ensures failed/abandoned ads still count toward the daily limit.
