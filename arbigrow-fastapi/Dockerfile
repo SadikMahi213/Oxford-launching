@@ -37,7 +37,12 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuse
     chown -R appuser:appuser /app /app/.cache
 EXPOSE 8000
 USER appuser
-CMD uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers "${UVICORN_WORKERS:-1}"
+# Conservative throughput default: 3 workers on 4 vCPU for a database-heavy
+# app (see Phase 1 infra tuning). Override per environment with UVICORN_WORKERS.
+# Healthcheck hits the cheap SELECT-1 health endpoint, not business logic.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)"
+CMD uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers "${UVICORN_WORKERS:-3}"
 
 # ── Stage 4: Celery Worker ────────────────────────
 FROM base AS celery
