@@ -75,33 +75,13 @@ const OverviewPage = ({ setActivePage }) => {
     const loadData = async () => {
       try {
         await syncUserFromServer();
-        const [depositRes, withdrawalRes, earningsRes, matchingWalletRes, networkRes, referralRes, walletTxRes] =
+        const [matchingWalletRes, networkRes, referralRes] =
           await Promise.allSettled([
-            getMyDeposits({ page: 1, limit: 200 }),
-            getMyWithdrawals({ page: 1, limit: 200 }),
-            getMyEarningsHistory({ page: 1, limit: 200 }),
             getMatchingWallet(),
             getNetworkAnalytics(),
             getReferralNetwork(),
-            getMyWalletTransactions(),
           ]);
 
-        if (depositRes.status === "fulfilled") {
-          const data = Array.isArray(depositRes.value?.data?.data) ? depositRes.value.data.data : [];
-          setDepositHistory(data);
-        }
-        if (walletTxRes.status === "fulfilled") {
-          const data = Array.isArray(walletTxRes.value?.data?.data) ? walletTxRes.value.data.data : [];
-          setWalletTxs(data);
-        }
-        if (withdrawalRes.status === "fulfilled") {
-          const data = Array.isArray(withdrawalRes.value?.data?.data) ? withdrawalRes.value.data.data : [];
-          setWithdrawalHistory(data);
-        }
-        if (earningsRes.status === "fulfilled") {
-          const data = Array.isArray(earningsRes.value?.data?.data) ? earningsRes.value.data.data : [];
-          setEarningsHistory(data);
-        }
         if (matchingWalletRes.status === "fulfilled" && matchingWalletRes.value?.data) {
           setMatchingBonus(Number(matchingWalletRes.value.data.total_matching_bonus) || 0);
         }
@@ -293,6 +273,42 @@ const OverviewPage = ({ setActivePage }) => {
     } catch (e) {}
   };
 
+  // Wallet history lists are fetched on demand when a wallet card is opened
+  // (same pattern as matching bonuses above), not on dashboard mount.
+  // Limits match the backend defaults in effect before (page 1, 20 rows).
+  const loadDepositHistory = async () => {
+    try {
+      const res = await getMyDeposits({ page: 1, limit: 20 });
+      const data = Array.isArray(res?.data?.data) ? res.data.data : [];
+      setDepositHistory(data);
+      const wtxRes = await getMyWalletTransactions();
+      const wtx = Array.isArray(wtxRes?.data?.data) ? wtxRes.data.data : [];
+      setWalletTxs(wtx);
+    } catch {
+      // Modal falls back to the previously loaded (or empty) list.
+    }
+  };
+
+  const loadWithdrawalHistory = async () => {
+    try {
+      const res = await getMyWithdrawals({ page: 1, limit: 20 });
+      const data = Array.isArray(res?.data?.data) ? res.data.data : [];
+      setWithdrawalHistory(data);
+    } catch {
+      // Modal falls back to the previously loaded (or empty) list.
+    }
+  };
+
+  const loadEarningsHistory = async () => {
+    try {
+      const res = await getMyEarningsHistory();
+      const data = Array.isArray(res?.data?.data) ? res.data.data : [];
+      setEarningsHistory(data);
+    } catch {
+      // Modal falls back to the previously loaded (or empty) list.
+    }
+  };
+
   const kycRefundItems = (walletTxs || [])
     .filter((wtx) => wtx.type === "kyc_fee_refund" || wtx.type === "kyc_fee_reset_refund")
     .map((wtx) => ({
@@ -314,10 +330,18 @@ const OverviewPage = ({ setActivePage }) => {
       : earningsHistory.filter((e) => e.wallet_type === walletHistoryModal);
 
   const handleWalletCardClick = (wallet) => {
-    if (wallet.historyType === "deposit") setWalletHistoryModal("deposit");
-    if (wallet.historyType === "withdrawal") setWalletHistoryModal("withdrawal");
-    if (wallet.historyType === "referral") setWalletHistoryModal("referral");
-    if (wallet.historyType === "generation") setWalletHistoryModal("generation");
+    if (wallet.historyType === "deposit") {
+      loadDepositHistory();
+      setWalletHistoryModal("deposit");
+    }
+    if (wallet.historyType === "withdrawal") {
+      loadWithdrawalHistory();
+      setWalletHistoryModal("withdrawal");
+    }
+    if (wallet.historyType === "referral" || wallet.historyType === "generation") {
+      loadEarningsHistory();
+      setWalletHistoryModal(wallet.historyType);
+    }
   };
 
 
