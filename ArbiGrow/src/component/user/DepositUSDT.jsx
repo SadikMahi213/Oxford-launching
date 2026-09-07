@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Check, ChevronDown, Copy, Send } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, Check, ChevronDown, Copy, Send } from "lucide-react";
 import {
   createDepositRequest,
   getActiveDepositNetworks,
@@ -369,11 +369,11 @@ export default function DepositPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl">
-        <div className="border-b border-white/10 p-6">
+        <div className="border-b border-white/10 p-3 sm:p-6">
           <h3 className="text-lg font-semibold">{t('deposit.history')}</h3>
         </div>
 
-        <div className="responsive-table-wrapper history-cards">
+        <div className="responsive-table-wrapper hidden md:block">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
@@ -413,15 +413,15 @@ export default function DepositPage() {
                       key={deposit.id}
                       className="border-b border-white/5 hover:bg-white/5"
                     >
-                      <td data-label={t('deposit.date')} className="p-4 text-gray-400">
+                      <td className="p-4 text-gray-400">
                         {formatDate(deposit.created_at)}
                       </td>
-                      <td data-label={t('deposit.amount')} className="p-4 font-semibold">
+                      <td className="p-4 font-semibold">
                         {formatAmount(deposit.amount)} USDT
                       </td>
-                      <td data-label={t('deposit.network')} className="p-4 text-gray-400">{networkLabel}</td>
+                      <td className="p-4 text-gray-400">{networkLabel}</td>
 
-                      <td data-label={t('deposit.txid')} className="p-4">
+                      <td className="p-4">
                         <button
                           onClick={() => copyTxid(deposit.txid)}
                           className="flex items-center gap-2 font-mono text-blue-400"
@@ -432,7 +432,7 @@ export default function DepositPage() {
                         </button>
                       </td>
 
-                      <td data-label={t('deposit.status')} className="p-4">
+                      <td className="p-4">
                         <span
                           className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(deposit.status)}`}
                         >
@@ -444,6 +444,71 @@ export default function DepositPage() {
                 })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: compact history cards */}
+        <div className="md:hidden px-3 pb-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-sm text-gray-400">
+              {t('deposit.loadingHistory')}
+            </div>
+          ) : deposits.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400">
+              {t('deposit.noHistory')}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {deposits.map((deposit) => {
+                const networkLabel =
+                  networkDisplayMap.get(deposit.network_name) ||
+                  deposit.network_name;
+
+                return (
+                  <div
+                    key={deposit.id}
+                    className="rounded-xl border border-white/10 bg-[#0B132B] p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                          <ArrowDownLeft size={15} className="text-emerald-300" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13px] font-semibold leading-tight text-white">
+                            {networkLabel}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-gray-400">
+                            {formatDate(deposit.created_at)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end">
+                        <span className="whitespace-nowrap text-sm font-bold text-emerald-300">
+                          {formatAmount(deposit.amount)} USDT
+                        </span>
+                        <span className={`mt-0.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusColor(deposit.status)}`}>
+                          {deposit.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/5 pt-2">
+                      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                        {t('deposit.txid')}
+                      </span>
+                      <button
+                        onClick={() => copyTxid(deposit.txid)}
+                        className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
+                        type="button"
+                      >
+                        <span className="truncate">{truncateTxid(deposit.txid)}</span>
+                        <Copy size={13} className="shrink-0" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
