@@ -401,9 +401,22 @@ def test_t10_snapshot_250_to_team_750_uses_starter_then_silver_rates():
         team_volume=Decimal("750"), matching_volume=Decimal("500"),
     )
     assert result["bonuses_paid"], "at least one bonus must be paid"
-    assert user.matching_bonus_wallet > Decimal("0")
+    assert user.matching_bonus_wallet == Decimal("7.50"), (
+        "only [250, 500] at Silver 3% may pay; [500, 750] waits for Gold"
+    )
     assert user.current_rank_id == 2  # Silver Leader
-    assert user.bonused_up_to == Decimal("750")
+    assert user.bonused_up_to == Decimal("500"), (
+        "floor must stop at the Silver target, not extend to team volume"
+    )
+    # Re-evaluation at the same volume must not pay the Silver band again.
+    result2, db2, user2 = _eval(
+        user, ranks=ranks, configs=configs,
+        team_volume=Decimal("750"), matching_volume=Decimal("750"),
+        bonus_rows=list(db.bonus_rows),
+    )
+    assert result2["bonuses_paid"] == [], "same rank must not pay twice"
+    assert user2.bonused_up_to == Decimal("500")
+    assert user2.matching_bonus_wallet == Decimal("7.50")
 
 
 # T11: exact production report. A 1,200 KYC snapshot is Gold Leader. When a

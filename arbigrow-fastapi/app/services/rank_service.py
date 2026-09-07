@@ -503,16 +503,19 @@ async def evaluate_and_process_rank(
     # R1=200 => 200*2%=$4 at 200 Team Volume (not $10*2%=$0.20). The floor
     # (kyc_approved_team_volume / bonused_up_to) excludes pre-KYC and
     # already-bonused volume. Bonus is only paid when team_volume >= rank.target.
+    # A rank's band is capped at its own target_volume: once a rank's bonus is
+    # paid, further Team Volume growth earns nothing more at that rank's rate.
+    # The next bonus only becomes eligible when Team Volume reaches the next
+    # rank target, so an already-paid rank is never paid repeatedly.
     for index, rank in enumerate(ranks):
         if team_volume < rank.target_volume:
             break
         prev_target = ranks[index - 1].target_volume if index > 0 else Decimal("0")
         band_start = prev_target
-        # For the highest qualified rank, extend band_end to team_volume
-        # so that volume above the rank threshold (but below the next rank)
-        # is still eligible for matching bonus at this rank's rate.
-        is_last_qualified = (index + 1 >= len(ranks) or team_volume < ranks[index + 1].target_volume)
-        band_end = team_volume if is_last_qualified else rank.target_volume
+        # A rank pays at most its own band [previous target, own target].
+        # Volume above the highest achieved rank's target waits for the next
+        # rank instead of earning repeated top-ups at the current rate.
+        band_end = rank.target_volume
 
         payout_from = max(floor, band_start)
         payout_to = min(team_volume, band_end)

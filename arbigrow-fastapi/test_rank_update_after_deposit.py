@@ -415,7 +415,9 @@ def test_large_jump_assigns_highest_eligible_rank_and_pays_bands_once():
         "re-evaluation must not pay a second bonus"
     )
     assert user2.matching_bonus_wallet > Decimal("0")
-    assert user2.bonused_up_to == Decimal("10100")
+    assert user2.bonused_up_to == Decimal("1000"), (
+        "floor must rest at the Gold target; volume above it waits for Global"
+    )
 
 
 # --- No post-approval movement is skipped (guard) ---------------------------
