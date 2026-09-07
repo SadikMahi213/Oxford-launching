@@ -26,7 +26,7 @@ from datetime import timezone
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import desc, func, select
+from sqlalchemy import and_, case, desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_current_user
@@ -136,14 +136,15 @@ def _to_record(
 
 # ── Per-table fetchers ────────────────────────────────────────────────────────
 
-async def _investment_profits(db: AsyncSession, uid: int) -> list:
-    rows = (
-        await db.execute(
-            select(InvestmentProfitHistory)
-            .join(Investment, InvestmentProfitHistory.investment_id == Investment.id)
-            .where(Investment.user_id == uid)
-        )
-    ).scalars().all()
+async def _investment_profits(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = (
+        select(InvestmentProfitHistory)
+        .join(Investment, InvestmentProfitHistory.investment_id == Investment.id)
+        .where(Investment.user_id == uid, *where_extra)
+    )
+    if limit is not None:
+        q = q.order_by(InvestmentProfitHistory.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         # Investment ROI is deposited into the USDT-denominated main_wallet
@@ -153,8 +154,12 @@ async def _investment_profits(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _ad_views(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(AdView).where(AdView.user_id == uid))).scalars().all()
+async def _ad_views(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(AdView).where(AdView.user_id == uid, *where_extra)
+    if limit is not None:
+        # Record date is completed_at or started_at (mirrors the mapping below).
+        q = q.order_by(func.coalesce(AdView.completed_at, AdView.started_at).desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         status = "completed" if r.is_completed else "pending"
@@ -164,8 +169,11 @@ async def _ad_views(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _captcha(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(CaptchaEarning).where(CaptchaEarning.user_id == uid))).scalars().all()
+async def _captcha(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(CaptchaEarning).where(CaptchaEarning.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(CaptchaEarning.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         status = "completed" if r.is_correct else "failed"
@@ -174,10 +182,11 @@ async def _captcha(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _referral_profits(db: AsyncSession, uid: int) -> list:
-    rows = (
-        await db.execute(select(ReferralProfitHistory).where(ReferralProfitHistory.receiver_user_id == uid))
-    ).scalars().all()
+async def _referral_profits(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(ReferralProfitHistory).where(ReferralProfitHistory.receiver_user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(ReferralProfitHistory.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         category = "referral_bonus" if (r.level or 1) == 1 else "team_bonus"
@@ -188,8 +197,11 @@ async def _referral_profits(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _matching_bonuses(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(MatchingBonus).where(MatchingBonus.user_id == uid))).scalars().all()
+async def _matching_bonuses(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(MatchingBonus).where(MatchingBonus.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(MatchingBonus.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         bonus_type = (r.bonus_type or "matching").lower()
@@ -215,8 +227,11 @@ _OFA_CATEGORY = {
 }
 
 
-async def _ofa_transactions(db: AsyncSession, uid: int, ofa_to_usdt_rate: Decimal | None = None) -> list:
-    rows = (await db.execute(select(OFACoinTransaction).where(OFACoinTransaction.user_id == uid))).scalars().all()
+async def _ofa_transactions(db: AsyncSession, uid: int, ofa_to_usdt_rate: Decimal | None = None, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(OFACoinTransaction).where(OFACoinTransaction.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(OFACoinTransaction.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         if r.tx_type == "mining_reward":
@@ -245,8 +260,11 @@ _WT_CATEGORY = {
 }
 
 
-async def _wallet_transactions(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(WalletTransaction).where(WalletTransaction.user_id == uid))).scalars().all()
+async def _wallet_transactions(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(WalletTransaction).where(WalletTransaction.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(WalletTransaction.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         mapping = _WT_CATEGORY.get(r.type, ("wallet", "adjustment", "credit", r.status or "completed"))
@@ -258,8 +276,11 @@ async def _wallet_transactions(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _withdrawals(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(Withdrawal).where(Withdrawal.user_id == uid))).scalars().all()
+async def _withdrawals(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(Withdrawal).where(Withdrawal.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(Withdrawal.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         status = _withdrawal_status(r.status)
@@ -273,8 +294,11 @@ async def _withdrawals(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _deposits(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(Deposit).where(Deposit.user_id == uid))).scalars().all()
+async def _deposits(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(Deposit).where(Deposit.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(Deposit.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         status = _withdrawal_status(r.status)
@@ -284,10 +308,11 @@ async def _deposits(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _investment_purchases(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(
-        select(Investment).where(Investment.user_id == uid)
-    )).scalars().all()
+async def _investment_purchases(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(Investment).where(Investment.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(Investment.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         if r.invested_amount and r.invested_amount > 0:
@@ -297,8 +322,11 @@ async def _investment_purchases(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _ecommerce(db: AsyncSession, uid: int) -> list:
-    rows = (await db.execute(select(EcommerceWalletTransaction).where(EcommerceWalletTransaction.user_id == uid))).scalars().all()
+async def _ecommerce(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(EcommerceWalletTransaction).where(EcommerceWalletTransaction.user_id == uid, *where_extra)
+    if limit is not None:
+        q = q.order_by(EcommerceWalletTransaction.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         t = (r.type or "").lower()
@@ -312,14 +340,14 @@ async def _ecommerce(db: AsyncSession, uid: int) -> list:
     return out
 
 
-async def _transfers(db: AsyncSession, uid: int) -> list:
-    rows = (
-        await db.execute(
-            select(TransferLog).where(
-                (TransferLog.sender_id == uid) | (TransferLog.receiver_id == uid)
-            )
-        )
-    ).scalars().all()
+async def _transfers(db: AsyncSession, uid: int, limit: int | None = None, where_extra: tuple = ()) -> list:
+    q = select(TransferLog).where(
+        (TransferLog.sender_id == uid) | (TransferLog.receiver_id == uid),
+        *where_extra,
+    )
+    if limit is not None:
+        q = q.order_by(TransferLog.created_at.desc().nullslast()).limit(limit)
+    rows = (await db.execute(q)).scalars().all()
     out = []
     for r in rows:
         if r.sender_id == uid:
@@ -576,6 +604,421 @@ async def asyncio_gather_ledger(user, db, uid, task_only: bool = False):
     return records, ofa_balance
 
 
+# ── Fast path: bounded per-table fetch + SQL aggregates ──────────────────────
+# Active ONLY when no row-level filters are present (status/type/start_date/
+# end_date/search all empty). Stream/category/currency/task-scope/KYC-gate are
+# enforced with exact per-table SQL predicates mirroring the Python mapping in
+# the fetchers above, and every fetched row yields at least one kept record —
+# so per-table top-N + merge is exactly equivalent to full-scan + slice
+# (pigeonhole principle). Totals come from per-table SQL SUMs over the same
+# predicates (exact numerics, fixed table order); `total` from per-table
+# COUNTs. Balances and lifetime category cards reuse the existing helpers.
+# Anything else falls through to the legacy full-scan path below, untouched.
+
+_OFA_EARNING_TX_TYPES = frozenset({
+    "signup_bonus", "package_signup_bonus", "referral_bonus",
+    "mining_reward", "ecommerce_seller_bonus",
+})
+
+_OFA_KNOWN_TX_TYPES = _OFA_EARNING_TX_TYPES | frozenset({"ofa_to_usdt", "adjustment"})
+
+_EWT_DEBIT_PREFIXES = ("purchase", "debit", "payment", "spend")
+
+_WT_REFUND_TYPES = frozenset({
+    "kyc_fee_refund", "kyc_fee_reset_refund",
+})
+
+# Canonical fetcher order (matches asyncio_gather_ledger above, so merged
+# ties keep the legacy order).
+_FAST_ORDER = ("iph", "ad", "cap", "rph", "mb", "ofa", "wt", "wd", "dp", "inv", "ewt", "trs")
+
+_FAST_CURRENCY = {
+    "iph": "USDT", "ad": "USDT", "cap": "USDT", "rph": "USDT", "mb": "USDT",
+    "ofa": "OFA", "wt": "USDT", "wd": "USDT", "dp": "USDT", "inv": "USDT",
+    "ewt": "USDT", "trs": "USDT",
+}
+
+# Categories each source can emit (None = admin/dynamic, never skip on filter).
+_FAST_SINGLE_CATEGORY = {
+    "iph": "daily_earning", "ad": "ad_view", "cap": "captcha",
+    "dp": "deposit", "inv": "package_investment", "ewt": "ecommerce", "trs": "transfer",
+}
+
+# Sources whose rows are all in the transaction stream (safe to skip on stream=earning).
+_FAST_TRANSACTION_ONLY = frozenset({"wt", "wd", "dp", "inv"})
+
+# Sources whose rows are all in the earning stream (safe to skip on stream=transaction).
+_FAST_EARNING_ONLY = frozenset({"iph", "ad", "cap", "rph"})
+
+
+def _ewt_is_debit():
+    lowered = func.lower(func.coalesce(EcommerceWalletTransaction.type, ""))
+    return or_(*[lowered.like(p + "%") for p in _EWT_DEBIT_PREFIXES])
+
+
+def _fast_eligible(status, type_, start_date, end_date, search):
+    """Fast path is exact only when no row-level filters are present.
+
+    Stream/category/currency/task-scope/KYC-gate are table-level decisions
+    handled by _fast_wheres; status/type/date/search filter individual mapped
+    rows and keep using the legacy full-scan path.
+    """
+    return not any([status, type_, start_date, end_date, search])
+
+
+def _fast_wheres(key, *, stream, category, currency, task_only, kyc_approved):
+    """Return SQL WHERE extras for one source table, or None to skip it.
+
+    Each predicate mirrors the Python record mapping in the fetchers above so
+    that every fetched row yields at least one kept record (required for the
+    top-N merge to stay exact). Returns None when the table provably
+    contributes zero records under the active filters.
+    """
+    if task_only and key not in ("ad", "cap"):
+        return None
+    if currency and currency.upper() != _FAST_CURRENCY[key]:
+        return None
+    if stream == "earning" and key in _FAST_TRANSACTION_ONLY:
+        return None
+    if stream == "transaction":
+        # Transaction History shows only five categories; every other source
+        # contributes zero rows here (mirrors the allowlist below).
+        if key not in ("dp", "wd", "wt", "inv"):
+            return None
+    if key in _FAST_SINGLE_CATEGORY:
+        if category is not None and category != _FAST_SINGLE_CATEGORY[key]:
+            return None
+        return []
+    if key == "rph":
+        if category == "referral_bonus":
+            # Mirrors `(r.level or 1) == 1` exactly, including NULL/0.
+            return [or_(ReferralProfitHistory.level.is_(None),
+                        ReferralProfitHistory.level.in_([0, 1]))]
+        if category == "team_bonus":
+            return [and_(ReferralProfitHistory.level.is_not(None),
+                         ReferralProfitHistory.level.not_in([0, 1]))]
+        if category is not None:
+            return None
+        return []
+    if key == "mb":
+        # bonus_type is admin-configurable: never skip on category, only narrow.
+        if category == "matching_bonus":
+            return [func.lower(func.coalesce(MatchingBonus.bonus_type, "matching")) == "matching"]
+        if category is not None:
+            return [func.lower(MatchingBonus.bonus_type) == category]
+        return []
+    if key == "ofa":
+        conds = []
+        if not kyc_approved:
+            # Mirrors the KYC gate below (ofa_conversion hidden for non-approved).
+            conds.append(OFACoinTransaction.tx_type != "ofa_to_usdt")
+        if stream == "earning":
+            conds.append(OFACoinTransaction.tx_type.in_(_OFA_EARNING_TX_TYPES))
+        elif category == "mining":
+            conds.append(OFACoinTransaction.tx_type == "mining_reward")
+        elif category == "ofa_transaction":
+            conds.append(or_(~OFACoinTransaction.tx_type.in_(_OFA_KNOWN_TX_TYPES),
+                             OFACoinTransaction.tx_type.is_(None)))
+        elif category is not None:
+            back = {"signup_bonus": "signup_bonus", "package_bonus": "package_signup_bonus",
+                    "referral_bonus": "referral_bonus", "ecommerce_bonus": "ecommerce_seller_bonus",
+                    "ofa_conversion": "ofa_to_usdt", "manual_adjustment": "adjustment"}
+            if category not in back:
+                return None
+            conds.append(OFACoinTransaction.tx_type == back[category])
+        return conds
+    if key == "wt":
+        if category == "kyc_fee":
+            return [WalletTransaction.type.in_(["kyc_fee_hold", "kyc_fee_release"])]
+        if category == "refund":
+            return [WalletTransaction.type.in_(["kyc_fee_refund", "kyc_fee_reset_refund"])]
+        if category == "wallet":
+            return [and_(WalletTransaction.type.not_in(
+                ["kyc_fee_hold", "kyc_fee_release", "kyc_fee_refund", "kyc_fee_reset_refund"]))]
+        if category is not None:
+            return None
+        if stream == "transaction":
+            # The allowlist drops "wallet" records; exclude them up front so
+            # every fetched row is kept.
+            return [WalletTransaction.type.in_(
+                ["kyc_fee_hold", "kyc_fee_release", "kyc_fee_refund", "kyc_fee_reset_refund"])]
+        return []
+    if key == "wd":
+        if category == "service_fee":
+            return [and_(Withdrawal.charge.is_not(None), Withdrawal.charge > 0)]
+        if category is not None and category != "withdrawal":
+            return None
+        return []
+    if key == "dp":
+        if category is not None and category != "deposit":
+            return None
+        return []
+    if key == "inv":
+        if category is not None and category != "package_investment":
+            return None
+        return [Investment.invested_amount > 0]
+    if key == "ewt":
+        if category is not None and category != "ecommerce":
+            return None
+        if stream == "earning":
+            return [~_ewt_is_debit()]
+        return []
+    if key == "trs":
+        if category is not None and category != "transfer":
+            return None
+        return []
+    return []
+
+
+def _fast_secondary_kept(key, *, stream, category):
+    """Whether secondary derived records of this source survive filtering.
+
+    Only withdrawals derive extra records (service_fee splits); every other
+    source maps rows 1:1 to kept records once _fast_wheres applies.
+    """
+    if key != "wd":
+        return True
+    if category is not None and category != "service_fee":
+        return False
+    # Any stream filter drops service_fee rows (earning skips withdrawals
+    # entirely; transaction's allowlist excludes service_fee).
+    if stream is not None:
+        return False
+    return True
+
+
+async def _fast_counts_and_totals(db, uid, plan, *, stream, category, kyc_approved):
+    """Per-table (record count, credit Decimal, debit Decimal, currency).
+
+    Mirrors the direction mapping in the fetchers above; numerics stay exact
+    (Decimal) and are combined in fixed table order by the caller.
+    """
+    out = {}
+    for key in _FAST_ORDER:
+        wheres = plan.get(key)
+        if wheres is None:
+            continue
+        ccy = _FAST_CURRENCY[key]
+        if key == "iph":
+            rows = await db.execute(
+                select(func.count(InvestmentProfitHistory.id),
+                       func.coalesce(func.sum(InvestmentProfitHistory.amount), 0))
+                .join(Investment, InvestmentProfitHistory.investment_id == Investment.id)
+                .where(Investment.user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "ad":
+            rows = await db.execute(
+                select(func.count(AdView.id),
+                       func.coalesce(func.sum(AdView.amount_earned), 0))
+                .where(AdView.user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "cap":
+            rows = await db.execute(
+                select(func.count(CaptchaEarning.id),
+                       func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
+                .where(CaptchaEarning.user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "rph":
+            rows = await db.execute(
+                select(func.count(ReferralProfitHistory.id),
+                       func.coalesce(func.sum(ReferralProfitHistory.amount), 0))
+                .where(ReferralProfitHistory.receiver_user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "mb":
+            rows = await db.execute(
+                select(func.count(MatchingBonus.id),
+                       func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+                .where(MatchingBonus.user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "dp":
+            rows = await db.execute(
+                select(func.count(Deposit.id),
+                       func.coalesce(func.sum(Deposit.amount), 0))
+                .where(Deposit.user_id == uid, *wheres))
+            count, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal("0"), ccy)
+        elif key == "inv":
+            rows = await db.execute(
+                select(func.count(Investment.id),
+                       func.coalesce(func.sum(Investment.invested_amount), 0))
+                .where(Investment.user_id == uid, *wheres))
+            count, debit = rows.one()
+            out[key] = (count, Decimal("0"), Decimal(str(debit)), ccy)
+        elif key == "wd":
+            rows = await db.execute(
+                select(func.count(Withdrawal.id),
+                       func.coalesce(func.sum(Withdrawal.amount), 0),
+                       func.coalesce(func.sum(case(
+                           (and_(Withdrawal.charge.is_not(None), Withdrawal.charge > 0),
+                            Withdrawal.charge), else_=0)), 0))
+                .where(Withdrawal.user_id == uid, *wheres))
+            count, debit, charge = rows.one()
+            debit = Decimal(str(debit)) + Decimal(str(charge))
+            if _fast_secondary_kept("wd", stream=stream, category=category):
+                charge_rows = (await db.execute(
+                    select(func.count(Withdrawal.id))
+                    .where(Withdrawal.user_id == uid, *wheres,
+                           Withdrawal.charge.is_not(None), Withdrawal.charge > 0))).scalar()
+                count = count + charge_rows
+            out[key] = (count, Decimal("0"), debit, ccy)
+        elif key == "wt":
+            hold = WalletTransaction.type == "kyc_fee_hold"
+            rows = await db.execute(
+                select(func.count(WalletTransaction.id),
+                       func.coalesce(func.sum(case((hold, WalletTransaction.amount), else_=0)), 0),
+                       func.coalesce(func.sum(case((~hold, WalletTransaction.amount), else_=0)), 0))
+                .where(WalletTransaction.user_id == uid, *wheres))
+            count, debit, credit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal(str(debit)), ccy)
+        elif key == "ofa":
+            earn = OFACoinTransaction.tx_type.in_(_OFA_EARNING_TX_TYPES)
+            conv = OFACoinTransaction.tx_type == "ofa_to_usdt"
+            amt = func.coalesce(OFACoinTransaction.amount, 0)
+            rows = await db.execute(
+                select(func.count(OFACoinTransaction.id),
+                       func.coalesce(func.sum(case(
+                           (earn, OFACoinTransaction.amount),
+                           (conv, 0),
+                           else_=case(((amt >= 0), OFACoinTransaction.amount), else_=0))), 0),
+                       func.coalesce(func.sum(case(
+                           (earn, 0),
+                           (conv, OFACoinTransaction.amount),
+                           else_=case(((amt >= 0), 0), else_=OFACoinTransaction.amount))), 0))
+                .where(OFACoinTransaction.user_id == uid, *wheres))
+            count, credit, debit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal(str(debit)), ccy)
+        elif key == "ewt":
+            is_debit = _ewt_is_debit()
+            rows = await db.execute(
+                select(func.count(EcommerceWalletTransaction.id),
+                       func.coalesce(func.sum(case((~is_debit, EcommerceWalletTransaction.amount), else_=0)), 0),
+                       func.coalesce(func.sum(case((is_debit, EcommerceWalletTransaction.amount), else_=0)), 0))
+                .where(EcommerceWalletTransaction.user_id == uid, *wheres))
+            count, credit, debit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal(str(debit)), ccy)
+        elif key == "trs":
+            rows = await db.execute(
+                select(func.count(TransferLog.id),
+                       func.coalesce(func.sum(case(
+                           (TransferLog.receiver_id == uid, TransferLog.amount), else_=0)), 0),
+                       func.coalesce(func.sum(case(
+                           (TransferLog.sender_id == uid, TransferLog.amount), else_=0)), 0))
+                .where(or_(TransferLog.sender_id == uid, TransferLog.receiver_id == uid), *wheres))
+            count, credit, debit = rows.one()
+            out[key] = (count, Decimal(str(credit)), Decimal(str(debit)), ccy)
+    return out
+
+
+_FAST_FETCHERS = {
+    "iph": _investment_profits,
+    "ad": _ad_views,
+    "cap": _captcha,
+    "rph": _referral_profits,
+    "mb": _matching_bonuses,
+    "ofa": _ofa_transactions,
+    "wt": _wallet_transactions,
+    "wd": _withdrawals,
+    "dp": _deposits,
+    "inv": _investment_purchases,
+    "ewt": _ecommerce,
+    "trs": _transfers,
+}
+
+
+async def _fast_ledger_page(user, db, *, page, page_size, stream, category,
+                            currency, task_only, kyc_approved):
+    """Bounded fast path for filter-free ledger views.
+
+    Per included table fetches top page*page_size rows (exact by pigeonhole:
+    every fetched row yields a kept record), merges in canonical fetcher order
+    with a stable date-DESC sort (identical to the legacy path), slices the
+    page, and combines per-table SQL aggregates for totals. Balances and
+    lifetime category cards reuse the existing helpers unchanged.
+    """
+    uid = user.id
+    limit = page * page_size
+    plan = {}
+    for key in _FAST_ORDER:
+        wheres = _fast_wheres(key, stream=stream, category=category,
+                              currency=currency, task_only=task_only,
+                              kyc_approved=kyc_approved)
+        if wheres is not None:
+            plan[key] = wheres
+    records = []
+    if "ofa" in plan and not task_only:
+        rate_res = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
+        rate_cfg = rate_res.scalar_one_or_none()
+        ofa_rate = Decimal(rate_cfg.value) if rate_cfg and rate_cfg.value else Decimal("0.0001")
+    else:
+        ofa_rate = None
+    for key in _FAST_ORDER:
+        if key not in plan:
+            continue
+        if key == "ofa":
+            records.extend(await _ofa_transactions(db, uid, ofa_to_usdt_rate=ofa_rate,
+                                                   limit=limit, where_extra=tuple(plan[key])))
+        else:
+            records.extend(await _FAST_FETCHERS[key](db, uid, limit=limit,
+                                                     where_extra=tuple(plan[key])))
+    records.sort(key=lambda x: x["date"] or "", reverse=True)
+    agg = await _fast_counts_and_totals(db, uid, plan, stream=stream,
+                                        category=category, kyc_approved=kyc_approved)
+    totals = {}
+    present = set()
+    for key in _FAST_ORDER:
+        if key not in agg:
+            continue
+        _count, credit, debit, ccy = agg[key]
+        if _count:
+            present.add(ccy)
+        bucket = totals.setdefault(ccy, {"credit": Decimal("0"), "debit": Decimal("0")})
+        bucket["credit"] += credit
+        bucket["debit"] += debit
+    for _cur, bucket in totals.items():
+        bucket["net"] = round(float(bucket["credit"]) - float(bucket["debit"]), 6)
+        bucket["credit"] = float(bucket["credit"])
+        bucket["debit"] = float(bucket["debit"])
+    totals = {ccy: bucket for ccy, bucket in totals.items() if ccy in present}
+    total = sum(agg[key][0] for key in agg)
+    start = (page - 1) * page_size
+    page_items = records[start:start + page_size]
+    ofa_balance = await _ofa_balance(db, uid)
+    balances = {
+        "main_wallet": _num(user.main_wallet),
+        "deposit_wallet": _num(user.deposit_wallet),
+        "withdraw_wallet": _num(user.withdraw_wallet),
+        "referral_wallet": _num(user.referral_wallet),
+        "generation_wallet": _num(user.generation_wallet),
+        "captcha_wallet": _num(user.captcha_wallet),
+        "ad_view_wallet": _num(user.ad_view_wallet),
+        "ecommerce_wallet": _num(user.ecommerce_wallet),
+        "matching_bonus_wallet": _num(user.matching_bonus_wallet),
+        "arbx_wallet": _num(user.arbx_wallet),
+        "arbx_mining_wallet": _num(user.arbx_mining_wallet),
+        "ofa_balance": ofa_balance,
+    }
+    categories = await _category_summary(db, uid, ofa_balance, user)
+    return {
+        "items": page_items,
+        "earning_history": [r for r in page_items if r["stream"] == "earning"],
+        "transaction_history": [r for r in page_items if r["stream"] == "transaction"],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "summary": {
+            "totals": totals,
+            "balances": balances,
+            "categories": categories,
+        },
+    }
+
+
 # ── Route ────────────────────────────────────────────────────────────────────
 
 @router.get("/transactions")
@@ -595,6 +1038,15 @@ async def get_ledger_transactions(
     search: str | None = Query(None),
 ):
     task_only = scope == "task"
+    kyc_approved = getattr(current_user, "admin_kyc_status", None) == "approved"
+    if _fast_eligible(status, type, start_date, end_date, search):
+        # Fast path: no row-level filters, so bounded per-table top-N + SQL
+        # aggregates are exactly equivalent to full-scan + slice (see above).
+        return await _fast_ledger_page(
+            current_user, db, page=page, page_size=page_size, stream=stream,
+            category=category, currency=currency, task_only=task_only,
+            kyc_approved=kyc_approved,
+        )
     records, balances, categories = await _build_ledger(current_user, db, task_only=task_only)
 
     # ── Apply filters ──
