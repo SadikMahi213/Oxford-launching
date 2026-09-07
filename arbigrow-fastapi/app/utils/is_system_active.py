@@ -9,13 +9,14 @@ from app.models.system_config import SystemConfig
 
 logger = logging.getLogger(__name__)
 
-FeatureType = Literal["daily_work", "daily_earning", "withdrawal", "deposit", "purchase", "mining"]
+FeatureType = Literal["daily_work", "daily_earning", "withdrawal", "deposit", "purchase", "mining", "registration"]
 
 FEATURE_CONFIG_KEYS: dict[FeatureType, str] = {
     "daily_work": "system_daily_work_enabled",
     "daily_earning": "system_daily_earning_enabled",
     "withdrawal": "system_withdrawal_enabled",
     "mining": "mining_enabled",
+    "registration": "system_registration_enabled",
 }
 
 WEEKEND_PAUSED_FEATURES: set[FeatureType] = {"daily_work", "daily_earning", "withdrawal"}

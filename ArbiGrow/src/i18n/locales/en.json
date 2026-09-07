@@ -180,7 +180,9 @@
       "error": "Something went wrong",
       "joinTitle": "Join Us Today",
       "joinSubtitle": "Create an account to start earning with our modern platform for digital advertising.",
-      "perDay": "/day"
+      "perDay": "/day",
+      "regOffTitle": "Registration is currently unavailable",
+      "regOffDesc": "New user registration is currently disabled by the administrator. Please check back later."
     },
     "forgotPassword": {
       "title": "Reset Your Password",
