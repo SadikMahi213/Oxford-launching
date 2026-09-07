@@ -445,7 +445,7 @@ export default function WithdrawPage() {
         <div className="border-b border-white/10 p-6">
           <h3 className="text-lg font-semibold">{t('withdraw.history')}</h3>
         </div>
-        <div className="responsive-table-wrapper">
+        <div className="responsive-table-wrapper history-cards">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
@@ -467,23 +467,23 @@ export default function WithdrawPage() {
                 const label = isLong ? `${address.slice(0, 10)}...${address.slice(-6)}` : address;
                 return (
                   <tr key={w.id} className="border-b border-white/5 hover:bg-white/5">
-                    <td className="p-4 text-gray-400">{formatDate(w.created_at)}</td>
-                    <td className="p-4 font-semibold">{formatAmount(w.amount)} USDT</td>
-                    <td className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
-                    <td className="p-4 text-gray-400">{w.network_name || "-"}</td>
-                    <td className="p-4">
+                    <td data-label={t('withdraw.date')} className="p-4 text-gray-400">{formatDate(w.created_at)}</td>
+                    <td data-label={t('withdraw.amount')} className="p-4 font-semibold">{formatAmount(w.amount)} USDT</td>
+                    <td data-label={t('withdraw.wallet')} className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
+                    <td data-label={t('withdraw.network')} className="p-4 text-gray-400">{w.network_name || "-"}</td>
+                    <td data-label={t('withdraw.refId')} className="p-4">
                       {w.transaction_id ? (
                         <button onClick={() => copyAddress(w.transaction_id)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
                           {w.transaction_id.length > 16 ? `${w.transaction_id.slice(0, 10)}...${w.transaction_id.slice(-6)}` : w.transaction_id} <Copy size={14} />
                         </button>
                       ) : "-"}
                     </td>
-                    <td className="p-4">
+                    <td data-label={t('withdraw.address')} className="p-4">
                       <button onClick={() => copyAddress(address)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
                         {label} <Copy size={14} />
                       </button>
                     </td>
-                    <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{w.status}</span></td>
+                    <td data-label={t('withdraw.status')} className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{w.status}</span></td>
                   </tr>
                 );
               })}

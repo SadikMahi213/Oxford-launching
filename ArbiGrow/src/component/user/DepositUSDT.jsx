@@ -373,7 +373,7 @@ export default function DepositPage() {
           <h3 className="text-lg font-semibold">{t('deposit.history')}</h3>
         </div>
 
-        <div className="responsive-table-wrapper">
+        <div className="responsive-table-wrapper history-cards">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
@@ -413,15 +413,15 @@ export default function DepositPage() {
                       key={deposit.id}
                       className="border-b border-white/5 hover:bg-white/5"
                     >
-                      <td className="p-4 text-gray-400">
+                      <td data-label={t('deposit.date')} className="p-4 text-gray-400">
                         {formatDate(deposit.created_at)}
                       </td>
-                      <td className="p-4 font-semibold">
+                      <td data-label={t('deposit.amount')} className="p-4 font-semibold">
                         {formatAmount(deposit.amount)} USDT
                       </td>
-                      <td className="p-4 text-gray-400">{networkLabel}</td>
+                      <td data-label={t('deposit.network')} className="p-4 text-gray-400">{networkLabel}</td>
 
-                      <td className="p-4">
+                      <td data-label={t('deposit.txid')} className="p-4">
                         <button
                           onClick={() => copyTxid(deposit.txid)}
                           className="flex items-center gap-2 font-mono text-blue-400"
@@ -432,7 +432,7 @@ export default function DepositPage() {
                         </button>
                       </td>
 
-                      <td className="p-4">
+                      <td data-label={t('deposit.status')} className="p-4">
                         <span
                           className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(deposit.status)}`}
                         >
