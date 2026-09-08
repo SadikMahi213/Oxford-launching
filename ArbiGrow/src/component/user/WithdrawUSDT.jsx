@@ -98,6 +98,7 @@ export default function WithdrawPage() {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [bankInfo, setBankInfo] = useState(null);
   const [methods, setMethods] = useState([]);
+  const [globalMinWithdrawal, setGlobalMinWithdrawal] = useState(10);
   const [selectedMethodId, setSelectedMethodId] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
   const [accountType, setAccountType] = useState("personal");
@@ -144,7 +145,10 @@ export default function WithdrawPage() {
 
   const hasApprovedBank = bankInfo?.status === "approved";
 
-  const minAmount = selectedMethod?.min_amount ? Number(selectedMethod.min_amount) : 10;
+  const minAmount = Math.max(
+    selectedMethod?.min_amount ? Number(selectedMethod.min_amount) : 10,
+    globalMinWithdrawal > 0 ? globalMinWithdrawal : 10,
+  );
   const maxAmount = selectedMethod?.max_amount ? Number(selectedMethod.max_amount) : 700;
   const fixedFee = selectedMethod?.fixed_fee ? Number(selectedMethod.fixed_fee) : 0;
   const percentFee = selectedMethod?.percent_fee ? Number(selectedMethod.percent_fee) : 0;
@@ -167,6 +171,8 @@ export default function WithdrawPage() {
         setWithdrawals(withdrawalsResponse?.data?.data || []);
         setBankInfo(bankRes?.data?.data || null);
         setMethods(methodRes?.data?.data || []);
+        const globalMin = Number(methodRes?.data?.global_min_withdrawal_amount);
+        if (globalMin > 0) setGlobalMinWithdrawal(globalMin);
       } catch (error) {
         setFeedback({ type: "error", message: getErrorMessage(error) || t('withdraw.err_general') });
         setWithdrawals([]);

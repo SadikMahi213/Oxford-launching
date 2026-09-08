@@ -94,9 +94,25 @@ async def create_withdrawal_request(
     if not method:
         raise HTTPException(status_code=400, detail="Selected withdrawal method is not active or not found")
 
-    # Validate amount against method limits
+    # Validate amount against method limits, floored by the admin-configured
+    # global minimum withdrawal amount (defaults to 10, preserving legacy).
     amount = _to_wallet_precision(Decimal(str(data.amount)))
-    min_amt = method.min_amount if method.min_amount else Decimal("10")
+    try:
+        min_cfg_result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "min_withdrawal_amount")
+        )
+        min_cfg_row = min_cfg_result.scalar_one_or_none()
+        global_min = (
+            Decimal(str(min_cfg_row.value))
+            if min_cfg_row and min_cfg_row.value
+            else Decimal("10")
+        )
+        if global_min <= 0:
+            global_min = Decimal("10")
+    except Exception:
+        global_min = Decimal("10")
+    method_min = method.min_amount if method.min_amount else Decimal("10")
+    min_amt = method_min if method_min > global_min else global_min
     max_amt = method.max_amount if method.max_amount else Decimal("700")
     if amount < min_amt:
         raise HTTPException(status_code=400, detail=f"Minimum withdrawal amount is {min_amt} USDT")

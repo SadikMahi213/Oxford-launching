@@ -35,6 +35,7 @@ const SystemConfigPanel = () => {
   const [kycFeeInput, setKycFeeInput] = useState("");
   const [minDepositInput, setMinDepositInput] = useState("");
   const [minTransferInput, setMinTransferInput] = useState("");
+  const [minWithdrawInput, setMinWithdrawInput] = useState("");
   const [captchaTimerInput, setCaptchaTimerInput] = useState("");
   const [miningPage, setMiningPage] = useState(1);
 
@@ -166,6 +167,18 @@ const SystemConfigPanel = () => {
       setFeeConfig({ ...feeConfig, min_user_transfer_amount: minTransferInput.trim() });
       setMsg(`Minimum user-to-user transfer amount set to ${minTransferInput.trim()} USDT`);
       setMinTransferInput("");
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const saveMinWithdraw = async () => {
+    if (!minWithdrawInput.trim()) return;
+    try {
+      await updateFeeConfig(token, "min_withdrawal_amount", minWithdrawInput.trim());
+      setFeeConfig({ ...feeConfig, min_withdrawal_amount: minWithdrawInput.trim() });
+      setMsg(`Minimum withdrawal amount set to ${minWithdrawInput.trim()} USDT`);
+      setMinWithdrawInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
     }
@@ -395,6 +408,23 @@ const SystemConfigPanel = () => {
                 className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
                 >Save</button>
               <span className="text-xs text-gray-500">Current: {feeConfig.min_user_transfer_amount || "0"} USDT</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-400">Min Withdrawal (USDT):</label>
+              <input
+                value={minWithdrawInput}
+                onChange={(e) => setMinWithdrawInput(e.target.value)}
+                placeholder={feeConfig.min_withdrawal_amount || "10"}
+                className="w-24 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                type="number"
+                min="0.01"
+                step="0.01"
+              />
+              <button onClick={saveMinWithdraw}
+                className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white"
+                >Save</button>
+              <span className="text-xs text-gray-500">Current: {feeConfig.min_withdrawal_amount || "10"} USDT</span>
             </div>
 
             {/* Withdrawal Mode */}

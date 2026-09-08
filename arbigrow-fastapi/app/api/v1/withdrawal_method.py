@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func as sa_func
+from decimal import Decimal
+from app.models.system_config import SystemConfig
 from app.models.withdrawal_method import WithdrawalMethod
 from app.models.withdrawal import Withdrawal
 from app.models.user import User
@@ -39,7 +41,21 @@ async def get_active_withdrawal_methods(
         select(WithdrawalMethod).where(WithdrawalMethod.status == True)
     )
     methods = result.scalars().all()
-    return {"data": methods}
+    try:
+        cfg_result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "min_withdrawal_amount")
+        )
+        cfg_row = cfg_result.scalar_one_or_none()
+        global_min = (
+            Decimal(str(cfg_row.value))
+            if cfg_row and cfg_row.value
+            else Decimal("10")
+        )
+        if global_min <= 0:
+            global_min = Decimal("10")
+    except Exception:
+        global_min = Decimal("10")
+    return {"data": methods, "global_min_withdrawal_amount": str(global_min)}
 
 
 @router.get("/")
