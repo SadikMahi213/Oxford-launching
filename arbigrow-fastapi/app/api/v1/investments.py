@@ -94,6 +94,23 @@ async def buy_investment(
             detail="User not found",
         )
 
+    # Each user may successfully hold at most one zero-value package, across
+    # all package names. Checked after acquiring the user row lock so that
+    # concurrent requests serialize here and cannot both pass.
+    if amount == 0:
+        prior_free = await db.execute(
+            select(Investment.id).where(
+                Investment.user_id == user.id,
+                Investment.invested_amount == 0,
+                Investment.status.in_(["active", "completed"]),
+            )
+        )
+        if prior_free.scalar_one_or_none() is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You have already used your zero-value package.",
+            )
+
     # Activate user account if purchasing a free package
     if amount == 0 and user.account_status == "inactive":
         user.account_status = "active"

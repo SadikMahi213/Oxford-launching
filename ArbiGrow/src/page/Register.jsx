@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import Navbar from "../component/Navbar";
 import Button from "../component/Button";
-import { registerUser } from "../api/auth.api.js";
+import { registerUser, getRegistrationStatus } from "../api/auth.api.js";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { CheckCircle2, Circle, Eye, EyeOff, Rocket } from "lucide-react";
 import api from "../api/axiosInstance.js";
@@ -81,6 +81,7 @@ export default function RegisterForm() {
   const [packages, setPackages] = useState([]);
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [packagesLoading, setPackagesLoading] = useState(true);
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
   const passwordRequirements = useMemo(
     () => [
@@ -102,6 +103,16 @@ export default function RegisterForm() {
       setIsReferralLocked(true);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    getRegistrationStatus().then((res) => {
+      if (res?.data?.enabled === false) {
+        setRegistrationEnabled(false);
+      }
+    }).catch(() => {
+      // Fail open on status-check errors; the backend still enforces the toggle.
+    });
+  }, []);
 
   useEffect(() => {
     api.get("v1/investments/packages").then((res) => {
@@ -153,6 +164,11 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!registrationEnabled) {
+      setMessage(t("auth.register.regOffDesc"));
+      setIsSuccess(false);
+      return;
+    }
     const errorMsg = validateForm();
     if (errorMsg) {
       setMessage(errorMsg);
@@ -208,7 +224,7 @@ export default function RegisterForm() {
     }
   };
 
-  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId;
+  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId || !registrationEnabled;
 
   const fieldClass = "w-full px-4 py-2 border border-white/20 rounded-lg bg-[#0C1035] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-1";
@@ -257,6 +273,13 @@ export default function RegisterForm() {
 
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-4 sm:p-6">
               <form className="space-y-6 text-black" onSubmit={handleSubmit}>
+
+              {!registrationEnabled && (
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-center">
+                  <p className="text-sm font-semibold text-red-400">{t("auth.register.regOffTitle")}</p>
+                  <p className="mt-1 text-xs text-gray-300">{t("auth.register.regOffDesc")}</p>
+                </div>
+              )}
 
               {/* Package Selection */}
               {packagesLoading ? (

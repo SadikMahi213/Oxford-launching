@@ -5,6 +5,10 @@ export const registerUser = (data) => {
   return api.post("v1/auth/signup", data);
 };
 
+export const getRegistrationStatus = () => {
+  return api.get("v1/auth/registration-status");
+};
+
 export const loginUser = (data) => {
   return api.post("v1/auth/login", data);
 };

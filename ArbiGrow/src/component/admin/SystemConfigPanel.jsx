@@ -13,6 +13,11 @@ const FEATURE_LABELS = {
   system_daily_earning_enabled: "Daily Earnings (ROI)",
   system_withdrawal_enabled: "Withdrawals",
   system_weekend_restricted: "Weekend Restriction (Sat/Sun)",
+  system_registration_enabled: "Registration",
+};
+
+const FEATURE_NOTES = {
+  system_registration_enabled: "Controls new user signups",
 };
 
 const SystemConfigPanel = () => {
@@ -223,7 +228,10 @@ const SystemConfigPanel = () => {
                       <Clock className="w-3 h-3" /> Admin override active
                     </p>
                   )}
-                  {!isOverridden && (
+                  {!isOverridden && FEATURE_NOTES[key] && (
+                    <p className="text-xs text-gray-500">{FEATURE_NOTES[key]}</p>
+                  )}
+                  {!isOverridden && !FEATURE_NOTES[key] && (
                     <p className="text-xs text-gray-500">Follows UK weekend schedule</p>
                   )}
                 </motion.div>

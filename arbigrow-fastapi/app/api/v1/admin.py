@@ -1627,7 +1627,7 @@ async def get_system_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     configs = {}
-    for key in list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted"]:
+    for key in list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted", "system_registration_enabled"]:
         result = await db.execute(
             select(SystemConfig).where(SystemConfig.key == key)
         )
@@ -1643,7 +1643,7 @@ async def update_system_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
-    allowed_keys = list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted"]
+    allowed_keys = list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted", "system_registration_enabled"]
     if key not in allowed_keys:
         raise HTTPException(status_code=400, detail="Invalid config key")
     if value.lower() not in ("true", "false"):
