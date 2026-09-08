@@ -11,6 +11,7 @@ import {
   refreshUserStore,
 } from "../../api/user.api.js";
 import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
+import TransactionDetailModal from "./TransactionDetailModal.jsx";
 
 const MAIN_WALLET_BUFFER_RATE = 0.01;
 
@@ -94,6 +95,7 @@ export default function WithdrawPage() {
   const [fieldErrors, setFieldErrors] = useState(INITIAL_FIELD_ERRORS);
   const [feedback, setFeedback] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [bankInfo, setBankInfo] = useState(null);
   const [methods, setMethods] = useState([]);
   const [selectedMethodId, setSelectedMethodId] = useState("");
@@ -268,6 +270,50 @@ export default function WithdrawPage() {
   };
 
   const copyAddress = (value) => navigator.clipboard.writeText(value);
+
+  const renderWithdrawalDetailModal = () => {
+    if (!selectedWithdrawal) return null;
+
+    const address = selectedWithdrawal.destination_address || "-";
+    const addressLabel = address.length > 20 ? `${address.slice(0, 10)}...${address.slice(-6)}` : address;
+    const reference = selectedWithdrawal.transaction_id || "";
+    const referenceLabel = reference
+      ? (reference.length > 16 ? `${reference.slice(0, 10)}...${reference.slice(-6)}` : reference)
+      : "-";
+
+    return (
+      <TransactionDetailModal
+        title={t('withdraw.detailsTitle')}
+        amountValue={`${formatAmount(selectedWithdrawal.amount)} USDT`}
+        amountClassName="text-red-300"
+        rows={[
+          { label: t('withdraw.date'), value: formatDate(selectedWithdrawal.created_at) },
+          {
+            label: t('withdraw.wallet'),
+            value: walletLabelMap.get(selectedWithdrawal.source_wallet) || selectedWithdrawal.source_wallet,
+          },
+          { label: t('withdraw.network'), value: selectedWithdrawal.network_name || "-" },
+          {
+            label: t('withdraw.refId'),
+            value: referenceLabel,
+            copyValue: reference || undefined,
+            mono: true,
+          },
+          {
+            label: t('withdraw.address'),
+            value: addressLabel,
+            copyValue: selectedWithdrawal.destination_address || undefined,
+            mono: true,
+          },
+        ]}
+        statusLabel={t('withdraw.status')}
+        statusText={getStatusLabel(selectedWithdrawal.status, t)}
+        statusClassName={getStatusColor(selectedWithdrawal.status)}
+        copiedText={t('withdraw.copied')}
+        onClose={() => setSelectedWithdrawal(null)}
+      />
+    );
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -523,7 +569,16 @@ export default function WithdrawPage() {
                 return (
                   <div
                     key={w.id}
-                    className="rounded-xl border border-white/10 bg-[#0B132B] p-3"
+                    onClick={() => setSelectedWithdrawal(w)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedWithdrawal(w);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer rounded-xl border border-white/10 bg-[#0B132B] p-3"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -555,7 +610,10 @@ export default function WithdrawPage() {
                         </span>
                         {w.transaction_id ? (
                           <button
-                            onClick={() => copyAddress(w.transaction_id)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              copyAddress(w.transaction_id);
+                            }}
                             className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
                             type="button"
                           >
@@ -573,7 +631,10 @@ export default function WithdrawPage() {
                           {t('withdraw.address')}
                         </span>
                         <button
-                          onClick={() => copyAddress(address)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            copyAddress(address);
+                          }}
                           className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
                           type="button"
                         >
@@ -589,6 +650,8 @@ export default function WithdrawPage() {
           )}
         </div>
       </div>
+
+      {renderWithdrawalDetailModal()}
 
       <StatusFeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
     </div>

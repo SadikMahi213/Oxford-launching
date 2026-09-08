@@ -7,6 +7,7 @@ import {
   getMyDeposits,
 } from "../../api/user.api.js";
 import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
+import TransactionDetailModal from "./TransactionDetailModal.jsx";
 
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
@@ -82,6 +83,7 @@ export default function DepositPage() {
   const [txid, setTxid] = useState("");
   const [fieldErrors, setFieldErrors] = useState(INITIAL_FIELD_ERRORS);
   const [feedback, setFeedback] = useState(null);
+  const [selectedDeposit, setSelectedDeposit] = useState(null);
 
   useEffect(() => {
     if (!feedback) return undefined;
@@ -478,7 +480,16 @@ export default function DepositPage() {
                 return (
                   <div
                     key={deposit.id}
-                    className="rounded-xl border border-white/10 bg-[#0B132B] p-3"
+                    onClick={() => setSelectedDeposit(deposit)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedDeposit(deposit);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer rounded-xl border border-white/10 bg-[#0B132B] p-3"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-2.5">
@@ -508,7 +519,10 @@ export default function DepositPage() {
                         {t('deposit.txid')}
                       </span>
                       <button
-                        onClick={() => copyTxid(deposit.txid)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          copyTxid(deposit.txid);
+                        }}
                         className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
                         type="button"
                       >
@@ -523,6 +537,32 @@ export default function DepositPage() {
           )}
         </div>
       </div>
+
+      {selectedDeposit && (
+        <TransactionDetailModal
+          title={t('deposit.detailsTitle')}
+          amountValue={`${formatAmount(selectedDeposit.amount)} USDT`}
+          amountClassName="text-emerald-300"
+          rows={[
+            { label: t('deposit.date'), value: formatDate(selectedDeposit.created_at) },
+            {
+              label: t('deposit.network'),
+              value: networkDisplayMap.get(selectedDeposit.network_name) || selectedDeposit.network_name,
+            },
+            {
+              label: t('deposit.txid'),
+              value: truncateTxid(selectedDeposit.txid),
+              copyValue: selectedDeposit.txid,
+              mono: true,
+            },
+          ]}
+          statusLabel={t('deposit.status')}
+          statusText={getStatusLabel(selectedDeposit.status)}
+          statusClassName={getStatusColor(selectedDeposit.status)}
+          copiedText={t('deposit.copied')}
+          onClose={() => setSelectedDeposit(null)}
+        />
+      )}
 
       <StatusFeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
     </div>
