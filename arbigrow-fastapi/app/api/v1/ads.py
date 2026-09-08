@@ -17,6 +17,7 @@ from app.models.package import TaskType
 from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
+from app.utils.is_system_active import require_daily_earning
 from app.services.b2_service import generate_presigned_url
 from app.services.task_error_service import (
     log_task_attempt,
@@ -55,6 +56,7 @@ async def start_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    await require_daily_earning(db)
     task_access = await check_task_access(db, user_id)
     if not task_access["allowed"]:
         raise HTTPException(403, detail=task_access["reason"])
@@ -191,6 +193,7 @@ async def complete_ad(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    await require_daily_earning(db)
     # Row-lock the session so concurrent duplicate completes serialize:
     # exactly one of them can transition it.
     result = await db.execute(

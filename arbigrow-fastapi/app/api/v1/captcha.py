@@ -22,6 +22,7 @@ from app.schemas.captcha import (
 )
 from app.core.rate_limiter import limiter
 from app.api.v1.deps import check_earning_access_by_id
+from app.utils.is_system_active import require_daily_earning
 from app.services.captcha_generator import generate_captcha_image
 from app.models.package import Package, TaskType
 from app.services.task_error_service import (
@@ -133,6 +134,7 @@ async def get_next_captcha(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    await require_daily_earning(db)
     inv_result = await db.execute(
         select(Investment).where(
             and_(
@@ -212,6 +214,7 @@ async def submit_captcha(
     db: AsyncSession = Depends(get_db),
 ):
     await check_earning_access_by_id(user_id, db)
+    await require_daily_earning(db)
     task_access = await check_task_access(db, user_id)
     if not task_access["allowed"]:
         raise HTTPException(403, detail=task_access["reason"])

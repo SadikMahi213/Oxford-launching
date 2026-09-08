@@ -9,6 +9,7 @@ from app.api.v1.deps import get_current_admin_user
 from app.core.database import get_db
 from app.core.rate_limiter import limiter
 from app.core.referral import get_referral_level_rates
+from app.utils.is_system_active import require_daily_earning
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -19,7 +20,7 @@ from app.schemas.roi import ROISettingUpdate, ROIPackageApply, ALL_PACKAGE_NAMES
 router = APIRouter(prefix="/admin/roi", tags=["Admin ROI"])
 
 ROI_SETTING_KEY = "global_daily_roi_percent"
-MIN_ROI_PERCENT = Decimal("1")
+MIN_ROI_PERCENT = Decimal("0")
 MAX_ROI_PERCENT = Decimal("5")
 DEFAULT_ROI_PERCENT = Decimal("3")
 
@@ -104,6 +105,9 @@ async def apply_roi_to_all_active_investments(
     current_user: User = Depends(get_current_admin_user),
 ):
     del request
+
+    # Disabled switch: never credit when Daily ROI is OFF.
+    await require_daily_earning(db)
 
     now_utc = datetime.now(timezone.utc)
     setting = await _get_or_create_setting(db)

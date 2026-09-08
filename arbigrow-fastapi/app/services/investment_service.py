@@ -333,10 +333,10 @@ async def run_auto_roi_cycle() -> dict:
     """Credit each active investment with its fixed daily payment once per day."""
     now_utc = datetime.now(timezone.utc)
 
-    # Check UK weekend / admin override for daily_earning
+    # Check UK weekend / admin override for daily_earning, plus ROI 0% = OFF.
     async with AsyncSessionLocal() as db:
-        from app.utils.is_system_active import is_system_active
-        if not await is_system_active("daily_earning", db):
+        from app.utils.is_system_active import is_daily_earning_enabled
+        if not await is_daily_earning_enabled(db):
             logger.info("Auto ROI: daily earning is paused (weekend/system maintenance), skipping cycle")
             return {"processed": 0, "credited": 0}
 

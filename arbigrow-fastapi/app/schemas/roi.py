@@ -23,7 +23,7 @@ ALL_PACKAGE_NAMES = [
 
 
 class ROISettingUpdate(BaseModel):
-    percentage: Decimal = Field(..., ge=1, le=5)
+    percentage: Decimal = Field(..., ge=0, le=5)
 
 
 class ROIPackageApply(BaseModel):

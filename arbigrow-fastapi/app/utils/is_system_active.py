@@ -1,10 +1,13 @@
 import logging
 from datetime import datetime, timezone, timedelta
+from decimal import Decimal
 from typing import Literal
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.roi_setting import ROISetting
 from app.models.system_config import SystemConfig
 
 logger = logging.getLogger(__name__)
@@ -19,6 +22,54 @@ FEATURE_CONFIG_KEYS: dict[FeatureType, str] = {
 }
 
 WEEKEND_PAUSED_FEATURES: set[FeatureType] = {"daily_work", "daily_earning", "withdrawal"}
+
+ROI_GLOBAL_KEY = "global_daily_roi_percent"
+
+DAILY_EARNING_DISABLED_DETAIL = (
+    "Daily earning activities are currently disabled by administrator."
+)
+
+
+async def is_daily_earning_enabled(db: AsyncSession) -> bool:
+    """Authoritative Daily ROI / earning switch.
+
+    OFF when the admin disabled it via either control:
+    1. system_config `system_daily_earning_enabled` == "false", or
+    2. roi_settings `global_daily_roi_percent` <= 0 (0% = OFF).
+
+    Otherwise falls back to the existing weekend-aware `daily_earning`
+    check, preserving current ON behavior byte-for-byte.
+    """
+    toggle_result = await db.execute(
+        select(SystemConfig).where(
+            SystemConfig.key == FEATURE_CONFIG_KEYS["daily_earning"]
+        )
+    )
+    toggle_row = toggle_result.scalar_one_or_none()
+    if toggle_row is not None and (toggle_row.value or "").strip().lower() == "false":
+        return False
+
+    roi_result = await db.execute(
+        select(ROISetting).where(ROISetting.key == ROI_GLOBAL_KEY)
+    )
+    roi_row = roi_result.scalar_one_or_none()
+    if roi_row is not None:
+        try:
+            if Decimal(str(roi_row.roi_percent)) <= 0:
+                return False
+        except Exception:
+            pass
+
+    return await is_system_active("daily_earning", db)
+
+
+async def require_daily_earning(db: AsyncSession) -> None:
+    """Raise 403 before any earning calculation/credit/history creation."""
+    if not await is_daily_earning_enabled(db):
+        raise HTTPException(
+            status_code=403,
+            detail=DAILY_EARNING_DISABLED_DETAIL,
+        )
 
 
 def _is_uk_weekend() -> bool:

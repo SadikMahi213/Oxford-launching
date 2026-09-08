@@ -23,6 +23,7 @@ PACKAGE_TIER_MAP: dict[str, str] = {
 
 from app.api.v1.deps import get_current_user
 from app.core.rate_limiter import limiter
+from app.utils.is_system_active import require_daily_earning
 
 
 router = APIRouter(prefix="/admin/investments", tags=["Admin Investments"])
@@ -41,6 +42,9 @@ async def add_profit(
 
     if not current_user.is_admin:
         raise HTTPException(403, "Admin only")
+
+    # Disabled switch: no manual earning credit while Daily ROI is OFF.
+    await require_daily_earning(db)
 
     percentage = Decimal(payload.percentage)
 
