@@ -157,6 +157,18 @@ export default function DepositPage() {
     }
   };
 
+  // Display-only status labels (database/API values unchanged).
+  const getStatusLabel = (status) => {
+    switch ((status || "").toLowerCase()) {
+      case "pending":
+        return t('deposit.status_pending');
+      case "approved":
+        return t('deposit.status_approved');
+      default:
+        return status;
+    }
+  };
+
   const handleSubmitDeposit = async (event) => {
     event.preventDefault();
     setFeedback(null);
@@ -436,7 +448,7 @@ export default function DepositPage() {
                         <span
                           className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(deposit.status)}`}
                         >
-                          {deposit.status}
+                          {getStatusLabel(deposit.status)}
                         </span>
                       </td>
                     </tr>
@@ -487,7 +499,7 @@ export default function DepositPage() {
                           {formatAmount(deposit.amount)} USDT
                         </span>
                         <span className={`mt-0.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusColor(deposit.status)}`}>
-                          {deposit.status}
+                          {getStatusLabel(deposit.status)}
                         </span>
                       </div>
                     </div>

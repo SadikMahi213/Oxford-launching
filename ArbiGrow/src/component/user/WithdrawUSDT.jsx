@@ -41,7 +41,19 @@ const getStatusColor = (status) => {
     case "rejected":
       return "text-red-400 bg-red-500/10 border-red-500/30";
     default:
-      return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+        return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+  }
+};
+
+// Display-only status labels (database/API values unchanged).
+const getStatusLabel = (status, t) => {
+  switch ((status || "").toLowerCase()) {
+    case "pending":
+      return t('withdraw.status_pending');
+    case "approved":
+      return t('withdraw.status_approved');
+    default:
+      return status;
   }
 };
 
@@ -483,7 +495,7 @@ export default function WithdrawPage() {
                         {label} <Copy size={14} />
                       </button>
                     </td>
-                    <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{w.status}</span></td>
+                    <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{getStatusLabel(w.status, t)}</span></td>
                   </tr>
                 );
               })}
@@ -532,7 +544,7 @@ export default function WithdrawPage() {
                           {formatAmount(w.amount)} USDT
                         </span>
                         <span className={`mt-0.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusColor(w.status)}`}>
-                          {w.status}
+                          {getStatusLabel(w.status, t)}
                         </span>
                       </div>
                     </div>
