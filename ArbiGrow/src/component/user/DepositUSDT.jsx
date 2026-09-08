@@ -541,6 +541,7 @@ export default function DepositPage() {
       {selectedDeposit && (
         <TransactionDetailModal
           title={t('deposit.detailsTitle')}
+          amountLabel={t('deposit.amountLabel')}
           amountValue={`${formatAmount(selectedDeposit.amount)} USDT`}
           amountClassName="text-emerald-300"
           rows={[

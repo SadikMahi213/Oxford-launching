@@ -6,6 +6,7 @@ import { Check, Copy, X } from "lucide-react";
 // Parents pass display-ready strings so formatting/status helpers stay in one place.
 export default function TransactionDetailModal({
   title,
+  amountLabel,
   amountValue,
   amountClassName = "text-emerald-300",
   rows = [],
@@ -82,8 +83,15 @@ export default function TransactionDetailModal({
           </button>
         </div>
 
-        <div className={`mt-3 break-words text-center text-2xl font-extrabold ${amountClassName}`}>
-          {amountValue}
+        <div className="mt-3 text-center">
+          {amountLabel && (
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+              {amountLabel}
+            </div>
+          )}
+          <div className={`mt-1 break-words text-2xl font-extrabold ${amountClassName}`}>
+            {amountValue}
+          </div>
         </div>
 
         <div className="mt-4 divide-y divide-white/5 rounded-xl border border-white/10 bg-white/[0.02]">

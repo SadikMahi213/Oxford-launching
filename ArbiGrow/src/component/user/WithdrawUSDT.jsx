@@ -284,6 +284,7 @@ export default function WithdrawPage() {
     return (
       <TransactionDetailModal
         title={t('withdraw.detailsTitle')}
+        amountLabel={t('withdraw.amountLabel')}
         amountValue={`${formatAmount(selectedWithdrawal.amount)} USDT`}
         amountClassName="text-red-300"
         rows={[

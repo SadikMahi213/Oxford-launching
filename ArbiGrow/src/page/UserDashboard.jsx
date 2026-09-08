@@ -1182,8 +1182,7 @@ export function UserDashboard() {
       >
         {isAccountOnHold && (
           <div className="mx-4 mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-            {t("userDashboard.accountOnHold")}
-            {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
+            {user?.account_issue ? user.account_issue : t("userDashboard.accountOnHold")}
           </div>
         )}
         {isAccountSuspended && (
