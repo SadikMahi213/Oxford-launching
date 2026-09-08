@@ -1091,7 +1091,7 @@ async def send_funds(
         select(SystemConfig).where(SystemConfig.key == "transfer_charge_percent")
     )
     charge_config = charge_result.scalar_one_or_none()
-    charge_percent = Decimal(charge_config.value) if charge_config and charge_config.value else Decimal("5")
+    charge_percent = Decimal(charge_config.value) if charge_config and charge_config.value else Decimal("2")
     charge_amount = (amount * charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
 
     total_deduction = amount  # sender loses the full amount they specified
@@ -1181,9 +1181,10 @@ async def transfer_matching_bonus(
     if recipient.id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot transfer to yourself")
 
-    # Read transfer charge from config
+    # Read matching-bonus transfer charge from config (kept separate from the
+    # user-to-user fund transfer charge so that flow stays at its default).
     charge_result = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "transfer_charge_percent")
+        select(SystemConfig).where(SystemConfig.key == "matching_bonus_transfer_charge_percent")
     )
     charge_config = charge_result.scalar_one_or_none()
     charge_percent = Decimal(charge_config.value) if charge_config and charge_config.value else Decimal("5")

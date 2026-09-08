@@ -678,8 +678,8 @@
     "page": "Page {{current}} of {{total}}"
   },
   "kycVerification": {
-    "title": "KYC Verification Package",
-    "subtitle": "Purchase the KYC verification package to unlock fund transfers and withdrawals.",
+    "title": "Complete Your KYC Verification",
+    "subtitle": "To activate all features, including fund transfers and withdrawals, please complete KYC Verification and verify your identity.",
     "profileImage": "Profile Image",
     "optional": "(optional)",
     "chooseFile": "Choose File",

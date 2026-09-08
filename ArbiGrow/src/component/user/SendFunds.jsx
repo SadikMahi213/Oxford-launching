@@ -90,7 +90,7 @@ export default function SendFunds({ setActivePage }) {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
-  const [transferChargePercent, setTransferChargePercent] = useState(5);
+  const [transferChargePercent, setTransferChargePercent] = useState(2);
   const [minTransfer, setMinTransfer] = useState(0);
   const [minCurrency, setMinCurrency] = useState("OFA");
   const [msg, setMsg] = useState("");
