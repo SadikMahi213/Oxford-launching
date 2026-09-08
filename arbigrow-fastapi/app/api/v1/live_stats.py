@@ -347,47 +347,18 @@ def _platform_earnings_activity(now_s):
     return min(day_max_cents, total_cents) / 100.0
 
 
-# Response cache: the payload above is expensive to regenerate (the daily
-# counters replay thousands of deterministic ticks per request) yet every
-# value is a pure function of the server clock. Cache the generated payload
-# per 10-second bucket, anchored to the bucket start so every worker and
-# every user observes the IDENTICAL snapshot for the same window. Only
-# `server_time` is refreshed per response (it is "now" by definition).
-# Module-level dict, same pattern as `_live_walk_cache` above: per worker
-# process, bounded to a few buckets, no Redis, no database, no behavior
-# change to the response schema.
-_STATS_CACHE_WINDOW_S = 10
-_STATS_CACHE_MAX_BUCKETS = 6
-_stats_cache = {}
-
-
-def _bucket_payload(now_s):
-    bucket = now_s // _STATS_CACHE_WINDOW_S
-    hit = _stats_cache.get(bucket)
-    if hit is not None:
-        return hit
-    if len(_stats_cache) >= _STATS_CACHE_MAX_BUCKETS:
-        _stats_cache.clear()
-    anchor_s = bucket * _STATS_CACHE_WINDOW_S
-    seq = anchor_s
-    events = [_event_for_index(n) for n in range(seq - WINDOW + 1, seq + 1)]
-    payload = {
-        "seq": seq,
-        "live_online": _live_online(anchor_s),
-        "tasks_completed_today": _tasks_completed_today(anchor_s),
-        "platform_earnings_activity": _platform_earnings_activity(anchor_s),
-        "activity": events,
-    }
-    _stats_cache[bucket] = payload
-    return payload
-
-
 @router.get("/")
 async def get_live_stats():
     now_ms = int(time.time() * 1000)
     now_s = now_ms // 1000
-    payload = _bucket_payload(now_s)
-    return JSONResponse(
-        {"server_time": now_ms, **payload},
-        headers={"Cache-Control": "no-store"},
-    )
+    seq = now_s
+    events = [_event_for_index(n) for n in range(seq - WINDOW + 1, seq + 1)]
+    payload = {
+        "server_time": now_ms,
+        "seq": seq,
+        "live_online": _live_online(now_s),
+        "tasks_completed_today": _tasks_completed_today(now_s),
+        "platform_earnings_activity": _platform_earnings_activity(now_s),
+        "activity": events,
+    }
+    return JSONResponse(payload, headers={"Cache-Control": "no-store"})

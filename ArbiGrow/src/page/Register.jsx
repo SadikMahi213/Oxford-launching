@@ -81,8 +81,6 @@ export default function RegisterForm() {
   const [packages, setPackages] = useState([]);
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [packagesLoading, setPackagesLoading] = useState(true);
-  const [regStatus, setRegStatus] = useState("unknown");
-  const registrationOff = regStatus === "off";
 
   const passwordRequirements = useMemo(
     () => [
@@ -104,14 +102,6 @@ export default function RegisterForm() {
       setIsReferralLocked(true);
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    api.get("v1/auth/registration-status").then((res) => {
-      setRegStatus(res.data?.enabled === false ? "off" : "on");
-    }).catch(() => {
-      setRegStatus("on");
-    });
-  }, []);
 
   useEffect(() => {
     api.get("v1/investments/packages").then((res) => {
@@ -163,11 +153,6 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (registrationOff) {
-      setMessage(t("auth.register.regOffDesc"));
-      setIsSuccess(false);
-      return;
-    }
     const errorMsg = validateForm();
     if (errorMsg) {
       setMessage(errorMsg);
@@ -223,7 +208,7 @@ export default function RegisterForm() {
     }
   };
 
-  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId || registrationOff;
+  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId;
 
   const fieldClass = "w-full px-4 py-2 border border-white/20 rounded-lg bg-[#0C1035] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-1";
@@ -269,13 +254,6 @@ export default function RegisterForm() {
               <h1 className="text-2xl sm:text-3xl font-bold text-white">{t("auth.register.title")}</h1>
               <p className="text-gray-400 mt-2 text-sm">{t("auth.register.subtitle")}</p>
             </div>
-
-            {registrationOff && (
-              <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center">
-                <p className="text-sm font-semibold text-red-300">{t("auth.register.regOffTitle")}</p>
-                <p className="mt-1 text-xs text-red-200/80">{t("auth.register.regOffDesc")}</p>
-              </div>
-            )}
 
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-4 sm:p-6">
               <form className="space-y-6 text-black" onSubmit={handleSubmit}>

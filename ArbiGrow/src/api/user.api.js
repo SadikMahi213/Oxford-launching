@@ -28,33 +28,12 @@ const authHeaders = () => {
     : {};
 };
 
-// Shares an in-flight GET between simultaneous consumers (e.g. a 30s poll
-// racing a tab mount) so proven-duplicate endpoints are never fetched twice
-// for the same tick. Responses are NEVER cached: once settled the entry is
-// dropped, so every later call gets fresh data. POSTs are never deduped.
-const inflightGets = new Map();
-
-const dedupedGet = (url, config = {}) => {
-  const params = config?.params ? JSON.stringify(config.params) : "";
-  const auth = config?.headers?.Authorization || "";
-  const key = `GET ${url}?${params}|${auth.slice(-12)}`;
-  if (!inflightGets.has(key)) {
-    inflightGets.set(
-      key,
-      api.get(url, config).finally(() => {
-        inflightGets.delete(key);
-      }),
-    );
-  }
-  return inflightGets.get(key);
-};
-
 export const refreshUserStore = () => {
-  return dedupedGet("v1/user/me", authHeaders());
+  return api.get("v1/user/me", authHeaders());
 };
 
 export const getReferralNetwork = () => {
-  return dedupedGet("v1/user/referral-network", authHeaders());
+  return api.get("v1/user/referral-network", authHeaders());
 };
 
 export const getActiveDepositNetworks = () => {
@@ -69,16 +48,16 @@ export const createDepositRequest = (payload) => {
   return api.post("v1/deposits/", payload, authHeaders());
 };
 
-export const getMyDeposits = (params = {}) => {
-  return dedupedGet("v1/deposits/my", { params, ...authHeaders() });
+export const getMyDeposits = () => {
+  return api.get("v1/deposits/my", authHeaders());
 };
 
 export const createWithdrawalRequest = (payload) => {
   return api.post("v1/withdrawals/", payload, authHeaders());
 };
 
-export const getMyWithdrawals = (params = {}) => {
-  return dedupedGet("v1/withdrawals/my", { params, ...authHeaders() });
+export const getMyWithdrawals = () => {
+  return api.get("v1/withdrawals/my", authHeaders());
 };
 
 export const startMining = () => {
@@ -98,7 +77,7 @@ export const buyInvestment = (payload) => {
 };
 
 export const getMyInvestments = () => {
-  return dedupedGet("v1/investments/my", authHeaders());
+  return api.get("v1/investments/my", authHeaders());
 };
 
 export const getMyInvestmentDetails = (investmentId) => {
@@ -106,7 +85,7 @@ export const getMyInvestmentDetails = (investmentId) => {
 };
 
 export const getMyEarningsHistory = () => {
-  return dedupedGet("v1/user/earnings-history", authHeaders());
+  return api.get("v1/user/earnings-history", authHeaders());
 };
 
 export const getMyProfitHistory = () => {
@@ -194,11 +173,11 @@ export const searchUsers = (query) => {
 };
 
 export const getReferralBonuses = (params = {}) => {
-  return dedupedGet("v1/user/referral-bonuses", { params, ...authHeaders() });
+  return api.get("v1/user/referral-bonuses", { params, ...authHeaders() });
 };
 
 export const getGenerationBonuses = (params = {}) => {
-  return dedupedGet("v1/user/generation-bonuses", { params, ...authHeaders() });
+  return api.get("v1/user/generation-bonuses", { params, ...authHeaders() });
 };
 
 export const getGenerationBonusRates = () => {
@@ -218,7 +197,7 @@ export const getMyRankHistory = () => {
 };
 
 export const getMyMatchingBonuses = (params = {}) => {
-  return dedupedGet("v1/ranks/my-bonuses", { params, ...authHeaders() });
+  return api.get("v1/ranks/my-bonuses", { params, ...authHeaders() });
 };
 
 export const getNetworkAnalytics = () => api.get("v1/user/network-analytics", authHeaders());
@@ -239,7 +218,7 @@ export const getMyInvoiceHistory = (invoiceType) => {
 export const getVendorWithdraws = () => api.get("v1/marketplace/vendor/withdraws", authHeaders());
 export const getEcommerceWalletTransactions = () => api.get("v1/marketplace/wallet-transactions", authHeaders());
 export const getMyWalletTransactions = () =>
-  dedupedGet("v1/user/wallet-transactions", {
+  api.get("v1/user/wallet-transactions", {
     params: { page: 1, limit: 100 },
     ...authHeaders(),
   });

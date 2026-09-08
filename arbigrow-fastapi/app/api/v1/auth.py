@@ -58,25 +58,6 @@ def _generate_user_no() -> str:
     return str(secrets.randbelow(9 * 10**10) + 10**10)
 
 
-async def _is_registration_enabled(db: AsyncSession) -> bool:
-    """Admin-controlled registration switch. Defaults to True (open) when
-    the setting has never been saved, matching historical behavior."""
-    result = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "system_registration_enabled")
-    )
-    config = result.scalar_one_or_none()
-    if config is not None:
-        return (config.value or "").lower() == "true"
-    return True
-
-
-@router.get("/registration-status")
-@limiter.limit("60/minute")
-async def registration_status(request: Request, db: AsyncSession = Depends(get_db)):
-    """Public registration availability flag for the signup UI."""
-    return {"enabled": await _is_registration_enabled(db)}
-
-
 def _client_context(request: Request) -> tuple[str | None, str | None]:
     ip_address = request.client.host if request.client else None
     if request.headers.get("x-forwarded-for"):
@@ -143,11 +124,6 @@ def _verification_matches(user: User, verification: str) -> bool:
 @router.post("/signup", response_model=UserResponse)
 @limiter.limit("60/minute")
 async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    if not await _is_registration_enabled(db):
-        raise HTTPException(
-            status_code=403,
-            detail="Registration is currently disabled by admin"
-        )
     normalized_email = _normalize_email(user_data.email)
 
     ref_user = None

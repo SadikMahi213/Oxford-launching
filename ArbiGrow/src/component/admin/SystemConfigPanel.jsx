@@ -70,19 +70,6 @@ const SystemConfigPanel = () => {
     }
   };
 
-  const registrationEnabled = config.system_registration_enabled !== "false";
-
-  const toggleRegistration = async () => {
-    const newValue = registrationEnabled ? "false" : "true";
-    try {
-      await updateSystemConfig(token, "system_registration_enabled", newValue);
-      setConfig({ ...config, system_registration_enabled: newValue });
-      setMsg(`User Registration ${newValue === "true" ? "enabled" : "disabled"}`);
-    } catch (err) {
-      setMsg("Error: " + (err.response?.data?.detail || err.message));
-    }
-  };
-
   const saveCap = async () => {
     if (!capInput.trim()) return;
     try {
@@ -341,29 +328,6 @@ const SystemConfigPanel = () => {
               >Save</button>
               <span className="text-xs text-gray-500">Current: {miningConfig.captcha_timer_seconds || "60"}s (5–300)</span>
             </div>
-          </motion.div>
-
-          {/* User Registration */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold flex items-center gap-2">
-                <Users className="w-4 h-4 text-emerald-400" /> User Registration
-              </h3>
-              <button onClick={toggleRegistration}
-                className={`p-2 rounded-lg transition-colors ${registrationEnabled ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
-              >
-                {registrationEnabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
-              </button>
-            </div>
-            <p className="text-sm text-gray-400">
-              Status:{" "}
-              <span className={registrationEnabled ? "text-green-400 font-semibold" : "text-red-400 font-semibold"}>
-                {registrationEnabled ? "ON — new users can register" : "OFF — new registrations are blocked"}
-              </span>
-            </p>
-            <p className="text-xs text-gray-500">Existing users can always login. Changes take effect immediately.</p>
           </motion.div>
 
           {/* Fee Configuration */}

@@ -4,7 +4,7 @@ import api from "../../api/axiosInstance.js";
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared global live-activity store.
 //
-// A SINGLE lightweight polling loop (one request per 15s per browser tab)
+// A SINGLE lightweight polling loop (one request per 3s per browser tab)
 // fetches the server-authoritative global stream. Every component that calls
 // `useSharedLiveActivity()` subscribes to the same cached snapshot, so the
 // Global Live Activity feed and the OFA Cryptocurrency stats stay perfectly
@@ -13,7 +13,7 @@ import api from "../../api/axiosInstance.js";
 // client-side (see LiveActivityFeed) and never triggers a network request.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const POLL_MS = 15000;
+const POLL_MS = 3000;
 
 let cache = null;
 let listeners = new Set();
