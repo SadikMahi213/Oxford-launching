@@ -750,6 +750,14 @@
     "loading": "Loading investments...",
     "error": "Failed to load investments."
   },
+  "dailyEarningNotice": {
+    "title": "OFFICIAL NOTICE",
+    "intro": "Due to an administrative decision, Daily Earning activities are temporarily unavailable.",
+    "holidays": "Weekly Holidays: Saturday & Sunday",
+    "holidayNote": "Daily Earning will remain unavailable on the weekly holidays, while all other features will remain active.",
+    "resume": "Daily Earning activities will resume from Monday.",
+    "sign": "★OFA Management"
+  },
   "referral": {
     "title": "Referral Program",
     "subtitle": "Invite friends and earn rewards up to 5 levels deep",

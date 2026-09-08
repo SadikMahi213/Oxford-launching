@@ -21,7 +21,7 @@ from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse,
 from app.core.rate_limiter import limiter
 
 from app.api.v1.deps import get_current_user, check_earning_access, check_no_suspension
-from app.utils.is_system_active import is_system_active
+from app.utils.is_system_active import is_system_active, is_daily_earning_enabled
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
 from app.utils.kyc_helper import check_kyc_approved
@@ -127,6 +127,17 @@ async def get_transfer_minimum(
         "min_user_transfer_amount": float(min_amount),
         "currency": "USDT",
     }
+
+
+@router.get("/earning-status")
+@limiter.limit("120/minute")
+async def get_earning_status(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    del current_user
+    return {"enabled": await is_daily_earning_enabled(db)}
 
 
 @router.get("/me", response_model=UserRefreshResponse)

@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getNextCaptcha, submitCaptcha, getCaptchaStats } from "../../api/user.api.js";
+import DailyEarningNotice from "./DailyEarningNotice.jsx";
 import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
 
@@ -160,6 +161,8 @@ export default function DailyTasks() {
           </p>
         </div>
       </div>
+
+      <DailyEarningNotice />
 
       {/* Stats Cards */}
       {stats && (

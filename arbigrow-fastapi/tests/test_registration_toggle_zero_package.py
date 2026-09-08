@@ -12,6 +12,7 @@ from app.api.v1 import deps
 from app.main import app
 from app.models.investments import Investment
 from app.models.package import Package
+from app.models.roi_setting import ROISetting
 from app.models.system_config import SystemConfig
 from app.models.user import User
 
@@ -55,6 +56,7 @@ class FakeSession:
         self._by_email = {u.email: u for u in users}
         self._packages = {p.name: p for p in packages}
         self.configs = configs
+        self.roi = {}
         self.investments = []
         self._next_id = 1000
 
@@ -64,6 +66,10 @@ class FakeSession:
             m = re.search(r"key = '([^']+)'", sql)
             key = m.group(1) if m else None
             return FakeResult(self.configs.get(key))
+        if "roi_settings" in sql:
+            m = re.search(r"key = '([^']+)'", sql)
+            key = m.group(1) if m else None
+            return FakeResult(self.roi.get(key))
         if "FROM packages" in sql or "packages" in sql and "package_name" not in sql and "investments" not in sql:
             m = re.search(r"name = '([^']+)'", sql)
             name = m.group(1) if m else None
@@ -271,3 +277,42 @@ def test_rejected_attempt_creates_nothing(env):
     before = len(env["sess"].investments)
     assert _buy(env, "Free2", 0).status_code == 400
     assert len(env["sess"].investments) == before
+
+
+# ── Daily earning status (official notice signal) ────────────────────
+
+def _earning_status(env):
+    return env["client"].get(
+        "/api/v1/user/earning-status",
+        headers={"Authorization": "Bearer test"},
+    )
+
+
+def test_earning_status_off_by_toggle(env):
+    env["sess"].configs["system_daily_earning_enabled"] = _cfg(
+        "system_daily_earning_enabled", "false"
+    )
+    r = _earning_status(env)
+    assert r.status_code == 200
+    assert r.json() == {"enabled": False}
+
+
+def test_earning_status_on_by_toggle(env):
+    env["sess"].configs["system_daily_earning_enabled"] = _cfg(
+        "system_daily_earning_enabled", "true"
+    )
+    env["sess"].roi["global_daily_roi_percent"] = ROISetting(
+        key="global_daily_roi_percent", roi_percent=Decimal("3")
+    )
+    r = _earning_status(env)
+    assert r.status_code == 200
+    assert r.json() == {"enabled": True}
+
+
+def test_earning_status_off_by_zero_percent(env):
+    env["sess"].roi["global_daily_roi_percent"] = ROISetting(
+        key="global_daily_roi_percent", roi_percent=Decimal("0")
+    )
+    r = _earning_status(env)
+    assert r.status_code == 200
+    assert r.json() == {"enabled": False}

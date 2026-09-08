@@ -5,6 +5,7 @@ import { InvestmentCard } from "./InvestmentCard";
 import { InvestmentEmptyState } from "./InvestmentEmptyState";
 import { InvestmentDetailsModal } from "./InvestmentDetailsModal";
 import { getMyInvestments as fetchMyInvestments } from "../../api/user.api.js";
+import DailyEarningNotice from "./DailyEarningNotice.jsx";
 
 const toNumber = (value) => Number(value ?? 0);
 
@@ -113,6 +114,8 @@ export function MyInvestments({ refreshKey, onNavigateToPackages }) {
             {t('investments.subtitle')}
           </p>
         </div>
+
+        <DailyEarningNotice />
 
         {loading ? (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-gray-300">

@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
+import DailyEarningNotice from "./DailyEarningNotice.jsx";
 import useUserStore from "../../store/userStore.js";
 
 export default function AdsView() {
@@ -262,6 +263,8 @@ export default function AdsView() {
           </p>
         </div>
       </div>
+
+      <DailyEarningNotice />
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
