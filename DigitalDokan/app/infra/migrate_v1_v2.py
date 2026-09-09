@@ -113,9 +113,13 @@ V2_DDL = [
          id INTEGER PRIMARY KEY AUTOINCREMENT, up_to_id INTEGER NOT NULL, sha256 TEXT NOT NULL,
          note TEXT DEFAULT '',
          created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')))""",
+    # --- unit traceability on transaction lines (§8) ---
+    "ALTER TABLE purchase_items ADD COLUMN unit_id INTEGER REFERENCES product_units(id)",
+    "ALTER TABLE purchase_items ADD COLUMN unit_qty NUMERIC(18,3)",
+    "ALTER TABLE sale_items ADD COLUMN unit_id INTEGER REFERENCES product_units(id)",
+    "ALTER TABLE sale_items ADD COLUMN unit_qty NUMERIC(18,3)",
     # --- helpful indexes for scale ---
-    "CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id)",
-    "CREATE INDEX IF NOT EXISTS idx_sales_shift ON sales(shift_id)",
+    "CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id)",    "CREATE INDEX IF NOT EXISTS idx_sales_shift ON sales(shift_id)",
     "CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id)",
     "CREATE INDEX IF NOT EXISTS idx_sales_branch ON sales(branch_id)",
 ]

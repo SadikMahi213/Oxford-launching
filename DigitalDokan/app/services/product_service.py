@@ -20,23 +20,26 @@ def upsert_product(conn: sqlite3.Connection, data: dict, user_id: int | None = N
         cur = conn.execute(
             """INSERT INTO products(sku, name, name_bn, category_id, brand_id, unit_id, barcode,
                cost_price, sell_price, wholesale_price, vat_pct, min_stock, reorder_level,
-               track_batch, track_expiry, is_active)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+               track_batch, track_expiry, is_active, is_favorite, purchase_unit_id, sell_unit_id)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                ON CONFLICT(sku) DO UPDATE SET name=excluded.name, name_bn=excluded.name_bn,
                category_id=excluded.category_id, brand_id=excluded.brand_id, unit_id=excluded.unit_id,
                barcode=excluded.barcode, cost_price=excluded.cost_price, sell_price=excluded.sell_price,
                wholesale_price=excluded.wholesale_price, vat_pct=excluded.vat_pct,
                min_stock=excluded.min_stock, reorder_level=excluded.reorder_level,
                track_batch=excluded.track_batch, track_expiry=excluded.track_expiry,
-               is_active=excluded.is_active, updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')""",
+               is_active=excluded.is_active, is_favorite=excluded.is_favorite,
+               purchase_unit_id=excluded.purchase_unit_id, sell_unit_id=excluded.sell_unit_id,
+               updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')""",
             (data["sku"].strip(), data["name"].strip(), data.get("name_bn", ""),
              data.get("category_id"), data.get("brand_id"), data.get("unit_id"),
              (data.get("barcode") or "").strip() or None, str(cost), str(sell),
              str(Decimal(str(data.get("wholesale_price", 0)))), str(Decimal(str(data.get("vat_pct", 0)))),
              str(Decimal(str(data.get("min_stock", 0)))), str(Decimal(str(data.get("reorder_level", 0)))),
              int(bool(data.get("track_batch", 0))), int(bool(data.get("track_expiry", 0))),
-             int(bool(data.get("is_active", 1)))),
-        )
+             int(bool(data.get("is_active", 1))), int(bool(data.get("is_favorite", 0))),
+             data.get("purchase_unit_id"), data.get("sell_unit_id")),
+         )
         pid = cur.lastrowid
         if not pid:
             pid = conn.execute("SELECT id FROM products WHERE sku=?", (data["sku"].strip(),)).fetchone()["id"]
@@ -84,6 +87,14 @@ def search(conn: sqlite3.Connection, query: str, limit: int = 50) -> list[dict]:
         """SELECT p.*, IFNULL((SELECT SUM(qty) FROM inventory_batches WHERE product_id=p.id),0) AS stock
            FROM products p WHERE p.is_active=1 AND (p.name LIKE ? OR p.sku LIKE ? OR p.barcode LIKE ?)
            ORDER BY p.name LIMIT ?""", (q, q, q, limit)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def list_favorites(conn: sqlite3.Connection) -> list[dict]:
+    """Quick-sale favorites for the POS panel."""
+    rows = conn.execute(
+        """SELECT p.*, IFNULL((SELECT SUM(qty) FROM inventory_batches WHERE product_id=p.id),0) AS stock
+           FROM products p WHERE p.is_active=1 AND p.is_favorite=1 ORDER BY p.name LIMIT 60""").fetchall()
     return [dict(r) for r in rows]
 
 

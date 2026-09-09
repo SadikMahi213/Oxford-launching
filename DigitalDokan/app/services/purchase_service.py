@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from app.domain.money import to_money
 from app.domain.invoices import next_po_no
+from app.domain.units import convert_qty
 from app.services import approval_service
 from app.services.audit_service import record
 
@@ -49,27 +50,40 @@ def receive_purchase(conn: sqlite3.Connection, *, session, supplier_id: int | No
         for it in items:
             qty = Decimal(str(it["qty"]))
             cost = to_money(it["cost"])
+            # Unit conversion (§8): qty/cost may be quoted in the purchase unit;
+            # stock, batches and ledger always use base (stock) units.
+            prow = conn.execute("SELECT unit_id FROM products WHERE id=?",
+                                (it["product_id"],)).fetchone()
+            stock_unit = prow["unit_id"] if prow else None
+            given_unit = it.get("unit_id")
+            base_qty = convert_qty(conn, qty, given_unit, stock_unit)
+            if base_qty <= 0:
+                raise ValueError("Invalid purchase line")
+            base_cost = to_money((cost * qty) / base_qty)
             batch_no = (it.get("batch_no") or "").strip()
             expiry = (it.get("expiry_date") or "").strip() or None
-            conn.execute("INSERT INTO purchase_items(purchase_id, product_id, batch_no, expiry_date, qty, cost, line_total)"
-                         " VALUES(?,?,?,?,?,?,?)",
-                         (pid, it["product_id"], batch_no, expiry, str(qty), str(cost), str(cost * qty)))
+            conn.execute("INSERT INTO purchase_items(purchase_id, product_id, batch_no, expiry_date,"
+                         " qty, cost, line_total, unit_id, unit_qty)"
+                         " VALUES(?,?,?,?,?,?,?,?,?)",
+                         (pid, it["product_id"], batch_no, expiry, str(base_qty), str(base_cost),
+                          str(cost * qty), given_unit, str(qty)))
             row = conn.execute("SELECT id, qty FROM inventory_batches WHERE product_id=? AND batch_no=?",
                                (it["product_id"], batch_no)).fetchone()
             if row is None:
                 cur2 = conn.execute("INSERT INTO inventory_batches(product_id, batch_no, expiry_date, qty, unit_cost)"
                                     " VALUES(?,?,?,?,?)",
-                                    (it["product_id"], batch_no, expiry, str(qty), str(cost)))
+                                    (it["product_id"], batch_no, expiry, str(base_qty), str(base_cost)))
                 bid = int(cur2.lastrowid)
             else:
                 bid = int(row["id"])
                 conn.execute("UPDATE inventory_batches SET qty = qty + ?, unit_cost=? WHERE id=?",
-                             (str(qty), str(cost), bid))
+                             (str(base_qty), str(base_cost), bid))
             after = conn.execute("SELECT IFNULL(SUM(qty),0) s FROM inventory_batches WHERE product_id=?",
                                  (it["product_id"],)).fetchone()["s"]
             conn.execute("INSERT INTO inventory_movements(product_id, batch_id, qty_change, qty_after,"
                          " source_type, source_id, user_id) VALUES(?,?,?,?,?,?,?)",
-                         (it["product_id"], bid, str(qty), str(after), "purchase", pid, session.user_id))
+                         (it["product_id"], bid, str(base_qty), str(after), "purchase", pid,
+                          session.user_id))
             conn.execute("INSERT OR IGNORE INTO product_suppliers(product_id, supplier_id, last_cost)"
                          " VALUES(?,?,?)", (it["product_id"], supplier_id, str(cost)))
             if supplier_id:

@@ -8,6 +8,16 @@ from app.domain.money import to_money
 from app.services.audit_service import record
 
 
+def find_customer(conn: sqlite3.Connection, query: str) -> dict | None:
+    """Resolve a customer by phone or numeric id (POS due-sale attach)."""
+    q = query.strip()
+    if not q:
+        return None
+    row = conn.execute("SELECT * FROM customers WHERE phone=? OR CAST(id AS TEXT)=?",
+                       (q, q)).fetchone()
+    return dict(row) if row else None
+
+
 def create_customer(conn: sqlite3.Connection, name: str, phone: str = "", address: str = "",
                     credit_limit: Decimal = Decimal("0"), session=None) -> int:
     if session is not None:

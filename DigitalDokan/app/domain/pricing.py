@@ -36,12 +36,13 @@ class Totals:
     subtotal: Decimal
     item_discount: Decimal
     invoice_discount: Decimal
-    vat_total: Decimal
-    rounding: Decimal
-    grand_total: Decimal
-    paid: Decimal
-    due: Decimal
-    change: Decimal
+    promotion_discount: Decimal = Decimal("0.00")
+    vat_total: Decimal = Decimal("0.00")
+    rounding: Decimal = Decimal("0.00")
+    grand_total: Decimal = Decimal("0.00")
+    paid: Decimal = Decimal("0.00")
+    due: Decimal = Decimal("0.00")
+    change: Decimal = Decimal("0.00")
 
 
 def compute_totals(
@@ -49,6 +50,7 @@ def compute_totals(
     invoice_discount: Decimal | str | int | float = Decimal("0"),
     paid: Decimal | str | int | float = Decimal("0"),
     vat_inclusive: bool = False,
+    promotion_discount: Decimal | str | int | float = Decimal("0"),
 ) -> Totals:
     """Deterministic totals. VAT-inclusive means unit_price already contains VAT
     (no additional VAT added); otherwise VAT is added on top of net."""
@@ -68,7 +70,8 @@ def compute_totals(
     item_disc = to_money(item_disc)
     vat_total = to_money(vat_total)
     inv_disc = to_money(invoice_discount)
-    net = to_money(subtotal - item_disc - inv_disc + vat_total)
+    promo_disc = to_money(promotion_discount)
+    net = to_money(subtotal - item_disc - inv_disc - promo_disc + vat_total)
     if net < 0:
         raise ValueError("Discounts exceed payable amount")
     # Cash rounding to nearest 1 BDT is applied only at payment for cash tenders;
@@ -84,6 +87,7 @@ def compute_totals(
         subtotal=subtotal,
         item_discount=item_disc,
         invoice_discount=inv_disc,
+        promotion_discount=promo_disc,
         vat_total=vat_total,
         rounding=rounding,
         grand_total=grand,

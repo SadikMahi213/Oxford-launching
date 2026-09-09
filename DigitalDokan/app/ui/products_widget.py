@@ -9,25 +9,31 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPu
 
 from app.services import product_service
 from app.services.import_export_service import read_csv_products, import_products
+from app.ui.widgets import MoneySpin
 
 
 class ProductDialog(QDialog):
     def __init__(self, data: dict | None = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Product")
-        self.fields: dict[str, QLineEdit | QDoubleSpinBox | QCheckBox] = {}
+        self.fields: dict = {}
         lay = QFormLayout(self)
         data = data or {}
         for key in ("sku", "name", "name_bn", "barcode"):
             w = QLineEdit(str(data.get(key, "")))
             self.fields[key] = w
             lay.addRow(key + ":", w)
-        for key in ("cost_price", "sell_price", "wholesale_price", "min_stock"):
-            w = QDoubleSpinBox()
-            w.setRange(0, 10_000_000)
-            w.setValue(float(data.get(key, 0) or 0))
+        for key in ("cost_price", "sell_price", "wholesale_price"):
+            w = MoneySpin()
+            w.setAmount(data.get(key, 0) or 0)
             self.fields[key] = w
             lay.addRow(key + ":", w)
+        ms = QDoubleSpinBox()
+        ms.setRange(0, 10_000_000)
+        ms.setDecimals(3)
+        ms.setValue(float(data.get("min_stock", 0) or 0))
+        self.fields["min_stock"] = ms
+        lay.addRow("min_stock:", ms)
         self.fields["track_expiry"] = QCheckBox()
         self.fields["track_expiry"].setChecked(bool(data.get("track_expiry", 0)))
         lay.addRow("track_expiry:", self.fields["track_expiry"])
@@ -39,8 +45,9 @@ class ProductDialog(QDialog):
     def value(self) -> dict:
         g = lambda k: self.fields[k]
         return {"sku": g("sku").text(), "name": g("name").text(), "name_bn": g("name_bn").text(),
-                "barcode": g("barcode").text(), "cost_price": g("cost_price").value(),
-                "sell_price": g("sell_price").value(), "wholesale_price": g("wholesale_price").value(),
+                "barcode": g("barcode").text(), "cost_price": str(g("cost_price").amount()),
+                "sell_price": str(g("sell_price").amount()),
+                "wholesale_price": str(g("wholesale_price").amount()),
                 "min_stock": g("min_stock").value(),
                 "track_expiry": int(g("track_expiry").isChecked())}
 

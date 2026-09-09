@@ -69,6 +69,7 @@ def _sale_summary(conn: sqlite3.Connection, sale_id: int) -> dict:
             "totals": Totals(subtotal=Decimal(str(s["subtotal"])),
                              item_discount=Decimal(str(s["item_discount"])),
                              invoice_discount=Decimal(str(s["invoice_discount"])),
+                             promotion_discount=Decimal(str(s["promotion_discount"])),
                              vat_total=Decimal(str(s["vat"])), rounding=Decimal(str(s["rounding"])),
                              grand_total=Decimal(str(s["total"])), paid=Decimal(str(s["paid"])),
                              due=Decimal(str(s["due"])), change=Decimal(str(s["change_amount"]))),
@@ -79,14 +80,16 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
                   payments: list[dict], customer_id: int | None = None,
                   invoice_discount: Decimal = Decimal("0"), terminal_code: str = "POS-01",
                   shift_id: int | None = None, allow_negative_stock: bool = False,
-                  idempotency_key: str | None = None, approver=None,
-                  promotion_id: int | None = None) -> dict:
+                   idempotency_key: str | None = None, approver=None,
+                   promotion_id: int | None = None, auto_promotion: bool = False) -> dict:
     """Atomic sale. Printing happens OUTSIDE (caller) so printer failure never rolls back sale.
 
     idempotency_key: safe retry — a completed sale with the same key is returned
     as-is instead of creating a duplicate charge.
     approver: Session with approve.action, required when discount thresholds
     (settings approval.*) are exceeded and the cashier lacks approve.action.
+    promotion_id: apply a specific active promotion; auto_promotion: apply the
+    best eligible promotion. Exactly one promotion per sale (deterministic).
     """
     session.require("sale.create")
     if not items:
@@ -125,6 +128,7 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
     try:
         lines: list[CartLine] = []
         costs: dict[int, Decimal] = {}
+        cats: dict[int, int | None] = {}
         for it in items:
             prod = conn.execute("SELECT * FROM products WHERE id=? AND is_active=1",
                                 (it["product_id"],)).fetchone()
@@ -139,13 +143,42 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
             disc = Decimal(str(it.get("discount_pct", 0)))
             if disc > 0 and not session.can("discount.apply"):
                 raise PermissionError("Permission denied: discount.apply")
+            # Unit conversion (§8): qty/price may be quoted in the sell unit;
+            # stock, batches and ledger always use base (stock) units.
+            from app.domain.units import convert_qty as _conv
+            keys = prod.keys()
+            stock_unit = prod["unit_id"] if "unit_id" in keys else None
+            given_unit = it.get("unit_id")
+            if given_unit is None and "sell_unit_id" in keys:
+                given_unit = prod["sell_unit_id"]
+            quoted_qty = qty
+            base_qty = _conv(conn, qty, given_unit, stock_unit)
+            if base_qty <= 0:
+                raise ValueError("Quantity must be positive")
+            if (given_unit is not None and stock_unit is not None
+                    and int(given_unit) != int(stock_unit)):
+                price = to_money(price * quoted_qty / base_qty)
+            qty = base_qty
             lines.append(CartLine(int(prod["id"]), prod["name"], qty, to_money(price),
                                   to_money(disc), to_money(prod["vat_pct"])))
             costs[int(prod["id"])] = to_money(prod["cost_price"])
+            cats[int(prod["id"])] = prod["category_id"]
         paid_total = sum((to_money(p["amount"]) for p in payments), Decimal("0.00"))
-        # Discount-threshold approvals (§15) INSIDE the txn here are recorded above;
-        # pre-txn authorize already ran, so just re-check cheaply without side effects.
-        totals = compute_totals(lines, invoice_discount=to_money(invoice_discount), paid=paid_total)
+        # Promotion (single, deterministic, invoice-level — see promotions module).
+        promo_id: int | None = None
+        promo_disc = Decimal("0.00")
+        if promotion_id is not None or auto_promotion:
+            from app.domain import promotions as _promos
+            eval_lines = [{"product_id": ln.product_id, "qty": ln.qty,
+                           "gross": ln.line_gross(), "category_id": cats.get(ln.product_id)}
+                          for ln in lines]
+            gross_sum = sum((ln.line_gross() for ln in lines), Decimal("0.00"))
+            best = _promos.evaluate(conn, eval_lines, gross_sum, customer_id,
+                                    promotion_id, None)
+            if best is not None:
+                promo_id, promo_disc = best.promotion_id, best.discount
+        totals = compute_totals(lines, invoice_discount=to_money(invoice_discount), paid=paid_total,
+                                promotion_discount=promo_disc)
         # Due requires a customer (credit accountability).
         due_methods = [p for p in payments if p["method"] == "due"]
         if totals.due > 0 and customer_id is None and not due_methods:
@@ -168,23 +201,26 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
         cur = conn.execute(
             """INSERT INTO sales(invoice_no, terminal_id, customer_id, user_id, subtotal, item_discount,
                invoice_discount, vat, rounding, total, paid, due, change_amount, shift_id,
-               idempotency_key, promotion_id)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               idempotency_key, promotion_id, promotion_discount)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (invoice_no, tid, customer_id, session.user_id, str(totals.subtotal),
              str(totals.item_discount), str(totals.invoice_discount), str(totals.vat_total),
              str(totals.rounding), str(totals.grand_total), str(totals.paid),
-             str(totals.due), str(totals.change), shift_id, idempotency_key, promotion_id))
+             str(totals.due), str(totals.change), shift_id, idempotency_key, promo_id,
+             str(totals.promotion_discount)))
         sale_id = int(cur.lastrowid)
-        for ln in lines:
+        for idx, ln in enumerate(lines):
             gross = ln.line_gross()
             net = ln.line_net()
+            src = items[idx]
             conn.execute(
                 """INSERT INTO sale_items(sale_id, product_id, qty, unit_price, discount_pct, vat_pct,
-                       line_total, unit_cost)
-                   VALUES(?,?,?,?,?,?,?,?)""",
+                       line_total, unit_cost, unit_id, unit_qty)
+                   VALUES(?,?,?,?,?,?,?,?,?,?)""",
                 (sale_id, ln.product_id, str(ln.qty), str(ln.unit_price),
                  str(ln.discount_pct), str(ln.vat_pct), str(net + ln.line_vat()),
-                 str(costs.get(ln.product_id, Decimal("0.00")))))
+                 str(costs.get(ln.product_id, Decimal("0.00"))),
+                 src.get("unit_id"), str(src.get("qty", ln.qty))))
             _consume_stock(conn, ln.product_id, ln.qty, "sale", sale_id,
                            session.user_id, allow_negative_stock)
         for p in payments:
@@ -204,7 +240,8 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
                entity_id=invoice_no, new_value=f"total={totals.grand_total} paid={totals.paid}",
                terminal_code=terminal_code)
         conn.commit()
-        return {"sale_id": sale_id, "invoice_no": invoice_no, "totals": totals}
+        return {"sale_id": sale_id, "invoice_no": invoice_no, "totals": totals,
+            "promotion_id": promo_id}
     except Exception:
         conn.rollback()
         raise
@@ -326,6 +363,25 @@ def cancel_invoice(conn: sqlite3.Connection, *, session, sale_id: int, reason: s
         raise
 
 
+def find_sale(conn: sqlite3.Connection, invoice_no: str) -> dict | None:
+    """Look up a sale header by visible invoice number (POS ops row)."""
+    row = conn.execute("SELECT * FROM sales WHERE invoice_no=?", (invoice_no.strip(),)).fetchone()
+    return dict(row) if row else None
+
+
+def sale_details(conn: sqlite3.Connection, sale_id: int) -> dict:
+    """Header + lines (with product names) + payments for reprint/return flows."""
+    sale = conn.execute("SELECT * FROM sales WHERE id=?", (sale_id,)).fetchone()
+    if sale is None:
+        raise ValueError("Sale not found")
+    items = [dict(r) for r in conn.execute(
+        "SELECT si.*, p.name FROM sale_items si JOIN products p ON p.id=si.product_id"
+        " WHERE si.sale_id=?", (sale_id,))]
+    payments = [dict(r) for r in conn.execute(
+        "SELECT * FROM sale_payments WHERE sale_id=?", (sale_id,))]
+    return {"sale": dict(sale), "items": items, "payments": payments}
+
+
 def hold_sale(conn: sqlite3.Connection, *, session, cart: dict, note: str = "") -> int:
     session.require("sale.create")
     cur = conn.execute("INSERT INTO held_sales(payload, note, user_id) VALUES(?,?,?)",
@@ -338,11 +394,24 @@ def list_held(conn: sqlite3.Connection) -> list[dict]:
     return [dict(r) for r in conn.execute("SELECT * FROM held_sales ORDER BY id DESC LIMIT 50").fetchall()]
 
 
-def resume_held(conn: sqlite3.Connection, hold_id: int) -> dict:
+def resume_held(conn: sqlite3.Connection, hold_id: int, session=None) -> dict:
+    if session is not None:
+        session.require("sale.create")
     row = conn.execute("SELECT * FROM held_sales WHERE id=?", (hold_id,)).fetchone()
     if row is None:
         raise ValueError("Held sale not found")
     cart = json.loads(row["payload"])
     conn.execute("DELETE FROM held_sales WHERE id=?", (hold_id,))
     conn.commit()
+    # Re-validate: drop inactive/missing products so resume can't inject bad lines.
+    items = []
+    for ln in cart.get("items", []):
+        prod = conn.execute("SELECT id, sell_price, vat_pct FROM products WHERE id=? AND is_active=1",
+                            (ln.get("product_id"),)).fetchone()
+        if prod is None:
+            continue
+        items.append({"product_id": int(prod["id"]), "qty": str(ln.get("qty", "1")),
+                      "unit_price": str(ln.get("unit_price", prod["sell_price"])),
+                      "discount_pct": str(ln.get("discount_pct", "0"))})
+    cart["items"] = items
     return cart

@@ -43,7 +43,7 @@ def product_sales(conn: sqlite3.Connection, start=None, end=None, limit: int = 5
     extra, params = _between("s.created_at", start, end)
     rows = conn.execute(
         f"SELECT p.sku, p.name, SUM(si.qty) qty, SUM(si.line_total) revenue,"
-        f" SUM((si.unit_price - p.cost_price) * si.qty) profit_est"
+        f" SUM((si.unit_price - COALESCE(si.unit_cost, p.cost_price)) * si.qty) profit_est"
         f" FROM sale_items si JOIN sales s ON s.id=si.sale_id JOIN products p ON p.id=si.product_id"
         f" WHERE s.status='completed'{extra} GROUP BY p.id ORDER BY revenue DESC LIMIT ?", (*params, limit)).fetchall()
     return [dict(r) for r in rows]
