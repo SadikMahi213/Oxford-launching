@@ -41,6 +41,11 @@ def cash_io(conn: sqlite3.Connection, *, session, shift_id: int, direction: str,
     session.require("shift.manage")
     if direction not in ("in", "out"):
         raise ValueError("direction must be in/out")
+    sh = conn.execute("SELECT status FROM cash_sessions WHERE id=?", (shift_id,)).fetchone()
+    if sh is None:
+        raise ValueError("Shift not found")
+    if sh["status"] == "closed":
+        raise ValueError("Shift is closed - corrections need shift.correct approval")
     amt = to_money(amount)
     with conn:
         conn.execute("INSERT INTO cash_movements(shift_id, direction, amount, reason, user_id)"
@@ -53,6 +58,12 @@ def add_expense(conn: sqlite3.Connection, *, session, category_id: int, amount: 
     amt = to_money(amount)
     if amt <= 0:
         raise ValueError("Amount must be positive")
+    if shift_id is not None:
+        sh = conn.execute("SELECT status FROM cash_sessions WHERE id=?", (shift_id,)).fetchone()
+        if sh is None:
+            raise ValueError("Shift not found")
+        if sh["status"] == "closed":
+            raise ValueError("Shift is closed - corrections need shift.correct approval")
     cur = conn.execute("INSERT INTO expenses(category_id, amount, method, note, user_id, shift_id)"
                        " VALUES(?,?,?,?,?,?)",
                        (category_id, str(amt), method, note, session.user_id, shift_id))
@@ -60,6 +71,43 @@ def add_expense(conn: sqlite3.Connection, *, session, category_id: int, amount: 
     record(conn, user_id=session.user_id, action="expense.added", entity="expense",
            entity_id=str(cur.lastrowid), new_value=f"{amt} {note}")
     return int(cur.lastrowid)
+
+
+def set_shift_state(conn: sqlite3.Connection, *, session, shift_id: int,
+                    state: str) -> None:
+    """Explicit lifecycle step OPEN→ACTIVE→CLOSING→CLOSED (§13). Closed is terminal
+    except via reopen_shift (shift.correct + approval + audit)."""
+    session.require("shift.manage")
+    allowed = {"open": ("active",), "active": ("closing", "open"), "closing": ("closed", "active")}
+    with conn:
+        sh = conn.execute("SELECT status FROM cash_sessions WHERE id=?", (shift_id,)).fetchone()
+        if sh is None:
+            raise ValueError("Shift not found")
+        cur = sh["status"]
+        if cur == "closed" or state not in allowed.get(cur, ()):
+            raise ValueError(f"Illegal shift transition {cur} → {state}")
+        conn.execute("UPDATE cash_sessions SET status=? WHERE id=?", (state, shift_id))
+        record(conn, user_id=session.user_id, action="shift.state", entity="shift",
+               entity_id=str(shift_id), old_value=cur, new_value=state)
+
+
+def reopen_shift(conn: sqlite3.Connection, *, session, shift_id: int, reason: str,
+                 approver=None) -> None:
+    """Correction workflow: closed → closing for recount, fully audited. (§13)"""
+    session.require("shift.correct")
+    if not reason.strip():
+        raise ValueError("Correction reason required")
+    from app.services import approval_service
+    approval_service.authorize(conn, session=session, action="shift.correct",
+                               entity="shift", entity_id=str(shift_id), reason=reason.strip(),
+                               approver=approver)
+    with conn:
+        sh = conn.execute("SELECT status FROM cash_sessions WHERE id=?", (shift_id,)).fetchone()
+        if sh is None or sh["status"] != "closed":
+            raise ValueError("Only closed shifts can be reopened")
+        conn.execute("UPDATE cash_sessions SET status='closing' WHERE id=?", (shift_id,))
+        record(conn, user_id=session.user_id, action="shift.reopened", entity="shift",
+               entity_id=str(shift_id), old_value="closed", new_value="closing", reason=reason.strip())
 
 
 def close_shift(conn: sqlite3.Connection, *, session, shift_id: int,

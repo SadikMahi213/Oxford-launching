@@ -198,18 +198,21 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
                 raise ValueError("Customer credit limit exceeded")
 
         invoice_no = next_invoice_no(conn)
-        term = conn.execute("SELECT id FROM terminals WHERE code=?", (terminal_code,)).fetchone()
+        term = conn.execute("SELECT id, branch_id, register_no FROM terminals WHERE code=?",
+                            (terminal_code,)).fetchone()
         tid = term["id"] if term else None
+        branch_id = term["branch_id"] if term and term["branch_id"] else None
+        register_no = (term["register_no"] or "") if term else ""
         cur = conn.execute(
             """INSERT INTO sales(invoice_no, terminal_id, customer_id, user_id, subtotal, item_discount,
                invoice_discount, vat, rounding, total, paid, due, change_amount, shift_id,
-               idempotency_key, promotion_id, promotion_discount)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               idempotency_key, promotion_id, promotion_discount, branch_id, register_no)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (invoice_no, tid, customer_id, session.user_id, str(totals.subtotal),
              str(totals.item_discount), str(totals.invoice_discount), str(totals.vat_total),
              str(totals.rounding), str(totals.grand_total), str(totals.paid),
              str(totals.due), str(totals.change), shift_id, idempotency_key, promo_id,
-             str(totals.promotion_discount)))
+             str(totals.promotion_discount), branch_id, register_no))
         sale_id = int(cur.lastrowid)
         for idx, ln in enumerate(lines):
             gross = ln.line_gross()

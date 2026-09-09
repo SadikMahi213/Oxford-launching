@@ -90,26 +90,29 @@ class MainWindow(QMainWindow):
         self.ctx = ctx
         self.setWindowTitle(f"DigitalDokan - {ctx.session.full_name} ({ctx.session.role})")
         self.resize(1280, 800)
+        from app.i18n.manager import t
+        lang = ctx.language
         tabs = QTabWidget()
-        tabs.addTab(POSWidget(ctx), "POS")
-        tabs.addTab(ProductsWidget(ctx), "Products")
-        tabs.addTab(PurchasesWidget(ctx), "Purchases")
-        tabs.addTab(CustomersWidget(ctx), "Customers")
-        tabs.addTab(SuppliersWidget(ctx), "Suppliers")
-        tabs.addTab(OpsWidget(ctx), "Shifts/Expenses")
+        tabs.addTab(POSWidget(ctx), t(lang, "pos"))
+        tabs.addTab(ProductsWidget(ctx), t(lang, "products"))
+        tabs.addTab(PurchasesWidget(ctx), t(lang, "purchases"))
+        tabs.addTab(CustomersWidget(ctx), t(lang, "customers"))
+        tabs.addTab(SuppliersWidget(ctx), t(lang, "suppliers"))
+        tabs.addTab(OpsWidget(ctx), t(lang, "shifts_expenses"))
         if ctx.session.can("access_reports"):
-            tabs.addTab(ReportsWidget(ctx), "Reports")
+            tabs.addTab(ReportsWidget(ctx), t(lang, "reports"))
         if ctx.session.can("manage_users"):
-            tabs.addTab(UsersWidget(ctx), "Users")
+            tabs.addTab(UsersWidget(ctx), t(lang, "users"))
         if ctx.session.can("manage_settings"):
-            tabs.addTab(SettingsWidget(ctx), "Settings")
+            tabs.addTab(SettingsWidget(ctx), t(lang, "settings"))
         if ctx.session.can("backup"):
-            tabs.addTab(BackupWidget(ctx), "Backup")
+            tabs.addTab(BackupWidget(ctx), t(lang, "backup"))
         self.setCentralWidget(tabs)
         lan = getattr(ctx, "lan", None)
         net = f" | LAN: {lan.base_url} ({lan.terminal_code})" if lan is not None else ""
         self.statusBar().showMessage(
-            f"User: {ctx.session.username} | Terminal: {ctx.terminal_code}{net} | OFFLINE READY")
+            f"User: {ctx.session.username} | Terminal: {ctx.terminal_code}{net} | "
+            f"{t(lang, 'offline_ready')}")
         help_menu = self.menuBar().addMenu("Help")
         diag_action = help_menu.addAction("Diagnostics")
         diag_action.triggered.connect(lambda: DiagnosticsDialog(ctx, self).exec())
@@ -122,7 +125,9 @@ class MainWindow(QMainWindow):
     def _idle_tick(self):
         self._idle_ms += 60_000
         if self._idle_ms >= self.ctx.config.session_timeout_minutes * 60_000:
-            QMessageBox.information(self, "Locked", "Session locked due to inactivity. Please login again.")
+            from app.i18n.manager import t
+            QMessageBox.information(self, t(self.ctx.language, "locked"),
+                                    "Session locked due to inactivity. Please login again.")
             self.close()
 
     def closeEvent(self, event):

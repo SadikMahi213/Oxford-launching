@@ -11,19 +11,21 @@ class LoginDialog(QDialog):
     def __init__(self, ctx, parent=None):
         super().__init__(parent)
         self.ctx = ctx
-        self.setWindowTitle("DigitalDokan - Login")
+        from app.i18n.manager import t
+        lang = ctx.language
+        self.setWindowTitle(f"{t(lang, 'app_title')} - {t(lang, 'login')}")
         self.setMinimumWidth(340)
         layout = QVBoxLayout(self)
         form = QFormLayout()
         self.username = QLineEdit()
         self.password = QLineEdit()
         self.password.setEchoMode(QLineEdit.Password)
-        form.addRow("Username:", self.username)
-        form.addRow("Password/PIN:", self.password)
+        form.addRow(f"{t(lang, 'username')}:", self.username)
+        form.addRow(t(lang, "password_pin"), self.password)
         layout.addLayout(form)
         self.info = QLabel("")
         layout.addWidget(self.info)
-        btn = QPushButton("Login (Enter)")
+        btn = QPushButton(t(lang, "login_enter"))
         btn.clicked.connect(self.try_login)
         layout.addWidget(btn)
         self.password.returnPressed.connect(self.try_login)
