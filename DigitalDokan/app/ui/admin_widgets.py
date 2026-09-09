@@ -95,11 +95,23 @@ class SettingsWidget(QWidget):
         self.size.addItems(["80mm", "58mm"])
         self.lang = QComboBox()
         self.lang.addItems(["en", "bn"])
+        self.lan_mode = QComboBox()
+        self.lan_mode.addItems(["standalone", "lan-required"])
+        self.lan_url = QLineEdit()
+        self.lan_url.setPlaceholderText("http://server-pc:8765")
+        self.lan_terminal = QLineEdit()
+        self.lan_terminal.setPlaceholderText("POS-01")
+        self.lan_status = QLabel("")
+        test_lan = QPushButton("Test store server")
+        test_lan.clicked.connect(self.test_lan)
         for w, k in ((self.biz_name, "Store name"), (self.biz_addr, "Address"),
                      (self.biz_phone, "Phone"), (self.biz_bin, "BIN"),
                      (self.printer, "Printer name"), (self.size, "Receipt size"),
-                     (self.lang, "Language")):
+                     (self.lang, "Language"), (self.lan_mode, "LAN mode"),
+                     (self.lan_url, "Store server URL"), (self.lan_terminal, "LAN terminal")):
             lay.addRow(k + ":", w)
+        lay.addWidget(test_lan)
+        lay.addWidget(self.lan_status)
         save = QPushButton("Save settings")
         save.clicked.connect(self.save)
         lay.addWidget(save)
@@ -117,6 +129,9 @@ class SettingsWidget(QWidget):
         self.biz_phone.setText(biz.get("phone", ""))
         self.biz_bin.setText(biz.get("bin_no", ""))
         self.printer.setText(settings_service.get(self.ctx.conn, "printer_name"))
+        self.lan_mode.setCurrentText(settings_service.get(self.ctx.conn, "lan.mode", "standalone"))
+        self.lan_url.setText(settings_service.get(self.ctx.conn, "lan.server_url", ""))
+        self.lan_terminal.setText(settings_service.get(self.ctx.conn, "lan.terminal", "POS-01"))
         st = license_manager.status(self.ctx.conn)
         self.lic.setText(f"License: {st.plan} | valid={st.valid} | {st.message}")
 
@@ -132,8 +147,29 @@ class SettingsWidget(QWidget):
                              session=self.ctx.session)
         settings_service.set(self.ctx.conn, "language", self.lang.currentText(),
                              session=self.ctx.session)
+        settings_service.set(self.ctx.conn, "lan.mode", self.lan_mode.currentText(),
+                             session=self.ctx.session)
+        settings_service.set(self.ctx.conn, "lan.server_url", self.lan_url.text().strip(),
+                             session=self.ctx.session)
+        settings_service.set(self.ctx.conn, "lan.terminal", self.lan_terminal.text().strip(),
+                             session=self.ctx.session)
+        from app.server import bridge as _bridge
+        self.ctx.lan = _bridge.connect_from_settings(self.ctx.conn, self.ctx.terminal_code)
         self.ctx.language = self.lang.currentText()
         QMessageBox.information(self, "Saved", "Settings saved")
+
+    def test_lan(self):
+        from app.server.client import LanClient
+        url = self.lan_url.text().strip()
+        if not url:
+            self.lan_status.setText("Enter a server URL first.")
+            return
+        try:
+            h = LanClient(url).health()
+            self.lan_status.setText(f"Server OK: integrity={h.get('integrity')} "
+                                    f"outbox_pending={h.get('outbox_pending')}")
+        except Exception as e:
+            self.lan_status.setText(f"Unreachable: {e}")
 
     def activate(self):
         from PySide6.QtWidgets import QInputDialog

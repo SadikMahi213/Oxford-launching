@@ -93,6 +93,9 @@ def receive_purchase(conn: sqlite3.Connection, *, session, supplier_id: int | No
             conn.execute("UPDATE suppliers SET balance = balance + ? WHERE id=?", (str(due), supplier_id))
         record(conn, user_id=session.user_id, action="purchase.received", entity="purchase",
                entity_id=inv, new_value=f"total={total} paid={paid_m}")
+        from app.sync.outbox import enqueue as _enqueue
+        _enqueue(conn, "purchase.received", {"purchase_id": pid, "invoice_no": inv,
+                                             "total": str(total)})
         conn.commit()
         return {"purchase_id": pid, "invoice_no": inv, "total": total, "due": due}
     except Exception:
@@ -194,5 +197,8 @@ def pay_supplier(conn: sqlite3.Connection, *, session, supplier_id: int, amount:
         # Straight subtraction; negative balance = supplier owes us (advance/credit).
         conn.execute("UPDATE suppliers SET balance = balance - ? WHERE id=?",
                      (str(amt), supplier_id))
+        from app.sync.outbox import enqueue as _enqueue
+        _enqueue(conn, "supplier.paid", {"supplier_id": supplier_id, "amount": str(amt),
+                                         "method": method})
         record(conn, user_id=session.user_id, action="supplier.payment", entity="supplier",
                entity_id=str(supplier_id), new_value=f"paid={amt} method={method}")

@@ -32,7 +32,10 @@ class MainWindow(QMainWindow):
         if ctx.session.can("backup"):
             tabs.addTab(BackupWidget(ctx), "Backup")
         self.setCentralWidget(tabs)
-        self.statusBar().showMessage(f"User: {ctx.session.username} | Terminal: {ctx.terminal_code} | OFFLINE READY")
+        lan = getattr(ctx, "lan", None)
+        net = f" | LAN: {lan.base_url} ({lan.terminal_code})" if lan is not None else ""
+        self.statusBar().showMessage(
+            f"User: {ctx.session.username} | Terminal: {ctx.terminal_code}{net} | OFFLINE READY")
         # Auto-lock after inactivity.
         self._idle_ms = 0
         self._timer = QTimer(self)

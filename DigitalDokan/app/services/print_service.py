@@ -46,6 +46,22 @@ def _job(conn: sqlite3.Connection, kind: str, reference: str, payload: str,
         pass  # job logging must never break the sale flow
 
 
+def deliver_text(conn: sqlite3.Connection, *, kind: str, reference: str, text: str,
+                 session=None, fallback_dir: str | None = None) -> PrintResult:
+    """Deliver already-built receipt text to the configured printer and log the job.
+
+    Used by the LAN path (text built from server data, delivered client-locally).
+    """
+    cfg = config_from_db(conn, fallback_dir)
+    printer = get_printer(cfg.name, cfg.fallback_dir)
+    result = printer.print_receipt(text)
+    if result.ok and cfg.drawer_enabled:
+        printer.open_drawer()
+    uid = session.user_id if session is not None else None
+    _job(conn, kind, reference, text, result.ok, result.message, uid)
+    return result
+
+
 def print_receipt(conn: sqlite3.Connection, *, sale_id: int, session=None,
                   kind: str = "receipt", fallback_dir: str | None = None) -> PrintResult:
     """Print (or reprint) a sale receipt. Returns status; records print_jobs row."""
@@ -66,21 +82,36 @@ def print_receipt(conn: sqlite3.Connection, *, sale_id: int, session=None,
     text = build_receipt(business=biz, sale=det["sale"], items=item_rows,
                          payments=det["payments"], width=cfg.width, cashier=cashier,
                          footer=t(cfg.language, "receipt_thanks"))
-    printer = get_printer(cfg.name, cfg.fallback_dir)
-    result = printer.print_receipt(text)
-    if result.ok and cfg.drawer_enabled:
-        printer.open_drawer()
-    uid = session.user_id if session is not None else None
-    _job(conn, kind, det["sale"]["invoice_no"], text, result.ok, result.message, uid)
+    result = deliver_text(conn, kind=kind, reference=det["sale"]["invoice_no"], text=text,
+                          session=session, fallback_dir=fallback_dir)
     if session is not None and kind == "reprint":
         from app.services.audit_service import record
         try:
-            record(conn, user_id=uid, action="sale.reprint", entity="sale",
+            record(conn, user_id=session.user_id, action="sale.reprint", entity="sale",
                    entity_id=det["sale"]["invoice_no"], new_value=result.message)
             conn.commit()
         except Exception:
             pass
     return result
+
+
+def build_text_for_details(conn: sqlite3.Connection, det: dict,
+                             fallback_dir: str | None = None) -> tuple[str, str]:
+    """Build receipt text from a details dict (local or LAN-fetched). Returns (text, invoice_no)."""
+    cfg = config_from_db(conn, fallback_dir)
+    biz = settings_service.get_business(conn)
+    item_rows = [{"name": r.get("name", "?"), "qty": r["qty"], "unit_price": r["unit_price"],
+                  "line_total": r["line_total"], "discount_pct": r.get("discount_pct", 0)}
+                 for r in det["items"]]
+    cashier = det.get("cashier", "")
+    if not cashier and det["sale"].get("user_id"):
+        u = conn.execute("SELECT username FROM users WHERE id=?",
+                         (det["sale"]["user_id"],)).fetchone()
+        cashier = u["username"] if u else ""
+    text = build_receipt(business=biz, sale=det["sale"], items=item_rows,
+                         payments=det["payments"], width=cfg.width, cashier=cashier,
+                         footer=t(cfg.language, "receipt_thanks"))
+    return text, det["sale"]["invoice_no"]
 
 
 def build_invoice_a4(conn: sqlite3.Connection, sale_id: int, cashier: str = "") -> str:

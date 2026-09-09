@@ -42,6 +42,15 @@ def main() -> int:
         if LoginDialog(ctx).exec() != 1:
             return 0
         log_event(logger, "security", "login", user=str(ctx.session.user_id))
+        # LAN mode: route POS through the store server when configured (§26).
+        try:
+            from app.server import bridge as _bridge
+            ctx.lan = _bridge.connect_from_settings(conn, ctx.terminal_code)
+            if ctx.lan is not None:
+                log_event(logger, "lan", "lan-mode", server=ctx.lan.base_url,
+                          terminal=ctx.lan.terminal_code)
+        except Exception as e:
+            log_event(logger, "error", "lan-setup", error=repr(e))
         from app.ui.main_window import MainWindow
         win = MainWindow(ctx)
         win.show()

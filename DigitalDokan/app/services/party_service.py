@@ -42,6 +42,9 @@ def collect_due(conn: sqlite3.Connection, *, session, customer_id: int, amount: 
         # Straight subtraction; negative balance = customer's advance credit.
         conn.execute("UPDATE customers SET balance = balance - ? WHERE id=?",
                      (str(amt), customer_id))
+        from app.sync.outbox import enqueue as _enqueue
+        _enqueue(conn, "due.collected", {"customer_id": customer_id, "amount": str(amt),
+                                         "method": method})
         record(conn, user_id=session.user_id, action="customer.due_collected", entity="customer",
                entity_id=str(customer_id), new_value=f"collected={amt} method={method}")
 

@@ -239,6 +239,9 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
         record(conn, user_id=session.user_id, action="sale.completed", entity="sale",
                entity_id=invoice_no, new_value=f"total={totals.grand_total} paid={totals.paid}",
                terminal_code=terminal_code)
+        from app.sync.outbox import enqueue as _enqueue
+        _enqueue(conn, "sale.completed", {"sale_id": sale_id, "invoice_no": invoice_no,
+                                          "total": str(totals.grand_total)})
         conn.commit()
         return {"sale_id": sale_id, "invoice_no": invoice_no, "totals": totals,
             "promotion_id": promo_id}
@@ -309,6 +312,9 @@ def process_return(conn: sqlite3.Connection, *, session, sale_id: int, items: li
                          (str(total), sale["customer_id"]))
         record(conn, user_id=session.user_id, action="sale.return", entity="sale",
                entity_id=str(sale["invoice_no"]), new_value=f"return_total={total} reason={reason}")
+        from app.sync.outbox import enqueue as _enqueue
+        _enqueue(conn, "sale.returned", {"sale_id": sale_id, "return_id": rid,
+                                         "total": str(total)})
         conn.commit()
         return {"return_id": rid, "total": total}
     except Exception:

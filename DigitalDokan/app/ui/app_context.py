@@ -15,3 +15,4 @@ class AppContext:
     terminal_code: str = "POS-01"
     language: str = "en"
     shift_id: int | None = None
+    lan: object = None  # server.bridge LanClient when lan-required, else None
