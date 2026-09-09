@@ -1,0 +1,6 @@
+# Commercial runtime dependencies (minimal, pinned for stability)
+PySide6>=6.7,<7
+# Optional: used for XLSX export/import and PDF invoices. Core app works without them (CSV fallback).
+openpyxl>=3.1
+reportlab>=4.1
+pyinstaller>=6.5; sys_platform == 'win32'
