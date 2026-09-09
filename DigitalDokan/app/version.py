@@ -1,5 +1,5 @@
 """Single source of truth for versions."""
 
-__version__ = "1.0.0"
-__db_version__ = 1
-__release_name__ = "Release 1 (Basic/Professional single-store)"
+__version__ = "2.0.0-dev0"
+__db_version__ = 2
+__release_name__ = "Release 2 Enterprise (Basic/Professional single-store + LAN + sync-ready)"
