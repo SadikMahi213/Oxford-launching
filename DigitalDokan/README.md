@@ -1,7 +1,14 @@
 # DigitalDokan — Offline-First Grocery/Super Shop POS (Bangladesh)
 
 Commercial, enterprise-grade Windows desktop POS. Native Qt (PySide6) UI, local
-SQLite database (WAL), fully functional without internet.
+SQLite database (WAL), fully functional without internet. Release 2 adds LAN
+multi-terminal (store server), promotions, unit conversions, approvals, license
+states/editions, and a 90-test verification suite.
+
+> Canonical R2 documentation lives in `docs/` (ARCHITECTURE, DATABASE,
+> MIGRATIONS, SECURITY, BACKUP_RECOVERY, HARDWARE, LICENSE, LAN, INSTALLATION,
+> USER_GUIDE, ADMIN_GUIDE, CHANGELOG, RELEASE_CHECKLIST, RELEASE_2_FINAL_AUDIT).
+> Root-level R1 docs remain as the Release-1 record.
 
 Release 1 scope (all working, no placeholders): offline POS, products/barcodes,
 inventory ledger + batch/expiry (FEFO), purchases, customer/supplier due, sales
