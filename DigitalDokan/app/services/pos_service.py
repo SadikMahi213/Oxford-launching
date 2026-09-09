@@ -94,6 +94,8 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
     session.require("sale.create")
     if not items:
         raise ValueError("Cart is empty")
+    from app.infra import license_manager as _lic
+    _lic.require_transact(conn)
     for p in payments:
         if p["method"] not in PAYMENT_METHODS:
             raise ValueError(f"Unknown payment method: {p['method']}")

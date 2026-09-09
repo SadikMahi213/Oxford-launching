@@ -76,6 +76,12 @@ class StoreServer:
         self.host = host
         self.secret = secret or secrets.token_hex(32)
         initialize(db_path)  # ensure current schema
+        conn = dbmod.connect(db_path)
+        try:
+            from app.infra import license_manager
+            license_manager.require_feature(conn, "lan")
+        finally:
+            conn.close()
         self._dbmod = dbmod
         handler = self._make_handler()
         self.httpd = ThreadingHTTPServer((host, port), handler)

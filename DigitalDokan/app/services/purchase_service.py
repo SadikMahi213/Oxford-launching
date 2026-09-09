@@ -16,6 +16,8 @@ def receive_purchase(conn: sqlite3.Connection, *, session, supplier_id: int | No
                      paid: Decimal = Decimal("0"), note: str = "",
                      idempotency_key: str | None = None) -> dict:
     session.require("purchase.create")
+    from app.infra import license_manager as _lic
+    _lic.require_transact(conn)
     if idempotency_key:
         existing = conn.execute("SELECT id, invoice_no, total, due FROM purchases"
                                 " WHERE idempotency_key=?", (idempotency_key,)).fetchone()
