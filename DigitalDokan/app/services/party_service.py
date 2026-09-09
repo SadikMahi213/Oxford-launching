@@ -9,7 +9,9 @@ from app.services.audit_service import record
 
 
 def create_customer(conn: sqlite3.Connection, name: str, phone: str = "", address: str = "",
-                    credit_limit: Decimal = Decimal("0")) -> int:
+                    credit_limit: Decimal = Decimal("0"), session=None) -> int:
+    if session is not None:
+        session.require("customer.credit")
     if not name.strip():
         raise ValueError("Customer name required")
     cur = conn.execute("INSERT INTO customers(name, phone, address, credit_limit) VALUES(?,?,?,?)",
@@ -20,20 +22,24 @@ def create_customer(conn: sqlite3.Connection, name: str, phone: str = "", addres
 
 def collect_due(conn: sqlite3.Connection, *, session, customer_id: int, amount: Decimal,
                 method: str = "cash", note: str = "") -> None:
+    session.require("customer.credit")
     amt = to_money(amount)
     if amt <= 0:
         raise ValueError("Amount must be positive")
     with conn:
         conn.execute("INSERT INTO customer_payments(customer_id, amount, method, note, user_id)"
                      " VALUES(?,?,?,?,?)", (customer_id, str(amt), method, note, session.user_id))
-        conn.execute("UPDATE customers SET balance = CASE WHEN balance - ? < 0 THEN 0"
-                     " ELSE balance - ? END WHERE id=?", (str(amt), str(amt), customer_id))
+        # Straight subtraction; negative balance = customer's advance credit.
+        conn.execute("UPDATE customers SET balance = balance - ? WHERE id=?",
+                     (str(amt), customer_id))
         record(conn, user_id=session.user_id, action="customer.due_collected", entity="customer",
                entity_id=str(customer_id), new_value=f"collected={amt} method={method}")
 
 
 def create_supplier(conn: sqlite3.Connection, name: str, phone: str = "",
-                    address: str = "") -> int:
+                    address: str = "", session=None) -> int:
+    if session is not None:
+        session.require("supplier.payment")
     if not name.strip():
         raise ValueError("Supplier name required")
     cur = conn.execute("INSERT INTO suppliers(name, phone, address) VALUES(?,?,?)",
@@ -45,11 +51,11 @@ def create_supplier(conn: sqlite3.Connection, name: str, phone: str = "",
 def adjust_stock(conn: sqlite3.Connection, *, session, lines: list[dict], reason: str,
                  approved_by: int | None = None) -> int:
     """Ledger-based adjustment: never overwrites stock, always appends movements."""
-    session.require("adjust_stock")
+    session.require("inventory.adjust")
     if not reason.strip():
         raise ValueError("Adjustment reason required")
     sensitive = any(Decimal(str(l["qty_change"])) != 0 for l in lines)
-    if sensitive and approved_by is None and not session.can("approve"):
+    if sensitive and approved_by is None and not session.can("approve.action"):
         # Self-approval allowed only for approvers; others need manager id.
         raise PermissionError("Manager approval required for stock adjustment")
     with conn:
@@ -76,4 +82,8 @@ def adjust_stock(conn: sqlite3.Connection, *, session, lines: list[dict], reason
                           session.user_id))
         record(conn, user_id=session.user_id, action="stock.adjusted", entity="adjustment",
                entity_id=str(aid), new_value=reason)
+        from app.services import approval_service as _appr
+        _appr.record_approval(conn, action="inventory.adjust", requester_id=session.user_id,
+                              approver_id=approved_by or session.user_id, status="approved",
+                              entity="adjustment", entity_id=str(aid), new_value=reason)
     return aid

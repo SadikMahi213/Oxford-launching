@@ -8,9 +8,10 @@ from decimal import Decimal
 from app.domain.invoices import next_invoice_no
 from app.domain.money import to_money
 from app.domain.pricing import CartLine, compute_totals
+from app.services import approval_service
 from app.services.audit_service import record
 
-PAYMENT_METHODS = {"cash", "card", "bkash", "nagad", "rocket", "bank", "due", "other"}
+PAYMENT_METHODS = {"cash", "card", "bkash", "nagad", "rocket", "upay", "bank", "due", "other"}
 
 
 def _consume_stock(conn: sqlite3.Connection, product_id: int, qty: Decimal, source_type: str,
@@ -58,12 +59,36 @@ def _consume_stock(conn: sqlite3.Connection, product_id: int, qty: Decimal, sour
              "negative-stock-allowed", user_id))
 
 
+def _sale_summary(conn: sqlite3.Connection, sale_id: int) -> dict:
+    """Rebuild the complete_sale result shape for an existing sale (idempotent retry)."""
+    from app.domain.pricing import Totals
+    s = conn.execute("SELECT * FROM sales WHERE id=?", (sale_id,)).fetchone()
+    if s is None:
+        raise ValueError("Sale not found")
+    return {"sale_id": sale_id, "invoice_no": s["invoice_no"],
+            "totals": Totals(subtotal=Decimal(str(s["subtotal"])),
+                             item_discount=Decimal(str(s["item_discount"])),
+                             invoice_discount=Decimal(str(s["invoice_discount"])),
+                             vat_total=Decimal(str(s["vat"])), rounding=Decimal(str(s["rounding"])),
+                             grand_total=Decimal(str(s["total"])), paid=Decimal(str(s["paid"])),
+                             due=Decimal(str(s["due"])), change=Decimal(str(s["change_amount"]))),
+            "duplicate": True}
+
+
 def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
                   payments: list[dict], customer_id: int | None = None,
                   invoice_discount: Decimal = Decimal("0"), terminal_code: str = "POS-01",
-                  shift_id: int | None = None, allow_negative_stock: bool = False) -> dict:
-    """Atomic sale. Printing happens OUTSIDE (caller) so printer failure never rolls back sale."""
-    session.require("sell")
+                  shift_id: int | None = None, allow_negative_stock: bool = False,
+                  idempotency_key: str | None = None, approver=None,
+                  promotion_id: int | None = None) -> dict:
+    """Atomic sale. Printing happens OUTSIDE (caller) so printer failure never rolls back sale.
+
+    idempotency_key: safe retry — a completed sale with the same key is returned
+    as-is instead of creating a duplicate charge.
+    approver: Session with approve.action, required when discount thresholds
+    (settings approval.*) are exceeded and the cashier lacks approve.action.
+    """
+    session.require("sale.create")
     if not items:
         raise ValueError("Cart is empty")
     for p in payments:
@@ -71,12 +96,35 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
             raise ValueError(f"Unknown payment method: {p['method']}")
         if Decimal(str(p["amount"])) < 0:
             raise ValueError("Payment amount cannot be negative")
-    if invoice_discount and not session.can("give_discount"):
-        raise PermissionError("Permission denied: give_discount")
+    if invoice_discount and not session.can("discount.apply"):
+        raise PermissionError("Permission denied: discount.apply")
+
+    # Idempotent retry: return the already-completed sale instead of double-charging.
+    if idempotency_key:
+        existing = conn.execute("SELECT id, invoice_no FROM sales WHERE idempotency_key=?",
+                                (idempotency_key,)).fetchone()
+        if existing is not None:
+            return _sale_summary(conn, int(existing["id"]))
+
+    # Discount-threshold approvals (§15) BEFORE the transaction opens, so the
+    # pending/approved record survives even if the sale itself later aborts.
+    max_disc_pct = max((Decimal(str(it.get("discount_pct", 0))) for it in items),
+                       default=Decimal("0"))
+    if max_disc_pct > approval_service.get_threshold(conn, "approval.discount_pct_above"):
+        approval_service.authorize(conn, session=session, action="discount.override",
+                                   amount=max_disc_pct, new_value=f"max_item_disc_pct={max_disc_pct}",
+                                   approver=approver)
+    if to_money(invoice_discount) > approval_service.get_threshold(
+            conn, "approval.invoice_discount_above"):
+        approval_service.authorize(conn, session=session, action="discount.override",
+                                   amount=to_money(invoice_discount),
+                                   new_value=f"invoice_discount={to_money(invoice_discount)}",
+                                   approver=approver)
 
     conn.execute("BEGIN IMMEDIATE")
     try:
         lines: list[CartLine] = []
+        costs: dict[int, Decimal] = {}
         for it in items:
             prod = conn.execute("SELECT * FROM products WHERE id=? AND is_active=1",
                                 (it["product_id"],)).fetchone()
@@ -86,14 +134,17 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
             if qty <= 0:
                 raise ValueError("Quantity must be positive")
             price = Decimal(str(it.get("unit_price", prod["sell_price"])))
-            if price != Decimal(str(prod["sell_price"])) and not session.can("change_price"):
-                raise PermissionError("Permission denied: change_price")
+            if price != Decimal(str(prod["sell_price"])) and not session.can("price.change"):
+                raise PermissionError("Permission denied: price.change")
             disc = Decimal(str(it.get("discount_pct", 0)))
-            if disc > 0 and not session.can("give_discount"):
-                raise PermissionError("Permission denied: give_discount")
+            if disc > 0 and not session.can("discount.apply"):
+                raise PermissionError("Permission denied: discount.apply")
             lines.append(CartLine(int(prod["id"]), prod["name"], qty, to_money(price),
                                   to_money(disc), to_money(prod["vat_pct"])))
+            costs[int(prod["id"])] = to_money(prod["cost_price"])
         paid_total = sum((to_money(p["amount"]) for p in payments), Decimal("0.00"))
+        # Discount-threshold approvals (§15) INSIDE the txn here are recorded above;
+        # pre-txn authorize already ran, so just re-check cheaply without side effects.
         totals = compute_totals(lines, invoice_discount=to_money(invoice_discount), paid=paid_total)
         # Due requires a customer (credit accountability).
         due_methods = [p for p in payments if p["method"] == "due"]
@@ -116,21 +167,24 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
         tid = term["id"] if term else None
         cur = conn.execute(
             """INSERT INTO sales(invoice_no, terminal_id, customer_id, user_id, subtotal, item_discount,
-               invoice_discount, vat, rounding, total, paid, due, change_amount, shift_id)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+               invoice_discount, vat, rounding, total, paid, due, change_amount, shift_id,
+               idempotency_key, promotion_id)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (invoice_no, tid, customer_id, session.user_id, str(totals.subtotal),
              str(totals.item_discount), str(totals.invoice_discount), str(totals.vat_total),
              str(totals.rounding), str(totals.grand_total), str(totals.paid),
-             str(totals.due), str(totals.change), shift_id))
+             str(totals.due), str(totals.change), shift_id, idempotency_key, promotion_id))
         sale_id = int(cur.lastrowid)
         for ln in lines:
             gross = ln.line_gross()
             net = ln.line_net()
             conn.execute(
-                """INSERT INTO sale_items(sale_id, product_id, qty, unit_price, discount_pct, vat_pct, line_total)
-                   VALUES(?,?,?,?,?,?,?)""",
+                """INSERT INTO sale_items(sale_id, product_id, qty, unit_price, discount_pct, vat_pct,
+                       line_total, unit_cost)
+                   VALUES(?,?,?,?,?,?,?,?)""",
                 (sale_id, ln.product_id, str(ln.qty), str(ln.unit_price),
-                 str(ln.discount_pct), str(ln.vat_pct), str(net + ln.line_vat())))
+                 str(ln.discount_pct), str(ln.vat_pct), str(net + ln.line_vat()),
+                 str(costs.get(ln.product_id, Decimal("0.00")))))
             _consume_stock(conn, ln.product_id, ln.qty, "sale", sale_id,
                            session.user_id, allow_negative_stock)
         for p in payments:
@@ -157,8 +211,25 @@ def complete_sale(conn: sqlite3.Connection, *, session, items: list[dict],
 
 
 def process_return(conn: sqlite3.Connection, *, session, sale_id: int, items: list[dict],
-                   reason: str = "") -> dict:
-    session.require("refund")
+                   reason: str = "", approver=None) -> dict:
+    session.require("sale.refund")
+    # Estimate + authorize BEFORE writing (approval threshold on estimated refund).
+    pre = []
+    for it in items:
+        sitem = conn.execute("SELECT * FROM sale_items WHERE sale_id=? AND product_id=?",
+                             (sale_id, it["product_id"])).fetchone()
+        if sitem is None:
+            raise ValueError("Item not in original sale")
+        qty = Decimal(str(it["qty"]))
+        if qty <= 0 or qty > Decimal(str(sitem["qty"])):
+            raise ValueError("Invalid return quantity")
+        pre.append(to_money(Decimal(str(sitem["unit_price"])) * qty))
+    estimate = sum(pre, Decimal("0.00"))
+    if estimate > approval_service.get_threshold(conn, "approval.refund_above"):
+        approval_service.authorize(conn, session=session, action="sale.refund", amount=estimate,
+                                   entity="sale", entity_id=str(sale_id),
+                                   new_value=f"estimated_refund={estimate} reason={reason}",
+                                   approver=approver)
     conn.execute("BEGIN IMMEDIATE")
     try:
         sale = conn.execute("SELECT * FROM sales WHERE id=?", (sale_id,)).fetchone()
@@ -196,8 +267,9 @@ def process_return(conn: sqlite3.Connection, *, session, sale_id: int, items: li
                           session.user_id))
         conn.execute("UPDATE sale_returns SET total=? WHERE id=?", (str(total), rid))
         if sale["customer_id"] and Decimal(str(sale["due"])) > 0:
-            conn.execute("UPDATE customers SET balance = CASE WHEN balance - ? < 0 THEN 0"
-                         " ELSE balance - ? END WHERE id=?", (str(total), str(total), sale["customer_id"]))
+            # Straight subtraction; a negative balance is the customer's advance credit.
+            conn.execute("UPDATE customers SET balance = balance - ? WHERE id=?",
+                         (str(total), sale["customer_id"]))
         record(conn, user_id=session.user_id, action="sale.return", entity="sale",
                entity_id=str(sale["invoice_no"]), new_value=f"return_total={total} reason={reason}")
         conn.commit()
@@ -207,10 +279,19 @@ def process_return(conn: sqlite3.Connection, *, session, sale_id: int, items: li
         raise
 
 
-def cancel_invoice(conn: sqlite3.Connection, *, session, sale_id: int, reason: str) -> None:
-    session.require("cancel_invoice")
+def cancel_invoice(conn: sqlite3.Connection, *, session, sale_id: int, reason: str,
+                   approver=None) -> None:
+    session.require("sale.cancel")
     if not reason.strip():
         raise ValueError("Cancellation reason required")
+    sale_pre = conn.execute("SELECT * FROM sales WHERE id=?", (sale_id,)).fetchone()
+    if sale_pre is None or sale_pre["status"] == "cancelled":
+        raise ValueError("Sale cannot be cancelled")
+    if to_money(sale_pre["total"]) > approval_service.get_threshold(conn, "approval.cancel_above"):
+        approval_service.authorize(conn, session=session, action="sale.cancel",
+                                   amount=to_money(sale_pre["total"]), entity="sale",
+                                   entity_id=str(sale_pre["invoice_no"]), reason=reason,
+                                   approver=approver)
     conn.execute("BEGIN IMMEDIATE")
     try:
         sale = conn.execute("SELECT * FROM sales WHERE id=?", (sale_id,)).fetchone()
@@ -232,9 +313,8 @@ def cancel_invoice(conn: sqlite3.Connection, *, session, sale_id: int, reason: s
                          (sitem["product_id"], bid, str(qty), str(after), "sale_cancel", sale_id,
                           reason, session.user_id))
         if sale["customer_id"] and Decimal(str(sale["due"])) > 0:
-            conn.execute("UPDATE customers SET balance = CASE WHEN balance - ? < 0 THEN 0"
-                         " ELSE balance - ? END WHERE id=?",
-                         (str(sale["due"]), str(sale["due"]), sale["customer_id"]))
+            conn.execute("UPDATE customers SET balance = balance - ? WHERE id=?",
+                         (str(sale["due"]), sale["customer_id"]))
         conn.execute("UPDATE sales SET status='cancelled', cancel_reason=?, cancelled_by=? WHERE id=?",
                      (reason, session.user_id, sale_id))
         record(conn, user_id=session.user_id, action="sale.cancelled", entity="sale",
@@ -247,6 +327,7 @@ def cancel_invoice(conn: sqlite3.Connection, *, session, sale_id: int, reason: s
 
 
 def hold_sale(conn: sqlite3.Connection, *, session, cart: dict, note: str = "") -> int:
+    session.require("sale.create")
     cur = conn.execute("INSERT INTO held_sales(payload, note, user_id) VALUES(?,?,?)",
                        (json.dumps(cart, default=str), note, session.user_id))
     conn.commit()

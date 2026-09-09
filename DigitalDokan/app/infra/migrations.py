@@ -124,6 +124,8 @@ def seed_system(conn: sqlite3.Connection) -> None:
     conn.execute("INSERT OR IGNORE INTO expense_categories(name) VALUES('Salary')")
     conn.execute("INSERT OR IGNORE INTO expense_categories(name) VALUES('Transport')")
     conn.execute("INSERT OR IGNORE INTO expense_categories(name) VALUES('Miscellaneous')")
+    from app.services import approval_service as _appr
+    _appr.seed_defaults(conn)
 
 
 def _file_copy_backup(db_path: str) -> str:
