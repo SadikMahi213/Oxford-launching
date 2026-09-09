@@ -302,7 +302,20 @@ class BackupWidget(QWidget):
         if ret != QMessageBox.Yes:
             return
         try:
+            # Quiesce: Windows locks the open DB file, so close our handle, restore,
+            # then restart the app into the restored database (mirrors tested flow).
+            try:
+                self.ctx.conn.commit()
+            except Exception:
+                pass
+            try:
+                self.ctx.conn.close()
+            except Exception:
+                pass
             backupmod.restore_backup(path, self.ctx.config.db_path, session=self.ctx.session)
-            QMessageBox.information(self, "Restored", "Database restored. Please restart the app.")
+            QMessageBox.information(self, "Restored",
+                                    "Database restored. The application will now restart.")
+            from PySide6.QtWidgets import QApplication
+            QApplication.instance().quit()
         except Exception as e:
             QMessageBox.critical(self, "Restore failed", str(e))
