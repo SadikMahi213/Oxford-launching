@@ -35,5 +35,29 @@ class LoginDialog(QDialog):
             sess = auth_service.login(self.ctx.conn, self.username.text(), self.password.text())
             self.ctx.session = sess
             self.accept()
+        except auth_service.PasswordChangeRequired as e:
+            if self._force_rotation(e.user_id):
+                try:
+                    sess = auth_service.login(self.ctx.conn, self.username.text(),
+                                              self.password.text())
+                    self.ctx.session = sess
+                    self.accept()
+                except Exception as e2:
+                    QMessageBox.warning(self, "Login failed", str(e2))
         except Exception as e:
             QMessageBox.warning(self, "Login failed", str(e))
+
+    def _force_rotation(self, user_id: int) -> bool:
+        from PySide6.QtWidgets import QInputDialog
+        new, ok = QInputDialog.getText(self, "Password change required",
+                                       "Set a new password (min 4 chars):")
+        if not ok or not new.strip():
+            return False
+        try:
+            auth_service.change_password(self.ctx.conn, user_id, self.password.text(), new.strip())
+            self.password.setText(new.strip())
+            QMessageBox.information(self, "Password updated", "Password changed. Logging in.")
+            return True
+        except Exception as e:
+            QMessageBox.warning(self, "Change failed", str(e))
+            return False

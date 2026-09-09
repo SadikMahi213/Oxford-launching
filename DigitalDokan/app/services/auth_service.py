@@ -10,6 +10,14 @@ from app.infra.security import hash_password, verify_password
 SESSION_TIMEOUT_MIN = 15
 MAX_ATTEMPTS = 5
 
+
+class PasswordChangeRequired(ValueError):
+    """Forced rotation: the password verified, but the account must set a new one."""
+
+    def __init__(self, user_id: int):
+        super().__init__("Password change required - set a new password to continue")
+        self.user_id = user_id
+
 # R1 flat codes → R2 dotted codes. Session.can() resolves these so Release-1
 # databases and role assignments keep working unchanged.
 PERMISSION_ALIASES: dict[str, set[str]] = {
@@ -94,11 +102,17 @@ def _permissions(conn: sqlite3.Connection, role_id: int) -> set[str]:
     return {r["code"] for r in rows}
 
 
-def login(conn: sqlite3.Connection, username: str, password: str) -> Session:
+def login(conn: sqlite3.Connection, username: str, password: str,
+          terminal_code: str = "") -> Session:
+    from app.services.audit_service import record
     row = conn.execute(
         "SELECT u.*, r.name AS role FROM users u JOIN roles r ON r.id=u.role_id"
         " WHERE u.username=?", (username.strip(),)).fetchone()
     if row is None or not row["is_active"]:
+        record(conn, user_id=None, action="login.failed", entity="user",
+               entity_id=username.strip(), new_value="unknown-or-disabled",
+               terminal_code=terminal_code)
+        conn.commit()
         raise ValueError("Invalid username or password")
     if row["locked_until"]:
         try:
@@ -106,6 +120,9 @@ def login(conn: sqlite3.Connection, username: str, password: str) -> Session:
             if locked.tzinfo is None:
                 locked = locked.replace(tzinfo=timezone.utc)
             if locked > datetime.now(timezone.utc):
+                record(conn, user_id=int(row["id"]), action="login.failed", entity="user",
+                       entity_id=row["username"], new_value="locked", terminal_code=terminal_code)
+                conn.commit()
                 raise ValueError("Account locked - try later")
         except ValueError as e:
             if "locked" in str(e):
@@ -129,12 +146,59 @@ def login(conn: sqlite3.Connection, username: str, password: str) -> Session:
             lock = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
         conn.execute("UPDATE users SET failed_attempts=?, locked_until=? WHERE id=?",
                      (attempts, lock, row["id"]))
+        record(conn, user_id=int(row["id"]), action="login.failed", entity="user",
+               entity_id=row["username"], new_value=f"attempt {attempts}",
+               terminal_code=terminal_code)
         conn.commit()
         raise ValueError("Invalid username or password")
+    if row["must_change_password"]:
+        record(conn, user_id=int(row["id"]), action="login.rotation_required", entity="user",
+               entity_id=row["username"], terminal_code=terminal_code)
+        conn.execute("UPDATE users SET failed_attempts=0, locked_until=NULL WHERE id=?", (row["id"],))
+        conn.commit()
+        raise PasswordChangeRequired(int(row["id"]))
     conn.execute("UPDATE users SET failed_attempts=0, locked_until=NULL WHERE id=?", (row["id"],))
+    record(conn, user_id=int(row["id"]), action="login.success", entity="user",
+           entity_id=row["username"], terminal_code=terminal_code)
     conn.commit()
     return Session(int(row["id"]), row["username"], row["full_name"], row["role"],
-                   _permissions(conn, int(row["role_id"])))
+                   _permissions(conn, int(row["role_id"])), terminal_code=terminal_code)
+
+
+def change_password(conn: sqlite3.Connection, user_id: int,
+                    old_password: str, new_password: str) -> None:
+    """Self-service rotation (proves knowledge of the current password/PIN)."""
+    row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    if row is None:
+        raise ValueError("User not found")
+    ok = False
+    try:
+        ok = verify_password(old_password, row["password_hash"], row["password_salt"])
+    except Exception:
+        ok = False
+    if not ok:
+        raise ValueError("Current password incorrect")
+    ph, salt = hash_password(new_password)
+    with conn:
+        conn.execute("UPDATE users SET password_hash=?, password_salt=?, must_change_password=0,"
+                     " failed_attempts=0, locked_until=NULL WHERE id=?", (ph, salt, user_id))
+        from app.services.audit_service import record
+        record(conn, user_id=user_id, action="user.password_changed", entity="user",
+               entity_id=str(user_id))
+
+
+def set_password(conn: sqlite3.Connection, *, session, user_id: int, new_password: str,
+                 must_change: bool = True) -> None:
+    """Admin reset (requires user.manage); forces rotation by default."""
+    session.require("user.manage")
+    ph, salt = hash_password(new_password)
+    with conn:
+        conn.execute("UPDATE users SET password_hash=?, password_salt=?, must_change_password=?,"
+                     " failed_attempts=0, locked_until=NULL WHERE id=?",
+                     (ph, salt, int(must_change), user_id))
+        from app.services.audit_service import record
+        record(conn, user_id=session.user_id, action="user.password_reset", entity="user",
+               entity_id=str(user_id))
 
 
 def bootstrap_admin(conn: sqlite3.Connection, username: str = "admin",
@@ -145,7 +209,8 @@ def bootstrap_admin(conn: sqlite3.Connection, username: str = "admin",
         return False
     rid = conn.execute("SELECT id FROM roles WHERE name='Owner'").fetchone()["id"]
     ph, salt = hash_password(password)
-    conn.execute("INSERT INTO users(username, full_name, password_hash, password_salt, role_id)"
-                 " VALUES(?,?,?, ?,?)", (username, "Store Owner", ph, salt, rid))
+    conn.execute("INSERT INTO users(username, full_name, password_hash, password_salt, role_id,"
+                 " must_change_password) VALUES(?,?,?,?,?,1)",
+                 (username, "Store Owner", ph, salt, rid))
     conn.commit()
     return True
