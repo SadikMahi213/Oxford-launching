@@ -107,20 +107,23 @@ class PartiesWidget(QWidget):
                 self.table.setItem(i, j, QTableWidgetItem(str(r[k] or "")))
 
     def _selected_id(self) -> int | None:
+        # Explicit selection only: never act on an unselected row (audit: wrong-party risk).
         row = self.table.currentRow()
         if row < 0:
-            # fall back to first row if user typed without selecting
-            if self.table.rowCount():
-                return int(self.table.item(0, 0).text())
             return None
-        return int(self.table.item(row, 0).text())
+        try:
+            return int(self.table.item(row, 0).text())
+        except (ValueError, AttributeError):
+            return None
 
     def add(self):
         try:
             if self.kind == "customer":
-                party_service.create_customer(self.ctx.conn, self.name.text(), self.phone.text())
+                party_service.create_customer(self.ctx.conn, self.name.text(), self.phone.text(),
+                                              session=self.ctx.session)
             else:
-                party_service.create_supplier(self.ctx.conn, self.name.text(), self.phone.text())
+                party_service.create_supplier(self.ctx.conn, self.name.text(), self.phone.text(),
+                                              session=self.ctx.session)
             self.name.clear()
             self.phone.clear()
             self.reload()
@@ -226,7 +229,8 @@ class OpsWidget(QWidget):
             return
         cid = next(c["id"] for c in cats if c["name"] == name)
         shift_service.add_expense(self.ctx.conn, session=self.ctx.session, category_id=cid,
-                                  amount=Decimal(str(amt)), note=name)
+                                  amount=Decimal(str(amt)), note=name,
+                                  shift_id=self.ctx.shift_id)
         QMessageBox.information(self, "OK", "Expense recorded")
 
     def close_shift(self):

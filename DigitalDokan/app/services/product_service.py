@@ -5,7 +5,10 @@ import sqlite3
 from decimal import Decimal
 
 
-def upsert_product(conn: sqlite3.Connection, data: dict, user_id: int | None = None) -> int:
+def upsert_product(conn: sqlite3.Connection, data: dict, user_id: int | None = None,
+                   session=None) -> int:
+    if session is not None:
+        session.require("product.manage")
     for f in ("sku", "name", "sell_price"):
         if not data.get(f):
             raise ValueError(f"Missing required field: {f}")

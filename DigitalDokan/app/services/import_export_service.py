@@ -22,7 +22,9 @@ def read_xlsx_products(path: str) -> list[dict]:
     return rows
 
 
-def import_products(conn: sqlite3.Connection, rows: list[dict]) -> dict:
+def import_products(conn: sqlite3.Connection, rows: list[dict], session=None) -> dict:
+    if session is not None:
+        session.require("product.manage")
     from app.services.product_service import validate_import_rows, upsert_product
     valid, errors = validate_import_rows(rows)
     imported = 0
@@ -44,7 +46,10 @@ def import_products(conn: sqlite3.Connection, rows: list[dict]) -> dict:
     return {"imported": imported, "errors": errors}
 
 
-def export_sales_csv(conn: sqlite3.Connection, path: str, start=None, end=None) -> str:
+def export_sales_csv(conn: sqlite3.Connection, path: str, start=None, end=None,
+                     session=None) -> str:
+    if session is not None:
+        session.require("report.view")
     clauses, params = [], []
     if start:
         clauses.append("s.created_at >= ?")

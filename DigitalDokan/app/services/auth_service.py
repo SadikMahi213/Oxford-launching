@@ -10,6 +10,39 @@ from app.infra.security import hash_password, verify_password
 SESSION_TIMEOUT_MIN = 15
 MAX_ATTEMPTS = 5
 
+# R1 flat codes → R2 dotted codes. Session.can() resolves these so Release-1
+# databases and role assignments keep working unchanged.
+PERMISSION_ALIASES: dict[str, set[str]] = {
+    "sale.create": {"sell"},
+    "sale.refund": {"refund"},
+    "sale.cancel": {"cancel_invoice"},
+    "sale.reprint": {"sell"},
+    "discount.apply": {"give_discount"},
+    "discount.override": {"give_discount"},
+    "price.change": {"change_price"},
+    "product.manage": {"edit_product"},
+    "inventory.adjust": {"adjust_stock"},
+    "inventory.transfer": {"adjust_stock"},
+    "purchase.create": {"edit_product", "approve"},
+    "purchase.approve": {"approve"},
+    "supplier.payment": {"approve"},
+    "customer.credit": {"sell"},
+    "expense.create": {"sell"},
+    "shift.manage": {"sell"},
+    "shift.close": {"sell"},
+    "shift.correct": {"approve"},
+    "report.view": {"access_reports"},
+    "audit.view": {"access_reports"},
+    "backup.create": {"backup"},
+    "backup.restore": {"restore"},
+    "user.manage": {"manage_users"},
+    "license.manage": {"manage_settings"},
+    "settings.manage": {"manage_settings"},
+    "terminal.manage": {"manage_settings"},
+    "sync.manage": {"manage_settings"},
+    "approve.action": {"approve"},
+}
+
 
 @dataclass
 class Session:
@@ -21,7 +54,9 @@ class Session:
     terminal_code: str = "POS-01"
 
     def can(self, code: str) -> bool:
-        return "*" in self.permissions or code in self.permissions
+        if "*" in self.permissions or code in self.permissions:
+            return True
+        return bool(PERMISSION_ALIASES.get(code, set()) & self.permissions)
 
     def require(self, code: str) -> None:
         if not self.can(code):
@@ -29,7 +64,11 @@ class Session:
 
 
 def create_user(conn: sqlite3.Connection, username: str, full_name: str, password: str,
-                role_name: str, pin: str | None = None) -> int:
+                role_name: str, pin: str | None = None, created_by=None) -> int:
+    """created_by (Session) is required at all app call sites; None is allowed only
+    for tests and first-boot flows that already hold an equivalent privilege."""
+    if created_by is not None:
+        created_by.require("user.manage")
     role = conn.execute("SELECT id FROM roles WHERE name=?", (role_name,)).fetchone()
     if role is None:
         raise ValueError(f"Unknown role: {role_name}")

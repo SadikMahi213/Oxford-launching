@@ -50,24 +50,26 @@ class ReportsWidget(QWidget):
 
     def daily(self):
         s, e = self._range()
-        _fill(self.table, report_service.sales_summary(self.ctx.conn, s, e, "day"))
+        _fill(self.table, report_service.sales_summary(self.ctx.conn, s, e, "day",
+                                                       session=self.ctx.session))
 
     def products(self):
         s, e = self._range()
-        _fill(self.table, report_service.product_sales(self.ctx.conn, s, e))
+        _fill(self.table, report_service.product_sales(self.ctx.conn, s, e,
+                                                       session=self.ctx.session))
 
     def stock(self):
-        _fill(self.table, report_service.stock_report(self.ctx.conn))
+        _fill(self.table, report_service.stock_report(self.ctx.conn, session=self.ctx.session))
 
     def profit(self):
         s, e = self._range()
-        p = report_service.profit_summary(self.ctx.conn, s, e)
+        p = report_service.profit_summary(self.ctx.conn, s, e, session=self.ctx.session)
         self.info.setText(f"Revenue ৳{p['revenue']} | COGS ৳{p['cogs']} | Gross ৳{p['gross_profit']} "
                           f"| Expenses ৳{p['expenses']} | Net(est) ৳{p['net_estimate']}")
         _fill(self.table, [p])
 
     def expiry(self):
-        _fill(self.table, report_service.near_expiry(self.ctx.conn))
+        _fill(self.table, report_service.near_expiry(self.ctx.conn, session=self.ctx.session))
 
     def export(self):
         from app.services.import_export_service import export_sales_csv
@@ -75,7 +77,7 @@ class ReportsWidget(QWidget):
         if not path:
             return
         s, e = self._range()
-        export_sales_csv(self.ctx.conn, path, s, e)
+        export_sales_csv(self.ctx.conn, path, s, e, session=self.ctx.session)
         QMessageBox.information(self, "Export", f"Saved to {path}")
 
 
@@ -124,9 +126,12 @@ class SettingsWidget(QWidget):
             return
         settings_service.save_business(self.ctx.conn, {
             "name": self.biz_name.text(), "address": self.biz_addr.text(),
-            "phone": self.biz_phone.text(), "bin_no": self.biz_bin.text()})
-        settings_service.set(self.ctx.conn, "printer_name", self.printer.text().strip())
-        settings_service.set(self.ctx.conn, "language", self.lang.currentText())
+            "phone": self.biz_phone.text(), "bin_no": self.biz_bin.text()},
+            session=self.ctx.session)
+        settings_service.set(self.ctx.conn, "printer_name", self.printer.text().strip(),
+                             session=self.ctx.session)
+        settings_service.set(self.ctx.conn, "language", self.lang.currentText(),
+                             session=self.ctx.session)
         self.ctx.language = self.lang.currentText()
         QMessageBox.information(self, "Saved", "Settings saved")
 
@@ -184,7 +189,8 @@ class UsersWidget(QWidget):
             return
         try:
             auth_service.create_user(self.ctx.conn, self.u.text(), self.n.text(),
-                                     self.p.text(), self.role.currentText())
+                                     self.p.text(), self.role.currentText(),
+                                     created_by=self.ctx.session)
             self.reload()
         except Exception as e:
             QMessageBox.critical(self, "Create failed", str(e))
@@ -228,7 +234,8 @@ class BackupWidget(QWidget):
             QMessageBox.warning(self, "Denied", "Permission denied: backup")
             return
         try:
-            m = backupmod.create_backup(self.ctx.conn, self.ctx.config.backup_dir, note="manual-ui")
+            m = backupmod.create_backup(self.ctx.conn, self.ctx.config.backup_dir, note="manual-ui",
+                                          session=self.ctx.session)
             self.info.setText(f"Backup OK: {m['filename']} sha256={m['sha256'][:16]}...")
             self.reload()
         except Exception as e:
@@ -259,7 +266,7 @@ class BackupWidget(QWidget):
         if ret != QMessageBox.Yes:
             return
         try:
-            backupmod.restore_backup(path, self.ctx.config.db_path)
+            backupmod.restore_backup(path, self.ctx.config.db_path, session=self.ctx.session)
             QMessageBox.information(self, "Restored", "Database restored. Please restart the app.")
         except Exception as e:
             QMessageBox.critical(self, "Restore failed", str(e))

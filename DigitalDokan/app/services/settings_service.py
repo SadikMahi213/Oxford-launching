@@ -19,7 +19,9 @@ def get(conn: sqlite3.Connection, key: str, default: str = "") -> str:
     return default
 
 
-def set(conn: sqlite3.Connection, key: str, value: str) -> None:
+def set(conn: sqlite3.Connection, key: str, value: str, session=None) -> None:
+    if session is not None:
+        session.require("settings.manage")
     conn.execute("INSERT INTO settings(key, value) VALUES(?,?)"
                  " ON CONFLICT(key) DO UPDATE SET value=excluded.value,"
                  " updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')", (key, value))
@@ -31,7 +33,9 @@ def get_business(conn: sqlite3.Connection) -> dict:
     return dict(row) if row else {}
 
 
-def save_business(conn: sqlite3.Connection, data: dict) -> None:
+def save_business(conn: sqlite3.Connection, data: dict, session=None) -> None:
+    if session is not None:
+        session.require("settings.manage")
     allowed = ("name", "address", "phone", "bin_no", "tin_no", "vat_pct", "vat_inclusive",
                "currency", "invoice_prefix", "language", "receipt_footer")
     cols = [c for c in allowed if c in data]

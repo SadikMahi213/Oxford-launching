@@ -18,8 +18,10 @@ def sha256_file(path: str) -> str:
 
 
 def create_backup(conn: sqlite3.Connection, backup_dir: str, note: str = "manual",
-                  retention: int = 14) -> dict:
+                  retention: int = 14, session=None) -> dict:
     """Online backup via VACUUM INTO (safe while app runs). Validates integrity first."""
+    if session is not None:
+        session.require("backup.create")
     os.makedirs(backup_dir, exist_ok=True)
     integrity = conn.execute("PRAGMA integrity_check;").fetchone()[0]
     if str(integrity) != "ok":
@@ -67,8 +69,10 @@ def verify_backup(backup_file: str) -> dict:
     return result
 
 
-def restore_backup(backup_file: str, db_path: str) -> str:
+def restore_backup(backup_file: str, db_path: str, session=None) -> str:
     """Guided restore: validates, quarantines current DB with timestamp, copies backup in."""
+    if session is not None:
+        session.require("backup.restore")
     v = verify_backup(backup_file)
     if v["integrity"] != "ok":
         raise RuntimeError(f"Backup failed integrity check: {v['integrity']}")

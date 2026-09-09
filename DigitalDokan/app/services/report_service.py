@@ -17,7 +17,9 @@ def _between(column: str, start: str | None, end: str | None) -> tuple[str, list
 
 
 def sales_summary(conn: sqlite3.Connection, start: str | None = None, end: str | None = None,
-                  group_by: str = "day") -> list[dict]:
+                   group_by: str = "day", session=None) -> list[dict]:
+    if session is not None:
+        session.require("report.view")
     extra, params = _between("s.created_at", start, end)
     bucket = {"day": "date(s.created_at)", "month": "strftime('%Y-%m', s.created_at)",
               "cashier": "u.username", "payment": "sp.method"}.get(group_by, "date(s.created_at)")
@@ -34,7 +36,10 @@ def sales_summary(conn: sqlite3.Connection, start: str | None = None, end: str |
     return [dict(r) for r in rows]
 
 
-def product_sales(conn: sqlite3.Connection, start=None, end=None, limit: int = 50) -> list[dict]:
+def product_sales(conn: sqlite3.Connection, start=None, end=None, limit: int = 50,
+                      session=None) -> list[dict]:
+    if session is not None:
+        session.require("report.view")
     extra, params = _between("s.created_at", start, end)
     rows = conn.execute(
         f"SELECT p.sku, p.name, SUM(si.qty) qty, SUM(si.line_total) revenue,"
@@ -44,7 +49,9 @@ def product_sales(conn: sqlite3.Connection, start=None, end=None, limit: int = 5
     return [dict(r) for r in rows]
 
 
-def stock_report(conn: sqlite3.Connection, low_only: bool = False) -> list[dict]:
+def stock_report(conn: sqlite3.Connection, low_only: bool = False, session=None) -> list[dict]:
+    if session is not None:
+        session.require("report.view")
     q = """SELECT p.sku, p.name, IFNULL(SUM(b.qty),0) stock, p.min_stock, p.cost_price,
                   IFNULL(SUM(b.qty),0) * p.cost_price AS valuation
            FROM products p LEFT JOIN inventory_batches b ON b.product_id=p.id
@@ -55,7 +62,9 @@ def stock_report(conn: sqlite3.Connection, low_only: bool = False) -> list[dict]
     return [dict(r) for r in conn.execute(q).fetchall()]
 
 
-def near_expiry(conn: sqlite3.Connection, within_days: int = 30) -> list[dict]:
+def near_expiry(conn: sqlite3.Connection, within_days: int = 30, session=None) -> list[dict]:
+    if session is not None:
+        session.require("report.view")
     return [dict(r) for r in conn.execute(
         """SELECT p.sku, p.name, b.batch_no, b.expiry_date, b.qty FROM inventory_batches b
            JOIN products p ON p.id=b.product_id
@@ -64,7 +73,9 @@ def near_expiry(conn: sqlite3.Connection, within_days: int = 30) -> list[dict]:
            ORDER BY b.expiry_date""", (f"+{int(within_days)} days",)).fetchall()]
 
 
-def profit_summary(conn: sqlite3.Connection, start=None, end=None) -> dict:
+def profit_summary(conn: sqlite3.Connection, start=None, end=None, session=None) -> dict:
+    if session is not None:
+        session.require("report.view")
     extra, params = _between("s.created_at", start, end)
     r = conn.execute(
         f"SELECT IFNULL(SUM(s.total),0) revenue, IFNULL(SUM(s.invoice_discount + s.item_discount),0) discounts,"

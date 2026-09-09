@@ -85,7 +85,7 @@ class ProductsWidget(QWidget):
         dlg = ProductDialog(parent=self)
         if dlg.exec() == QDialog.Accepted:
             try:
-                product_service.upsert_product(self.ctx.conn, dlg.value())
+                product_service.upsert_product(self.ctx.conn, dlg.value(), session=self.ctx.session)
                 self.reload()
             except Exception as e:
                 QMessageBox.critical(self, "Save failed", str(e))
@@ -104,7 +104,7 @@ class ProductsWidget(QWidget):
         dlg = ProductDialog(prod[0], self)
         if dlg.exec() == QDialog.Accepted:
             try:
-                product_service.upsert_product(self.ctx.conn, dlg.value())
+                product_service.upsert_product(self.ctx.conn, dlg.value(), session=self.ctx.session)
                 self.reload()
             except Exception as e:
                 QMessageBox.critical(self, "Save failed", str(e))
@@ -118,7 +118,7 @@ class ProductsWidget(QWidget):
             return
         try:
             rows = read_csv_products(path)
-            res = import_products(self.ctx.conn, rows)
+            res = import_products(self.ctx.conn, rows, session=self.ctx.session)
             msg = f"Imported {res['imported']} products."
             if res["errors"]:
                 msg += "\nErrors:\n" + "\n".join(res["errors"][:10])
