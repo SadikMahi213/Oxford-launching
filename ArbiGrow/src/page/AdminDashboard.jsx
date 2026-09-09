@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import AdminLayout from "../component/admin/AdminLayout.jsx";
+import ErrorBoundary from "../component/ErrorBoundary.jsx";
 import UserManagement from "../component/admin/UserManagement.jsx";
 import KYCRequests from "../component/admin/KYCRequests.jsx";
 import KycPackageManagement from "../component/admin/KycPackageManagement.jsx";
@@ -282,7 +283,7 @@ export default function AdminDashboard() {
       setActivePage={setActivePage}
       navigate={navigate}
     >
-      {renderPageContent()}
+      <ErrorBoundary>{renderPageContent()}</ErrorBoundary>
     </AdminLayout>
   );
 }

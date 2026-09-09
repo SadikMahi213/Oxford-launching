@@ -1,17 +1,50 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 import useUserStore from "../../../store/userStore.js";
+
+const RETRY_MS = 5000;
 
 export default function PopupNotification() {
   const token = useUserStore((s) => s.token);
   const [toasts, setToasts] = useState([]);
+  const esRef = useRef(null);
+  const retryRef = useRef(null);
+  const connectingRef = useRef(false);
+  const connectRef = useRef(null);
+
+  const cleanup = useCallback(() => {
+    if (retryRef.current) {
+      clearTimeout(retryRef.current);
+      retryRef.current = null;
+    }
+    if (esRef.current) {
+      esRef.current.onmessage = null;
+      esRef.current.onerror = null;
+      esRef.current.close();
+      esRef.current = null;
+    }
+    connectingRef.current = false;
+  }, []);
+
+  const scheduleRetry = useCallback(() => {
+    if (retryRef.current || !token) return;
+    retryRef.current = setTimeout(() => {
+      retryRef.current = null;
+      connectRef.current?.();
+    }, RETRY_MS);
+  }, [token]);
 
   const connect = useCallback(() => {
-    if (!token) return null;
+    if (!token || connectingRef.current) return;
+    // Close any stale connection before opening a new one: exactly one
+    // live EventSource at a time, so error retries can never accumulate.
+    cleanup();
+    connectingRef.current = true;
     const url = `/api/v1/admin/notifications/stream?token=${token}`;
-    let es;
+    let es = null;
     try {
       es = new EventSource(url);
+      esRef.current = es;
       es.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
@@ -25,21 +58,23 @@ export default function PopupNotification() {
         }
       };
       es.onerror = () => {
-        es.close();
-        setTimeout(connect, 5000);
+        // Tear down the broken stream and schedule ONE tracked retry.
+        cleanup();
+        scheduleRetry();
       };
     } catch {
-      setTimeout(connect, 5000);
+      cleanup();
+      scheduleRetry();
     }
-    return es;
-  }, [token]);
+  }, [token, cleanup, scheduleRetry]);
 
   useEffect(() => {
-    const es = connect();
+    connectRef.current = connect;
+    connect();
     return () => {
-      if (es) es.close();
+      cleanup();
     };
-  }, [connect]);
+  }, [connect, cleanup]);
 
   const priorityBorder = (p) => {
     if (p === "critical") return "border-l-red-500";

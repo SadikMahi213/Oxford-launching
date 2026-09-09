@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Routes, Route } from "react-router";
 import ScrollToTop from "./component/ScrollToTop";
+import ErrorBoundary from "./component/ErrorBoundary.jsx";
 
 import RegisterForm from "./page/Register";
 import LoginForm from "./page/Login";
@@ -33,6 +34,7 @@ const App = () => {
       <BrowserRouter>
         <ScrollToTop />
         <Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0a0e27] text-white">{t("common.loading")}</div>}>
+          <ErrorBoundary>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<LoginForm />} />
@@ -52,6 +54,7 @@ const App = () => {
             <Route path="/packages" element={<StrategyTiersPage />} />
             <Route path="/registration-payment" element={<ProtectedRoute><RegistrationPayment /></ProtectedRoute>} />
           </Routes>
+          </ErrorBoundary>
         </Suspense>
       </BrowserRouter>
     </div>

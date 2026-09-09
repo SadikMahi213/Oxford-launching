@@ -172,13 +172,16 @@ const OverviewPage = ({ setActivePage }) => {
     const initEarned = Math.min((capRef.current / 86400) * initElapsed, capRef.current);
     setSimulatedMiningBalance(Math.max(0, initEarned));
 
+    // 1s tick: the countdown display has seconds precision, so re-rendering
+    // the whole page 10x/sec (100ms) caused mobile flicker/jank. Balance and
+    // countdown stay live at 1 update/sec.
     const interval = setInterval(() => {
       const now = Date.now();
       const elapsed = (now - miningStartRef.current) / 1000;
       const earned = Math.min((capRef.current / 86400) * elapsed, capRef.current);
       setSimulatedMiningBalance(earned);
       setRemainingTime(Math.max(0, MINING_CYCLE_MS - (now - miningStartRef.current)));
-    }, 100);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [isMiningActive, user?.mining_started_at]);

@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense, startTransition } from "react";
+import ErrorBoundary from "../component/ErrorBoundary.jsx";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
@@ -1191,7 +1192,9 @@ export function UserDashboard() {
             {user?.account_issue ? ` Issue: ${user.account_issue}` : ""}
           </div>
         )}
-        <Suspense fallback={<UserLoading />}>{renderPageContent()}</Suspense>
+        <Suspense fallback={<UserLoading />}>
+          <ErrorBoundary>{renderPageContent()}</ErrorBoundary>
+        </Suspense>
       </div>
 
       <Suspense fallback={null}>

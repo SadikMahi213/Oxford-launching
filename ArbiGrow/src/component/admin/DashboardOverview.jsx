@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 import {
@@ -37,9 +37,11 @@ export default function DashboardOverview() {
   const [realtime, setRealtime] = useState(null);
   const [rtLoading, setRtLoading] = useState(true);
   const [error, setError] = useState("");
+  const rtInflight = useRef(false);
 
   const fetchRealtime = useCallback(async () => {
-    if (!token) return;
+    if (!token || rtInflight.current) return;
+    rtInflight.current = true;
     try {
       const data = await getAdminRealtimeStats(token);
       if (data) setRealtime(data);
@@ -52,6 +54,7 @@ export default function DashboardOverview() {
       }
       setError(err?.response?.data?.detail || "Failed to load dashboard.");
     } finally {
+      rtInflight.current = false;
       setRtLoading(false);
     }
   }, [token, navigate, logout]);

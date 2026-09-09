@@ -10,9 +10,11 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const ref = useRef(null);
+  const fetchInflight = useRef(false);
 
   const fetch = useCallback(async () => {
-    if (!token) return;
+    if (!token || fetchInflight.current) return;
+    fetchInflight.current = true;
     try {
       const [c, r] = await Promise.all([
         getUnreadCount(token),
@@ -22,6 +24,8 @@ export default function NotificationBell() {
       if (r.success) setItems(r.data.items);
     } catch {
       // ignore
+    } finally {
+      fetchInflight.current = false;
     }
   }, [token]);
 
