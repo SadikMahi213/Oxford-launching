@@ -17,11 +17,14 @@ import NotFoundPage from "./page/NotFoundPage";
 import LegalPage from "./page/LegalInformation";
 import VerificationPending from "./page/VerificationPending";
 import RegistrationPayment from "./page/RegistrationPayment";
-import AdminDashboard from "./page/AdminDashboard";
-import StrategyTiersPage from "./page/StrategyTiersPage.jsx";
-import UserDashboard from "./page/UserDashboard.jsx";
-import UserStatisticsPage from "./page/UserStatisticsPage.jsx";
 import ProtectedRoute from "./component/ProtectedRoute";
+
+// Route-level code splitting: heavy dashboard/admin pages load on demand so
+// the initial bundle stays lean for homepage and auth visitors.
+const AdminDashboard = lazy(() => import("./page/AdminDashboard"));
+const StrategyTiersPage = lazy(() => import("./page/StrategyTiersPage.jsx"));
+const UserDashboard = lazy(() => import("./page/UserDashboard.jsx"));
+const UserStatisticsPage = lazy(() => import("./page/UserStatisticsPage.jsx"));
 
 const RTL_LANGS = ["ur"];
 

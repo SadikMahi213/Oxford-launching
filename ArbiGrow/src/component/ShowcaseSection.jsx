@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 export function ShowcaseSection({ badge, badgeIcon: BadgeIcon, title, description, image, images, imageAlt, reversed, accentClass = "from-pink-500 via-rose-400 to-orange-400" }) {
   const [currentIndex, setCurrentIndex] = useState(0);

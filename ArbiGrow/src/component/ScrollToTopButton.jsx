@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { ArrowUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

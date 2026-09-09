@@ -1,7 +1,6 @@
 // Admin - Main Statistics Management Component
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 
 import { StatisticsHeader } from "./StatisticsHeader";
