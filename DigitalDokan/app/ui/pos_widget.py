@@ -17,8 +17,6 @@ from PySide6.QtWidgets import (QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QLi
 
 from app.domain.money import to_money
 from app.domain.pricing import CartLine, compute_totals
-from app.hardware.devices import get_printer
-from app.printing.receipt import build_receipt
 from app.services import pos_service, product_service, settings_service
 from app.ui.widgets import MoneySpin
 
@@ -388,28 +386,19 @@ class POSWidget(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Cancel failed", str(e))
 
-    def _print_details(self, det: dict) -> str:
-        from app.services import settings_service as _ss
-        biz = _ss.get_business(self.ctx.conn)
-        width = 32 if str(_ss.get(self.ctx.conn, "receipt_size")) == "58mm" else 42
-        item_rows = [{"name": r["name"], "qty": r["qty"], "unit_price": r["unit_price"],
-                      "line_total": r["line_total"]} for r in det["items"]]
-        text = build_receipt(business=biz, sale=det["sale"], items=item_rows,
-                             payments=det["payments"], width=width,
-                             cashier=self.ctx.session.username)
-        printer = get_printer(_ss.get(self.ctx.conn, "printer_name"))
-        pr = printer.print_receipt(text)
-        if str(_ss.get(self.ctx.conn, "cash_drawer_enabled")) == "1":
-            printer.open_drawer()
-        return pr.message
+    def _print_details(self, sale_id: int, kind: str = "receipt") -> str:
+        from app.services import print_service as _ps
+        logs = getattr(self.ctx.config, "logs_dir", None)
+        res = _ps.print_receipt(self.ctx.conn, sale_id=sale_id, session=self.ctx.session,
+                                kind=kind, fallback_dir=logs)
+        return res.message
 
     def do_reprint(self):
         sid = self._sale_id_from_input()
         if sid is None:
             return
         try:
-            det = pos_service.sale_details(self.ctx.conn, sid)
-            QMessageBox.information(self, "Reprint", self._print_details(det))
+            QMessageBox.information(self, "Reprint", self._print_details(sid, kind="reprint"))
         except Exception as e:
             QMessageBox.critical(self, "Reprint failed", str(e))
 
@@ -456,8 +445,7 @@ class POSWidget(QWidget):
             self.charge_btn.setEnabled(True)
         # Printing must never roll back the completed sale.
         try:
-            det = pos_service.sale_details(self.ctx.conn, res["sale_id"])
-            msg = f"Sale {res['invoice_no']} completed.\n{self._print_details(det)}"
+            msg = f"Sale {res['invoice_no']} completed.\n{self._print_details(res['sale_id'])}"
             QMessageBox.information(self, "Sale completed", msg)
         except Exception as e:
             QMessageBox.information(
