@@ -49,6 +49,12 @@ export default function ExecutiveSummary() {
           <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
             {t("home.about.overview3")}
           </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.overview4")}
+          </p>
+          <p className="text-gray-400 text-base md:text-lg max-w-full md:max-w-3xl mx-auto px-2 leading-relaxed mt-4">
+            {t("home.about.overview5")}
+          </p>
         </motion.div>
 
         {/* ===== Our Vision ===== */}
