@@ -1,4 +1,5 @@
 from sqlalchemy.exc import IntegrityError
+import anyio
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, update, delete
@@ -173,6 +174,11 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    # bcrypt hashing runs in a worker thread (CPU-bound, ~200ms).
+    signup_password_hash = await anyio.to_thread.run_sync(
+        hash_password, user_data.password
+    )
+
     # Create user
     new_user = User(
         full_name=user_data.full_name,
@@ -192,7 +198,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         religion=user_data.religion,
         marital_status=user_data.marital_status,
         email=normalized_email,
-        hashed_password=hash_password(user_data.password),
+        hashed_password=signup_password_hash,
         is_admin=False,
         email_verified=True,
         main_wallet=Decimal("0.00000000000000"),
@@ -379,7 +385,9 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
     max_attempts_cfg = max_attempts_row.scalar_one_or_none()
     max_failed_attempts = int(max_attempts_cfg.value) if max_attempts_cfg else settings.MAX_FAILED_ATTEMPTS
 
-    if not verify_password(user_data.password, user.hashed_password):
+    if not await anyio.to_thread.run_sync(
+        verify_password, user_data.password, user.hashed_password
+    ):
         user.failed_attempts = (user.failed_attempts or 0) + 1
 
         if user.failed_attempts >= max_failed_attempts:
@@ -659,7 +667,9 @@ async def reset_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.hashed_password = hash_password(data.new_password)
+    user.hashed_password = await anyio.to_thread.run_sync(
+        hash_password, data.new_password
+    )
     # Reset security fields on password change
     user.failed_attempts = 0
     user.blocked_at = None

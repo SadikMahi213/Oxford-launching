@@ -1,4 +1,5 @@
 import logging
+import anyio
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -1527,7 +1528,9 @@ async def admin_reset_user_password(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.hashed_password = hash_password(payload.new_password)
+    user.hashed_password = await anyio.to_thread.run_sync(
+        hash_password, payload.new_password
+    )
     user.failed_attempts = 0
     user.blocked_at = None
     user.blocked_reason = None

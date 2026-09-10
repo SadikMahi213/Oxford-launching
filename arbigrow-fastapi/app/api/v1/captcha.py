@@ -1,6 +1,7 @@
 import hashlib
 import random
 import secrets
+import anyio
 from datetime import datetime, timedelta, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -195,7 +196,11 @@ async def get_next_captcha(
     await db.commit()
     await db.refresh(challenge)
 
-    captcha_image = generate_captcha_image(captcha_text)
+    # CPU-bound PIL render runs in a worker thread so the event loop
+    # stays responsive under concurrent captcha load.
+    captcha_image = await anyio.to_thread.run_sync(
+        generate_captcha_image, captcha_text
+    )
 
     return CaptchaNextResponse(
         captcha_id=challenge.id,
