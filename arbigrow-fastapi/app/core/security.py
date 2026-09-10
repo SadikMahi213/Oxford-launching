@@ -4,6 +4,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from app.core.config import settings
+from app.core.database import get_db
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,6 +64,7 @@ def _extract_token(request: Request) -> str | None:
 async def get_current_user_id(
     request: Request,
     token: str | None = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
 ) -> int:
     raw = token or _extract_token(request)
     if not raw:
@@ -78,15 +80,14 @@ async def get_current_user_id(
 
     jti = payload.get("jti")
     if jti:
-        from app.core.database import AsyncSessionLocal
+        # Reuse the request DB session (same instance FastAPI already
+        # resolved for this request) instead of opening a second session.
         from app.models.token_blacklist import TokenBlacklist
-        from sqlalchemy import select
-        async with AsyncSessionLocal() as check_db:
-            existing = await check_db.execute(
-                select(TokenBlacklist).where(TokenBlacklist.jti == jti).limit(1)
-            )
-            if existing.scalar_one_or_none():
-                raise HTTPException(status_code=401, detail="Token has been revoked")
+        existing = await db.execute(
+            select(TokenBlacklist).where(TokenBlacklist.jti == jti).limit(1)
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=401, detail="Token has been revoked")
 
     return int(user_id)
 
