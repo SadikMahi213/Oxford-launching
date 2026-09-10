@@ -32,8 +32,26 @@ export const refreshUserStore = () => {
   return api.get("v1/user/me", authHeaders());
 };
 
+// Shares one promise between identical concurrent GETs (e.g. dashboard
+// landing + referral tab firing together). Entries live only while the
+// request is in flight: nothing is cached, failures propagate to all
+// sharers, and the entry is always cleared so retries work. The auth token
+// is part of the key so users/endpoints never share responses.
+const inflightGets = new Map();
+
+const dedupedGet = (url, config) => {
+  const key = `GET ${url} ${config?.headers?.Authorization || ""}`;
+  const pending = inflightGets.get(key);
+  if (pending) return pending;
+  const req = api.get(url, config).finally(() => {
+    if (inflightGets.get(key) === req) inflightGets.delete(key);
+  });
+  inflightGets.set(key, req);
+  return req;
+};
+
 export const getReferralNetwork = () => {
-  return api.get("v1/user/referral-network", authHeaders());
+  return dedupedGet("v1/user/referral-network", authHeaders());
 };
 
 export const getActiveDepositNetworks = () => {
