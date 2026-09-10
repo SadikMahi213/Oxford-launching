@@ -47,7 +47,7 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: 7200
       ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://localhost","http://localhost:80"]'
       APP_ENV: production
-      UVICORN_WORKERS: "3"
+      UVICORN_WORKERS: "4"
       LOG_LEVEL: INFO
       FRONTEND_DOMAIN: https://oxfordfinancialads.com
       DB_SSL_REQUIRED: "false"
