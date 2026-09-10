@@ -130,11 +130,19 @@ async def get_level_analytics(
     )
     total_commission_earned = Decimal(str(commission_result.scalar()))
 
-    # Member details
+    # Member details (only the columns the response serializes)
     users_result = await db.execute(
-        select(User).where(User.id.in_(team_ids))
+        select(
+            User.id,
+            User.user_no,
+            User.full_name,
+            User.username,
+            User.referral_wallet,
+            User.generation_wallet,
+            User.created_at,
+        ).where(User.id.in_(team_ids))
     )
-    users = users_result.scalars().all()
+    users = users_result.all()
 
     # Check KYC for active status
     kyc_result = await db.execute(

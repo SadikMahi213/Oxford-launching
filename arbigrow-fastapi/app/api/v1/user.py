@@ -239,10 +239,18 @@ async def get_referral_network(
     non_bonus_ids = {row[0] for row in team_data if row[1] > 5}
 
     team_users_result = await db.execute(
-        select(User).where(User.id.in_([row[0] for row in team_data]))
+        select(
+            User.id,
+            User.user_no,
+            User.full_name,
+            User.username,
+            User.referral_wallet,
+            User.generation_wallet,
+            User.parent_lvl_1_id,
+            User.created_at,
+        ).where(User.id.in_([row[0] for row in team_data]))
     )
-    team_users = team_users_result.scalars().all()
-    team_users_map = {u.id: u for u in team_users}
+    team_users_map = {row.id: row for row in team_users_result.all()}
 
     level_map = {1: [], 2: [], 3: [], 4: [], 5: []}
 
@@ -308,16 +316,20 @@ async def get_referral_network(
         if depth <= 5:
             level_map[depth].append(member_data)
 
-    # Calculate level-wise commissions the current user earned
+    # Calculate level-wise commissions the current user earned (aggregated
+    # in SQL instead of loading every history row into Python).
     rph_result = await db.execute(
-        select(ReferralProfitHistory).where(
-            ReferralProfitHistory.receiver_user_id == current_user.id
+        select(
+            ReferralProfitHistory.level,
+            func.coalesce(func.sum(ReferralProfitHistory.amount), 0),
         )
+        .where(ReferralProfitHistory.receiver_user_id == current_user.id)
+        .group_by(ReferralProfitHistory.level)
     )
     earned_by_level = {1: Decimal("0"), 2: Decimal("0"), 3: Decimal("0"), 4: Decimal("0"), 5: Decimal("0")}
-    for row in rph_result.scalars().all():
-        if row.level in earned_by_level:
-            earned_by_level[row.level] += row.amount
+    for level, total in rph_result.all():
+        if level in earned_by_level:
+            earned_by_level[level] += Decimal(str(total))
 
     levels = []
     for level in range(1, 6):
