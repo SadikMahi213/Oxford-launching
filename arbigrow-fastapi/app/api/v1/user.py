@@ -158,13 +158,16 @@ async def get_me(
     # Ensure team_volume is live — recalculate if stored value is zero.
     # Rank-eligible volume is zero until KYC is approved (and only counts
     # deposits made at/after approval), so non-approved users cache zero.
+    # Persist only when the value actually changed: zero-volume users would
+    # otherwise trigger a redundant write on every /me call.
     if not current_user.team_volume:
         from app.services.rank_service import get_rank_eligible_volume
         _pv, _tv = await get_rank_eligible_volume(current_user, db)
-        current_user.team_volume = _tv
-        db.add(current_user)
-        await db.commit()
-        await db.refresh(current_user)
+        if (_tv or Decimal("0")) != (current_user.team_volume or Decimal("0")):
+            current_user.team_volume = _tv
+            db.add(current_user)
+            await db.commit()
+            await db.refresh(current_user)
 
     user_resp = UserResponse.model_validate(current_user)
     if kyc:

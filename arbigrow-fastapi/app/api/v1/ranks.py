@@ -71,8 +71,9 @@ async def get_my_rank(
     # Rank and dashboard values are based on lifetime Team Volume. The frozen
     # KYC snapshot excludes historical volume from matching bonuses only; it
     # must not alter rank calculation or the volume shown to the user.
-    current_user.team_volume = team_volume
-    await db.commit()
+    # NOTE: read-only — the response uses the freshly computed team_volume
+    # above. The users.team_volume column is authoritatively maintained by
+    # deposit-approval rank evaluation, so this GET performs no write.
 
     current_rank = await _get_highest_qualified_rank(team_volume, db)
     if not current_rank:
