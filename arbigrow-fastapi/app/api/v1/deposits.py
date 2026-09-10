@@ -200,6 +200,12 @@ async def update_deposit_status(
             detail="Deposit already processed"
         )
 
+    # Response fields must exist on every path: the return block below
+    # references them unconditionally (previously they were assigned only
+    # inside the approved branch, so rejections raised NameError → HTTP 500).
+    _deposit_id = deposit.id
+    _deposit_status = data.status
+
     # Update deposit status
     deposit.status = data.status
 

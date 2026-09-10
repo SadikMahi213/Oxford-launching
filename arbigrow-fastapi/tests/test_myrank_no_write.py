@@ -161,6 +161,13 @@ def env(monkeypatch):
     async def _kyc_no(*a, **k):
         return False
 
+    # Patch BOTH binding sites: ranks.py imports is_kyc_approved lazily
+    # inside the endpoint (sees the source attr), while rank_service.py binds
+    # it at module import (must be patched where used, else test outcome
+    # depends on which test module imported rank_service first).
+    monkeypatch.setattr("app.utils.kyc_helper.is_kyc_approved", _kyc_yes)
+    monkeypatch.setattr("app.services.rank_service.is_kyc_approved", _kyc_yes)
+
     async def override_db():
         yield sess
 
@@ -171,8 +178,6 @@ def env(monkeypatch):
         app.dependency_overrides[core_db.get_db] = override_db
     except Exception:
         pass
-
-    monkeypatch.setattr("app.utils.kyc_helper.is_kyc_approved", _kyc_yes)
 
     try:
         app.state.limiter.enabled = False
@@ -215,6 +220,7 @@ def test_myrank_kyc_gated_shape(env, monkeypatch):
         return False
 
     monkeypatch.setattr("app.utils.kyc_helper.is_kyc_approved", _kyc_no)
+    monkeypatch.setattr("app.services.rank_service.is_kyc_approved", _kyc_no)
     r = _my_rank(env)
     assert r.status_code == 200
     body = r.json()
