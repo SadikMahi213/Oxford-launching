@@ -100,6 +100,7 @@ async def get_level_analytics(
     team_ids = [row[0] for row in team_data]
 
     if not team_ids:
+        await db.close()
         return {
             "level": level,
             "total_members": 0,
@@ -109,26 +110,28 @@ async def get_level_analytics(
             "members": [],
         }
 
-    # Total deposit volume
-    deposit_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0))
-        .where(Deposit.user_id.in_(team_ids), Deposit.status == "approved")
+    # The three aggregates share the same team filter: fetch them in a
+    # single round trip as scalar subqueries (identical predicates).
+    agg_result = await db.execute(
+        select(
+            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0))
+            .where(Deposit.user_id.in_(team_ids), Deposit.status == "approved")
+            .scalar_subquery()
+            .label("deposit_volume"),
+            select(sa_func.coalesce(sa_func.sum(Investment.invested_amount), 0))
+            .where(Investment.user_id.in_(team_ids), Investment.status == "active")
+            .scalar_subquery()
+            .label("investment_volume"),
+            select(sa_func.coalesce(sa_func.sum(ReferralProfitHistory.amount), 0))
+            .where(ReferralProfitHistory.receiver_user_id.in_(team_ids))
+            .scalar_subquery()
+            .label("commission_earned"),
+        )
     )
-    total_deposit_volume = Decimal(str(deposit_result.scalar()))
-
-    # Total investment volume
-    inv_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(Investment.invested_amount), 0))
-        .where(Investment.user_id.in_(team_ids), Investment.status == "active")
-    )
-    total_investment_volume = Decimal(str(inv_result.scalar()))
-
-    # Total commission earned by these members
-    commission_result = await db.execute(
-        select(sa_func.coalesce(sa_func.sum(ReferralProfitHistory.amount), 0))
-        .where(ReferralProfitHistory.receiver_user_id.in_(team_ids))
-    )
-    total_commission_earned = Decimal(str(commission_result.scalar()))
+    agg_row = agg_result.one()
+    total_deposit_volume = Decimal(str(agg_row.deposit_volume))
+    total_investment_volume = Decimal(str(agg_row.investment_volume))
+    total_commission_earned = Decimal(str(agg_row.commission_earned))
 
     # Member details (only the columns the response serializes)
     users_result = await db.execute(
@@ -164,6 +167,10 @@ async def get_level_analytics(
             "total_earnings": str(member_earnings),
             "status": "active" if u.id in kyc_ids else "inactive",
         })
+
+    # All DB reads are complete and members holds plain values: release
+    # the connection before returning instead of holding it until teardown.
+    await db.close()
 
     return {
         "level": level,

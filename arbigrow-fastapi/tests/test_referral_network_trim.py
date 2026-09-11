@@ -37,6 +37,9 @@ class FakeResult:
     def first(self):
         return self.rows[0] if self.rows else None
 
+    def one(self):
+        return self.rows[0]
+
     def fetchall(self):
         return self.rows
 
@@ -61,11 +64,37 @@ class FakeSession:
     async def execute(self, stmt, params=None):
         sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
         if "team_tree" in sql:
+            if "depth = " in sql:
+                # level-analytics filters a single depth; bound params are
+                # not rendered by literal_binds, so read them directly.
+                lvl = (params or {}).get("lvl")
+                rows = [(2, 1), (3, 2)]
+                if lvl is not None:
+                    rows = [(i, d) for i, d in rows if d == lvl]
+                return FakeResult(None, rows)
             return FakeResult(None, [(2, 1), (3, 2)])
         if "system_config" in sql:
             return FakeResult(None)
+        if "deposit_volume" in sql:
+            # level-analytics combined scalar-subquery aggregate
+            from types import SimpleNamespace
+            return FakeResult(
+                SimpleNamespace(
+                    deposit_volume=Decimal("120"),
+                    investment_volume=Decimal("200"),
+                    commission_earned=Decimal("30"),
+                ),
+                [SimpleNamespace(
+                    deposit_volume=Decimal("120"),
+                    investment_volume=Decimal("200"),
+                    commission_earned=Decimal("30"),
+                )])
         if "referral_profit_history" in sql:
             return FakeResult(None, [(1, Decimal("25")), (2, Decimal("14"))])
+        if "kyc" in sql.lower() and "users" not in sql:
+            return FakeResult(None, [(2,), (3,)])
+        if "deposits" in sql:
+            return FakeResult(Decimal("0"), [Decimal("0")])
         if "investments" in sql:
             return FakeResult(None, [])
         if "users" in sql:
@@ -82,6 +111,9 @@ class FakeSession:
             rows = [self._users[i] for i in ids if i in self._users]
             return FakeResult(rows[0] if rows else None, rows)
         return FakeResult(None)
+
+    async def close(self):
+        return None
 
 
 @pytest.fixture
@@ -140,3 +172,34 @@ def test_referral_network_contract(env):
     assert anna["status"] == "inactive"
     assert len(by_level[2]["users"]) == 1
     assert by_level[3]["users"] == []
+
+
+def test_level_analytics_contract(env):
+    r = env["client"].get(
+        "/api/v1/user/level-analytics/1",
+        headers={"Authorization": "Bearer test"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["level"] == 1
+    assert body["total_members"] == 1
+    assert body["total_deposit_volume"] == "120"
+    assert body["total_investment_volume"] == "200"
+    assert body["total_commission_earned"] == "30"
+    assert len(body["members"]) == 1
+    anna = body["members"][0]
+    assert anna["user_no"] == "00000002"
+    assert anna["name"] == "anna"
+    assert anna["username"] == "anna"
+    assert anna["join_date"] == "Mar 05, 2026"
+    assert anna["total_earnings"] == "15"
+    assert anna["status"] == "active"
+
+
+def test_level_analytics_empty_level(env):
+    r = env["client"].get(
+        "/api/v1/user/level-analytics/4",
+        headers={"Authorization": "Bearer test"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["total_members"] == 0
+    assert body["members"] == []

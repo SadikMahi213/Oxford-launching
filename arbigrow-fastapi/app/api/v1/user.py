@@ -218,6 +218,7 @@ async def get_referral_network(
 
     total_team_members = len(team_data)
     if not team_data:
+        await db.close()
         return {
             "total_team_members": 0,
             "total_referrals": 0,
@@ -345,6 +346,11 @@ async def get_referral_network(
                 "users": users,
             }
         )
+
+    # All DB reads are complete and the response is built from plain
+    # values: release the connection before returning instead of holding
+    # it until request teardown.
+    await db.close()
 
     return {
         "total_team_members": total_team_members,

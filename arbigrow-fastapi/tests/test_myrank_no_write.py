@@ -116,6 +116,9 @@ class FakeSession:
     async def commit(self):
         self.commits += 1
 
+    async def close(self):
+        return None
+
     async def refresh(self, obj):
         return None
 

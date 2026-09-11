@@ -52,6 +52,9 @@ async def get_my_rank(
     personal_volume, team_volume = await get_team_volume(current_user.id, db)
 
     if not await is_kyc_approved(current_user, db):
+        # Release the connection before building the response: everything
+        # below uses already-materialized values.
+        await db.close()
         return {
             "user_no": current_user.user_no,
             "current_rank": None,
@@ -143,6 +146,12 @@ async def get_my_rank(
     post_kyc_volume = max(
         Decimal("0"), team_volume - snapshot_volume
     ) if snapshot_volume is not None else None
+
+    # All DB work is done and every value above is materialized: release the
+    # connection before serialization/response instead of holding it until
+    # request teardown. Safe: no lazy loads occur below (bonus configs were
+    # eager-loaded; everything else is plain columns/locals).
+    await db.close()
 
     return {
         "user_no": current_user.user_no,
