@@ -75,6 +75,14 @@ class FakeSession:
             return FakeResult(None, [(2, 1), (3, 2)])
         if "system_config" in sql:
             return FakeResult(None)
+        if "UNION ALL" in sql:
+            # referral-network combined aggregates: (kind, a, b, c)
+            return FakeResult(None, [
+                ("dc", 1, 1, None),
+                ("dc", 2, 1, None),
+                ("rph", 1, None, Decimal("25")),
+                ("rph", 2, None, Decimal("14")),
+            ])
         if "deposit_volume" in sql:
             # level-analytics combined scalar-subquery aggregate
             from types import SimpleNamespace

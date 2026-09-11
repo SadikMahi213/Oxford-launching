@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func
+from sqlalchemy import select, or_, and_, func, literal, cast, Numeric, Integer
 
 from app.core.database import get_db
 
@@ -272,21 +272,50 @@ async def get_referral_network(
             parent_usernames[pid] = team_users_map[pid].username
 
     candidate_ids = [current_user.id] + [row[0] for row in team_data]
-    direct_counts_result = await db.execute(
-        select(User.parent_lvl_1_id, func.count(User.id))
+    all_team_ids = [row[0] for row in team_data]
+    # One round trip for the three aggregates (identical predicates to the
+    # former three queries): direct-child counts, active-investment members,
+    # and per-level commission sums, distinguished by the kind column.
+    agg_result = await db.execute(
+        select(
+            literal("dc").label("kind"),
+            User.parent_lvl_1_id.label("a"),
+            func.count(User.id).label("b"),
+            cast(None, Numeric).label("c"),
+        )
         .where(User.parent_lvl_1_id.in_(candidate_ids))
         .group_by(User.parent_lvl_1_id)
-    )
-    direct_counts = {pid: count for pid, count in direct_counts_result.all() if pid}
-
-    all_team_ids = [row[0] for row in team_data]
-    active_result = await db.execute(
-        select(Investment.user_id).where(
-            Investment.status == "active",
-            Investment.user_id.in_(all_team_ids),
+        .union_all(
+            select(
+                literal("ac").label("kind"),
+                Investment.user_id.label("a"),
+                literal(1).label("b"),
+                cast(None, Numeric).label("c"),
+            ).where(
+                Investment.status == "active",
+                Investment.user_id.in_(all_team_ids),
+            ),
+            select(
+                literal("rph").label("kind"),
+                ReferralProfitHistory.level.label("a"),
+                cast(None, Integer).label("b"),
+                func.coalesce(func.sum(ReferralProfitHistory.amount), 0).label("c"),
+            )
+            .where(ReferralProfitHistory.receiver_user_id == current_user.id)
+            .group_by(ReferralProfitHistory.level),
         )
     )
-    active_user_ids = {row[0] for row in active_result.all()}
+    direct_counts = {}
+    active_user_ids = set()
+    earned_by_level = {1: Decimal("0"), 2: Decimal("0"), 3: Decimal("0"), 4: Decimal("0"), 5: Decimal("0")}
+    for kind, a, b, c in agg_result.all():
+        if kind == "dc":
+            if a:
+                direct_counts[a] = b
+        elif kind == "ac":
+            active_user_ids.add(a)
+        elif kind == "rph" and a in earned_by_level:
+            earned_by_level[a] += Decimal(str(c))
 
     total_active_referrals = 0
 
@@ -319,21 +348,6 @@ async def get_referral_network(
 
         if depth <= 5:
             level_map[depth].append(member_data)
-
-    # Calculate level-wise commissions the current user earned (aggregated
-    # in SQL instead of loading every history row into Python).
-    rph_result = await db.execute(
-        select(
-            ReferralProfitHistory.level,
-            func.coalesce(func.sum(ReferralProfitHistory.amount), 0),
-        )
-        .where(ReferralProfitHistory.receiver_user_id == current_user.id)
-        .group_by(ReferralProfitHistory.level)
-    )
-    earned_by_level = {1: Decimal("0"), 2: Decimal("0"), 3: Decimal("0"), 4: Decimal("0"), 5: Decimal("0")}
-    for level, total in rph_result.all():
-        if level in earned_by_level:
-            earned_by_level[level] += Decimal(str(total))
 
     levels = []
     for level in range(1, 6):
