@@ -255,17 +255,20 @@ async def get_referral_network(
     level_map = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     l1_user_ids = {uid for uid, d in team_data if d == 1}
-    parent_ids = {
-        team_users_map[uid].parent_lvl_1_id
-        for uid in l1_user_ids
-        if uid in team_users_map and team_users_map[uid].parent_lvl_1_id
-    }
+    # Depth-1 rows satisfy parent_lvl_1_id == current_user.id by CTE
+    # construction, so L1 referrer names resolve without a query. Deeper
+    # members resolve from the already-loaded team map; unknown parents
+    # stay None exactly as before.
     parent_usernames = {}
-    if parent_ids:
-        parent_result = await db.execute(
-            select(User.id, User.username).where(User.id.in_(parent_ids))
-        )
-        parent_usernames = {pid: username for pid, username in parent_result.all()}
+    for uid in l1_user_ids:
+        member = team_users_map.get(uid)
+        if member is None or not member.parent_lvl_1_id:
+            continue
+        pid = member.parent_lvl_1_id
+        if pid == current_user.id:
+            parent_usernames[pid] = current_user.username
+        elif pid in team_users_map:
+            parent_usernames[pid] = team_users_map[pid].username
 
     candidate_ids = [current_user.id] + [row[0] for row in team_data]
     direct_counts_result = await db.execute(

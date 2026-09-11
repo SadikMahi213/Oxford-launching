@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import cast, select, func, Numeric
+from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 
 from app.core.database import get_db
@@ -44,7 +44,7 @@ async def get_my_rank(
     not approved still sees their accumulated volume but never a rank: no
     volume is eligible for rank assignment or matching bonuses until approval.
     """
-    from app.services.rank_service import get_team_volume, _get_highest_qualified_rank
+    from app.services.rank_service import get_team_volume
     from app.utils.kyc_helper import is_kyc_approved
 
     # Lifetime Team Volume = own approved deposits + up to 10 generations of
@@ -75,20 +75,29 @@ async def get_my_rank(
     # above. The users.team_volume column is authoritatively maintained by
     # deposit-approval rank evaluation, so this GET performs no write.
 
-    current_rank = await _get_highest_qualified_rank(team_volume, db)
+    # One round trip for both ranks: fetch active ranks once (bonus configs
+    # eager-loaded to avoid lazy loads during serialization) and pick the
+    # highest qualified / next target in Python with the same semantics as
+    # the former two queries (max sort_order among target<=volume, min
+    # sort_order among target>volume).
+    ranks_result = await db.execute(
+        select(Rank)
+        .where(Rank.is_active == True)
+        .options(joinedload(Rank.bonus_configs))
+        .order_by(Rank.sort_order.asc())
+    )
+    active_ranks = ranks_result.scalars().unique().all()
+    qualified = [
+        r for r in active_ranks if r.target_volume <= team_volume
+    ]
+    current_rank = max(qualified, key=lambda r: r.sort_order) if qualified else None
     if not current_rank:
         current_rank = await db.get(Rank, current_user.current_rank_id)
 
-    next_rank_result = await db.execute(
-        select(Rank)
-        .where(
-            Rank.is_active == True,
-            Rank.target_volume > cast(team_volume, Numeric),
-        )
-        .order_by(Rank.sort_order.asc())
-        .limit(1)
-    )
-    next_rank = next_rank_result.scalar_one_or_none()
+    upcoming = [
+        r for r in active_ranks if r.target_volume > team_volume
+    ]
+    next_rank = min(upcoming, key=lambda r: r.sort_order) if upcoming else None
 
     # Compute total matching bonus earned
     total_result = await db.execute(
