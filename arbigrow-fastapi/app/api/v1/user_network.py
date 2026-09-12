@@ -65,6 +65,11 @@ async def get_network_analytics(
 
     inactive = total_network_members - active_ids
 
+    # All DB reads are complete and the response holds plain values: release
+    # the connection before returning instead of holding it until teardown
+    # (same pattern as level-analytics / referral-network).
+    await db.close()
+
     return {
         "total_network_members": total_network_members,
         "active_members": active_ids,

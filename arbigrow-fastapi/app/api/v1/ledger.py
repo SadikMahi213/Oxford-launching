@@ -696,6 +696,12 @@ async def get_ledger_transactions(
     end = start + page_size
     page_items = filtered[start:end]
 
+    # Everything below is built from plain values (records/balances/
+    # categories are dicts; current_user was last touched by the KYC gate
+    # above): release the connection before returning instead of holding it
+    # through serialization and request teardown.
+    await db.close()
+
     return {
         "items": page_items,
         "earning_history": [r for r in page_items if r["stream"] == "earning"],

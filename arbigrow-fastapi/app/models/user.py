@@ -295,7 +295,9 @@ class User(Base):
     )
 
     # ancestry cache (up to 5 generations)
-    parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # parent_lvl_1_id is indexed: team-tree CTEs (network-analytics,
+    # referral-network, level-analytics) join on it at every recursion level.
+    parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     parent_lvl_2_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     parent_lvl_3_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     parent_lvl_4_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
