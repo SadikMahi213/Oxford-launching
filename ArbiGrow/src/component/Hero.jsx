@@ -25,6 +25,7 @@ export const Hero = () => {
             alt={t("homePage.altHero")}
             className="w-full h-auto block"
             loading="eager"
+            fetchPriority="high"
           />
           {/* White gradient at TOP — fully opaque white fading into image */}
           <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white to-transparent pointer-events-none" />
@@ -79,6 +80,7 @@ export const Hero = () => {
           alt={t("homePage.altHero")}
           className="absolute inset-0 w-full h-full object-cover object-center"
           loading="eager"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-black/55" />
 

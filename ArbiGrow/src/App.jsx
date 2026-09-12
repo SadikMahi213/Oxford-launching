@@ -8,23 +8,25 @@ import { refreshToken } from "./api/auth.api.js";
 import { refreshUserStore } from "./api/user.api.js";
 import { setupAuthInterceptor } from "./api/authSession.js";
 
-import RegisterForm from "./page/Register";
-import LoginForm from "./page/Login";
 import Home from "./page/Home";
-import ForgotPassword from "./page/ForgotPassword";
-import VerificationPage from "./page/VerificationPage";
-import ResetPassword from "./page/ResetPassword";
-import TermsAndConditions from "./page/TermsAndConditions";
-import PrivacyPolicy from "./page/PrivacyPolicy";
-import EmailVerificationPage from "./page/EmailVerificationPage";
-import NotFoundPage from "./page/NotFoundPage";
-import LegalPage from "./page/LegalInformation";
-import VerificationPending from "./page/VerificationPending";
-import RegistrationPayment from "./page/RegistrationPayment";
 import ProtectedRoute from "./component/ProtectedRoute";
 
-// Route-level code splitting: heavy dashboard/admin pages load on demand so
-// the initial bundle stays lean for homepage and auth visitors.
+// Route-level code splitting: only Home (+ tiny guard) ships in the initial
+// bundle. Auth/legal/payment pages load on demand so first paint stays lean.
+const RegisterForm = lazy(() => import("./page/Register"));
+const LoginForm = lazy(() => import("./page/Login"));
+const ForgotPassword = lazy(() => import("./page/ForgotPassword"));
+const VerificationPage = lazy(() => import("./page/VerificationPage"));
+const ResetPassword = lazy(() => import("./page/ResetPassword"));
+const TermsAndConditions = lazy(() => import("./page/TermsAndConditions"));
+const PrivacyPolicy = lazy(() => import("./page/PrivacyPolicy"));
+const EmailVerificationPage = lazy(() => import("./page/EmailVerificationPage"));
+const NotFoundPage = lazy(() => import("./page/NotFoundPage"));
+const LegalPage = lazy(() => import("./page/LegalInformation"));
+const VerificationPending = lazy(() => import("./page/VerificationPending"));
+const RegistrationPayment = lazy(() => import("./page/RegistrationPayment"));
+
+// Heavy dashboard/admin pages also load on demand.
 const AdminDashboard = lazy(() => import("./page/AdminDashboard"));
 const StrategyTiersPage = lazy(() => import("./page/StrategyTiersPage.jsx"));
 const UserDashboard = lazy(() => import("./page/UserDashboard.jsx"));

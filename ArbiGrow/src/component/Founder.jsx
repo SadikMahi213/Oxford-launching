@@ -58,6 +58,8 @@ export default function Founders() {
                     <img
                       src={founder.image}
                       alt={t(founder.nameKey)}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
                     {/* Subtle vignette at the bottom of the image */}

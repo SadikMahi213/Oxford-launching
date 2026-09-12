@@ -88,6 +88,8 @@ const Home = () => {
         <img
           src="/WhatsApp%20Image%202026-06-24%20at%2021.12.20%20(1).jpeg"
           alt={t("homePage.imageAlt")}
+          loading="lazy"
+          decoding="async"
           className="w-full max-w-3xl md:max-w-4xl lg:max-w-5xl h-auto object-contain rounded-2xl"
         />
       </div>

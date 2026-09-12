@@ -150,6 +150,8 @@ export function OurInvestors() {
                   <img
                     src={investor.logo}
                     alt={investor.name}
+                    loading="lazy"
+                    decoding="async"
                     className="max-w-full max-h-full object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300 filter brightness-0 invert"
                   />
                 </div>
