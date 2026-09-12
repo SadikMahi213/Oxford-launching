@@ -107,6 +107,8 @@ export function UserDashboard() {
   //  const [user, setuUsers] = useState();
   const navigate = useNavigate();
   const transactionsPerPage = 50;
+  // Must match backend ledger RETENTION_DAYS (app/api/v1/ledger.py).
+  const HISTORY_RETENTION_DAYS = 30;
   const { user } = useUserStore();
   const { logout, setUser } = useUserStore();
   const isAccountOnHold =
@@ -477,7 +479,15 @@ export function UserDashboard() {
         _ts: new Date(wtx.created_at).getTime(),
       });
     });
-    return rows.sort((a, b) => b._ts - a._ts);
+    return rows
+      // User-facing 30-day retention window (same policy as the ledger
+      // History/Transaction views). Record dates are server timestamps;
+      // rows without a parseable date are kept (fail-open).
+      .filter((row) => {
+        if (!Number.isFinite(row._ts)) return true;
+        return row._ts >= Date.now() - HISTORY_RETENTION_DAYS * 86400000;
+      })
+      .sort((a, b) => b._ts - a._ts);
   };
 
   const _safeFetch = (fn, fallback) =>

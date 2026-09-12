@@ -1,8 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Routes, Route } from "react-router";
 import ScrollToTop from "./component/ScrollToTop";
 import ErrorBoundary from "./component/ErrorBoundary.jsx";
+import useUserStore from "./store/userStore.js";
+import { refreshToken } from "./api/auth.api.js";
+import { refreshUserStore } from "./api/user.api.js";
+import { setupAuthInterceptor } from "./api/authSession.js";
 
 import RegisterForm from "./page/Register";
 import LoginForm from "./page/Login";
@@ -31,6 +35,51 @@ const RTL_LANGS = ["ur"];
 const App = () => {
   const { t, i18n } = useTranslation();
   const dir = RTL_LANGS.includes(i18n.language) ? "rtl" : "ltr";
+
+  // Session boot (runs once): wire the 401→refresh interceptor, then try to
+  // restore the session from the persistent refresh cookie. Page refreshes
+  // and browser restarts land here with an empty in-memory store — a live
+  // cookie brings the user back without a login screen. A failed probe means
+  // genuinely logged out (or first visit): guards redirect as before.
+  useEffect(() => {
+    const store = useUserStore.getState();
+    setupAuthInterceptor({
+      onTokenRefreshed: (next) => useUserStore.getState().setToken(next),
+      onSessionExpired: () => {
+        useUserStore.getState().clearSession();
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.replace("/login");
+        }
+      },
+    });
+    // Already holding a session (in-app navigation remount): nothing to do.
+    if (store.user || store.token) {
+      store.setBooted(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const refreshRes = await refreshToken().catch(() => null);
+        const nextToken = refreshRes?.data?.access_token || null;
+        if (!nextToken) return;
+        if (!cancelled) useUserStore.getState().setToken(nextToken);
+        const meRes = await refreshUserStore().catch(() => null);
+        if (!cancelled && meRes?.data?.user) {
+          useUserStore.getState().setUser(meRes.data.user);
+        } else if (!cancelled) {
+          // Token renewed but profile unreadable: drop the token so later
+          // calls re-trigger a clean refresh instead of half-session 401s.
+          useUserStore.getState().setToken(null);
+        }
+      } finally {
+        if (!cancelled) useUserStore.getState().setBooted(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div dir={dir}>

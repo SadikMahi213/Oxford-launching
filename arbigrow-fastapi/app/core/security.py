@@ -10,7 +10,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=True)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -100,6 +100,73 @@ def generate_refresh_token() -> tuple[str, str]:
 
 def compute_refresh_token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+# ── Persistent session (refresh token) helpers ─────────────────────────────
+# The httpOnly `refresh_token` cookie keeps the user logged in across page
+# refreshes, browser restarts and access-token expirations. Access tokens stay
+# short-lived (60 min); only the refresh endpoint can mint new ones, and every
+# successful refresh slides the expiry forward (bounded by
+# REFRESH_TOKEN_EXPIRE_DAYS of inactivity). Explicit logout revokes the token.
+
+def refresh_token_expiry(days: int) -> datetime:
+    return datetime.now(timezone.utc) + timedelta(days=days)
+
+
+async def issue_refresh_token(db: AsyncSession, user_id: int, days: int) -> str:
+    """Create + persist a refresh token. Returns the raw (cookie) value."""
+    from app.models.refresh_token import RefreshToken
+    raw, hashed = generate_refresh_token()
+    db.add(RefreshToken(
+        user_id=user_id,
+        token_hash=hashed,
+        expires_at=refresh_token_expiry(days),
+        revoked=False,
+    ))
+    await db.commit()
+    return raw
+
+
+async def validate_refresh_token(db: AsyncSession, raw: str, days: int) -> int | None:
+    """Return user_id for a live refresh token (sliding expiry), else None.
+
+    Revoked/expired/unknown tokens return None without side effects, so a
+    failed refresh never destroys anything — the caller decides.
+    """
+    from app.models.refresh_token import RefreshToken
+    if not raw:
+        return None
+    hashed = compute_refresh_token_hash(raw)
+    result = await db.execute(
+        select(RefreshToken).where(RefreshToken.token_hash == hashed).limit(1)
+    )
+    record = result.scalar_one_or_none()
+    if record is None or record.revoked:
+        return None
+    expires_at = record.expires_at
+    if expires_at is not None and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at is not None and expires_at <= datetime.now(timezone.utc):
+        return None
+    # Sliding window: activity extends the session up to `days` of inactivity.
+    record.expires_at = refresh_token_expiry(days)
+    await db.commit()
+    return record.user_id
+
+
+async def revoke_refresh_token(db: AsyncSession, raw: str) -> None:
+    """Best-effort revoke of one refresh token (explicit logout path)."""
+    from app.models.refresh_token import RefreshToken
+    if not raw:
+        return
+    hashed = compute_refresh_token_hash(raw)
+    result = await db.execute(
+        select(RefreshToken).where(RefreshToken.token_hash == hashed).limit(1)
+    )
+    record = result.scalar_one_or_none()
+    if record is not None and not record.revoked:
+        record.revoked = True
+        await db.commit()
 
 
 async def blacklist_access_token(token: str, db: AsyncSession) -> None:

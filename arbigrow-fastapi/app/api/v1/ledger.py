@@ -22,7 +22,7 @@ TASK-BASED EARNINGS LEDGER: only genuine digital-task earning categories
 bonuses/financial/OFA movements are shown.
 """
 
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 
 from fastapi import APIRouter, Depends, Query
@@ -48,6 +48,49 @@ from app.models.wallet_transaction import WalletTransaction
 from app.models.withdrawal import Withdrawal
 
 router = APIRouter(prefix="/ledger", tags=["Ledger"])
+
+
+# ── User-facing retention window ─────────────────────────────────────────────
+# History and Transaction views show the latest 30 days only. This is a
+# DISPLAY window, not deletion: authoritative rows stay in the database (they
+# back balances, category totals, audits and accounting), and only the
+# record list returned here is cut. Balances and `summary.categories` remain
+# lifetime/absolute values. Cutoff uses server UTC time, never client time.
+RETENTION_DAYS = 30
+
+
+def retention_cutoff_utc(now: datetime | None = None) -> datetime:
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    return now - timedelta(days=RETENTION_DAYS)
+
+
+def apply_retention_window(records: list, now: datetime | None = None) -> list:
+    """Keep records with date >= server_now - 30 days.
+
+    Records without a parseable date are kept (fail-open): an unexpected date
+    shape must never silently hide a user's financial movement.
+    """
+    cutoff = retention_cutoff_utc(now)
+
+    def _parse(value):
+        if not value:
+            return None
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
+
+    kept = []
+    for record in records:
+        parsed = _parse(record.get("date"))
+        if parsed is None or parsed >= cutoff:
+            kept.append(record)
+    return kept
 
 
 # ── Task-based categories ────────────────────────────────────────────────────
@@ -596,6 +639,10 @@ async def get_ledger_transactions(
 ):
     task_only = scope == "task"
     records, balances, categories = await _build_ledger(current_user, db, task_only=task_only)
+    server_now = datetime.now(timezone.utc)
+
+    # ── 30-day user-facing window (same for History and Transaction) ──
+    records = apply_retention_window(records, server_now)
 
     # ── Apply filters ──
     filtered = records
@@ -656,6 +703,9 @@ async def get_ledger_transactions(
         "total": total,
         "page": page,
         "page_size": page_size,
+        "retention_applied": True,
+        "retention_days": RETENTION_DAYS,
+        "server_now": server_now.isoformat(),
         "summary": {
             "totals": totals,
             "balances": balances,

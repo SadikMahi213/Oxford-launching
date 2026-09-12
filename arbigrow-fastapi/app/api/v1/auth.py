@@ -14,6 +14,7 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.services.b2_service import generate_presigned_url
 from app.models.user import User
+from app.models.refresh_token import RefreshToken
 from app.models.password_reset import PasswordResetSession
 from app.models.kyc import KYC
 from app.models.package import Package
@@ -29,6 +30,8 @@ from app.core.security import (
     hash_password, verify_password, create_access_token,
     get_current_user_id,
     generate_refresh_token, blacklist_access_token,
+    issue_refresh_token, validate_refresh_token, revoke_refresh_token,
+    compute_refresh_token_hash,
 )
 from app.core.rate_limiter import limiter
 from app.core.config import settings
@@ -43,6 +46,17 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 REGISTRATION_ENABLED_KEY = "system_registration_enabled"
+
+
+def _decode_access_payload(raw: str | None) -> dict | None:
+    """Non-raising JWT decode for best-effort logout auditing."""
+    if not raw:
+        return None
+    try:
+        from jose import jwt, JWTError
+        return jwt.decode(raw, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except Exception:
+        return None
 
 
 async def _is_registration_enabled(db: AsyncSession) -> bool:
@@ -449,6 +463,23 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         data={"sub": str(user.id)}
     )
 
+    # Persistent session: httpOnly refresh cookie (30-day sliding window).
+    # This is what keeps the user logged in across refreshes, restarts and
+    # access-token expirations. Always persistent — `remember_me` only widens
+    # the short-lived access cookie below.
+    refresh_raw = await issue_refresh_token(
+        db, user.id, settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_raw,
+        max_age=86400 * settings.REFRESH_TOKEN_EXPIRE_DAYS,
+        httponly=True,
+        secure=settings.APP_ENV != "development",
+        samesite="lax",
+        path="/",
+    )
+
     cookie_max_age = 86400 * settings.REMEMBER_ME_DAYS if user_data.remember_me else None
     response.set_cookie(
         key="access_token",
@@ -495,21 +526,54 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
     }
 
 
-@router.post("/logout")
-async def logout(
-    response: Response,
+@router.post("/refresh")
+@limiter.limit("60/minute")
+async def refresh_session(
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user_id),
 ):
-    response.delete_cookie(
+    """Silent session renewal: mint a fresh access token from the persistent
+    refresh cookie. 401 here means "no usable session" — the frontend must
+    treat it as logged-out WITHOUT retrying (no loop)."""
+    raw_refresh = request.cookies.get("refresh_token")
+    user_id = await validate_refresh_token(
+        db, raw_refresh or "", settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    response.set_cookie(
         key="access_token",
+        value=access_token,
+        max_age=86400 * settings.REMEMBER_ME_DAYS,
         httponly=True,
         secure=settings.APP_ENV != "development",
         samesite="lax",
         path="/",
     )
+    return {"access_token": access_token}
 
+
+@router.post("/logout")
+async def logout(
+    response: Response,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Best-effort logout: always succeeds and always clears cookies.
+
+    Works even when the access token already expired (the exact case where the
+    old endpoint 401'd and left the session half-alive). Anything usable —
+    access token, refresh token — is revoked; missing/invalid credentials are
+    simply nothing to revoke.
+    """
     raw_token = None
     auth = request.headers.get("Authorization")
     if auth and auth.startswith("Bearer "):
@@ -519,8 +583,36 @@ async def logout(
     if raw_token:
         await blacklist_access_token(raw_token, db)
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
+    await revoke_refresh_token(db, request.cookies.get("refresh_token") or "")
+
+    for key in ("access_token", "refresh_token"):
+        response.delete_cookie(
+            key=key,
+            httponly=True,
+            secure=settings.APP_ENV != "development",
+            samesite="lax",
+            path="/",
+        )
+
+    user = None
+    try:
+        payload = _decode_access_payload(raw_token) if raw_token else None
+        if payload and payload.get("sub"):
+            result = await db.execute(select(User).where(User.id == int(payload["sub"])))
+            user = result.scalar_one_or_none()
+    except (ValueError, TypeError):
+        user = None
+    if user is None:
+        # Fall back to the refresh token's owner so logout is still audited.
+        refresh_raw = request.cookies.get("refresh_token") or ""
+        if refresh_raw:
+            result = await db.execute(
+                select(User)
+                .join(RefreshToken, RefreshToken.user_id == User.id)
+                .where(RefreshToken.token_hash == compute_refresh_token_hash(refresh_raw))
+                .limit(1)
+            )
+            user = result.scalars().first() if result else None
     if user:
         await notify_admin(
             db=db, type="logout",
