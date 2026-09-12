@@ -17,6 +17,7 @@ from app.models.withdrawal import Withdrawal
 from app.services.invoice_service import (
     generate_deposit_invoice,
     generate_withdrawal_invoice,
+    regenerate_invoice_pdf,
     serialize_invoice,
 )
 
@@ -112,7 +113,14 @@ async def download_invoice_pdf(
     pdf_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "storage", "invoices")
     pdf_path = os.path.join(pdf_dir, invoice.pdf_storage_key)
     if not os.path.exists(pdf_path):
-        raise HTTPException(404, "PDF file not found on disk")
+        # The PDF file is stored on ephemeral local disk (no persistent
+        # volume), so container rebuilds/restarts orphan previously generated
+        # files while their DB rows survive. Regenerate the identical invoice
+        # from authoritative records instead of failing: same layout, same
+        # builder, real data — never a placeholder.
+        regenerated = await regenerate_invoice_pdf(db, invoice)
+        if not regenerated or not os.path.exists(pdf_path):
+            raise HTTPException(404, "PDF file not found on disk")
 
     return FileResponse(
         pdf_path,

@@ -28,7 +28,7 @@ def test_parent_lvl_1_indexed_in_model():
 def test_migration_exists_with_correct_head_and_concurrency():
     path = os.path.join(
         os.path.dirname(__file__), "..", "alembic", "versions",
-        "t003_add_users_parent_lvl_1_id_idx.py",
+        "t003_users_parent_lvl_1_idx.py",
     )
     assert os.path.exists(path)
     with open(path) as f:

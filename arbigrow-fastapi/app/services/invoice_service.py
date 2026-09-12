@@ -457,6 +457,104 @@ def _create_placeholder_pdf(output_path: str, html_content: str):
 # ── Invoice Generators ──────────────────────────────────────────────────────
 
 
+async def regenerate_invoice_pdf(db: AsyncSession, invoice: Invoice) -> bool:
+    """Re-create a missing PDF file for an existing invoice row.
+
+    The PDF directory is ephemeral local disk, so container rebuilds orphan
+    previously generated files while their DB rows survive. This rebuilds the
+    byte-identical-layout document from authoritative records (same HTML
+    builder, same stored invoice number/amount/status/description) — never a
+    placeholder, never a false success.
+
+    Never raises: returns False when regeneration is impossible (missing
+    reference row, unknown type, PDF backend failure) so the caller can keep
+    its existing 404 behavior. No financial field of the row is modified.
+    """
+    try:
+        from sqlalchemy import select as _select
+
+        if not invoice.pdf_storage_key:
+            return False
+
+        user_result = await db.execute(
+            _select(User).where(User.id == invoice.user_id)
+        )
+        user = user_result.scalar_one_or_none()
+        if user is None:
+            return False
+
+        tx_data: dict = {}
+        amount = invoice.amount
+        status = invoice.status or "generated"
+        if invoice.reference_type == "deposit":
+            dep_result = await db.execute(
+                _select(Deposit).where(
+                    Deposit.id == invoice.reference_id,
+                    Deposit.user_id == invoice.user_id,
+                )
+            )
+            deposit = dep_result.scalar_one_or_none()
+            if deposit is None:
+                return False
+            amount = deposit.amount
+            tx_data = {
+                "network": deposit.network_name,
+                "transaction_hash": deposit.txid,
+                "transaction_id": deposit.txid,
+                "fee": 0,
+                "main_wallet_balance": float(user.main_wallet or 0),
+                "wallet_name": "Deposit Wallet",
+                "wallet_balance": float(user.deposit_wallet or 0),
+            }
+        elif invoice.reference_type == "withdrawal":
+            wdw_result = await db.execute(
+                _select(Withdrawal).where(
+                    Withdrawal.id == invoice.reference_id,
+                    Withdrawal.user_id == invoice.user_id,
+                )
+            )
+            withdrawal = wdw_result.scalar_one_or_none()
+            if withdrawal is None:
+                return False
+            amount = withdrawal.amount
+            tx_data = {
+                "network": withdrawal.network_name,
+                "destination": withdrawal.destination_address,
+                "transaction_id": withdrawal.transaction_id,
+                "fee": float(withdrawal.charge) if withdrawal.charge is not None else 0,
+                "main_wallet_balance": float(user.main_wallet or 0),
+                "wallet_name": "Deposit Wallet",
+                "wallet_balance": float(user.deposit_wallet or 0),
+            }
+            if withdrawal.note:
+                tx_data["remarks"] = withdrawal.note
+        else:
+            return False
+
+        html = _build_invoice_html(
+            invoice_number=invoice.invoice_number,
+            invoice_type=invoice.invoice_type,
+            user_name=user.full_name or user.email,
+            user_email=user.email,
+            amount=amount,
+            currency=invoice.currency or "USDT",
+            status=status,
+            description=invoice.description or "",
+            created_at=_fmt_date(invoice.created_at),
+            tx_data=tx_data,
+            user_id=user.user_no or str(user.id),
+            account_holder_name=user.full_name or None,
+        )
+
+        pdf_dir = os.path.join(os.path.dirname(__file__), "..", "..", "storage", "invoices")
+        os.makedirs(pdf_dir, exist_ok=True)
+        pdf_path = os.path.join(pdf_dir, invoice.pdf_storage_key)
+        return await generate_invoice_pdf(html, pdf_path)
+    except Exception as e:
+        logger.warning(f"Could not regenerate PDF for invoice {getattr(invoice, 'id', '?')}: {e}")
+        return False
+
+
 async def generate_transaction_invoice(
     db: AsyncSession,
     user: User,
