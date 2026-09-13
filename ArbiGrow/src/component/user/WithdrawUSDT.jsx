@@ -287,11 +287,14 @@ export default function WithdrawPage() {
       ? (reference.length > 16 ? `${reference.slice(0, 10)}...${reference.slice(-6)}` : reference)
       : "-";
 
+    const grossVal = selectedWithdrawal.gross_amount ?? selectedWithdrawal.amount;
+    const chargeVal = selectedWithdrawal.charge ?? 0;
+    const netVal = selectedWithdrawal.net_amount ?? (Number(grossVal||0) - Number(chargeVal||0));
     return (
       <TransactionDetailModal
         title={t('withdraw.detailsTitle')}
         amountLabel={t('withdraw.amountLabel')}
-        amountValue={`${formatAmount(selectedWithdrawal.amount)} USDT`}
+        amountValue={`${formatAmount(grossVal)} USDT`}
         amountClassName="text-red-300"
         rows={[
           { label: t('withdraw.date'), value: formatDate(selectedWithdrawal.created_at) },
@@ -300,6 +303,9 @@ export default function WithdrawPage() {
             value: walletLabelMap.get(selectedWithdrawal.source_wallet) || selectedWithdrawal.source_wallet,
           },
           { label: t('withdraw.network'), value: selectedWithdrawal.network_name || "-" },
+          { label: "Gross", value: `${formatAmount(grossVal)} USDT` },
+          { label: "Fee", value: `${formatAmount(chargeVal)} USDT` },
+          { label: "Net Payable", value: `${formatAmount(netVal)} USDT` },
           {
             label: t('withdraw.refId'),
             value: referenceLabel,
@@ -515,7 +521,7 @@ export default function WithdrawPage() {
             <thead>
               <tr className="border-b border-white/10">
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.date')}</th>
-                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.amount')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">Gross / Fee / Net</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.refId')}</th>
@@ -533,7 +539,11 @@ export default function WithdrawPage() {
                 return (
                   <tr key={w.id} className="border-b border-white/5 hover:bg-white/5">
                     <td className="p-4 text-gray-400">{formatDate(w.created_at)}</td>
-                    <td className="p-4 font-semibold">{formatAmount(w.amount)} USDT</td>
+                    <td className="p-4 text-xs leading-tight">
+                      <div className="font-semibold text-white">Gross: {formatAmount(w.gross_amount ?? w.amount)} USDT</div>
+                      <div className="text-amber-300">Fee: {formatAmount(w.charge ?? 0)} USDT</div>
+                      <div className="font-semibold text-emerald-300">Net: {formatAmount(w.net_amount ?? (Number(w.amount||0)-Number(w.charge||0)))} USDT</div>
+                    </td>
                     <td className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
                     <td className="p-4 text-gray-400">{w.network_name || "-"}</td>
                     <td className="p-4">
@@ -601,10 +611,10 @@ export default function WithdrawPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex shrink-0 flex-col items-end">
-                        <span className="whitespace-nowrap text-sm font-bold text-red-300">
-                          {formatAmount(w.amount)} USDT
-                        </span>
+                      <div className="flex shrink-0 flex-col items-end text-right">
+                        <span className="whitespace-nowrap text-xs font-semibold text-white">Gross: {formatAmount(w.gross_amount ?? w.amount)} USDT</span>
+                        <span className="whitespace-nowrap text-[11px] text-amber-300">Fee: {formatAmount(w.charge ?? 0)} USDT</span>
+                        <span className="whitespace-nowrap text-sm font-bold text-emerald-300">Net: {formatAmount(w.net_amount ?? (Number(w.amount||0)-Number(w.charge||0)))} USDT</span>
                         <span className={`mt-0.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusColor(w.status)}`}>
                           {getStatusLabel(w.status, t)}
                         </span>

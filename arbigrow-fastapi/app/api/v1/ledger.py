@@ -306,13 +306,21 @@ async def _withdrawals(db: AsyncSession, uid: int) -> list:
     out = []
     for r in rows:
         status = _withdrawal_status(r.status)
+        gross = r.amount or Decimal("0")
+        charge_val = r.charge or Decimal("0")
+        # gross includes fee; net is payable to user
+        net = gross - charge_val if charge_val else gross
+        if net < 0:
+            net = Decimal("0")
+        # Withdrawal leg = net payable (what admin pays user)
         out.append(_to_record("wd", r.id, r.created_at, "withdrawal",
-                              "deduction", "debit", r.amount, "USDT", status,
+                              "deduction", "debit", net, "USDT", status,
                               reference=r.transaction_id))
-        if r.charge and _num(r.charge) > 0:
+        if charge_val and _num(charge_val) > 0:
             out.append(_to_record("wdf", r.id, r.created_at, "service_fee",
-                                  "deduction", "debit", r.charge, "USDT", status,
+                                  "deduction", "debit", charge_val, "USDT", status,
                                   reference=r.transaction_id))
+        # Total ledger debit = net + fee = gross (no double count)
     return out
 
 

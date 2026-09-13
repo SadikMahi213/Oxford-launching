@@ -36,13 +36,22 @@ def _to_wallet_precision(amount: Decimal) -> Decimal:
 
 
 def _serialize_withdrawal(withdrawal: Withdrawal, include_user: bool = False) -> dict:
+    gross = Decimal(str(withdrawal.amount or 0))
+    charge_val = Decimal(str(withdrawal.charge or 0))
+    net = _to_wallet_precision(gross - charge_val) if gross else Decimal("0")
+    # Clamp net to 0 if charge exceeds gross (defensive)
+    if net < 0:
+        net = Decimal("0")
     item = {
         "id": withdrawal.id,
         "source_wallet": withdrawal.source_wallet,
         "withdrawal_method_id": withdrawal.withdrawal_method_id,
         "method_type": withdrawal.method_type,
         "network_name": withdrawal.network_name,
-        "amount": float(withdrawal.amount),
+        "amount": float(gross),
+        "gross_amount": float(gross),
+        "charge": float(charge_val),
+        "net_amount": float(net),
         "destination_address": withdrawal.destination_address,
         "account_type": withdrawal.account_type,
         "note": withdrawal.note,
@@ -180,21 +189,34 @@ async def create_withdrawal_request(
             ),
         )
 
-    # Read withdrawal charge from config
-    charge_config = await db.execute(
-        select(SystemConfig).where(SystemConfig.key == "withdrawal_charge_percent")
-    )
-    charge_row = charge_config.scalar_one_or_none()
-    withdrawal_charge_percent = Decimal(charge_row.value) if charge_row and charge_row.value else Decimal("5")
-    charge_amount = (amount * withdrawal_charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+    # Fee: method fixed_fee + percent_fee is authoritative (matches frontend);
+    # global withdrawal_charge_percent is fallback when method has no fee.
+    if method is not None and (method.fixed_fee is not None or method.percent_fee is not None):
+        fixed_fee = Decimal(str(method.fixed_fee or 0))
+        percent_fee = Decimal(str(method.percent_fee or 0))
+        charge_amount = (fixed_fee + amount * percent_fee / Decimal("100")).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
+    else:
+        charge_config = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == "withdrawal_charge_percent")
+        )
+        charge_row = charge_config.scalar_one_or_none()
+        withdrawal_charge_percent = Decimal(charge_row.value) if charge_row and charge_row.value else Decimal("5")
+        charge_amount = (amount * withdrawal_charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
 
+    # Clamp fee inside gross: fee cannot exceed amount
+    if charge_amount > amount:
+        charge_amount = amount
+    if charge_amount < 0:
+        charge_amount = Decimal("0")
+
+    # gross = amount already includes fee; require source_balance >= gross
     EARNING_WALLETS = {"captcha_wallet", "ad_view_wallet"}
     if data.source_wallet not in EARNING_WALLETS:
         main_balance = Decimal(
             str(getattr(locked_user, "main_wallet", Decimal("0")) or 0))
-        required_main_balance = _to_wallet_precision(
-            amount + charge_amount
-        )
+        required_main_balance = _to_wallet_precision(amount)
         if main_balance < required_main_balance:
             raise HTTPException(
                 status_code=400,

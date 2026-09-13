@@ -200,7 +200,7 @@ export default function WithdrawalRequests() {
                   Network
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-400">
-                  Amount
+                  Gross / Fee / Net Payable
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase text-gray-400">
                   Source Wallet
@@ -271,9 +271,11 @@ export default function WithdrawalRequests() {
                       </td>
 
                       <td data-label="Amount" className="whitespace-nowrap px-6 py-4">
-                        <span className="font-bold text-white">
-                          {formatAmount(withdrawal.amount)} USDT
-                        </span>
+                        <div className="text-sm leading-tight">
+                          <div className="font-bold text-white">Gross: {formatAmount(withdrawal.gross_amount ?? withdrawal.amount)} USDT</div>
+                          <div className="text-amber-300">Fee: {formatAmount(withdrawal.charge ?? 0)} USDT</div>
+                          <div className="font-semibold text-emerald-300">Net: {formatAmount(withdrawal.net_amount ?? (Number(withdrawal.amount||0) - Number(withdrawal.charge||0)))} USDT</div>
+                        </div>
                       </td>
 
                       <td data-label="Source Wallet" className="px-6 py-4 text-gray-300">
