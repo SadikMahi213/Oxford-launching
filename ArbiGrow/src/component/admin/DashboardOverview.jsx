@@ -6,6 +6,7 @@ import {
   ArrowRightLeft, CreditCard, Package, ShoppingCart, Gift,
   Layers, GitCompare, Shapes, Captions, Tv, Gem,
   TrendingUp, Wifi, CircleDollarSign, DollarSign, Coins,
+  Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getAdminRealtimeStats } from "../../api/admin.api.js";
@@ -127,6 +128,13 @@ export default function DashboardOverview() {
             <StatCard key="kyc-purchases" icon={CreditCard} label="Total KYC Purchase USD" value={`$${toAmount(realtime.total_kyc_purchases_usd).toLocaleString()}`} delay={0.15} iconColor="text-yellow-400" />,
             <StatCard key="package-invest" icon={Package} label="Total Paid Package Investment USD" value={`$${toAmount(realtime.total_paid_package_investment).toLocaleString()}`} delay={0.2} iconColor="text-purple-400" />,
             <StatCard key="ecommerce-wallet" icon={ShoppingCart} label="E-commerce Wallet (USD)" value={`$${toAmount(realtime.total_ecommerce_funded).toLocaleString()}`} delay={0.25} iconColor="text-orange-400" />,
+          ])}
+
+          {/* ── Fee Collection Wallet ──────────────────────── */}
+          {section("Fee Collection Wallet", "from-yellow-400 to-amber-400", [
+            <StatCard key="withdrawal-fees" icon={ArrowUpFromLine} label="Withdrawal Fees" value={`$${toAmount(realtime.total_withdrawal_fees).toLocaleString()}`} delay={0} iconColor="text-yellow-400" />,
+            <StatCard key="transfer-fees" icon={ArrowRightLeft} label="Transfer Fees" value={`$${toAmount(realtime.total_transfer_fees).toLocaleString()}`} delay={0.05} iconColor="text-amber-400" />,
+            <StatCard key="total-fees" icon={Wallet} label="Total Fees Collected" value={`$${toAmount(realtime.total_fees_collected).toLocaleString()}`} delay={0.1} iconColor="text-emerald-400" />,
           ])}
 
           {/* ── Distribution Identify Area ───────────────── */}

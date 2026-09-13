@@ -81,6 +81,8 @@ class _FakeDashboardDB:
         self.active_kyc = 9
         self.ecommerce_sellers = 3
         self.online_members = 7  # distinct users active in the last 5 minutes
+        self.withdrawal_fees = Decimal("35")   # sum of Withdrawal.charge for approved
+        self.transfer_fees = Decimal("12.50")  # sum of TransferLog.fee for completed user-to-user
 
     _OFA_LEDGER = {
         "signup_bonus": "signup_bonus",
@@ -146,11 +148,18 @@ class _FakeDashboardDB:
         if "withdrawals" in t:
             if "count" in t:
                 return _Row(5)
+            # Distinguish: total_withdrawn sums (amount - charge); fee collection sums charge only.
+            # Q1: withdrawals.amount appears → total_withdrawn
+            # Q2: withdrawals.amount absent → fee collection
+            if "withdrawals.amount" not in t:
+                return _Row(self.withdrawal_fees)
             # Net approved withdrawals: gross amount minus the stored charge.
-            assert "charge" in t, "withdrawal sum must subtract the stored charge"
             return _Row(self.withdrawn - self.withdrawal_charge)
         if "transfer_logs" in t:
             assert "completed" in t, "transfer sum must filter status = completed"
+            # Fee collection query sums fee and checks sender_id != receiver_id
+            if "transfer_logs.fee" in t:
+                return _Row(self.transfer_fees)
             return _Row(self.transferred)
         if "users" in t:
             if "ecommerce_wallet" in t:
@@ -355,6 +364,39 @@ def test_heartbeat_stamps_when_never_active():
     asyncio.run(get_current_user(user_id=1, db=db))
     assert db.committed
     assert user.last_active_at is not None
+
+
+# ── Fee Collection Wallet ────────────────────────────────────────────────────
+def test_withdrawal_fees_from_approved_only():
+    db = _FakeDashboardDB()
+    r = _fetch(db)
+    assert Decimal(r["total_withdrawal_fees"]) == db.withdrawal_fees
+    assert r["total_withdrawal_fees"] == "35.00000000000000"
+
+
+def test_transfer_fees_from_completed_user_to_user():
+    db = _FakeDashboardDB()
+    r = _fetch(db)
+    assert Decimal(r["total_transfer_fees"]) == db.transfer_fees
+    assert r["total_transfer_fees"] == "12.50000000000000"
+
+
+def test_total_fees_collected_equals_sum():
+    db = _FakeDashboardDB()
+    r = _fetch(db)
+    expected = db.withdrawal_fees + db.transfer_fees
+    assert Decimal(r["total_fees_collected"]) == expected
+    assert Decimal(r["total_fees_collected"]) == Decimal(r["total_withdrawal_fees"]) + Decimal(r["total_transfer_fees"])
+
+
+def test_fee_collection_zero_when_no_fees():
+    db = _FakeDashboardDB()
+    db.withdrawal_fees = Decimal("0")
+    db.transfer_fees = Decimal("0")
+    r = _fetch(db)
+    assert r["total_withdrawal_fees"] == "0.00000000000000"
+    assert r["total_transfer_fees"] == "0.00000000000000"
+    assert r["total_fees_collected"] == "0.00000000000000"
 
 
 if __name__ == "__main__":

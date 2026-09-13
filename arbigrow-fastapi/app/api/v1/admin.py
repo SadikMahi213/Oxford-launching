@@ -2598,6 +2598,26 @@ async def get_realtime_stats(
     # Total OFA Distribution = Signup Bonus + Daily Mining (authoritative, no double count, Decimal-safe)
     total_ofa_distribution = total_signup_bonus_distributed + total_mining
 
+    # ── Fee Collection Wallet ─────────────────────────────
+    # Withdrawal fees: sum of charge on approved withdrawals
+    withdrawal_fees_result = await db.execute(
+        select(func.coalesce(func.sum(Withdrawal.charge), 0)).where(
+            Withdrawal.status == "approved"
+        )
+    )
+    total_withdrawal_fees = Decimal(str(withdrawal_fees_result.scalar() or 0))
+
+    # Transfer fees: sum of fee on completed user-to-user transfers (exclude self-transfers)
+    transfer_fees_result = await db.execute(
+        select(func.coalesce(func.sum(TransferLog.fee), 0)).where(
+            TransferLog.status == "completed",
+            TransferLog.sender_id != TransferLog.receiver_id,
+        )
+    )
+    total_transfer_fees = Decimal(str(transfer_fees_result.scalar() or 0))
+
+    total_fees_collected = total_withdrawal_fees + total_transfer_fees
+
     return {
         # Overview
         "total_members": total_members,
@@ -2633,5 +2653,9 @@ async def get_realtime_stats(
         "total_signup_bonus_distributed": format_decimal(total_signup_bonus_distributed),
         "total_mining_ofa_distributed": format_decimal(total_mining),
         "total_ofa_distribution": format_decimal(total_ofa_distribution),
+        # Fee Collection Wallet
+        "total_withdrawal_fees": format_decimal(total_withdrawal_fees),
+        "total_transfer_fees": format_decimal(total_transfer_fees),
+        "total_fees_collected": format_decimal(total_fees_collected),
     }
 
