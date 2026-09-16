@@ -194,7 +194,22 @@ def _build_invoice_html(
 
     fee = float(tx_data.get("fee", 0)) if tx_data else 0
     net_amount = float(amount or 0)
-    total_amount = net_amount + fee
+    # For deposits: total = requested + fee (user pays more).
+    # For withdrawals: net = requested - fee (user receives less).
+    if is_withdrawal:
+        total_amount = net_amount - fee
+    else:
+        total_amount = net_amount + fee
+
+    # Dynamic labels: withdrawals show net payout, deposits show total paid.
+    if is_withdrawal:
+        amount_label = "Requested Amount"
+        fee_label = "Fee Deducted"
+        total_label = "Net Payout"
+    else:
+        amount_label = f"{tx_label} Amount"
+        fee_label = "Processing Fee"
+        total_label = "Total Amount"
 
     logo_img = _get_logo_data_uri()
 
@@ -328,9 +343,9 @@ def _build_invoice_html(
       {"<tr><td class=\"label\">Transaction ID</td><td class=\"value\">" + _sanitize_transaction_id(tx_id_val) + "</td></tr>" if not is_deposit and not is_withdrawal and tx_id_val else ""}
       <tr><td class="label">Invoice Number</td><td class="value val-blue">{invoice_number}</td></tr>
       <tr><td class="label">Payment Method</td><td class="value">{pm}</td></tr>
-      <tr><td class="label">{tx_label} Amount</td><td class="value val-green">{amt_fmt}</td></tr>
-      <tr><td class="label">Processing Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
-      <tr><td class="label">Total Amount</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
+      <tr><td class="label">{amount_label}</td><td class="value val-green">{amt_fmt}</td></tr>
+      <tr><td class="label">{fee_label}</td><td class="value">{_fmt_currency(fee)}</td></tr>
+      <tr><td class="label">{total_label}</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
       <tr><td class="label">Transaction Date &amp; Time</td><td class="value">{created_at}</td></tr>
       {html_mid_rows}
     </table>
@@ -341,9 +356,9 @@ def _build_invoice_html(
     <div class="summary-grid">
       <div class="scol"><div class="summary-label">Subtotal</div><div class="summary-value">{amt_fmt}</div></div>
       <div class="sdivider"></div>
-      <div class="scol"><div class="summary-label">Fee</div><div class="summary-value">{_fmt_currency(fee)}</div></div>
+      <div class="scol"><div class="summary-label">{fee_label}</div><div class="summary-value">{_fmt_currency(fee)}</div></div>
       <div class="sdivider"></div>
-      <div class="scol"><div class="summary-label">Total Amount</div><div class="summary-value green large">{_fmt_currency(total_amount)}</div></div>
+      <div class="scol"><div class="summary-label">{total_label}</div><div class="summary-value green large">{_fmt_currency(total_amount)}</div></div>
     </div>
   </div>
 
@@ -351,8 +366,8 @@ def _build_invoice_html(
     <div class="box-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Account Summary</div>
     <table class="tx-table">
       <tr><td class="label">Transaction Amount</td><td class="value val-green">{amt_sign} {amt_fmt}</td></tr>
-      <tr><td class="label">Processing Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
-      <tr><td class="label">Total Amount</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
+      <tr><td class="label">{fee_label}</td><td class="value">{_fmt_currency(fee)}</td></tr>
+      <tr><td class="label">{total_label}</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
       <tr><td class="label" style="padding-top:6px;border-top:1px solid #E0E0E0;">{wallet_name} Balance</td><td class="value val-blue" style="padding-top:6px;border-top:1px solid #E0E0E0;font-size:13px;">{wallet_balance_fmt}</td></tr>
     </table>
   </div>
