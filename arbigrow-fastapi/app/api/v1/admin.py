@@ -2421,11 +2421,6 @@ async def get_realtime_stats(
     )
     total_withdrawn = Decimal(str(approved_withdrawals_result.scalar() or 0))
 
-    users_with_deposits_result = await db.execute(
-        select(func.count(func.distinct(Deposit.user_id))).where(Deposit.status == "approved")
-    )
-    users_with_deposits = users_with_deposits_result.scalar() or 0
-
     total_transferred_result = await db.execute(
         select(func.coalesce(func.sum(TransferLog.amount), 0)).where(
             TransferLog.status == "completed"
