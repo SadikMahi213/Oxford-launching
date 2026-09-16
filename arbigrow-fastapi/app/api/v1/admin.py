@@ -2441,7 +2441,7 @@ async def get_realtime_stats(
             ),
         )
     )
-    referral_vals = referral_row.row()
+    referral_vals = referral_row.one()
     total_referral = Decimal(str(referral_vals[0]))
     total_generation_bonus = Decimal(str(referral_vals[1]))
 
@@ -2471,7 +2471,7 @@ async def get_realtime_stats(
             ),
         )
     )
-    ofa_vals = ofa_row.row()
+    ofa_vals = ofa_row.one()
     total_mining = Decimal(str(ofa_vals[0]))
     total_signup_bonus_distributed = Decimal(str(ofa_vals[1]))
 
@@ -2495,7 +2495,7 @@ async def get_realtime_stats(
             func.count(case((User.admin_kyc_status == "approved", 1))),
         )
     )
-    users_vals = users_row.row()
+    users_vals = users_row.one()
     total_ecommerce_funded = Decimal(str(users_vals[0]))
     total_members = users_vals[1] or 0
     total_active_kyc = users_vals[2] or 0
@@ -2558,7 +2558,7 @@ async def get_realtime_stats(
             ),
         )
     )
-    captcha_vals = captcha_row.row()
+    captcha_vals = captcha_row.one()
     total_free_package_captcha_earnings = Decimal(str(captcha_vals[0]))
     total_paid_package_captcha_earnings = Decimal(str(captcha_vals[1]))
     total_free_user_earnings = total_free_package_captcha_earnings
@@ -2576,7 +2576,7 @@ async def get_realtime_stats(
             ),
         )
     )
-    ad_vals = ad_row.row()
+    ad_vals = ad_row.one()
     total_free_package_ad_earnings = Decimal(str(ad_vals[0]))
     total_paid_package_ad_earnings = Decimal(str(ad_vals[1]))
     total_free_user_earnings = total_free_package_captcha_earnings + total_free_package_ad_earnings

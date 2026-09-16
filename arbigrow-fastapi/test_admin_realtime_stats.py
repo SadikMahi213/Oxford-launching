@@ -49,6 +49,9 @@ class _Row:
     def row(self):
         return self.val if isinstance(self.val, list) else [self.val]
 
+    def one(self):
+        return self.val if isinstance(self.val, list) else [self.val]
+
 
 class _FakeDashboardDB:
     """Dispatching fake session that returns canned aggregates per query."""
