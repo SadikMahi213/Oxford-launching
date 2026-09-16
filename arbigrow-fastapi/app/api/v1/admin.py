@@ -2428,17 +2428,22 @@ async def get_realtime_stats(
     )
     total_transferred = Decimal(str(total_transferred_result.scalar() or 0))
 
-    total_referral_result = await db.execute(
-        select(func.coalesce(func.sum(ReferralProfitHistory.amount), 0))
-        .where(ReferralProfitHistory.level == 1)
+    # ── Combined Referral: level=1 + generation bonus (2→1) ──
+    referral_row = await db.execute(
+        select(
+            func.coalesce(
+                func.sum(case((ReferralProfitHistory.level == 1, ReferralProfitHistory.amount), else_=0)),
+                0,
+            ),
+            func.coalesce(
+                func.sum(case((ReferralProfitHistory.level > 1, ReferralProfitHistory.amount), else_=0)),
+                0,
+            ),
+        )
     )
-    total_referral = Decimal(str(total_referral_result.scalar() or 0))
-
-    generation_result = await db.execute(
-        select(func.coalesce(func.sum(ReferralProfitHistory.amount), 0))
-        .where(ReferralProfitHistory.level > 1)
-    )
-    total_generation_bonus = Decimal(str(generation_result.scalar() or 0))
+    referral_vals = referral_row.row()
+    total_referral = Decimal(str(referral_vals[0]))
+    total_generation_bonus = Decimal(str(referral_vals[1]))
 
     total_matching_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
@@ -2451,27 +2456,24 @@ async def get_realtime_stats(
     )
     total_profit_shared = Decimal(str(total_profit_result.scalar() or 0))
 
-    # Authoritative mining distribution ledger: ofa_coin_transactions.mining_reward.
-    # Each successful claim writes an OFACoinTransaction (with balance_before/after
-    # wallet proof), so this — not the raw mining_logs claim log — is the source of
-    # truth for OFA actually distributed to user wallets.
-    total_mining_result = await db.execute(
-        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
-            OFACoinTransaction.tx_type.in_([OFATransactionType.mining_reward])
+    # ── Combined OFA Ledger: mining_reward + signup/package (2→1) ──
+    ofa_row = await db.execute(
+        select(
+            func.coalesce(
+                func.sum(case((OFACoinTransaction.tx_type == OFATransactionType.mining_reward, OFACoinTransaction.amount), else_=0)),
+                0,
+            ),
+            func.coalesce(
+                func.sum(case((OFACoinTransaction.tx_type.in_(
+                    [OFATransactionType.signup_bonus, OFATransactionType.package_signup_bonus]
+                ), OFACoinTransaction.amount), else_=0)),
+                0,
+            ),
         )
     )
-    total_mining = Decimal(str(total_mining_result.scalar() or 0))
-
-    # Total OFA signup bonus distributed (uniform + package signup bonuses).
-    # Authoritative ledger: ofa_coin_transactions.signup_bonus / package_signup_bonus.
-    signup_bonus_result = await db.execute(
-        select(func.coalesce(func.sum(OFACoinTransaction.amount), 0)).where(
-            OFACoinTransaction.tx_type.in_(
-                [OFATransactionType.signup_bonus, OFATransactionType.package_signup_bonus]
-            )
-        )
-    )
-    total_signup_bonus_distributed = Decimal(str(signup_bonus_result.scalar() or 0))
+    ofa_vals = ofa_row.row()
+    total_mining = Decimal(str(ofa_vals[0]))
+    total_signup_bonus_distributed = Decimal(str(ofa_vals[1]))
 
     total_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -2485,20 +2487,18 @@ async def get_realtime_stats(
 
     total_distributed = total_referral + total_generation_bonus + total_matching + total_profit_shared + total_captcha + total_ad
 
-    ecommerce_result = await db.execute(
-        select(func.coalesce(func.sum(User.ecommerce_wallet), 0))
+    # ── Combined Users: ecommerce_wallet + kyc_status + count + online (4→1) ──
+    users_row = await db.execute(
+        select(
+            func.coalesce(func.sum(User.ecommerce_wallet), 0),
+            func.count(User.id),
+            func.count(case((User.admin_kyc_status == "approved", 1))),
+        )
     )
-    total_ecommerce_funded = Decimal(str(ecommerce_result.scalar() or 0))
-
-    # ── Overview Stats ──────────────────────────────────
-    total_members_result = await db.execute(select(func.count(User.id)))
-    total_members = total_members_result.scalar() or 0
-
-    total_active_kyc_result = await db.execute(
-        select(func.count(User.id)).where(User.admin_kyc_status == "approved")
-    )
-    total_active_kyc = total_active_kyc_result.scalar() or 0
-
+    users_vals = users_row.row()
+    total_ecommerce_funded = Decimal(str(users_vals[0]))
+    total_members = users_vals[1] or 0
+    total_active_kyc = users_vals[2] or 0
     total_inactive = total_members - total_active_kyc
 
     total_ecommerce_sellers_result = await db.execute(
@@ -2507,9 +2507,6 @@ async def get_realtime_stats(
     total_ecommerce_sellers = total_ecommerce_sellers_result.scalar() or 0
 
     # ── Balance Area ────────────────────────────────────
-    # Authoritative: sum the fee actually collected and never refunded.
-    # fee_paid is stored per record (already includes any package add-on), so
-    # no live-config multiplication is needed here.
     kyc_purchases_result = await db.execute(
         select(func.coalesce(func.sum(KYC.fee_paid), 0)).where(
             KYC.payment_status == PaymentStatus.paid,
@@ -2539,10 +2536,7 @@ async def get_realtime_stats(
     )
     total_free_package_distribution = Decimal(str(free_package_result.scalar() or 0))
 
-    # ── Free Package User Earnings ──────────────────────
-    # Paid users = at least one paid package. Free users = free package but
-    # NO paid package. Using mutually-exclusive sets prevents double counting
-    # the same earning records for users who hold both a free and a paid package.
+    # ── Free vs Paid Package User Earnings ──────────────
     paid_pkg_users_subq = select(Investment.user_id).where(Investment.invested_amount > 0).subquery()
     free_pkg_users_subq = (
         select(Investment.user_id)
@@ -2551,31 +2545,41 @@ async def get_realtime_stats(
         .subquery()
     )
 
-    free_pkg_captcha_result = await db.execute(
-        select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
-        .where(CaptchaEarning.user_id.in_(select(free_pkg_users_subq.c.user_id)))
+    # ── Combined Captcha: free + paid (2→1) ──
+    captcha_row = await db.execute(
+        select(
+            func.coalesce(
+                func.sum(case((CaptchaEarning.user_id.in_(select(free_pkg_users_subq.c.user_id)), CaptchaEarning.amount_earned), else_=0)),
+                0,
+            ),
+            func.coalesce(
+                func.sum(case((CaptchaEarning.user_id.in_(select(paid_pkg_users_subq.c.user_id)), CaptchaEarning.amount_earned), else_=0)),
+                0,
+            ),
+        )
     )
-    total_free_package_captcha_earnings = Decimal(str(free_pkg_captcha_result.scalar() or 0))
+    captcha_vals = captcha_row.row()
+    total_free_package_captcha_earnings = Decimal(str(captcha_vals[0]))
+    total_paid_package_captcha_earnings = Decimal(str(captcha_vals[1]))
+    total_free_user_earnings = total_free_package_captcha_earnings
 
-    free_pkg_ad_result = await db.execute(
-        select(func.coalesce(func.sum(AdView.amount_earned), 0))
-        .where(AdView.user_id.in_(select(free_pkg_users_subq.c.user_id)))
+    # ── Combined AdView: free + paid (2→1) ──
+    ad_row = await db.execute(
+        select(
+            func.coalesce(
+                func.sum(case((AdView.user_id.in_(select(free_pkg_users_subq.c.user_id)), AdView.amount_earned), else_=0)),
+                0,
+            ),
+            func.coalesce(
+                func.sum(case((AdView.user_id.in_(select(paid_pkg_users_subq.c.user_id)), AdView.amount_earned), else_=0)),
+                0,
+            ),
+        )
     )
-    total_free_package_ad_earnings = Decimal(str(free_pkg_ad_result.scalar() or 0))
+    ad_vals = ad_row.row()
+    total_free_package_ad_earnings = Decimal(str(ad_vals[0]))
+    total_paid_package_ad_earnings = Decimal(str(ad_vals[1]))
     total_free_user_earnings = total_free_package_captcha_earnings + total_free_package_ad_earnings
-
-    # ── Paid Package User Earnings ──────────────────────
-    paid_pkg_captcha_result = await db.execute(
-        select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
-        .where(CaptchaEarning.user_id.in_(select(paid_pkg_users_subq.c.user_id)))
-    )
-    total_paid_package_captcha_earnings = Decimal(str(paid_pkg_captcha_result.scalar() or 0))
-
-    paid_pkg_ad_result = await db.execute(
-        select(func.coalesce(func.sum(AdView.amount_earned), 0))
-        .where(AdView.user_id.in_(select(paid_pkg_users_subq.c.user_id)))
-    )
-    total_paid_package_ad_earnings = Decimal(str(paid_pkg_ad_result.scalar() or 0))
     total_paid_user_earnings = total_paid_package_captcha_earnings + total_paid_package_ad_earnings
 
     # ── Real-time Summary ───────────────────────────────

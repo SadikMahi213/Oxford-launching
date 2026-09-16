@@ -46,6 +46,9 @@ class _Row:
     def all(self):
         return self.val or []
 
+    def row(self):
+        return self.val if isinstance(self.val, list) else [self.val]
+
 
 class _FakeDashboardDB:
     """Dispatching fake session that returns canned aggregates per query."""
@@ -97,6 +100,9 @@ class _FakeDashboardDB:
                 dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}
             )
         )
+        # ── Combined OFACoinTransaction (mining_reward + signup/package) ──
+        if "ofa_coin_transactions" in t and "mining_reward" in t and "signup_bonus" in t:
+            return _Row([self.mining_reward_tx, self.signup_bonus + self.package_signup])
         if "ofa_coin_transactions" in t:
             m = re.search(r"tx_type IN \(([^)]*)\)", t)
             assert m, "ofa_coin_transactions ledger query must filter by tx_type"
@@ -111,16 +117,25 @@ class _FakeDashboardDB:
             )
         if "mining_logs" in t:
             return _Row(self.mining_logs)
+        # ── Combined CaptchaEarning (free + paid) ──
+        if "captcha_earnings" in t and "CASE" in t.upper():
+            return _Row([self.free_captcha, self.paid_captcha])
         if "captcha_earnings" in t:
             if "invested_amount >" in t and "NOT IN" not in t:
                 return _Row(self.paid_captcha)
             return _Row(self.free_captcha)
+        # ── Combined AdView (free + paid) ──
+        if "ad_views" in t and "CASE" in t.upper():
+            return _Row([self.free_ad, self.paid_ad])
         if "ad_views" in t:
             if "invested_amount >" in t and "NOT IN" not in t:
                 return _Row(self.paid_ad)
             return _Row(self.free_ad)
         if "visitor_logs" in t:
             return _Row(0)
+        # ── Combined ReferralProfitHistory (level=1 + level>1) ──
+        if "referral_profit_history" in t and "level = 1" in t and "level > 1" in t:
+            return _Row([self.referral_lvl1, self.referral_gen])
         if "referral_profit_history" in t:
             if "level = 1" in t:
                 return _Row(self.referral_lvl1)
@@ -128,7 +143,6 @@ class _FakeDashboardDB:
         if "matching_bonuses" in t:
             return _Row(self.matching_not_reversed)
         if "kyc_verifications" in t:
-            # Authoritative KYC revenue: stored fee_paid, paid + never refunded.
             assert "fee_paid" in t, "KYC query must sum stored fee_paid"
             assert "fee_refunded" in t, "KYC purchases must exclude refunded fees"
             return _Row(self.kyc_purchased)
@@ -149,11 +163,10 @@ class _FakeDashboardDB:
             if "count" in t:
                 return _Row(5)
             # Distinguish: total_withdrawn sums (amount - charge); fee collection sums charge only.
-            # Q1: withdrawals.amount appears → total_withdrawn
-            # Q2: withdrawals.amount absent → fee collection
             if "withdrawals.amount" not in t:
                 return _Row(self.withdrawal_fees)
             # Net approved withdrawals: gross amount minus the stored charge.
+            assert "charge" in t, "withdrawal sum must subtract the stored charge"
             return _Row(self.withdrawn - self.withdrawal_charge)
         if "transfer_logs" in t:
             assert "completed" in t, "transfer sum must filter status = completed"
@@ -161,15 +174,15 @@ class _FakeDashboardDB:
             if "transfer_logs.fee" in t:
                 return _Row(self.transfer_fees)
             return _Row(self.transferred)
+        # ── Combined Users (ecommerce_wallet + count + admin_kyc_status) ──
+        if "users" in t and "ecommerce_wallet" in t and "admin_kyc_status" in t and "count" in t:
+            return _Row([self.ecommerce_funded, self.members, self.active_kyc])
         if "users" in t:
             if "ecommerce_wallet" in t:
                 return _Row(self.ecommerce_funded)
             if "admin_kyc_status" in t:
                 return _Row(self.active_kyc)
-            # Online members = real authenticated users whose heartbeat is
-            # recent. Must NOT count anonymous visitor_log sessions.
             if "last_active_at" in t:
-                assert "last_active_at" in t, "online count must use User.last_active_at"
                 assert "session_id" not in t, "online count must not use visitor sessions"
                 return _Row(self.online_members)
             return _Row(self.members)
