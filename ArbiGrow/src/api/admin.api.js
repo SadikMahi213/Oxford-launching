@@ -667,6 +667,30 @@ export const unblockUser = async (token, userId) => {
   return res.data || {};
 };
 
+export const getPendingApprovalMessage = async (token) => {
+  const res = await api.get("v1/admin/pending-approval-message", authHeaders(token));
+  return res.data || {};
+};
+
+export const updatePendingApprovalMessage = async (token, message) => {
+  const res = await api.put("v1/admin/pending-approval-message", { value: message }, authHeaders(token));
+  return res.data || {};
+};
+
+export const getPendingApprovals = async (token, { page = 1, limit = 50, search = "" } = {}) => {
+  const params = new URLSearchParams();
+  params.append("page", page);
+  params.append("limit", limit);
+  if (search) params.append("search", search);
+  const res = await api.get(`v1/admin/pending-approvals?${params.toString()}`, authHeaders(token));
+  return res.data || {};
+};
+
+export const approveUser = async (token, userId) => {
+  const res = await api.patch(`v1/admin/users/${userId}/approve`, {}, authHeaders(token));
+  return res.data || {};
+};
+
 // ── Commission Configuration (Referral & Generation Bonuses) ──────────
 
 export const getCommissionConfig = async (token) => {

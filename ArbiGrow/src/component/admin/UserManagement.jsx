@@ -11,6 +11,7 @@ import {
   unblockUser,
   updateUserProfile,
   adminResetPassword,
+  approveUser,
 } from "../../api/admin.api.js";
 import { getAllUsers } from "../../api/admin.api.js";
 
@@ -74,6 +75,8 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
   const [profileUpdateMessage, setProfileUpdateMessage] = useState("");
   const [isPasswordResetting, setIsPasswordResetting] = useState(false);
   const [passwordResetMessage, setPasswordResetMessage] = useState("");
+  const [approvingUserId, setApprovingUserId] = useState(null);
+  const [approveMessage, setApproveMessage] = useState("");
   const latestFetchIdRef = useRef(0);
 
   const { setUserDetails } = useUserStore();
@@ -471,6 +474,30 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
     }
   };
 
+  const handleApprove = async (user) => {
+    if (!user?.id || approvingUserId) return;
+    const token = useUserStore.getState().token;
+    if (!token) return;
+    const shouldApprove = window.confirm(`Approve user "${user?.username || user?.email}"? They will be able to log in immediately.`);
+    if (!shouldApprove) return;
+    try {
+      setApprovingUserId(user.id);
+      setApproveMessage("");
+      const res = await approveUser(token, user.id);
+      setApproveMessage(res.message || "User approved successfully");
+      if (selectedUser?.id === user.id) {
+        const updated = await getUser(token, user.id);
+        if (updated) setSelectedUser(updated);
+      }
+      await fetchUsers();
+    } catch (error) {
+      console.error("Failed to approve user:", error);
+      setApproveMessage(error?.response?.data?.detail || "Failed to approve user");
+    } finally {
+      setApprovingUserId(null);
+    }
+  };
+
   const isQualifiedField = (value) => {
     if (value === null || value === undefined) return false;
     const normalized = String(value).trim();
@@ -664,6 +691,11 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
           {blockMessage}
         </div>
       )}
+      {approveMessage && (
+        <div className="mb-4 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+          {approveMessage}
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="mb-6 flex flex-col md:flex-row gap-4">
@@ -832,10 +864,29 @@ export default function UserManagement({ users, setUsers, initialStatusFilter = 
                             BLOCKED
                           </span>
                         )}
+                        {user.is_approved === false && (
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                            PENDING APPROVAL
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td data-label="Action" className="p-4 text-center">
                       <div className="flex items-center justify-center gap-2">
+                      {user.is_approved === false && (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleApprove(user);
+                          }}
+                          disabled={approvingUserId === user.id}
+                          className="inline-flex items-center justify-center rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-300 hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          title="Approve user"
+                        >
+                          {approvingUserId === user.id ? "..." : "Approve"}
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={(event) => {

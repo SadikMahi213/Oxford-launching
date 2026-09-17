@@ -63,20 +63,30 @@ export default function LoginForm() {
       setLoading(false);
     } catch (err) {
       setIsSuccess(false);
-      if (err.response?.status === 422 && Array.isArray(err.response.data?.detail)) {
+      const detail = err.response?.data?.detail;
+      const isApprovalPending =
+        err.response?.status === 403 &&
+        detail &&
+        typeof detail === "object" &&
+        detail.code === "ADMIN_APPROVAL_PENDING";
+      if (err.response?.status === 422 && Array.isArray(detail)) {
         let fieldErrors = {};
-        err.response.data.detail.forEach((item) => {
+        detail.forEach((item) => {
           const field = item.loc?.[1];
           fieldErrors[field] = item.msg;
         });
         setErrors(fieldErrors);
         setMessage("");
+      } else if (isApprovalPending) {
+        setMessage(detail.message);
       } else if (err.response?.status === 423) {
-        setMessage(err.response.data?.detail || t("auth.login.blocked"));
+        setMessage(detail || t("auth.login.blocked"));
       } else if (err.response?.status === 400) {
-        setMessage(err.response.data?.detail || err.response.data?.message || t("auth.login.invalid"));
+        setMessage(detail || err.response.data?.message || t("auth.login.invalid"));
+      } else if (err.response?.status === 403 && detail && typeof detail === "object" && detail.message) {
+        setMessage(detail.message);
       } else {
-        setMessage(err.response?.data?.detail || err.response?.data?.message || t("auth.login.failed"));
+        setMessage(detail || err.response?.data?.message || t("auth.login.failed"));
       }
       setLoading(false);
     }

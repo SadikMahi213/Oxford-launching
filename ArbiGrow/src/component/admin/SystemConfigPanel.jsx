@@ -6,6 +6,7 @@ import {
   getSystemConfig, updateSystemConfig,
   getMiningConfig, updateMiningConfig, getMiningStats,
   getFeeConfig, updateFeeConfig,
+  getPendingApprovalMessage, updatePendingApprovalMessage,
 } from "../../api/admin.api.js";
 
 const FEATURE_LABELS = {
@@ -38,6 +39,9 @@ const SystemConfigPanel = () => {
   const [minWithdrawInput, setMinWithdrawInput] = useState("");
   const [captchaTimerInput, setCaptchaTimerInput] = useState("");
   const [miningPage, setMiningPage] = useState(1);
+  const [pendingMsg, setPendingMsg] = useState("");
+  const [pendingInput, setPendingInput] = useState("");
+  const [pendingSaving, setPendingSaving] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -47,6 +51,11 @@ const SystemConfigPanel = () => {
       getMiningConfig(token).then((r) => setMiningConfig(r.data || {})),
       getMiningStats(token, 1).then((r) => setMiningStats(r)),
       getFeeConfig(token).then((r) => setFeeConfig(r.data || {})),
+      getPendingApprovalMessage(token).then((r) => {
+        const v = r.message || r.value || "";
+        setPendingMsg(v);
+        setPendingInput(v);
+      }).catch(() => {}),
     ])
       .catch(() => setMsg("Failed to load config"))
       .finally(() => setLoading(false));
@@ -181,6 +190,31 @@ const SystemConfigPanel = () => {
       setMinWithdrawInput("");
     } catch (err) {
       setMsg("Error: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  const savePendingMsg = async () => {
+    if (!pendingInput.trim()) {
+      setMsg("Pending approval message must not be empty");
+      return;
+    }
+    if (pendingInput.trim().length > 1000) {
+      setMsg("Message must be at most 1000 characters");
+      return;
+    }
+    try {
+      setPendingSaving(true);
+      const res = await updatePendingApprovalMessage(token, pendingInput.trim());
+      const saved = res.value || pendingInput.trim();
+      setPendingMsg(saved);
+      setPendingInput(saved);
+      setMsg("Pending approval message updated");
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      const d = typeof detail === "object" ? detail.message || JSON.stringify(detail) : detail;
+      setMsg("Error: " + (d || err.message));
+    } finally {
+      setPendingSaving(false);
     }
   };
 
@@ -445,6 +479,40 @@ const SystemConfigPanel = () => {
                 <option value="both" style={{ color: "#0f172a" }}>Banking + Network</option>
               </select>
               <span className="text-xs text-gray-500">Changes take effect immediately</span>
+            </div>
+          </motion.div>
+
+          {/* Pending Approval Message */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-3"
+          >
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              Pending Approval Login Message
+            </h3>
+            <p className="text-xs text-gray-400">
+              Shown to users whose account is pending administrator approval when they attempt to log in.
+            </p>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-400">Message (max 1000 chars):</label>
+              <textarea
+                value={pendingInput}
+                onChange={(e) => setPendingInput(e.target.value)}
+                placeholder={pendingMsg || "Your account has been registered successfully but is currently pending administrator approval..."}
+                rows={3}
+                maxLength={1000}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-y"
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={savePendingMsg}
+                  disabled={pendingSaving}
+                  className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs text-white disabled:opacity-50"
+                >
+                  {pendingSaving ? "Saving..." : "Save"}
+                </button>
+                <span className="text-xs text-gray-500">{pendingInput.length}/1000</span>
+                {pendingMsg && <span className="text-xs text-green-400">Current saved: {pendingMsg.slice(0, 60)}{pendingMsg.length>60?"...":""}</span>}
+              </div>
             </div>
           </motion.div>
 

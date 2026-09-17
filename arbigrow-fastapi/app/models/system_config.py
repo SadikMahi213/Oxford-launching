@@ -12,7 +12,7 @@ class SystemConfig(Base):
         String(64), unique=True, index=True, nullable=False
     )
     value: Mapped[str] = mapped_column(
-        String(255), nullable=False, default="true", server_default="true"
+        String(1000), nullable=False, default="true", server_default="true"
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

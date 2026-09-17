@@ -90,6 +90,39 @@ async def get_current_user(
             detail="User not found"
         )
 
+    # ── Admin approval enforcement (backend security gate) ──
+    # Blocks pending-approval users from accessing any protected endpoint,
+    # even if they possess a previously issued token/session.
+    if not getattr(user, "is_admin", False):
+        if (getattr(user, "account_status", "") or "").lower() != "pending_payment":
+            if not bool(getattr(user, "is_approved", True)):
+                # Lazy import to avoid circular dependency with auth
+                from sqlalchemy import select as _select
+                from app.models.system_config import SystemConfig as _SC
+
+                _pending_msg = (
+                    "Your account has been registered successfully but is currently pending administrator approval. "
+                    "You will be able to access your account after an administrator approves it."
+                )
+                try:
+                    _r = await db.execute(_select(_SC).where(_SC.key == "pending_approval_message"))
+                    _row = _r.scalar_one_or_none()
+                    if _row and (_row.value or "").strip():
+                        _pending_msg = _row.value.strip()
+                except Exception:
+                    pass
+                raise HTTPException(
+                    status_code=403,
+                    detail={"code": "ADMIN_APPROVAL_PENDING", "message": _pending_msg},
+                )
+
+    # Also enforce blocked status on protected access
+    if getattr(user, "blocked_at", None) is not None:
+        raise HTTPException(
+            status_code=423,
+            detail="Your account has been temporarily blocked due to multiple failed login attempts. Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com",
+        )
+
     # Activity heartbeat: stamp last_active_at (throttled) so the dashboard can
     # report real members currently online. Best-effort: never fail the request
     # if the write does not succeed.

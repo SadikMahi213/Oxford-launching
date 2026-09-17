@@ -68,6 +68,12 @@ router = APIRouter(
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 
+PENDING_APPROVAL_MESSAGE_KEY = "pending_approval_message"
+DEFAULT_PENDING_APPROVAL_MESSAGE = (
+    "Your account has been registered successfully but is currently pending administrator approval. "
+    "You will be able to access your account after an administrator approves it."
+)
+
 
 def _resolve_effective_status(
     account_status: str | None,
@@ -413,6 +419,8 @@ async def get_admin_users(
                 user.email_verified,
             ),
             "account_status": user.account_status,
+            "is_approved": bool(getattr(user, "is_approved", True)),
+            "blocked_at": user.blocked_at.isoformat() if getattr(user, "blocked_at", None) else None,
         })
 
     # Status counters are calculated across the current search set (ignoring status tab).
@@ -784,6 +792,9 @@ async def get_user_details(
             user.email_verified,
         ),
         "account_status": user.account_status,
+        "is_approved": bool(getattr(user, "is_approved", True)),
+        "blocked_at": user.blocked_at.isoformat() if getattr(user, "blocked_at", None) else None,
+        "blocked_reason": getattr(user, "blocked_reason", None),
         "issue_note": user.account_issue,
         "wallets": {
             "main_wallet": format_decimal(user.main_wallet),
@@ -1665,6 +1676,122 @@ async def update_system_config(
     logger = __import__("logging").getLogger(__name__)
     logger.info("Admin set system config %s=%s", key, value.lower())
     return {"message": f"{key} set to {value.lower()}"}
+
+
+# ── Pending Approval Message (Admin-configurable login gate message) ──
+@router.get("/pending-approval-message")
+async def get_pending_approval_message_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == PENDING_APPROVAL_MESSAGE_KEY))
+    row = result.scalar_one_or_none()
+    message = row.value if row and (row.value or "").strip() else DEFAULT_PENDING_APPROVAL_MESSAGE
+    return {"message": message}
+
+
+@router.put("/pending-approval-message")
+async def update_pending_approval_message_config(
+    payload: ConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    # Validate using existing app conventions: strip, length 1-1000
+    text = (payload.value or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Message must not be empty")
+    if len(text) > 1000:
+        raise HTTPException(status_code=400, detail="Message must be at most 1000 characters")
+    # Basic sanitization: remove control chars except newline
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == PENDING_APPROVAL_MESSAGE_KEY))
+    row = result.scalar_one_or_none()
+    if not row:
+        row = SystemConfig(key=PENDING_APPROVAL_MESSAGE_KEY, value=text)
+        db.add(row)
+    else:
+        row.value = text
+    await db.commit()
+    await db.refresh(row)
+    logger.info("Admin updated pending approval message")
+    return {"message": "Pending approval message updated", "value": text}
+
+
+# ── Pending Approval User Management ──
+@router.get("/pending-approvals")
+async def list_pending_approvals(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=50),
+    search: str | None = None,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    offset = (page - 1) * limit
+    stmt = select(User).where(User.is_approved.is_(False), User.is_admin.is_(False))
+    count_stmt = select(func.count(User.id)).where(User.is_approved.is_(False), User.is_admin.is_(False))
+    if search and search.strip():
+        q = f"%{search.strip()}%"
+        stmt = stmt.where(or_(User.full_name.ilike(q), User.email.ilike(q), User.username.ilike(q)))
+        count_stmt = count_stmt.where(or_(User.full_name.ilike(q), User.email.ilike(q), User.username.ilike(q)))
+    total = (await db.execute(count_stmt)).scalar() or 0
+    result = await db.execute(stmt.order_by(User.created_at.desc()).offset(offset).limit(limit))
+    users = result.scalars().all()
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "users": [
+            {
+                "id": u.id,
+                "user_no": u.user_no,
+                "full_name": u.full_name,
+                "username": u.username,
+                "email": u.email,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "is_approved": bool(u.is_approved),
+            }
+            for u in users
+        ],
+    }
+
+
+@router.patch("/users/{user_id}/approve")
+async def approve_user(
+    user_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(select(User).where(User.id == user_id).with_for_update())
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.is_admin:
+        raise HTTPException(status_code=400, detail="Admin users do not require approval")
+    if user.is_approved:
+        return {"message": "User already approved", "is_approved": True}
+    user.is_approved = True
+    await db.commit()
+    await db.refresh(user)
+    await notify_admin(
+        db=db,
+        type="user_approved",
+        message=f"User {user.full_name} ({user.email}) was approved by admin",
+        user_id=user.id,
+        request=request,
+    )
+    try:
+        sec = SecurityLogger(db)
+        await sec.log(
+            event_type="user_approved",
+            user_id=user.id,
+            email=user.email,
+            ip_address=request.client.host if request.client else None,
+            device=(request.headers.get("user-agent", "") or "")[:255],
+            details=f"Approved by admin {current_admin.id}",
+        )
+    except Exception:
+        pass
+    return {"message": "User approved successfully", "is_approved": True}
 
 
 @router.get("/mining/config")

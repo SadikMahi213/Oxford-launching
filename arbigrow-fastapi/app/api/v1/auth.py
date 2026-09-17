@@ -46,6 +46,36 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 REGISTRATION_ENABLED_KEY = "system_registration_enabled"
+PENDING_APPROVAL_MESSAGE_KEY = "pending_approval_message"
+DEFAULT_PENDING_APPROVAL_MESSAGE = (
+    "Your account has been registered successfully but is currently pending administrator approval. "
+    "You will be able to access your account after an administrator approves it."
+)
+
+
+async def get_pending_approval_message(db: AsyncSession) -> str:
+    """Return the admin-configured pending-approval message, or the default."""
+    try:
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == PENDING_APPROVAL_MESSAGE_KEY)
+        )
+        row = result.scalar_one_or_none()
+        if row and (row.value or "").strip():
+            return row.value.strip()
+    except Exception:
+        pass
+    return DEFAULT_PENDING_APPROVAL_MESSAGE
+
+
+def _is_pending_approval_user(user: User) -> bool:
+    """True if a non-admin user still requires admin approval."""
+    if getattr(user, "is_admin", False):
+        return False
+    # pending_payment users are allowed through to complete payment
+    if (getattr(user, "account_status", "") or "").lower() == "pending_payment":
+        return False
+    # Approved flag is authoritative for login gate
+    return not bool(getattr(user, "is_approved", False))
 
 
 def _decode_access_payload(raw: str | None) -> dict | None:
@@ -193,7 +223,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         hash_password, user_data.password
     )
 
-    # Create user
+    # Create user — pending admin approval (is_approved=False)
     new_user = User(
         full_name=user_data.full_name,
         first_name=user_data.first_name,
@@ -214,6 +244,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         email=normalized_email,
         hashed_password=signup_password_hash,
         is_admin=False,
+        is_approved=False,
         email_verified=True,
         main_wallet=Decimal("0.00000000000000"),
         deposit_wallet=Decimal("0.00000000000000"),
@@ -278,6 +309,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
                 new_user.pending_package_id = selected_pkg.id
             else:
                 # Free package — activate immediately, give signup bonus and create auto-investment
+                # (Financial logic preserved; login is still gated by is_approved=False)
                 new_user.account_status = "active"
                 pkg_bonus = selected_pkg.signup_arbx_bonus or Decimal("0")
                 pkg_before = new_user.arbx_wallet or Decimal("0")
@@ -434,6 +466,14 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
+    # ── Admin approval gate ──
+    if _is_pending_approval_user(user):
+        pending_msg = await get_pending_approval_message(db)
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "ADMIN_APPROVAL_PENDING", "message": pending_msg},
+        )
+
     # Successful login — reset failed attempts
     was_blocked = bool(user.blocked_at)
     user.failed_attempts = 0
@@ -547,6 +587,14 @@ async def refresh_session(
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
+
+    # Enforce admin approval on refresh as well (stale tokens from pending users)
+    if _is_pending_approval_user(user):
+        pending_msg = await get_pending_approval_message(db)
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "ADMIN_APPROVAL_PENDING", "message": pending_msg},
+        )
 
     access_token = create_access_token(data={"sub": str(user.id)})
     response.set_cookie(

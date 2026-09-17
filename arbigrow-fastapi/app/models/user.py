@@ -56,6 +56,12 @@ class User(Base):
     is_admin: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False)
 
+    # Admin approval gate: False until an administrator approves the account.
+    # Existing users are backfilled to True via migration t004.
+    is_approved: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default="false"
+    )
+
     email_verified: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
