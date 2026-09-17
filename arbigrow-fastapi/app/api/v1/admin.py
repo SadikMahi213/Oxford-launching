@@ -74,6 +74,9 @@ DEFAULT_PENDING_APPROVAL_MESSAGE = (
     "You will be able to access your account after an administrator approves it."
 )
 
+USER_REJECTION_MESSAGE_KEY = "user_rejection_message"
+DEFAULT_USER_REJECTION_MESSAGE = "Your account has been rejected by the administrator. Please contact support for further assistance."
+
 
 def _resolve_effective_status(
     account_status: str | None,
@@ -1049,6 +1052,28 @@ async def update_kyc_status(
             refund_txn = wallet_txn
             refunded_at = kyc.fee_refunded_at if (kyc and kyc.fee_refunded_at) else datetime.now(timezone.utc)
 
+    # ── Rejection message snapshot + is_approved sync ──
+    if was_rejected:
+        snap = (payload.admin_note or "").strip()
+        if not snap:
+            _r = await db.execute(select(SystemConfig).where(SystemConfig.key == USER_REJECTION_MESSAGE_KEY))
+            _row = _r.scalar_one_or_none()
+            snap = _row.value.strip() if _row and (_row.value or "").strip() else DEFAULT_USER_REJECTION_MESSAGE
+        user.rejection_message = snap
+        user.is_approved = False
+        if kyc:
+            kyc.admin_note = snap
+    elif was_approved:
+        user.rejection_message = None
+        user.is_approved = True
+        # Keep kyc.admin_note for history but ensure it doesn't show as rejection on approved
+    elif was_reset:
+        user.rejection_message = None
+        user.is_approved = False
+        if kyc:
+            # On reset to pending, clear previous rejection note to allow fresh review
+            kyc.admin_note = None
+
     # KYC Snapshot: capture lifetime team volume on first approval
     if was_approved and user.kyc_approved_team_volume is None:
         from app.services.rank_service import get_team_volume
@@ -1718,6 +1743,42 @@ async def update_pending_approval_message_config(
     return {"message": "Pending approval message updated", "value": text}
 
 
+# ── User Rejection Message (Admin-configurable) ──
+@router.get("/rejection-message")
+async def get_rejection_message_config(
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == USER_REJECTION_MESSAGE_KEY))
+    row = result.scalar_one_or_none()
+    message = row.value if row and (row.value or "").strip() else DEFAULT_USER_REJECTION_MESSAGE
+    return {"message": message}
+
+
+@router.put("/rejection-message")
+async def update_rejection_message_config(
+    payload: ConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user),
+):
+    text = (payload.value or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Message must not be empty")
+    if len(text) > 1000:
+        raise HTTPException(status_code=400, detail="Message must be at most 1000 characters")
+    result = await db.execute(select(SystemConfig).where(SystemConfig.key == USER_REJECTION_MESSAGE_KEY))
+    row = result.scalar_one_or_none()
+    if not row:
+        row = SystemConfig(key=USER_REJECTION_MESSAGE_KEY, value=text)
+        db.add(row)
+    else:
+        row.value = text
+    await db.commit()
+    await db.refresh(row)
+    logger.info("Admin updated rejection message")
+    return {"message": "Rejection message updated", "value": text}
+
+
 # ── Pending Approval User Management ──
 @router.get("/pending-approvals")
 async def list_pending_approvals(
@@ -1772,6 +1833,21 @@ async def approve_user(
     if user.is_approved:
         return {"message": "User already approved", "is_approved": True}
     user.is_approved = True
+    user.rejection_message = None
+    # If user was previously rejected via KYC, clear that status to allow login
+    if (getattr(user, "admin_kyc_status", "") or "").lower() == "rejected":
+        user.admin_kyc_status = "approved"
+        user.account_status = "active"
+        # Also clear KYC admin_note snapshot if exists
+        try:
+            from app.models.kyc import KYC
+            _kr = await db.execute(select(KYC).where(KYC.user_id == user.id))
+            _kyc = _kr.scalar_one_or_none()
+            if _kyc and _kyc.status.value == "rejected":
+                _kyc.status = "approved"
+                _kyc.admin_note = None
+        except Exception:
+            pass
     await db.commit()
     await db.refresh(user)
     await notify_admin(

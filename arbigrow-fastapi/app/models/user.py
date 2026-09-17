@@ -89,6 +89,9 @@ class User(Base):
     )  # inactive | pending_payment | active | on_hold | suspended | permanently_closed
     account_issue: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Rejection snapshot: stored at rejection time from admin-configured template
+    rejection_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     # ── Error cycle tracking ──────────────────────────────────────
     error_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"

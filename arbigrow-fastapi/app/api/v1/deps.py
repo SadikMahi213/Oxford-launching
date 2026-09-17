@@ -90,10 +90,38 @@ async def get_current_user(
             detail="User not found"
         )
 
-    # ── Admin approval enforcement (backend security gate) ──
-    # Blocks pending-approval users from accessing any protected endpoint,
-    # even if they possess a previously issued token/session.
+    # ── Rejection / approval enforcement (backend security gate) ──
     if not getattr(user, "is_admin", False):
+        # Rejected takes precedence over pending
+        _is_rejected = (getattr(user, "admin_kyc_status", "") or "").lower() == "rejected"
+        # Also consider stored snapshot as fallback
+        if not _is_rejected and getattr(user, "rejection_message", None):
+            if not bool(getattr(user, "is_approved", True)):
+                _is_rejected = True
+        if _is_rejected:
+            from sqlalchemy import select as _select
+            from app.models.system_config import SystemConfig as _SC
+            _rej_msg = getattr(user, "rejection_message", None)
+            if _rej_msg and str(_rej_msg).strip():
+                _rej_msg = str(_rej_msg).strip()
+            else:
+                # Try KYC.admin_note then global
+                try:
+                    from app.models.kyc import KYC as _KYC
+                    _kr = await db.execute(_select(_KYC).where(_KYC.user_id == user.id))
+                    _kyc_row = _kr.scalar_one_or_none()
+                    if _kyc_row and getattr(_kyc_row, "admin_note", None) and str(_kyc_row.admin_note).strip():
+                        _rej_msg = str(_kyc_row.admin_note).strip()
+                    else:
+                        _r = await db.execute(_select(_SC).where(_SC.key == "user_rejection_message"))
+                        _row = _r.scalar_one_or_none()
+                        _rej_msg = _row.value.strip() if _row and (_row.value or "").strip() else "Your account has been rejected by the administrator. Please contact support for further assistance."
+                except Exception:
+                    _rej_msg = "Your account has been rejected by the administrator. Please contact support for further assistance."
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "USER_REJECTED", "message": _rej_msg},
+            )
         if (getattr(user, "account_status", "") or "").lower() != "pending_payment":
             if not bool(getattr(user, "is_approved", True)):
                 # Lazy import to avoid circular dependency with auth

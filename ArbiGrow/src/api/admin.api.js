@@ -691,6 +691,16 @@ export const approveUser = async (token, userId) => {
   return res.data || {};
 };
 
+export const getRejectionMessage = async (token) => {
+  const res = await api.get("v1/admin/rejection-message", authHeaders(token));
+  return res.data || {};
+};
+
+export const updateRejectionMessage = async (token, message) => {
+  const res = await api.put("v1/admin/rejection-message", { value: message }, authHeaders(token));
+  return res.data || {};
+};
+
 // ── Commission Configuration (Referral & Generation Bonuses) ──────────
 
 export const getCommissionConfig = async (token) => {

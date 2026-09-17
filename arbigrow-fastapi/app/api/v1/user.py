@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_, and_, func, literal, cast, Numeric, Integer
+from sqlalchemy import select, or_, and_, func, literal, cast, Numeric, Integer, delete, update
 
 from app.core.database import get_db
 
@@ -1505,3 +1505,152 @@ async def get_my_wallet_transactions(
             for wt in items
         ],
     }
+
+
+@router.delete("/account")
+async def delete_own_account(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """User self-delete: remove own account and invalidate session.
+    Frontend must treat this as terminal success: clear local state, stop polling, redirect to public page.
+    """
+    user_id = current_user.id
+    if current_user.is_admin:
+        raise HTTPException(status_code=400, detail="Admin accounts cannot be deleted via this endpoint")
+
+    # Blacklist current access token and revoke refresh token before row deletion
+    try:
+        from app.core.security import blacklist_access_token, revoke_refresh_token
+
+        raw_token = None
+        auth = request.headers.get("Authorization")
+        if auth and auth.startswith("Bearer "):
+            raw_token = auth.split(" ", 1)[1]
+        if not raw_token:
+            raw_token = request.cookies.get("access_token")
+        if raw_token:
+            await blacklist_access_token(raw_token, db)
+        await revoke_refresh_token(db, request.cookies.get("refresh_token") or "")
+    except Exception:
+        pass
+
+    # Reuse admin cascade but for self (subset keeps financial integrity)
+    from app.models.deposit import Deposit
+    from app.models.withdrawal import Withdrawal
+    from app.models.kyc import KYC
+    from app.models.transfer_log import TransferLog
+    from app.models.investments import Investment
+    from app.models.referral_profit_history import ReferralProfitHistory
+    from app.models.investment_profit_history import InvestmentProfitHistory
+    from app.models.mining_log import MiningLog
+    from app.models.captcha import CaptchaEarning, CaptchaChallenge
+    from app.models.ad_view import AdView
+    from app.models.user_ad_view import UserAdView
+    from app.models.invoice import Invoice
+    from app.models.notification import AdminNotification
+    from app.models.matching_bonus import MatchingBonus
+    from app.models.rank_history import RankHistory
+    from app.models.bank_info import BankInfo
+    from app.models.order import Order, OrderItem
+
+    # Gather investment ids for profit history
+    inv_ids_res = await db.execute(select(Investment.id).where(Investment.user_id == user_id))
+    inv_ids = [row[0] for row in inv_ids_res.all()]
+    if inv_ids:
+        await db.execute(delete(InvestmentProfitHistory).where(InvestmentProfitHistory.investment_id.in_(inv_ids)))
+    await db.execute(update(Withdrawal).where(Withdrawal.approved_by == user_id).values(approved_by=None))
+    await db.execute(delete(Deposit).where(Deposit.user_id == user_id))
+    await db.execute(delete(Withdrawal).where(Withdrawal.user_id == user_id))
+    await db.execute(delete(ReferralProfitHistory).where(or_(ReferralProfitHistory.source_user_id == user_id, ReferralProfitHistory.receiver_user_id == user_id)))
+    if inv_ids:
+        await db.execute(delete(Investment).where(Investment.id.in_(inv_ids)))
+    await db.execute(delete(KYC).where(KYC.user_id == user_id))
+    await db.execute(delete(TransferLog).where(TransferLog.sender_id == user_id))
+    await db.execute(delete(TransferLog).where(TransferLog.receiver_id == user_id))
+    await db.execute(delete(MiningLog).where(MiningLog.user_id == user_id))
+    await db.execute(delete(CaptchaEarning).where(CaptchaEarning.user_id == user_id))
+    await db.execute(delete(CaptchaChallenge).where(CaptchaChallenge.user_id == user_id))
+    await db.execute(delete(AdView).where(AdView.user_id == user_id))
+    await db.execute(delete(UserAdView).where(UserAdView.user_id == user_id))
+    await db.execute(delete(Invoice).where(Invoice.user_id == user_id))
+    await db.execute(delete(WalletTransaction).where(WalletTransaction.user_id == user_id))
+    from app.models.refresh_token import RefreshToken
+    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user_id))
+    await db.execute(delete(AdminNotification).where(AdminNotification.user_id == user_id))
+    await db.execute(delete(MatchingBonus).where(MatchingBonus.user_id == user_id))
+    await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
+    await db.execute(delete(BankInfo).where(BankInfo.user_id == user_id))
+    from app.models.cart import Cart, CartItem
+    cart_res = await db.execute(select(Cart.id).where(Cart.user_id == user_id))
+    cart_ids = [row[0] for row in cart_res.all()]
+    if cart_ids:
+        await db.execute(delete(CartItem).where(CartItem.cart_id.in_(cart_ids)))
+        await db.execute(delete(Cart).where(Cart.id.in_(cart_ids)))
+    from app.models.wishlist import WishlistItem
+    from app.models.compare import CompareItem
+    from app.models.coupon import CouponUsage
+    from app.models.ecommerce_wallet_transaction import EcommerceWalletTransaction
+    from app.models.ofa_coin_transaction import OFACoinTransaction
+    from app.models.product_review import ProductReview
+    from app.models.product_view import ProductView
+    from app.models.return_request import ReturnRequest
+    from app.models.vendor_withdraw import VendorWithdraw
+    await db.execute(delete(WishlistItem).where(WishlistItem.user_id == user_id))
+    await db.execute(delete(CompareItem).where(CompareItem.user_id == user_id))
+    await db.execute(delete(CouponUsage).where(CouponUsage.user_id == user_id))
+    await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.user_id == user_id))
+    await db.execute(delete(OFACoinTransaction).where(OFACoinTransaction.user_id == user_id))
+    await db.execute(delete(ProductReview).where(ProductReview.user_id == user_id))
+    await db.execute(delete(ProductView).where(ProductView.user_id == user_id))
+    await db.execute(delete(ReturnRequest).where(ReturnRequest.user_id == user_id))
+    await db.execute(delete(VendorWithdraw).where(VendorWithdraw.user_id == user_id))
+    # Orders and related
+    order_res = await db.execute(select(Order.id).where(Order.user_id == user_id))
+    order_ids = [row[0] for row in order_res.all()]
+    from app.models.seller import Seller
+    seller_res = await db.execute(select(Seller.id).where(Seller.user_id == user_id))
+    seller_ids = [row[0] for row in seller_res.all()]
+    from app.models.product import Product
+    product_ids = []
+    if seller_ids:
+        prod_res = await db.execute(select(Product.id).where(Product.seller_id.in_(seller_ids)))
+        product_ids = [row[0] for row in prod_res.all()]
+        seller_order_res = await db.execute(select(Order.id).where(Order.seller_id.in_(seller_ids)))
+        order_ids = list(dict.fromkeys(order_ids + [row[0] for row in seller_order_res.all()]))
+    if order_ids:
+        from app.models.order_attachment import OrderAttachment
+        from app.models.order_status_log import OrderStatusLog
+        await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(order_ids)))
+        await db.execute(delete(OrderAttachment).where(OrderAttachment.order_id.in_(order_ids)))
+        await db.execute(delete(OrderStatusLog).where(OrderStatusLog.order_id.in_(order_ids)))
+        await db.execute(delete(CouponUsage).where(CouponUsage.order_id.in_(order_ids)))
+        await db.execute(delete(EcommerceWalletTransaction).where(EcommerceWalletTransaction.order_id.in_(order_ids)))
+        await db.execute(delete(Order).where(Order.id.in_(order_ids)))
+    if product_ids:
+        from app.models.product_tag import ProductTag
+        from app.models.product_variant import ProductVariant
+        await db.execute(delete(ProductTag).where(ProductTag.product_id.in_(product_ids)))
+        await db.execute(delete(ProductVariant).where(ProductVariant.product_id.in_(product_ids)))
+        await db.execute(delete(Product).where(Product.id.in_(product_ids)))
+    if seller_ids:
+        from app.models.seller_delivery_zone import SellerDeliveryZone
+        await db.execute(delete(SellerDeliveryZone).where(SellerDeliveryZone.seller_id.in_(seller_ids)))
+        await db.execute(delete(Seller).where(Seller.id.in_(seller_ids)))
+    # Null parent refs
+    await db.execute(update(User).where(User.parent_lvl_1_id == user_id).values(parent_lvl_1_id=None))
+    await db.execute(update(User).where(User.parent_lvl_2_id == user_id).values(parent_lvl_2_id=None))
+    await db.execute(update(User).where(User.parent_lvl_3_id == user_id).values(parent_lvl_3_id=None))
+    await db.execute(update(User).where(User.parent_lvl_4_id == user_id).values(parent_lvl_4_id=None))
+    await db.execute(update(User).where(User.parent_lvl_5_id == user_id).values(parent_lvl_5_id=None))
+    # Finally delete user
+    await db.execute(delete(User).where(User.id == user_id))
+    await db.commit()
+
+    # Clear cookies (httpOnly)
+    for key in ("access_token", "refresh_token"):
+        response.delete_cookie(key=key, httponly=True, secure=False, samesite="lax", path="/")
+
+    return {"message": "Your account has been deleted successfully."}

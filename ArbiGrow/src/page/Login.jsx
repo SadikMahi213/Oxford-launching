@@ -69,6 +69,11 @@ export default function LoginForm() {
         detail &&
         typeof detail === "object" &&
         detail.code === "ADMIN_APPROVAL_PENDING";
+      const isRejected =
+        err.response?.status === 403 &&
+        detail &&
+        typeof detail === "object" &&
+        detail.code === "USER_REJECTED";
       if (err.response?.status === 422 && Array.isArray(detail)) {
         let fieldErrors = {};
         detail.forEach((item) => {
@@ -77,7 +82,7 @@ export default function LoginForm() {
         });
         setErrors(fieldErrors);
         setMessage("");
-      } else if (isApprovalPending) {
+      } else if (isApprovalPending || isRejected) {
         setMessage(detail.message);
       } else if (err.response?.status === 423) {
         setMessage(detail || t("auth.login.blocked"));

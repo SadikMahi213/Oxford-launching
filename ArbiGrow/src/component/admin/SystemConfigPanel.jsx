@@ -7,6 +7,7 @@ import {
   getMiningConfig, updateMiningConfig, getMiningStats,
   getFeeConfig, updateFeeConfig,
   getPendingApprovalMessage, updatePendingApprovalMessage,
+  getRejectionMessage, updateRejectionMessage,
 } from "../../api/admin.api.js";
 
 const FEATURE_LABELS = {
@@ -42,6 +43,9 @@ const SystemConfigPanel = () => {
   const [pendingMsg, setPendingMsg] = useState("");
   const [pendingInput, setPendingInput] = useState("");
   const [pendingSaving, setPendingSaving] = useState(false);
+  const [rejectionMsg, setRejectionMsg] = useState("");
+  const [rejectionInput, setRejectionInput] = useState("");
+  const [rejectionSaving, setRejectionSaving] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -55,6 +59,11 @@ const SystemConfigPanel = () => {
         const v = r.message || r.value || "";
         setPendingMsg(v);
         setPendingInput(v);
+      }).catch(() => {}),
+      getRejectionMessage(token).then((r) => {
+        const v = r.message || r.value || "";
+        setRejectionMsg(v);
+        setRejectionInput(v);
       }).catch(() => {}),
     ])
       .catch(() => setMsg("Failed to load config"))
@@ -215,6 +224,31 @@ const SystemConfigPanel = () => {
       setMsg("Error: " + (d || err.message));
     } finally {
       setPendingSaving(false);
+    }
+  };
+
+  const saveRejectionMsg = async () => {
+    if (!rejectionInput.trim()) {
+      setMsg("Rejection message must not be empty");
+      return;
+    }
+    if (rejectionInput.trim().length > 1000) {
+      setMsg("Message must be at most 1000 characters");
+      return;
+    }
+    try {
+      setRejectionSaving(true);
+      const res = await updateRejectionMessage(token, rejectionInput.trim());
+      const saved = res.value || rejectionInput.trim();
+      setRejectionMsg(saved);
+      setRejectionInput(saved);
+      setMsg("Rejection message updated");
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      const d = typeof detail === "object" ? detail.message || JSON.stringify(detail) : detail;
+      setMsg("Error: " + (d || err.message));
+    } finally {
+      setRejectionSaving(false);
     }
   };
 
@@ -512,6 +546,40 @@ const SystemConfigPanel = () => {
                 </button>
                 <span className="text-xs text-gray-500">{pendingInput.length}/1000</span>
                 {pendingMsg && <span className="text-xs text-green-400">Current saved: {pendingMsg.slice(0, 60)}{pendingMsg.length>60?"...":""}</span>}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Rejection Message */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 p-5 space-y-3"
+          >
+            <h3 className="text-white font-semibold flex items-center gap-2">
+              User Rejection Message
+            </h3>
+            <p className="text-xs text-gray-400">
+              Shown to users whose account was rejected by administrator when they attempt to log in. Snapshot saved at rejection time.
+            </p>
+            <div className="space-y-2">
+              <label className="text-sm text-gray-400">Message (max 1000 chars):</label>
+              <textarea
+                value={rejectionInput}
+                onChange={(e) => setRejectionInput(e.target.value)}
+                placeholder={rejectionMsg || "Your account has been rejected by the administrator. Please contact support for further assistance."}
+                rows={3}
+                maxLength={1000}
+                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50 resize-y"
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={saveRejectionMsg}
+                  disabled={rejectionSaving}
+                  className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-xs text-white disabled:opacity-50"
+                >
+                  {rejectionSaving ? "Saving..." : "Save"}
+                </button>
+                <span className="text-xs text-gray-500">{rejectionInput.length}/1000</span>
+                {rejectionMsg && <span className="text-xs text-green-400">Current saved: {rejectionMsg.slice(0, 60)}{rejectionMsg.length>60?"...":""}</span>}
               </div>
             </div>
           </motion.div>

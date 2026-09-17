@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { Camera, Check, Lock, X, FileText, ShieldCheck, Eye } from "lucide-react";
+import { Camera, Check, Lock, X, FileText, ShieldCheck, Eye, Trash2 } from "lucide-react";
 import VerifiedBadge from "../common/VerifiedBadge";
 import profilePlaceholder from "../../assets/banner.jpeg";
 import useUserStore from "../../store/userStore";
 import api from "../../api/axiosInstance.js";
 import { useNavigate } from "react-router";
 import { getMyKyc } from "../../api/kyc.api.js";
+import { deleteOwnAccount } from "../../api/user.api.js";
 
 function getInitials(name) {
   if (!name) return "?";
@@ -55,6 +56,38 @@ const ProfilePage = () => {
       });
     return () => { mounted = false; };
   }, []);
+
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteSuccess, setDeleteSuccess] = useState("");
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(t('profile.delete_confirm') || "Are you sure you want to delete your account? This action cannot be undone.");
+    if (!confirmed) return;
+    const doubleConfirm = window.confirm(t('profile.delete_confirm2') || "This will permanently delete all your data. Continue?");
+    if (!doubleConfirm) return;
+    setIsDeleting(true);
+    setDeleteError("");
+    setDeleteSuccess("");
+    try {
+      const res = await deleteOwnAccount();
+      // Success: clear auth state before any further /me polling
+      setDeleteSuccess(res?.data?.message || t('profile.delete_success') || "Your account has been deleted successfully.");
+      // Stop polling and clear session
+      const { clearSession } = useUserStore.getState();
+      clearSession();
+      // Give user a moment to see success then redirect
+      setTimeout(() => {
+        navigate("/");
+      }, 800);
+    } catch (err) {
+      const detail = err?.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : detail?.message || err.message || t('profile.delete_failed') || "Failed to delete account";
+      setDeleteError(msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const isImageUrl = (url, key) => {
     const src = (url || key || "").toLowerCase();
@@ -466,6 +499,52 @@ const ProfilePage = () => {
               </div>
             </>
           )}
+        </div>
+      </motion.div>
+
+      {/* Danger Zone - Delete Account */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="rounded-2xl bg-gradient-to-br from-red-500/10 to-red-600/5 backdrop-blur-xl border border-red-500/20 overflow-hidden"
+      >
+        <div className="px-4 md:px-6 py-4 border-b border-red-500/20 bg-gradient-to-r from-red-600/10 via-red-500/10 to-red-600/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-base md:text-lg font-semibold text-white">{t('profile.danger_zone') || 'Danger Zone'}</h3>
+              <p className="text-xs text-gray-400">{t('profile.danger_desc') || 'Permanently delete your account and all associated data'}</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 md:p-6 space-y-3">
+          <p className="text-sm text-gray-300">{t('profile.delete_desc') || 'Once you delete your account, there is no going back. Please be certain.'}</p>
+          {deleteError && (
+            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-300">{deleteError}</div>
+          )}
+          {deleteSuccess && (
+            <div className="px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/30 text-sm text-green-300">{deleteSuccess}</div>
+          )}
+          <button
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="w-full md:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isDeleting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {t('profile.deleting') || 'Deleting...'}
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4" />
+                {t('profile.delete_account') || 'Delete Account'}
+              </>
+            )}
+          </button>
         </div>
       </motion.div>
 

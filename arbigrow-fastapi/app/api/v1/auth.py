@@ -67,9 +67,61 @@ async def get_pending_approval_message(db: AsyncSession) -> str:
     return DEFAULT_PENDING_APPROVAL_MESSAGE
 
 
-def _is_pending_approval_user(user: User) -> bool:
-    """True if a non-admin user still requires admin approval."""
+REJECTION_MESSAGE_KEY = "user_rejection_message"
+DEFAULT_REJECTION_MESSAGE = "Your account has been rejected by the administrator. Please contact support for further assistance."
+
+
+async def get_user_rejection_message(db: AsyncSession) -> str:
+    """Return the admin-configured rejection message, or the default."""
+    try:
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == REJECTION_MESSAGE_KEY)
+        )
+        row = result.scalar_one_or_none()
+        if row and (row.value or "").strip():
+            return row.value.strip()
+    except Exception:
+        pass
+    return DEFAULT_REJECTION_MESSAGE
+
+
+def _is_rejected_user(user: User) -> bool:
+    """True if user was rejected (distinct from pending)."""
     if getattr(user, "is_admin", False):
+        return False
+    if (getattr(user, "admin_kyc_status", "") or "").lower() == "rejected":
+        return True
+    # Also check snapshot field as fallback
+    if getattr(user, "rejection_message", None):
+        # If rejection_message is set but admin_kyc_status not yet rejected (edge), treat as rejected
+        # Only if is_approved is False to avoid approved users with stale message
+        if not bool(getattr(user, "is_approved", False)):
+            return True
+    return False
+
+
+def _get_rejection_snapshot(user: User, db: AsyncSession | None = None) -> str:
+    """Return snapshot message for rejected user: stored per-user or global fallback."""
+    # Prefer per-user snapshot stored at rejection time
+    snap = getattr(user, "rejection_message", None)
+    if snap and str(snap).strip():
+        return str(snap).strip()
+    # Fallback to KYC.admin_note if available
+    try:
+        # Use getattr to avoid import cycle - KYC is accessed via relationship if loaded
+        kyc = getattr(user, "kyc", None)
+        if kyc and getattr(kyc, "admin_note", None):
+            return str(kyc.admin_note).strip()
+    except Exception:
+        pass
+    return DEFAULT_REJECTION_MESSAGE
+
+
+def _is_pending_approval_user(user: User) -> bool:
+    """True if a non-admin user still requires admin approval (pending, not rejected)."""
+    if getattr(user, "is_admin", False):
+        return False
+    if _is_rejected_user(user):
         return False
     # pending_payment users are allowed through to complete payment
     if (getattr(user, "account_status", "") or "").lower() == "pending_payment":
@@ -466,6 +518,27 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
+    # ── Rejection gate (distinct from pending) ──
+    if _is_rejected_user(user):
+        snap = getattr(user, "rejection_message", None)
+        if snap and str(snap).strip():
+            rej_msg = str(snap).strip()
+        else:
+            # Fallback: check KYC.admin_note then global template
+            try:
+                kyc_r = await db.execute(select(KYC).where(KYC.user_id == user.id))
+                kyc_tmp = kyc_r.scalar_one_or_none()
+                if kyc_tmp and kyc_tmp.admin_note and str(kyc_tmp.admin_note).strip():
+                    rej_msg = str(kyc_tmp.admin_note).strip()
+                else:
+                    rej_msg = await get_user_rejection_message(db)
+            except Exception:
+                rej_msg = await get_user_rejection_message(db)
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "USER_REJECTED", "message": rej_msg},
+        )
+
     # ── Admin approval gate ──
     if _is_pending_approval_user(user):
         pending_msg = await get_pending_approval_message(db)
@@ -588,7 +661,25 @@ async def refresh_session(
     if user is None:
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
 
-    # Enforce admin approval on refresh as well (stale tokens from pending users)
+    # Enforce rejection/approval on refresh as well (stale tokens)
+    if _is_rejected_user(user):
+        snap = getattr(user, "rejection_message", None)
+        if snap and str(snap).strip():
+            rej_msg = str(snap).strip()
+        else:
+            try:
+                kyc_r = await db.execute(select(KYC).where(KYC.user_id == user.id))
+                kyc_tmp = kyc_r.scalar_one_or_none()
+                if kyc_tmp and kyc_tmp.admin_note and str(kyc_tmp.admin_note).strip():
+                    rej_msg = str(kyc_tmp.admin_note).strip()
+                else:
+                    rej_msg = await get_user_rejection_message(db)
+            except Exception:
+                rej_msg = await get_user_rejection_message(db)
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "USER_REJECTED", "message": rej_msg},
+        )
     if _is_pending_approval_user(user):
         pending_msg = await get_pending_approval_message(db)
         raise HTTPException(

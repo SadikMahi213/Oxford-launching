@@ -245,6 +245,8 @@ export const getMyWalletTransactions = () =>
     ...authHeaders(),
   });
 
+export const deleteOwnAccount = () => api.delete("v1/user/account", authHeaders());
+
 export const getLiveStats = () => api.get("v1/live-stats/");
 
 export const getLedgerTransactions = (params = {}) => {
