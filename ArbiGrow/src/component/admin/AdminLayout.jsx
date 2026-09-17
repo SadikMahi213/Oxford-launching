@@ -20,7 +20,6 @@ import {
   Video,
   User,
   Eye,
-  Bell,
   ShieldAlert,
   Medal,
   Trophy,
@@ -32,8 +31,6 @@ import {
 } from "lucide-react";
 import logo from "../../assets/oxford.png";
 import useUserStore from "../../store/userStore";
-import NotificationBell from "./notifications/NotificationBell";
-import PopupNotification from "./notifications/PopupNotification";
 
 export default function AdminLayout({
   children,
@@ -56,12 +53,6 @@ export default function AdminLayout({
       label: "Visitor Analytics",
       icon: Eye,
       description: "Self-hosted tracking",
-    },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: Bell,
-      description: "Real-time admin alerts",
     },
     {
       id: "security",
@@ -229,11 +220,7 @@ export default function AdminLayout({
         )}
       </button>
 
-      <div className="fixed top-3 right-3 z-[60]">
-        <NotificationBell />
-      </div>
 
-      <PopupNotification />
 
       <AnimatePresence>
         {mobileSidebarOpen && (

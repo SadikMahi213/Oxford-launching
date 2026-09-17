@@ -24,7 +24,6 @@ from app.api.v1 import (
     admin_analytics,
     admin_self_analytics,
     tracker,
-    admin_notifications,
     admin_security,
     ranks,
     admin_ranks,
@@ -61,7 +60,6 @@ api_router.include_router(whatsapp.router)
 api_router.include_router(admin_analytics.router)
 api_router.include_router(admin_self_analytics.router)
 api_router.include_router(tracker.router)
-api_router.include_router(admin_notifications.router)
 api_router.include_router(admin_security.router)
 api_router.include_router(ranks.router)
 api_router.include_router(admin_ranks.router)

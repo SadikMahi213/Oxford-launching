@@ -1005,6 +1005,8 @@ async def update_kyc_status(
             )
             if kyc:
                 kyc.payment_status = PaymentStatus.paid
+                kyc.fee_refunded = False
+                kyc.fee_refunded_at = None
             wallet_txn = WalletTransaction(
                 user_id=user_id,
                 type=WalletTransactionType.kyc_fee_release,

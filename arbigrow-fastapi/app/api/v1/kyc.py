@@ -182,6 +182,8 @@ async def submit_kyc(
             user.deposit_wallet = (dep_bal - fee).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
             user.kyc_hold = (user.kyc_hold or Decimal("0")) + fee
             existing_kyc.payment_status = PaymentStatus.paid
+            existing_kyc.fee_refunded = False
+            existing_kyc.fee_refunded_at = None
             fee_deducted = str(fee)
 
             wallet_txn = WalletTransaction(

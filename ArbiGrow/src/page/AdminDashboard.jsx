@@ -22,7 +22,6 @@ import AdManagement from "../component/admin/AdManagement.jsx";
 import AdminReports from "../component/admin/AdminReports.jsx";
 import AdminWhatsAppConfig from "../component/admin/AdminWhatsAppConfig.jsx";
 import SelfAnalyticsDashboard from "../component/admin/self_analytics/SelfAnalyticsDashboard.jsx";
-import NotificationHistory from "../component/admin/notifications/NotificationHistory.jsx";
 import BlockedAccounts from "../component/admin/security/BlockedAccounts.jsx";
 import TaskErrors from "../component/admin/TaskErrors.jsx";
 import RankManagement from "../component/admin/RankManagement.jsx";
@@ -114,8 +113,6 @@ export default function AdminDashboard() {
         return <DashboardOverview users={users} />;
       case "self-analytics":
         return <SelfAnalyticsDashboard />;
-      case "notifications":
-        return <NotificationHistory />;
       case "security":
         return <BlockedAccounts />;
       case "task-errors":
