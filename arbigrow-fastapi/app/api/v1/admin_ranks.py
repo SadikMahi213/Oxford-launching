@@ -181,7 +181,11 @@ async def list_all_rank_history(
     return result.scalars().all()
 
 
+<<<<<<< HEAD
 @router.get("/bonuses/all")
+=======
+@router.get("/bonuses/all", response_model=list[MatchingBonusResponse])
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def list_all_matching_bonuses(
     user_id: int | None = Query(None),
     rank_id: int | None = Query(None),
@@ -191,6 +195,7 @@ async def list_all_matching_bonuses(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
+<<<<<<< HEAD
     # Single query with joins (no N+1): user + source_user + rank are all
     # eager-loaded for the identity/rank detail fields below.
     query = select(MatchingBonus).options(
@@ -198,12 +203,16 @@ async def list_all_matching_bonuses(
         joinedload(MatchingBonus.source_user),
         joinedload(MatchingBonus.rank),
     ).order_by(MatchingBonus.created_at.desc())
+=======
+    query = select(MatchingBonus).options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user)).order_by(MatchingBonus.created_at.desc())
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if user_id:
         query = query.where(MatchingBonus.user_id == user_id)
     if rank_id:
         query = query.where(MatchingBonus.rank_id == rank_id)
     if bonus_type:
         query = query.where(MatchingBonus.bonus_type == bonus_type)
+<<<<<<< HEAD
     query = query.where(MatchingBonus.is_reversed == False)
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
@@ -236,3 +245,9 @@ async def list_all_matching_bonuses(
         }
         for b in bonuses
     ]
+=======
+    offset = (page - 1) * limit
+    query = query.offset(offset).limit(limit)
+    result = await db.execute(query)
+    return result.scalars().all()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

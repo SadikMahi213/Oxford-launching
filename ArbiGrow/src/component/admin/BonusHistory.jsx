@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 import { Fragment, useCallback, useEffect, useState } from "react";
 import useUserStore from "../../store/userStore.js";
 import { getAllMatchingBonuses, getAdminRanks } from "../../api/admin.api.js";
 import { DollarSign, ChevronDown, ChevronUp } from "lucide-react";
+=======
+import { useCallback, useEffect, useState } from "react";
+import useUserStore from "../../store/userStore.js";
+import { getAllMatchingBonuses } from "../../api/admin.api.js";
+import RankDistribution from "./RankDistribution.jsx";
+import { DollarSign, Trophy, ChevronDown, ChevronUp } from "lucide-react";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 const getErrorMessage = (error) =>
   error?.response?.data?.detail ||
@@ -9,6 +17,7 @@ const getErrorMessage = (error) =>
   error?.message ||
   "Something went wrong";
 
+<<<<<<< HEAD
 const displayOrNA = (value) => {
   if (value === null || value === undefined) return "N/A";
   const text = String(value).trim();
@@ -19,17 +28,27 @@ export default function BonusHistory() {
   const token = useUserStore((state) => state.token);
   const [bonuses, setBonuses] = useState([]);
   const [ranks, setRanks] = useState([]);
+=======
+export default function BonusHistory() {
+  const token = useUserStore((state) => state.token);
+  const [bonuses, setBonuses] = useState([]);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [filterType, setFilterType] = useState("");
+<<<<<<< HEAD
   const [filterRankId, setFilterRankId] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+=======
+  const [showDistribution, setShowDistribution] = useState(true);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
+<<<<<<< HEAD
       const [data, rankList] = await Promise.all([
         getAllMatchingBonuses(token, {
           bonus_type: filterType || undefined,
@@ -41,11 +60,23 @@ export default function BonusHistory() {
       ]);
       setBonuses(Array.isArray(data) ? data : []);
       setRanks(Array.isArray(rankList) ? rankList : []);
+=======
+      const data = await getAllMatchingBonuses(token, {
+        bonus_type: filterType || undefined,
+        page,
+        limit: 50,
+      });
+      setBonuses(Array.isArray(data) ? data : []);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } catch (e) {
       setError(getErrorMessage(e));
     }
     setLoading(false);
+<<<<<<< HEAD
   }, [token, page, filterType, filterRankId]);
+=======
+  }, [token, page, filterType]);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   useEffect(() => {
     if (token) load();
@@ -69,7 +100,28 @@ export default function BonusHistory() {
       )}
 
       <div className="space-y-4">
+<<<<<<< HEAD
         <div className="flex flex-wrap gap-4">
+=======
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] overflow-hidden">
+          <button
+            onClick={() => setShowDistribution(!showDistribution)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:text-white transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Trophy className="size-4 text-yellow-400" />
+              Position List Check — Rank Distribution
+            </span>
+            {showDistribution ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          </button>
+          {showDistribution && (
+            <div className="px-4 pb-4">
+              <RankDistribution />
+            </div>
+          )}
+        </div>
+        <div className="flex gap-4">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           <select
             value={filterType}
             onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
@@ -84,6 +136,7 @@ export default function BonusHistory() {
             <option value="international">International</option>
             <option value="position">Position</option>
           </select>
+<<<<<<< HEAD
           <select
             value={filterRankId}
             onChange={(e) => { setFilterRankId(e.target.value); setPage(1); }}
@@ -94,6 +147,8 @@ export default function BonusHistory() {
               <option key={r.id} value={r.id}>{r.name}</option>
             ))}
           </select>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         </div>
       </div>
 
@@ -110,24 +165,36 @@ export default function BonusHistory() {
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">ID</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">User</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Source</th>
+<<<<<<< HEAD
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Rank Achieved</th>
+=======
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Rank</th>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Eligible</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">%</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Amount</th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Date</th>
+<<<<<<< HEAD
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">Details</th>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {bonuses.length === 0 ? (
                   <tr>
+<<<<<<< HEAD
                     <td colSpan={10} className="px-4 py-12 text-center text-gray-500">
+=======
+                    <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       No matching bonuses recorded yet.
                     </td>
                   </tr>
                 ) : (
                   bonuses.map((b) => (
+<<<<<<< HEAD
                     <Fragment key={b.id}>
                       <tr className="hover:bg-white/[0.02] transition-colors">
                         <td className="px-4 py-3 font-mono text-xs text-gray-400">{b.id}</td>
@@ -196,6 +263,32 @@ export default function BonusHistory() {
                         </tr>
                       )}
                     </Fragment>
+=======
+                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-400">{b.id}</td>
+                      <td className="px-4 py-3 text-white">{b.user_no || `#${b.user_id}`}</td>
+                      <td className="px-4 py-3 text-gray-400">{b.source_user_no || (b.source_user_id ? `#${b.source_user_id}` : "—")}</td>
+                      <td className="px-4 py-3 text-gray-300">#{b.rank_id}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex rounded-full bg-blue-500/20 px-2.5 py-1 text-xs font-medium text-blue-300">
+                          {b.bonus_type}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-gray-300">
+                        ${Number(b.eligible_amount).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-cyan-400">{b.bonus_percent}%</td>
+                      <td className="px-4 py-3 font-mono text-green-400 font-medium">
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="size-3.5" />
+                          {Number(b.bonus_amount).toLocaleString()}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {new Date(b.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   ))
                 )}
               </tbody>

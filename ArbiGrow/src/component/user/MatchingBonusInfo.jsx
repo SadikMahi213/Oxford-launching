@@ -11,7 +11,10 @@ import {
   ChevronRight,
   ChevronLeft,
   Search,
+<<<<<<< HEAD
   Download,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
 import {
@@ -31,7 +34,10 @@ const getErrorMessage = (error) =>
 export default function MatchingBonusInfo({ setActivePage }) {
   const { t } = useTranslation();
   const token = useUserStore((state) => state.token);
+<<<<<<< HEAD
   const user = useUserStore((state) => state.user);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [rankInfo, setRankInfo] = useState(null);
   const [ranks, setRanks] = useState([]);
   const [rankHistory, setRankHistory] = useState([]);
@@ -81,7 +87,10 @@ export default function MatchingBonusInfo({ setActivePage }) {
   const remainingVolume = parseFloat(rankInfo?.remaining_volume || 0);
   const nextTargetVolume = parseFloat(rankInfo?.next_target_volume || 0);
   const progress = rankInfo?.progress ?? 100;
+<<<<<<< HEAD
   const isKycApproved = user?.kyc_status === "approved" && !rankInfo?.kyc_required;
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const getBonusPercent = (rank, type) => {
     if (!rank?.bonus_configs) return 0;
@@ -156,9 +165,13 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {t("matchingBonusInfo.currentRank")}
                 </div>
                 <div className="text-xl font-bold text-white">
+<<<<<<< HEAD
                   {user?.kyc_status === "approved"
                     ? (currentRank?.name || t("matchingBonusInfo.unranked"))
                     : t("matchingBonusInfo.unranked")}
+=======
+                  {currentRank?.name || t("matchingBonusInfo.unranked")}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                   {currentMatchingPercent > 0
@@ -169,7 +182,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
 
               <div className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+<<<<<<< HEAD
                   <Download className="w-4 h-4 text-emerald-400" />
+=======
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   {t("matchingBonusInfo.yourDeposit")}
                 </div>
                 <div className="text-xl font-bold text-emerald-400">
@@ -288,7 +305,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   {t("matchingBonusInfo.allRanksDesc")}
                 </p>
               </div>
+<<<<<<< HEAD
               <div className="responsive-table-wrapper">
+=======
+              <div className="overflow-x-auto">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-white/5 border-b border-white/10">
@@ -311,10 +332,17 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   <tbody>
                     {ranks.map((r, idx) => {
                       const isCurrent =
+<<<<<<< HEAD
                         isKycApproved && currentRank?.id === r.id;
                       const isAchieved =
                         isKycApproved && parseFloat(r.target_volume) <= teamVolume;
                       const isNext = isKycApproved && nextRank?.id === r.id;
+=======
+                        currentRank?.id === r.id;
+                      const isAchieved =
+                        parseFloat(r.target_volume) <= teamVolume;
+                      const isNext = nextRank?.id === r.id;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       const bonusMap = {};
                       (r.bonus_configs || []).forEach((bc) => {
                         bonusMap[bc.bonus_type] = parseFloat(bc.bonus_percent);
@@ -330,7 +358,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                                 : ""
                           }`}
                         >
+<<<<<<< HEAD
                           <td data-label={t("matchingBonusInfo.rank")} className="p-4">
+=======
+                          <td className="p-4">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                             <div className="flex items-center gap-2">
                               <span
                                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -354,6 +386,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                               </span>
                             </div>
                           </td>
+<<<<<<< HEAD
                           <td data-label={t("matchingBonusInfo.volumeRequired")} className="p-4 text-right text-gray-300">
                             {parseFloat(r.target_volume).toLocaleString()} USDT
                           </td>
@@ -363,6 +396,17 @@ export default function MatchingBonusInfo({ setActivePage }) {
                             </td>
                           ))}
                           <td data-label={t("matchingBonusInfo.status")} className="p-4 text-center">
+=======
+                          <td className="p-4 text-right text-gray-300">
+                            {parseFloat(r.target_volume).toLocaleString()} USDT
+                          </td>
+                          {allBonusTypes.map((bt, i) => (
+                            <td key={bt} className={`p-4 text-right font-medium ${bonusColors[i] || "text-gray-400"}`}>
+                              {bonusMap[bt] > 0 ? `${bonusMap[bt]}%` : "-"}
+                            </td>
+                          ))}
+                          <td className="p-4 text-center">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                             {isCurrent ? (
                               <span className="px-2 py-0.5 rounded text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
                                 {t("matchingBonusInfo.current")}
@@ -421,6 +465,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {ranks.slice(0, 21).map((r, idx) => {
+<<<<<<< HEAD
                   const bandStart = parseFloat(r.target_volume);
                   const nextBandStart = ranks[idx + 1]
                     ? parseFloat(ranks[idx + 1].target_volume)
@@ -428,6 +473,17 @@ export default function MatchingBonusInfo({ setActivePage }) {
                   const rangeLabel = nextBandStart === null
                     ? `${bandStart.toLocaleString()}+ USDT`
                     : `${bandStart.toLocaleString()} - ${nextBandStart.toLocaleString()} USDT`;
+=======
+                  const prevVolume =
+                    idx > 0
+                      ? parseFloat(ranks[idx - 1].target_volume)
+                      : 0;
+                  const currVolume = parseFloat(r.target_volume);
+                  const rangeLabel =
+                    idx === 0
+                      ? `0 - ${currVolume.toLocaleString()} USDT`
+                      : `${(prevVolume + 1).toLocaleString()} - ${currVolume.toLocaleString()} USDT`;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   return (
                     <div
                       key={r.id}
@@ -481,7 +537,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                 </div>
               ) : (
                 <>
+<<<<<<< HEAD
                   <div className="responsive-table-wrapper">
+=======
+                  <div className="overflow-x-auto">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-white/5 border-b border-white/10">
@@ -505,6 +565,7 @@ export default function MatchingBonusInfo({ setActivePage }) {
                             key={h.id}
                             className="border-b border-white/5 hover:bg-white/5"
                           >
+<<<<<<< HEAD
                             <td data-label={t("matchingBonusInfo.rank")} className="p-4 text-white">
                               {h.rank_name || t("matchingBonusInfo.unknown")}
                             </td>
@@ -512,11 +573,24 @@ export default function MatchingBonusInfo({ setActivePage }) {
                               {parseFloat(h.team_volume).toFixed(2)} USDT
                             </td>
                             <td data-label={t("matchingBonusInfo.status")} className="p-4 text-center">
+=======
+                            <td className="p-4 text-white">
+                              {h.rank_name || t("matchingBonusInfo.unknown")}
+                            </td>
+                            <td className="p-4 text-right text-gray-300">
+                              {parseFloat(h.team_volume).toFixed(2)} USDT
+                            </td>
+                            <td className="p-4 text-center">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                               <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 capitalize">
                                 {h.status || "achieved"}
                               </span>
                             </td>
+<<<<<<< HEAD
                             <td data-label={t("matchingBonusInfo.dateAchieved")} className="p-4 text-right text-gray-400 whitespace-nowrap">
+=======
+                            <td className="p-4 text-right text-gray-400 whitespace-nowrap">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                               {h.achieved_at
                                 ? new Date(
                                     h.achieved_at
@@ -579,15 +653,24 @@ export default function MatchingBonusInfo({ setActivePage }) {
                 </div>
               ) : (
                 <>
+<<<<<<< HEAD
                   <div className="responsive-table-wrapper">
+=======
+                  <div className="overflow-x-auto">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-white/5 border-b border-white/10">
                           <th className="text-left p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.rank")}
                           </th>
+<<<<<<< HEAD
                           <th className="text-left p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.bonusType", "Bonus Type")}
+=======
+                          <th className="text-right p-4 text-gray-400 font-medium">
+                            {t("matchingBonusInfo.eligibleVolume")}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                           </th>
                           <th className="text-right p-4 text-gray-400 font-medium">
                             {t("matchingBonusInfo.rate")}
@@ -601,15 +684,20 @@ export default function MatchingBonusInfo({ setActivePage }) {
                         </tr>
                       </thead>
                       <tbody>
+<<<<<<< HEAD
                         {pagedBonuses.map((b) => {
                           const displayBonusType = b.bonus_type
                             ? t(`matchingBonusInfo.bonusTypes.${b.bonus_type}`, b.bonus_type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()))
                             : t("matchingBonusInfo.matching", "Matching");
                           return (
+=======
+                        {pagedBonuses.map((b) => (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                           <tr
                             key={b.id}
                             className="border-b border-white/5 hover:bg-white/5"
                           >
+<<<<<<< HEAD
                             <td data-label={t("matchingBonusInfo.rank")} className="p-4 text-white">
                               {b.rank_name || `Rank #${b.rank_id}`}
                             </td>
@@ -622,13 +710,32 @@ export default function MatchingBonusInfo({ setActivePage }) {
                               {parseFloat(b.bonus_percent || 0)}%
                             </td>
                             <td data-label={t("matchingBonusInfo.bonusAmount")} className="p-4 text-right text-emerald-400 font-medium">
+=======
+                            <td className="p-4 text-white">
+                              {b.rank_name || `Rank #${b.rank_id}`}
+                            </td>
+                            <td className="p-4 text-right text-gray-300">
+                              {parseFloat(
+                                b.eligible_amount || 0
+                              ).toFixed(2)}{" "}
+                              USDT
+                            </td>
+                            <td className="p-4 text-right text-gray-300">
+                              {parseFloat(b.bonus_percent || 0)}%
+                            </td>
+                            <td className="p-4 text-right text-emerald-400 font-medium">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                               +
                               {parseFloat(
                                 b.bonus_amount || 0
                               ).toFixed(2)}{" "}
                               USDT
                             </td>
+<<<<<<< HEAD
                             <td data-label={t("matchingBonusInfo.date")} className="p-4 text-right text-gray-400 whitespace-nowrap">
+=======
+                            <td className="p-4 text-right text-gray-400 whitespace-nowrap">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                               {b.created_at
                                 ? new Date(
                                     b.created_at
@@ -636,7 +743,11 @@ export default function MatchingBonusInfo({ setActivePage }) {
                                 : "-"}
                             </td>
                           </tr>
+<<<<<<< HEAD
                         )})}
+=======
+                        ))}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       </tbody>
                     </table>
                   </div>

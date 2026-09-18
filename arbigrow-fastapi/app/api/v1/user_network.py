@@ -34,7 +34,11 @@ async def get_network_analytics(
         )
         SELECT id FROM team_tree
     """)
+<<<<<<< HEAD
     team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 999})
+=======
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "max_depth": 40})
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     team_ids = [row[0] for row in team_rows.fetchall()]
 
     total_network_members = len(team_ids)
@@ -65,11 +69,14 @@ async def get_network_analytics(
 
     inactive = total_network_members - active_ids
 
+<<<<<<< HEAD
     # All DB reads are complete and the response holds plain values: release
     # the connection before returning instead of holding it until teardown
     # (same pattern as level-analytics / referral-network).
     await db.close()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {
         "total_network_members": total_network_members,
         "active_members": active_ids,
@@ -100,12 +107,19 @@ async def get_level_analytics(
         )
         SELECT id, depth FROM team_tree WHERE depth = :lvl
     """)
+<<<<<<< HEAD
     team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level, "max_depth": 999})
+=======
+    team_rows = await db.execute(team_stmt, {"uid": current_user.id, "lvl": level, "max_depth": 40})
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     team_data = team_rows.fetchall()
     team_ids = [row[0] for row in team_data]
 
     if not team_ids:
+<<<<<<< HEAD
         await db.close()
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         return {
             "level": level,
             "total_members": 0,
@@ -115,6 +129,7 @@ async def get_level_analytics(
             "members": [],
         }
 
+<<<<<<< HEAD
     # The three aggregates share the same team filter: fetch them in a
     # single round trip as scalar subqueries (identical predicates).
     agg_result = await db.execute(
@@ -151,6 +166,34 @@ async def get_level_analytics(
         ).where(User.id.in_(team_ids))
     )
     users = users_result.all()
+=======
+    # Total deposit volume
+    deposit_result = await db.execute(
+        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0))
+        .where(Deposit.user_id.in_(team_ids), Deposit.status == "approved")
+    )
+    total_deposit_volume = Decimal(str(deposit_result.scalar()))
+
+    # Total investment volume
+    inv_result = await db.execute(
+        select(sa_func.coalesce(sa_func.sum(Investment.invested_amount), 0))
+        .where(Investment.user_id.in_(team_ids), Investment.status == "active")
+    )
+    total_investment_volume = Decimal(str(inv_result.scalar()))
+
+    # Total commission earned by these members
+    commission_result = await db.execute(
+        select(sa_func.coalesce(sa_func.sum(ReferralProfitHistory.amount), 0))
+        .where(ReferralProfitHistory.receiver_user_id.in_(team_ids))
+    )
+    total_commission_earned = Decimal(str(commission_result.scalar()))
+
+    # Member details
+    users_result = await db.execute(
+        select(User).where(User.id.in_(team_ids))
+    )
+    users = users_result.scalars().all()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Check KYC for active status
     kyc_result = await db.execute(
@@ -173,10 +216,13 @@ async def get_level_analytics(
             "status": "active" if u.id in kyc_ids else "inactive",
         })
 
+<<<<<<< HEAD
     # All DB reads are complete and members holds plain values: release
     # the connection before returning instead of holding it until teardown.
     await db.close()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {
         "level": level,
         "total_members": len(team_ids),

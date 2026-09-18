@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import DOMPurify from "dompurify";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -67,14 +70,22 @@ const RichTextEditor = ({ content, onChange, placeholder = "Write description...
     ],
     content: content || "",
     onUpdate: ({ editor }) => {
+<<<<<<< HEAD
       const html = DOMPurify.sanitize(editor.getHTML());
+=======
+      const html = editor.getHTML();
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       onChange?.(html);
     },
   });
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
+<<<<<<< HEAD
       editor.commands.setContent(DOMPurify.sanitize(content || ""), false);
+=======
+      editor.commands.setContent(content || "", false);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   }, [content, editor]);
 

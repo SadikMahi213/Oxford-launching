@@ -22,7 +22,11 @@ else if (browserLang && supported.includes(browserLang)) detected = browserLang;
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English", flag: "🇬🇧" },
+<<<<<<< HEAD
   { code: "bn", label: "Bengali", flag: "🇧🇩" },
+=======
+  { code: "bn", label: "বাংলা", flag: "🇧🇩" },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   { code: "hi", label: "हिन्दी", flag: "🇮🇳" },
   { code: "ur", label: "اردو", flag: "🇵🇰" },
   { code: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
@@ -51,6 +55,10 @@ i18n.use(initReactI18next).init({
   lng: detected,
   fallbackLng: "en",
   interpolation: { escapeValue: false },
+<<<<<<< HEAD
+=======
+  returnObjects: true,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 });
 
 export default i18n;

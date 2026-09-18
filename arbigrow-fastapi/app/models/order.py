@@ -1,5 +1,10 @@
 from app.core.base import Base
+<<<<<<< HEAD
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text, func
+=======
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime, func
+from sqlalchemy.orm import relationship
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class Order(Base):
@@ -7,22 +12,31 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+<<<<<<< HEAD
     seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False, index=True)
+=======
+    seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     total = Column(Numeric(24, 14), nullable=False, default=0)
     fee_percent = Column(Numeric(6, 2), nullable=True)
     fee_amount = Column(Numeric(24, 14), nullable=True, default=0)
     seller_payout = Column(Numeric(24, 14), nullable=True, default=0)
+<<<<<<< HEAD
     delivery_charge = Column(Numeric(12, 2), nullable=True, default=0)
     commission_rate = Column(Numeric(6, 2), nullable=True)
     commission_amount = Column(Numeric(12, 2), nullable=True, default=0)
     net_amount = Column(Numeric(12, 2), nullable=True, default=0)
     status = Column(String(30), nullable=False, default="pending", index=True)
+=======
+    status = Column(String(20), nullable=False, default="pending")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     payment_method = Column(String(20), nullable=False, default="cod")
     customer_name = Column(String(200), nullable=False)
     customer_email = Column(String(255), nullable=False)
     customer_phone = Column(String(50), nullable=False)
     customer_address = Column(String(500), nullable=False)
     shipping_address = Column(String(500), nullable=True)
+<<<<<<< HEAD
     tracking_number = Column(String(200), nullable=True)
     cancellation_reason = Column(Text, nullable=True)
     cancelled_at = Column(DateTime(timezone=True), nullable=True)
@@ -33,6 +47,9 @@ class Order(Base):
     delivered_at = Column(DateTime(timezone=True), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+=======
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
@@ -41,6 +58,10 @@ class OrderItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
+<<<<<<< HEAD
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
+=======
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     quantity = Column(Integer, nullable=False, default=1)
     price = Column(Numeric(24, 14), nullable=False, default=0)

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import DOMPurify from "dompurify";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
@@ -205,7 +208,11 @@ export default function KycPackageManagement({ setActivePage }) {
               </div>
               <p className="text-xs text-gray-500"
                 dangerouslySetInnerHTML={{
+<<<<<<< HEAD
                   __html: DOMPurify.sanitize(t("admin.kycPackages.currentFee", { fee: feeConfig.kyc_fee || "0" }))
+=======
+                  __html: t("admin.kycPackages.currentFee", { fee: feeConfig.kyc_fee || "0" })
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 }}
               />
             </motion.div>
@@ -227,7 +234,11 @@ export default function KycPackageManagement({ setActivePage }) {
               {activePkg && (
                 <p className="text-xs text-gray-500"
                   dangerouslySetInnerHTML={{
+<<<<<<< HEAD
                     __html: DOMPurify.sanitize(t("admin.kycPackages.activePackage", { name: activePkg.name, price: activePkg.price }))
+=======
+                    __html: t("admin.kycPackages.activePackage", { name: activePkg.name, price: activePkg.price })
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   }}
                 />
               )}

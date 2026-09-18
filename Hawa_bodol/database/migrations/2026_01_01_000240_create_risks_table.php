@@ -1,0 +1,21 @@
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+return new class extends Migration {
+    public function up(): void {
+        Schema::create("risks", function (Blueprint $table) {
+            $table->id();
+            $table->string("title_en"); $table->string("title_bn")->nullable();
+            $table->string("category");
+            $table->text("risk_en")->nullable(); $table->text("risk_bn")->nullable();
+            $table->text("impact_en")->nullable(); $table->text("impact_bn")->nullable();
+            $table->text("mitigation_en")->nullable(); $table->text("mitigation_bn")->nullable();
+            $table->string("verification_status")->default("pending");
+            $table->string("severity")->default("medium");
+            $table->integer("order")->default(0);
+            $table->timestamps();
+        });
+    }
+    public function down(): void { Schema::dropIfExists("risks"); }
+};

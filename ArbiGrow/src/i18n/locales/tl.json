@@ -21,12 +21,16 @@
     "comingSoon": "Malapit Na",
     "terms": "Mga Tuntunin ng Serbisyo",
     "privacy": "Patakaran sa Privacy",
+<<<<<<< HEAD
     "legal": "Legal na Impormasyon",
     "brandName": "Oxford Financial Ads",
     "copyright": "© {{year}} Oxford Financial Ads. Nakareserba ang Lahat ng Karapatan. | Privacy Policy | Mga Tuntunin at Kundisyon | AML at KYC Policy | Makipag-ugnayan sa Amin",
     "logoAlt": "Aking Logo",
     "logoAltMobile": "Logo ng Oxford Financial Ads",
     "tagline": "Digital Services"
+=======
+    "legal": "Legal na Impormasyon"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "footer": {
     "description": "Itaas ang Iyong Brand sa Buong Mundo. Ang Oxford Financial Ads ay isang ganap na internasyonal na ahensya ng advertising na nakatuon sa pagtulong sa mga negosyo na maitatag ang kanilang brand sa pandaigdigang pamilihan.",
@@ -43,6 +47,7 @@
     "address1": "25 Business Square",
     "address2": "Distrito ng Canary",
     "address3": "London, EC2A 4AB",
+<<<<<<< HEAD
     "address4": "United Kingdom",
     "social": {
       "telegram": "Telegram",
@@ -55,10 +60,24 @@
     },
     "brandName": "Oxford Financial Ads",
     "supportEmail": "support.oxfordfinancialads@gmail.com"
+=======
+    "address4": "United Kingdom"
+  },
+  "hero": {
+    "title": "Digital Advertising at Online",
+    "subtitle": "Earning Platform",
+    "description": "Ang Oxford Financial Ads ay isang modernong digital advertising at online engagement platform kung saan ang mga miyembro ay maaaring lumahok sa iba't ibang digital earning activities.",
+    "cta": "Mag-Register Nang Libre Ngayon",
+    "whitepaper": "Basahin ang Technical Whitepaper"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "faq": {
     "badge": "FAQ",
     "title": "Mga Madalas Itanong",
+<<<<<<< HEAD
+=======
+    "questions": "Mga Tanong",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "q1": "Ano ang Oxford Financial Ads?",
     "a1": "Ang Oxford Financial Ads ay isang AI-powered arbitrage trading platform na gumagamit ng Arbitrum network para kumita sa pamamagitan ng price differences sa maraming exchanges na may minimal na panganib.",
     "q2": "Ano ang OFA token at paano ko ito makukuha?",
@@ -73,8 +92,12 @@
     "a6": "Nag-aalok kami ng malakas na 5-level referral system. Kapag may sumali sa pamamagitan ng iyong referral, kikita ka ng daily commissions kasama ang bonus OFA tokens.",
     "stillQuestions": "May mga tanong pa?",
     "supportText": "Ang aming support team ay available 24/7 upang tulungan ka sa anumang bagay na may kaugnayan sa Oxford Financial Ads.",
+<<<<<<< HEAD
     "contactSupport": "Makipag-ugnayan sa Suporta",
     "titleHighlight": "Mga Tanong"
+=======
+    "contactSupport": "Makipag-ugnayan sa Suporta"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -89,9 +112,13 @@
       "success": "Matagumpay na naka-login",
       "blocked": "Ang iyong account ay pansamantalang na-block dahil sa maraming failed login attempts. Mangyaring makipag-ugnayan sa support team: support.oxfordfinancialads@gmail.com",
       "invalid": "Hindi wastong login",
+<<<<<<< HEAD
       "failed": "Bigo ang login",
       "welcomeBack": "Maligayang Pagbabalik",
       "welcomeSubtitle": "Mag-sign in upang ma-access ang iyong dashboard at palaguin ang iyong portfolio."
+=======
+      "failed": "Bigo ang login"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Gumawa ng Iyong Account",
@@ -190,11 +217,15 @@
       "err_agree": "Dapat kang sumang-ayon sa mga tuntunin at kundisyon",
       "success": "Matagumpay ang pagpaparehistro!",
       "networkError": "Network error o hindi maabot ang server",
+<<<<<<< HEAD
       "error": "May maling nangyari",
       "joinTitle": "Sumali Ngayon",
       "joinSubtitle": "Gumawa ng account upang magsimulang kumita gamit ang aming modernong platform para sa digital advertising.",
       "perDay": "/araw",
       "success_paid": "Naisumite ang rehistrasyon! Mangyaring kumpletuhin ang pagbabayad upang i-activate ang iyong account."
+=======
+      "error": "May maling nangyari"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "I-reset ang Iyong Password",
@@ -253,7 +284,10 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Ang iyong account ay kasalukuyang naka-hold. Pwedeng mag-deposit lang muna ngayon.",
+<<<<<<< HEAD
     "accountSuspended": "Ang iyong account ay pansamantalang naka-suspend dahil sa mga paulit-ulit na error sa task. Maghintay hanggang matapos ang suspension.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Malapit Na",
     "inDevelopment": "Ang page na ito ay under development",
     "sidebar": {
@@ -279,7 +313,11 @@
       "referralBonuses": "Referral Bonuses",
       "referralBonuses_desc": "10% direct referral earnings",
       "genBonuses": "Generation Bonuses",
+<<<<<<< HEAD
       "genBonuses_desc": "Team earnings",
+=======
+      "genBonuses_desc": "8/7/6/5% team earnings",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Matching Bonus",
       "matchingBonus_desc": "Rank-based bonus plan",
       "walletTransfer": "Wallet Transfer",
@@ -302,6 +340,7 @@
       "privacy_desc": "Data at privacy",
       "whitepaper": "Technical Whitepaper",
       "whitepaper_desc": "Dokumentasyon ng proyekto",
+<<<<<<< HEAD
       "soon": "Malapit Na",
       "banking": "Setup sa Banking",
       "banking_desc": "Magrehistro ng mga detalye ng bangko",
@@ -309,6 +348,9 @@
       "ledger_desc": "Your balances across every wallet",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards"
+=======
+      "soon": "Malapit Na"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -326,9 +368,13 @@
       "sendFunds": "Magpadala",
       "transfers": "Transfer",
       "mbTransfer": "MB Transfer",
+<<<<<<< HEAD
       "kyc": "KYC Verification",
       "matchingBonusPlan": "Matching Bonus Plan",
       "walletTransfer": "Wallet Transfer"
+=======
+      "kyc": "KYC Verification"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "wallets": {
       "main": "Main Wallet",
@@ -348,9 +394,13 @@
       "clickHistory": "I-click para tingnan ang history",
       "openTokenInfo": "Buksan ang impormasyon ng token",
       "viewHistory": "Tingnan ang History",
+<<<<<<< HEAD
       "transfer": "Transfer",
       "usable": "Magagamit na Balanse",
       "ofaToken": "OFA token"
+=======
+      "transfer": "Transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Impormasyon ng Token",
@@ -386,8 +436,12 @@
       "title": "Team Performance",
       "level": "Level {{level}}",
       "loading": "Naglo-load...",
+<<<<<<< HEAD
       "netEarnings": "Net na Kita (Lahat ng Antas)",
       "growth": "15.7% kumpara sa huling 30 araw"
+=======
+      "netEarnings": "Net na Kita (Lahat ng Antas)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "OFA Token Mining Wallet",
@@ -399,6 +453,7 @@
       "claiming": "Ina-claim...",
       "claim": "I-claim ang Reward",
       "howTitle": "Paano Gumagana ang Mining",
+<<<<<<< HEAD
       "step1": "Simulan ang sesyon ng pagmimina — nagsisimula nang maipon ang OFA token bawat segundo sa loob ng 24 na oras.",
       "step2": "Kinakalkula ang bilis ng pagmimina batay sa kasalukuyang dami ng iyong network at antas ng staking.",
       "step3": "Direktang idineposito ang mga naipon na token sa iyong Mining Wallet sa real-time.",
@@ -410,6 +465,14 @@
       "dailyCap": "ARAW-ARAW NA CAP",
       "lastClaim": "HULING CLAIM",
       "notClaimed": "Hindi pa na-claim"
+=======
+      "step1": "1. I-click ang \"Start Mining\" para magsimula ng 24-hour mining cycle.",
+      "step2": "2. Ang OFA tokens ay minina nang tuloy-tuloy sa rate na proporsyonal sa daily cap na hinati sa 86,400 segundo.",
+      "step3": "3. Pagkatapos ng hindi bababa sa 1 minuto, i-click ang \"Claim Reward\" para ilipat ang mininang tokens sa iyong Mining Wallet.",
+      "step4": "4. Maaari kang mag-claim nang maraming beses sa isang cycle — bawat claim ay nagbibigay ng tokens na minina mula noong huli mong claim.",
+      "step5": "5. Kapag natapos ang 24-hour cycle, awtomatikong magre-reset ang mining. Magsimula ng bagong cycle para magpatuloy sa pagkita.",
+      "step6": "6. Ang mininang OFA tokens ay maaaring i-convert sa USDT sa pamamagitan ng Convert page. Darating na ang external transfers."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "Walang nakitang {{type}} history.",
@@ -425,11 +488,15 @@
       "fromUser": "Mula sa User",
       "level": "Level",
       "status": "Status",
+<<<<<<< HEAD
       "received": "natanggap",
       "type": "Uri",
       "details": "Detalye",
       "typeDeposit": "Deposito",
       "typeKycRefund": "KYC Refund"
+=======
+      "received": "natanggap"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -437,6 +504,7 @@
       "referral": "Referral Earnings History",
       "matching": "Matching Bonus History",
       "generation": "Generation Earnings History"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "OFA Cryptocurrency",
@@ -451,6 +519,9 @@
     "pendingPayment": "Hindi pa nakumpleto ang bayad ng iyong package. Mangyaring kumpletuhin ang iyong pagbabayad. Kapag naaprubahan na ng Aming Compliance Teamistrator ang iyong bayad, awtomatikong maa-activate ang lahat ng earning features.",
     "viewAll": "Tingnan Lahat",
     "allLevels": "Lahat ng Level"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Profile",
@@ -479,8 +550,12 @@
     "photo_uploaded": "Na-upload ang profile image",
     "photo_saved": "Na-save ang photo",
     "photo_failed": "Bigo ang upload",
+<<<<<<< HEAD
     "photo_saveFailed": "Bigo na i-save ang photo",
     "rejectionReason": "Dahilan ng Pagtanggi:"
+=======
+    "photo_saveFailed": "Bigo na i-save ang photo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Mag-Deposit ng USDT",
@@ -489,7 +564,11 @@
     "loadingNetworks": "Naglo-load ng networks...",
     "selectNetwork_plh": "Pumili ng network",
     "depositAddress": "Deposit Address",
+<<<<<<< HEAD
     "warning": "{{network}} assets lang ang ipadala sa address na ito. Maaaring mawala ang ibang assets.",
+=======
+    "warning": "{network}} assets lang ang ipadala sa address na ito. Maaaring mawala ang ibang assets.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "amount_plh": "Halaga",
     "txid_plh": "Transaction ID",
     "submitting": "Ini-submit...",
@@ -507,9 +586,13 @@
     "err_field": "Kinakailangan ang field",
     "err_amount": "Ang halaga ay dapat mas malaki sa 0.",
     "err_txid": "Dapat hindi bababa sa 5 characters.",
+<<<<<<< HEAD
     "err_noNetwork": "Walang nakitang active deposit network. Mangyaring makipag-ugnayan sa support.",
     "err_min_amount": "Ang minimum na halaga ng deposito ay {{min}} USDT.",
     "min_amount_hint": "Minimum: {{min}} USDT"
+=======
+    "err_noNetwork": "Walang nakitang active deposit network. Mangyaring makipag-ugnayan sa support."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Mag-Withdraw ng Pondo",
@@ -552,13 +635,18 @@
     "loadingHistory": "Naglo-load ng withdrawal history...",
     "noHistory": "Walang nakitang withdrawal history.",
     "err_general": "May maling nangyari",
+<<<<<<< HEAD
     "success": "Na-submit ang withdrawal request. Nakapending na ito para sa Aming Compliance Team review.",
+=======
+    "success": "Na-submit ang withdrawal request. Nakapending na ito para sa admin review.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_field": "Kinakailangan ang field",
     "err_validAmount": "Mangyaring maglagay ng wastong halaga.",
     "err_min": "Minimum withdrawal amount ay {{min}} USDT.",
     "err_max": "Maximum withdrawal amount ay {{max}} USDT.",
     "err_balance": "Hindi sapat ang balanse sa {{wallet}}. Available: {{balance}}.",
     "err_mainBalance": "Hindi sapat ang Main Wallet balance. Kailangan: {{required}} USDT (Halaga + 1%), Available: {{available}} USDT.",
+<<<<<<< HEAD
     "err_address": "Dapat hindi bababa sa 5 characters.",
     "err_mode_banking": "Bank transfer withdrawals lamang ang pinapayagan sa ngayon.",
     "err_mode_network": "Naka-disable ang network withdrawals sa kasalukuyan.",
@@ -582,6 +670,9 @@
     "accountType": "Uri ng Account",
     "accountPersonal": "Personal",
     "accountAgent": "Ahente"
+=======
+    "err_address": "Dapat hindi bababa sa 5 characters."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Wallet Transfer",
@@ -599,6 +690,7 @@
     "err_amount": "Maglagay ng wastong halaga",
     "err_sameWallet": "Ang pinagmulan at destinasyon ay dapat magkaiba",
     "err_balance": "Hindi sapat ang balanse",
+<<<<<<< HEAD
     "err_failed": "Bigo ang transfer",
     "walletMain": "Pangunahing Wallet",
     "walletReferral": "Referral Wallet",
@@ -608,6 +700,9 @@
     "walletCaptcha": "Captcha Typing Wallet",
     "walletAdView": "Ad View Wallet",
     "walletDeposit": "Deposit Wallet"
+=======
+    "err_failed": "Bigo ang transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Magpadala ng Pondo",
@@ -629,10 +724,14 @@
     "err_noUser": "Walang nakitang user na tugma sa '{{query}}'",
     "err_search": "Bigo ang paghahanap: {{error}}",
     "success": "Naipadala ang {{amount}} USDT kay {{name}}",
+<<<<<<< HEAD
     "err_failed": "Bigo ang transfer",
     "err_kyc": "Kinakailangan ang pag-verify ng KYC. Paki-kompleto ang pag-verify ng KYC bago magpadala ng pondo.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Bigo ang transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Matching Bonus Transfer",
@@ -714,6 +813,7 @@
   },
   "genBonus": {
     "title": "Generation Bonuses",
+<<<<<<< HEAD
     "subtitle": "Cascading bonus mula sa deposits ng iyong team",
     "ratesTitle": "Kasalukuyang Bonus Rates",
     "search_plh": "Maghanap ayon sa pangalan o username...",
@@ -722,6 +822,15 @@
     "gen3": "3rd Generation",
     "gen4": "4th Generation",
     "gen5": "5th Generation",
+=======
+    "subtitle": "8/7/6/5% na bonus mula sa deposits ng iyong team",
+    "search_plh": "Maghanap ayon sa pangalan o username...",
+    "all": "Lahat ng Generation",
+    "gen2": "2nd Generation (8%)",
+    "gen3": "3rd Generation (7%)",
+    "gen4": "4th Generation (6%)",
+    "gen5": "5th Generation (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "user": "User",
     "username": "Username",
     "generation": "Generation",
@@ -732,18 +841,25 @@
     "empty": "Wala pang generation bonuses",
     "loading": "Naglo-load...",
     "error": "May maling nangyari",
+<<<<<<< HEAD
     "page": "Pahina {{page}} ng {{totalPages}}",
     "genLevel2": "Ika-2 Gen",
     "genLevel3": "Ika-3 Gen",
     "genLevel4": "Ika-4 Gen",
     "genLevel5": "Ika-5 Gen",
     "genLevelN": "Ika-{{level}} Gen"
+=======
+    "page": "Pahina {{page}} ng {{totalPages}}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "convertOFA": {
     "title": "I-convert ang OFA sa USDT",
     "subtitle": "I-swap ang iyong OFA tokens para sa USDT",
     "ofaBalance": "Iyong OFA Balance",
+<<<<<<< HEAD
     "convertedBalance": "Na-convert na Balanse",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Iyong USDT Balance",
     "rate": "Conversion Rate",
     "ofaAmount": "OFA Amount",
@@ -753,8 +869,12 @@
     "convert": "I-convert sa USDT",
     "err_amount": "Maglagay ng wastong OFA amount",
     "err_balance": "Hindi sapat ang OFA balance",
+<<<<<<< HEAD
     "err_failed": "Bigo ang conversion",
     "err_kyc": "Kinakailangan ang pag-verify ng KYC bago i-convert ang OFA Tokens. Pakikompletuhin ang pag-verify ng KYC upang ma-unlock ang token conversion."
+=======
+    "err_failed": "Bigo ang conversion"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -777,6 +897,7 @@
     "phone": "Telepono",
     "photo_uploaded": "Na-upload ang profile image",
     "photo_saved": "Na-save ang photo",
+<<<<<<< HEAD
     "photo_failed": "Bigo na i-save ang photo",
     "kycPackages": {
       "title": "KYC Package Management",
@@ -865,6 +986,9 @@
       "totalOfaDistribution": "Total OFA Distribution",
       "totalOfaDistributionSubtitle": "Signup Bonus + Daily Mining"
     }
+=======
+    "photo_failed": "Bigo na i-save ang photo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "common": {
     "loading": "Naglo-load...",
@@ -894,6 +1018,7 @@
     "all": "Lahat",
     "none": "Wala",
     "required": "Kinakailangan",
+<<<<<<< HEAD
     "optional": "Opsyonal",
     "scrollToTop": "Mag-scroll sa itaas",
     "announcement": "Anunsyo",
@@ -918,6 +1043,27 @@
     }
   },
   "home": {
+=======
+    "optional": "Opsyonal"
+  },
+  "homePage": {
+    "imageAlt": "Serbisyong Pinansyal",
+    "altOurCommitment": "Ang Aming Pangako"
+  },
+  "home": {
+    "executiveSummary": {
+      "badge": "Tungkol sa Amin",
+      "paragraph": "Ang Oxford Financial Ads ay isang modernong digital advertising at online engagement platform kung saan maaaring lumahok ang mga miyembro sa iba't ibang digital na aktibidad. Kabilang dito ang captcha typing, data entry, video editing, graphic design, digital marketing, at iba pang online-based na gawain. Sa pamamagitan ng mga aktibidad na ito, ang mga miyembro ay maaaring kumonekta sa isang pandaigdigang network at makakuha ng mga pagkakataong magtrabaho sa isang internasyonal na antas pati na rin ang tunay na karanasan sa mundo. Ang aming layunin ay lumikha ng isang propesyonal, nakatuon sa pag-unlad, at nakatuon sa paglago na kapaligiran sa pamamagitan ng pagpapaunlad ng kasanayan, pandaigdigang pagkakakonekta, at pakikipagtulungang nakabatay sa komunidad. Sa pamamagitan ng pakikilahok dito, ang mga miyembro ay maaaring bumuo ng isang internasyonal na network at makakuha din ng access sa iba't ibang performance-based na mga pagkakataon tulad ng generation bonuses, group bonuses, company profit sharing, at iba't ibang position achievements. Ang platform na ito ay nagbibigay ng isang structured na pagkakataon para sa mga miyembro na makakuha ng mga bagong karanasan sa digital world, mapahusay ang kanilang mga kasanayan, at sumulong sa pananalapi.",
+      "activities": "Mga aktibidad",
+      "network": "Network",
+      "opportunities": "Mga pagkakataon",
+      "goal": "Layunin",
+      "activitiesVal": "Digital at Online",
+      "networkVal": "Pandaigdigang Komunidad",
+      "opportunitiesVal": "Batay sa Pagganap",
+      "goalVal": "Kasanayan at Paglago"
+    },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "whyChooseUs": {
       "title": "Ang aming",
       "titleHighlight": "Serbisyong Pinansyal",
@@ -937,9 +1083,13 @@
       "networkTitle": "Networking at Komunidad",
       "networkDesc": "Ang isang propesyonal na pandaigdigang komunidad ay binuo upang ikonekta ang mga indibidwal sa iba't ibang bansa at kultura, na nagbibigay-daan sa pagbabahagi ng kaalaman at pagpapalitan ng karanasan sa isang internasyonal na antas. Batay sa mga kasanayan at pagganap, ang mga miyembro ay nakakakuha ng mga pagkakataong magtrabaho sa buong mundo.",
       "benefitsTitle": "Mga Benepisyo ng Miyembro",
+<<<<<<< HEAD
       "benefitsDesc": "Sa pagsali sa Oxford Financial Ads, nagkakaroon ng access ang mga miyembro sa isang structured na kapaligiran na idinisenyo para sa propesyonal at personal na kahusayan na may mga pagkakataong bumuo ng mga advanced na digital at propesyonal na kasanayan.",
       "ecommerceTitle": "Libreng Global E-Commerce Seller Account",
       "ecommerceDesc": "Ang mga miyembro ay makakatanggap ng libreng global e-commerce seller account upang simulan ang pagbebenta ng mga produkto online sa mga internasyonal na marketplace. Sa pamamagitan ng pagkakataong ito, maaaring magtayo ang mga miyembro ng kanilang sariling online na negosyo, maabot ang mga customer sa buong mundo, at kumita mula sa mga benta ng produkto."
+=======
+      "benefitsDesc": "Sa pagsali sa Oxford Financial Ads, nagkakaroon ng access ang mga miyembro sa isang structured na kapaligiran na idinisenyo para sa propesyonal at personal na kahusayan na may mga pagkakataong bumuo ng mga advanced na digital at propesyonal na kasanayan."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "memberBenefits": {
       "badge": "Mga Benepisyo ng Miyembro",
@@ -1049,6 +1199,7 @@
       "totalActiveInvestors": "Kabuuang Aktibong Mamumuhunan",
       "totalInvestmentsMade": "Kabuuang Puhunan na Ginawa",
       "totalProfitsGenerated": "Kabuuang Kita na Nabuo",
+<<<<<<< HEAD
       "successfulWithdrawals": "Matagumpay na Pag-withdraw",
       "title": "Oxford Financial Ads",
       "titleHighlight": "Live Statistics",
@@ -1057,6 +1208,9 @@
       "verifiedFreelancers": "Na-verify na Freelancer",
       "packageInvestmentOverview": "Pangkalahatang-ideya sa Investment ng Package",
       "countriesConnected": "Mga Konektadong Bansa"
+=======
+      "successfulWithdrawals": "Matagumpay na Pag-withdraw"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1070,6 +1224,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "about": {
       "badge": "Pangkalahatang-ideya ng Kumpanya",
@@ -1204,6 +1359,8 @@
       "ctaTitle": "Handa ka nang magsimula?",
       "ctaText": "Gumawa ng libreng account ngayon at magsimula sa ilang minuto.",
       "ctaButton": "Magsimula Nang Libre"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "securityStandards": {
@@ -1252,10 +1409,17 @@
     "card4Title": "Pagganap at Pananagutan ng Kampanya",
     "card4Sub": "Desentralisadong Pananagutan",
     "card4Desc": "Oxford Financial Ad: Gumagana ang mga kampanya sa pag-advertise batay sa dynamics ng merkado at mga algorithm ng platform. Pinapanatili ng mga kliyente ang buong responsibilidad para sa kanilang mga desisyon sa marketing, paglalaan ng badyet, at mga resulta ng negosyo.",
+<<<<<<< HEAD
     "footer": "Nakatuon sa transparency, accountability, at etikal na pamumuno sa buong mundo",
     "card5Title": "Panganib sa Serbisyo at Disclaimer sa Market",
     "card5Sub": "Pagkilala sa Panganib",
     "card5Desc": "Oxford Financial Ad: Ang pagpapatupad ng mga digital na kampanya sa advertising ay nagsasangkot ng mga panganib sa merkado at pagbabagu-bago sa pakikipag-ugnayan ng madla. Hindi ginagarantiyahan ng nakaraang pagganap ng kampanya ang magkatulad na mga resulta sa hinaharap. Gumagamit ang Oxford Financial Ads ng mga advanced na modelo ng pag-optimize, ngunit hindi magagarantiyahan ang mga partikular na resulta ng conversion ng benta o market nang may ganap na katiyakan. Dapat maglaan ang mga kliyente ng mga badyet sa marketing batay sa kanilang mga layunin sa negosyo at magsagawa ng independiyenteng pananaliksik sa merkado bago maglunsad ng mga malakihang kampanya."
+=======
+    "card5Title": "Panganib sa Serbisyo at Disclaimer sa Market",
+    "card5Sub": "Pagkilala sa Panganib",
+    "card5Desc": "Oxford Financial Ad: Ang pagpapatupad ng mga digital na kampanya sa advertising ay nagsasangkot ng mga panganib sa merkado at pagbabagu-bago sa pakikipag-ugnayan ng madla. Hindi ginagarantiyahan ng nakaraang pagganap ng kampanya ang magkatulad na mga resulta sa hinaharap. Gumagamit ang Oxford Financial Ads ng mga advanced na modelo ng pag-optimize, ngunit hindi magagarantiyahan ang mga partikular na resulta ng conversion ng benta o market nang may ganap na katiyakan. Dapat maglaan ang mga kliyente ng mga badyet sa marketing batay sa kanilang mga layunin sa negosyo at magsagawa ng independiyenteng pananaliksik sa merkado bago maglunsad ng mga malakihang kampanya.",
+    "footer": "Nakatuon sa transparency, accountability, at etikal na pamumuno sa buong mundo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "privacySecurity": {
     "badge": "Mahalagang Pagbubunyag ng Panganib",
@@ -1287,6 +1451,7 @@
   },
   "language": {
     "switch": "Lumipat ng Wika"
+<<<<<<< HEAD
   },
   "hero": {
     "title": "Simulan Ang",
@@ -2699,3 +2864,7 @@
     "totalUsdt": "Total USDT Balance"
   }
 }
+=======
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

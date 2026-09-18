@@ -23,7 +23,10 @@ PACKAGE_TIER_MAP: dict[str, str] = {
 
 from app.api.v1.deps import get_current_user
 from app.core.rate_limiter import limiter
+<<<<<<< HEAD
 from app.utils.is_system_active import require_daily_earning
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 router = APIRouter(prefix="/admin/investments", tags=["Admin Investments"])
@@ -43,9 +46,12 @@ async def add_profit(
     if not current_user.is_admin:
         raise HTTPException(403, "Admin only")
 
+<<<<<<< HEAD
     # Disabled switch: no manual earning credit while Daily ROI is OFF.
     await require_daily_earning(db)
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     percentage = Decimal(payload.percentage)
 
     try:
@@ -115,6 +121,7 @@ async def add_profit(
 
         db.add(history)
 
+<<<<<<< HEAD
         # FETCH ALL PARENTS (dynamic based on configured levels)
 
         rates = await get_referral_level_rates(db)
@@ -122,6 +129,17 @@ async def add_profit(
         for lvl in range(1, len(rates) + 1):
             ancestor_id = getattr(user, f"parent_lvl_{lvl}_id", None)
             parent_ids.append(ancestor_id)
+=======
+        # FETCH ALL PARENTS
+
+        parent_ids = [
+            user.parent_lvl_1_id,
+            user.parent_lvl_2_id,
+            user.parent_lvl_3_id,
+            user.parent_lvl_4_id,
+            user.parent_lvl_5_id,
+        ]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
         parents_map = {}
         active_parent_ids: set[int] = set()
@@ -149,6 +167,11 @@ async def add_profit(
 
         # FLAT COMMISSION
 
+<<<<<<< HEAD
+=======
+        rates = await get_referral_level_rates(db)
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         for level_idx, parent_id in enumerate(parent_ids):
             if not parent_id:
                 continue

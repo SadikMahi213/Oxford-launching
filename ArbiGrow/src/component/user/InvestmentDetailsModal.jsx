@@ -52,9 +52,12 @@ export function InvestmentDetailsModal({ investment, onClose }) {
 
   if (!investment) return null;
 
+<<<<<<< HEAD
   const isAdPackage =
     String(investment.taskType || "").toLowerCase() === "ad_view";
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const getInvestmentProgress = (inv) => {
     return inv.progressPercentage;
   };
@@ -139,9 +142,15 @@ export function InvestmentDetailsModal({ investment, onClose }) {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+<<<<<<< HEAD
                 <div className="text-sm text-gray-400 mb-1">{t(isAdPackage ? "investmentDetails.adsRequirement" : "investmentDetails.dailyCaptchaRequirement")}</div>
                 <div className="text-lg font-bold text-yellow-400">
                   {investment.captchaRequiredPerDay ?? 0} {t(isAdPackage ? "investmentDetails.ads" : "investmentDetails.captchas")}
+=======
+                <div className="text-sm text-gray-400 mb-1">{t("investmentDetails.dailyCaptchaRequirement")}</div>
+                <div className="text-lg font-bold text-yellow-400">
+                  {investment.captchaRequiredPerDay ?? 0} {t("investmentDetails.captchas")}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </div>
               </div>
 

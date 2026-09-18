@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import {
   Check,
   CheckCircle2,
@@ -9,6 +10,9 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+=======
+import { CheckCircle2, XCircle } from "lucide-react";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { createPortal } from "react-dom";
 
 const normalizeMessage = (value, t) => {
@@ -49,6 +53,7 @@ const normalizeMessage = (value, t) => {
   return fallback;
 };
 
+<<<<<<< HEAD
 // Strip emoji characters so the premium card only ever renders SVG icons.
 const stripEmojis = (value) =>
   String(value || "")
@@ -151,12 +156,15 @@ const InfoRow = ({ icon, children, isLast }) => (
   </div>
 );
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 export default function StatusFeedbackModal({ feedback, onClose }) {
   const { t } = useTranslation();
   if (!feedback) return null;
   if (typeof document === "undefined") return null;
 
   const isSuccess = feedback.type === "success";
+<<<<<<< HEAD
   const rawMessage = normalizeMessage(feedback.message, t);
   const rawTitle =
     feedback.title || (isSuccess ? t("statusFeedbackModal.success") : t("statusFeedbackModal.rejected"));
@@ -165,11 +173,17 @@ export default function StatusFeedbackModal({ feedback, onClose }) {
   const variant = detectVariant(rawTitle, rawMessage);
   const isRequestFlow = isSuccess && (variant === "deposit" || variant === "withdrawal");
   const { lead, accent } = splitHeading(title);
+=======
+  const Icon = isSuccess ? CheckCircle2 : XCircle;
+  const message = normalizeMessage(feedback.message, t);
+  const title = isSuccess ? t("statusFeedbackModal.success") : t("statusFeedbackModal.rejected");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const handleClose = () => {
     if (typeof onClose === "function") onClose();
   };
 
+<<<<<<< HEAD
   const requestCopy =
     variant === "withdrawal"
       ? {
@@ -302,6 +316,39 @@ export default function StatusFeedbackModal({ feedback, onClose }) {
           </button>
         </div>
       )}
+=======
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center p-4"
+      onClick={handleClose}
+    >
+      <div className="absolute inset-0 bg-black/35 backdrop-blur-[1px]" />
+
+      <div
+        className={`relative w-full max-w-sm rounded-2xl border px-5 py-5 shadow-2xl ${
+          isSuccess
+            ? "border-green-500/50 bg-[#0F2B25] text-green-100"
+            : "border-red-500/50 bg-[#2E1416] text-red-100"
+        }`}
+        onClick={(event) => event.stopPropagation()}
+        role="alertdialog"
+        aria-live="assertive"
+        aria-modal="true"
+      >
+        <div className="mb-2 flex items-center gap-3">
+          <span
+            className={`rounded-full p-1.5 ${
+              isSuccess ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+          </span>
+          <h3 className="text-lg font-semibold">{title}</h3>
+        </div>
+
+        <p className="text-sm leading-6 opacity-95">{message}</p>
+      </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     </div>,
     document.body,
   );

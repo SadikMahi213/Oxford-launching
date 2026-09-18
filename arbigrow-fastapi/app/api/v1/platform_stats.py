@@ -16,12 +16,17 @@ from app.core.rate_limiter import limiter
 router = APIRouter(prefix="/platform-stats", tags=["Platform Stats"])
 
 
+<<<<<<< HEAD
 @router.get("/")
+=======
+@router.get("/", response_model=PlatformStatsResponse)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @limiter.limit("30/minute")
 async def get_platform_stats(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     # The homepage Live Platform Statistics section is ENTIRELY admin-controlled.
     # No live database aggregates are used — only the saved admin values.
     result = await db.execute(select(PlatformStats).limit(1))
@@ -48,6 +53,16 @@ async def get_platform_stats(
         "total_withdrawn": "0",
         "countries_connected": "0",
     }
+=======
+
+    result = await db.execute(select(PlatformStats).limit(1))
+    stats = result.scalar_one_or_none()
+
+    if not stats:
+        raise HTTPException(404, "Platform stats not configured")
+
+    return stats
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.post("/", response_model=PlatformStatsResponse)

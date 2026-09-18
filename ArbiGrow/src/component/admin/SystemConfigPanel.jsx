@@ -1,6 +1,10 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users, DollarSign, Gift } from "lucide-react";
+=======
+import { Settings, ToggleLeft, ToggleRight, Clock, Coins, Users, DollarSign } from "lucide-react";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import useUserStore from "../../store/userStore";
 import {
   getSystemConfig, updateSystemConfig,
@@ -12,12 +16,15 @@ const FEATURE_LABELS = {
   system_daily_work_enabled: "Daily Work (Mining)",
   system_daily_earning_enabled: "Daily Earnings (ROI)",
   system_withdrawal_enabled: "Withdrawals",
+<<<<<<< HEAD
   system_weekend_restricted: "Weekend Restriction (Sat/Sun)",
   system_registration_enabled: "Registration",
 };
 
 const FEATURE_NOTES = {
   system_registration_enabled: "Controls new user signups",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 };
 
 const SystemConfigPanel = () => {
@@ -31,12 +38,17 @@ const SystemConfigPanel = () => {
   const [capInput, setCapInput] = useState("");
   const [rateInput, setRateInput] = useState("");
   const [cooldownInput, setCooldownInput] = useState("");
+<<<<<<< HEAD
   const [signupBonusInput, setSignupBonusInput] = useState("");
   const [kycFeeInput, setKycFeeInput] = useState("");
   const [minDepositInput, setMinDepositInput] = useState("");
   const [minTransferInput, setMinTransferInput] = useState("");
   const [minWithdrawInput, setMinWithdrawInput] = useState("");
   const [captchaTimerInput, setCaptchaTimerInput] = useState("");
+=======
+  const [kycFeeInput, setKycFeeInput] = useState("");
+  const [minDepositInput, setMinDepositInput] = useState("");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [miningPage, setMiningPage] = useState(1);
 
   useEffect(() => {
@@ -112,6 +124,7 @@ const SystemConfigPanel = () => {
     }
   };
 
+<<<<<<< HEAD
   const saveSignupBonus = async () => {
     if (!signupBonusInput.trim()) return;
     try {
@@ -136,6 +149,8 @@ const SystemConfigPanel = () => {
     }
   };
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const saveKycFee = async () => {
     if (!kycFeeInput.trim()) return;
     try {
@@ -160,6 +175,7 @@ const SystemConfigPanel = () => {
     }
   };
 
+<<<<<<< HEAD
   const saveMinTransfer = async () => {
     if (!minTransferInput.trim()) return;
     try {
@@ -184,6 +200,8 @@ const SystemConfigPanel = () => {
     }
   };
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const loadMiningStats = async (page) => {
     try {
       const res = await getMiningStats(token, page);
@@ -241,10 +259,14 @@ const SystemConfigPanel = () => {
                       <Clock className="w-3 h-3" /> Admin override active
                     </p>
                   )}
+<<<<<<< HEAD
                   {!isOverridden && FEATURE_NOTES[key] && (
                     <p className="text-xs text-gray-500">{FEATURE_NOTES[key]}</p>
                   )}
                   {!isOverridden && !FEATURE_NOTES[key] && (
+=======
+                  {!isOverridden && (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <p className="text-xs text-gray-500">Follows UK weekend schedule</p>
                   )}
                 </motion.div>
@@ -311,6 +333,7 @@ const SystemConfigPanel = () => {
               >Save</button>
               <span className="text-xs text-gray-500">Min wait: {miningConfig.mining_claim_cooldown_minutes || "1"} min</span>
             </div>
+<<<<<<< HEAD
 
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-400 flex items-center gap-1">
@@ -349,6 +372,8 @@ const SystemConfigPanel = () => {
               >Save</button>
               <span className="text-xs text-gray-500">Current: {miningConfig.captcha_timer_seconds || "60"}s (5–300)</span>
             </div>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           </motion.div>
 
           {/* Fee Configuration */}
@@ -393,6 +418,7 @@ const SystemConfigPanel = () => {
               <span className="text-xs text-gray-500">Current: {feeConfig.min_deposit_amount || "10"} USDT</span>
             </div>
 
+<<<<<<< HEAD
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-400">Min User Transfer (USDT):</label>
               <input
@@ -427,6 +453,8 @@ const SystemConfigPanel = () => {
               <span className="text-xs text-gray-500">Current: {feeConfig.min_withdrawal_amount || "10"} USDT</span>
             </div>
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             {/* Withdrawal Mode */}
             <div className="flex items-center gap-3">
               <label className="text-sm text-gray-400">Withdrawal Mode:</label>
@@ -467,7 +495,11 @@ const SystemConfigPanel = () => {
                     </div>
                     <div className="text-right">
                       <span className="text-cyan-400">{m.daily_mined} OFA mined</span>
+<<<<<<< HEAD
                       <span className="text-gray-500 ml-2">Wallet: {m.arbx_wallet}</span>
+=======
+                      <span className="text-gray-500 ml-2">Wallet: {m.arbx_mining_wallet}</span>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     </div>
                   </div>
                 ))}

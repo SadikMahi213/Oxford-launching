@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 from pydantic import field_validator
@@ -6,21 +7,35 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
 
+=======
+from pydantic_settings import BaseSettings
+from typing import List
+
+
+class Settings(BaseSettings):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     DATABASE_URL: str
 
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
+<<<<<<< HEAD
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+=======
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 7200
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     ALLOWED_ORIGINS: List[str]
     LOG_LEVEL: str = "INFO"
     APP_ENV: str = "development"
     FRONTEND_DOMAIN: str
 
     DB_SSL_REQUIRED: bool = False
+<<<<<<< HEAD
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 10
     DB_POOL_TIMEOUT: int = 30
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     MAIL_USERNAME: str = ""
     MAIL_PASSWORD: str = ""
@@ -39,16 +54,20 @@ class Settings(BaseSettings):
     AUTO_ROI_ENABLED: bool = True
     AUTO_ROI_POLL_SECONDS: int = 21600
 
+<<<<<<< HEAD
     REDIS_URL: str = "redis://redis:6379/0"
 
     SESSION_TIMEOUT_MINUTES: int = 60
     REMEMBER_ME_DAYS: int = 30
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     GOOGLE_ANALYTICS_CREDENTIALS: str = ""
     GOOGLE_ANALYTICS_PROPERTY_ID: str = ""
 
     MAX_FAILED_ATTEMPTS: int = 5
     SECURITY_LOG_ENABLED: bool = True
+<<<<<<< HEAD
     PASSWORD_RESET_EXPIRE_MINUTES: int = 15
 
     @field_validator("SECRET_KEY")
@@ -67,6 +86,11 @@ class Settings(BaseSettings):
         if not v:
             raise ValueError("ALLOWED_ORIGINS must contain at least one origin")
         return v
+=======
+
+    class Config:
+        env_file = ".env"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 settings = Settings()

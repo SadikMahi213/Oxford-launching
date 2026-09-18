@@ -47,12 +47,20 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: 7200
       ALLOWED_ORIGINS: '["https://oxfordfinancialads.com","http://oxfordfinancialads.com","http://localhost","http://localhost:80"]'
       APP_ENV: production
+<<<<<<< HEAD
       UVICORN_WORKERS: "4"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       LOG_LEVEL: INFO
       FRONTEND_DOMAIN: https://oxfordfinancialads.com
       DB_SSL_REQUIRED: "false"
       AUTO_ROI_ENABLED: "true"
       AUTO_ROI_POLL_SECONDS: 21600
+<<<<<<< HEAD
+=======
+    volumes:
+      - ./storage/invoices:/app/storage/invoices
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,7 +74,11 @@ services:
     command: >
       sh -c "
         echo 'Running migrations...' &&
+<<<<<<< HEAD
         alembic upgrade head &&
+=======
+        alembic upgrade heads &&
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         echo 'Seeding database...' &&
         python seed.py &&
         echo 'Done!'

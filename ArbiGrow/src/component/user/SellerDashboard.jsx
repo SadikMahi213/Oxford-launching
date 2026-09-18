@@ -1,13 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+<<<<<<< HEAD
 import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Image, FileText, Send, AlertCircle, MessageCircle, TrendingUp, Clock, PlusCircle } from "lucide-react";
+=======
+import { Store, Package, DollarSign, Plus, Trash2, Coins, Check, X, ChevronLeft, ChevronRight, User, Phone, MapPin, Globe, Image, FileText, Send, AlertCircle, MessageCircle, PlusCircle } from "lucide-react";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import RichTextEditor from "../common/RichTextEditor.jsx";
 import {
   registerSeller, getSellerProfile, updateSellerProfile,
   getMyProducts, createProduct, deleteProduct, updateProduct,
   getSellerOrders, getEcommerceWallet, transferToEcommerce,
   sellerSubmitForReview, getSellerProfileCompletion,
+<<<<<<< HEAD
   uploadProductImage, uploadSellerImage, getMyStores, deleteStore,
 } from "../../api/ecommerce.api.js";
 import {
@@ -17,6 +22,11 @@ import {
 } from "../../api/marketplace.api.js";
 import useUserStore from "../../store/userStore.js";
 import SellerOrdersPanel from "./SellerOrdersPanel.jsx";
+=======
+  uploadProductImage, uploadSellerImage, getMyStores,
+} from "../../api/ecommerce.api.js";
+import useUserStore from "../../store/userStore.js";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 const STEPS = [
   { id: "basic", label: "Basic Info", icon: User },
@@ -36,14 +46,21 @@ const SellerDashboard = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [wallet, setWallet] = useState({ ecommerce_wallet: 0, main_wallet: 0 });
+<<<<<<< HEAD
 const [vendorDash, setVendorDash] = useState(null);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const [registerName, setRegisterName] = useState("");
   const [registerDesc, setRegisterDesc] = useState("");
   const [showCreateStore, setShowCreateStore] = useState(false);
+<<<<<<< HEAD
   const [newProduct, setNewProduct] = useState({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0, sku: "", stock_quantity: 0, discount_price: "" });
   const [editProduct, setEditProduct] = useState(null);
   const [editProductData, setEditProductData] = useState({ name: "", price: "", description: "", image_urls: [], category: "", sku: "", stock_quantity: 0, discount_price: "" });
+=======
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0 });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [productImageUrlInput, setProductImageUrlInput] = useState("");
   const [productUploading, setProductUploading] = useState(false);
   const [productImageDragIdx, setProductImageDragIdx] = useState(null);
@@ -61,7 +78,10 @@ const [vendorDash, setVendorDash] = useState(null);
   });
   const [completion, setCompletion] = useState(0);
   const [viewingStore, setViewingStore] = useState(null);
+<<<<<<< HEAD
   const [storeToDelete, setStoreToDelete] = useState(null);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   useEffect(() => {
     loadData();
@@ -104,6 +124,7 @@ const [vendorDash, setVendorDash] = useState(null);
       }));
       setCompletion(profile.profile_completion || 0);
       if (profile.status === "approved") {
+<<<<<<< HEAD
         const [walletRes, dashRes] = await Promise.all([
           getEcommerceWallet(),
           getVendorDashboard().catch(() => ({ data: {} })),
@@ -116,11 +137,22 @@ const [vendorDash, setVendorDash] = useState(null);
         ]);
         const pdata = prodRes.data?.products || prodRes.data?.data || [];
         setProducts(Array.isArray(pdata) ? pdata : []);
+=======
+        const [walletRes] = await Promise.all([
+          getEcommerceWallet(),
+        ]);
+        setWallet(walletRes.data);
+        const [prodRes, ordRes] = await Promise.all([
+          getMyProducts(sid), getSellerOrders(sid),
+        ]);
+        setProducts(prodRes.data?.products || []);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         setOrders(ordRes.data?.orders || []);
       }
     } catch { /* not a seller yet */ }
   };
 
+<<<<<<< HEAD
   const handleDeleteStore = async (storeId) => {
     try {
       await deleteStore(storeId);
@@ -142,6 +174,8 @@ const [vendorDash, setVendorDash] = useState(null);
     }
   };
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const switchStore = (storeId) => {
     setActiveStoreId(storeId);
     loadData(storeId);
@@ -164,7 +198,11 @@ const [vendorDash, setVendorDash] = useState(null);
       setRegisterDesc("");
       loadData();
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -175,7 +213,11 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.profileSaved', { percent: res.data.profile_completion }));
       loadData(activeStoreId);
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -185,13 +227,18 @@ const [vendorDash, setVendorDash] = useState(null);
       setMsg(t('seller.submittedForReview'));
       setSeller(prev => ({ ...prev, status: "pending_review" }));
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price) return;
     try {
+<<<<<<< HEAD
       const payload = {
         name: newProduct.name,
         price: parseFloat(newProduct.price),
@@ -208,6 +255,22 @@ const [vendorDash, setVendorDash] = useState(null);
       loadData(activeStoreId);
     } catch (err) {
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      await createProduct({
+        name: newProduct.name,
+        price: parseFloat(newProduct.price),
+        seller_id: activeStoreId,
+        description: newProduct.description,
+        image_urls: newProduct.image_urls.join(","),
+        category: newProduct.category,
+        arbx_allocated: parseFloat(newProduct.arbx_allocated || 0),
+      });
+      setNewProduct({ name: "", price: "", description: "", image_urls: [], category: "", arbx_allocated: 0 });
+      setMsg(t('seller.productAdded'));
+      loadData(activeStoreId);
+    } catch (err) {
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -240,7 +303,11 @@ const [vendorDash, setVendorDash] = useState(null);
       const url = res.data?.image_url || res.data?.data?.image_url || res.data?.data?.url;
       if (url) updateProfileField(field, url);
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.uploadError') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } finally {
       setUploadingField(null);
     }
@@ -255,7 +322,11 @@ const [vendorDash, setVendorDash] = useState(null);
       const url = res.data?.url || res.data?.image_url || res.data?.data?.url;
       if (url) setNewProduct({ ...newProduct, image_urls: [...newProduct.image_urls, url] });
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.uploadError') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Upload error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } finally {
       setProductUploading(false);
     }
@@ -269,6 +340,7 @@ const [vendorDash, setVendorDash] = useState(null);
       setTransferAmount("");
       setMsg(t('seller.transferred', { amount: transferAmount }));
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
@@ -280,6 +352,9 @@ const [vendorDash, setVendorDash] = useState(null);
       loadData(activeStoreId);
     } catch (err) {
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -288,7 +363,11 @@ const [vendorDash, setVendorDash] = useState(null);
       await updateProduct(p.id, { is_active: !p.is_active, seller_id: activeStoreId });
       loadData(activeStoreId);
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -298,6 +377,7 @@ const [vendorDash, setVendorDash] = useState(null);
       await deleteProduct(p.id, activeStoreId);
       loadData(activeStoreId);
     } catch (err) {
+<<<<<<< HEAD
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
     }
   };
@@ -341,6 +421,9 @@ const [vendorDash, setVendorDash] = useState(null);
       loadData(activeStoreId);
     } catch (err) {
       setMsg(t('seller.errorPrefix') + (err.response?.data?.detail || err.message));
+=======
+      setMsg("Error: " + (err.response?.data?.detail || err.message));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -724,7 +807,10 @@ const [vendorDash, setVendorDash] = useState(null);
     { id: "products", label: t('seller.products'), icon: Package },
     { id: "orders", label: t('seller.orders'), icon: DollarSign },
     { id: "wallet", label: t('seller.wallet'), icon: Coins },
+<<<<<<< HEAD
     { id: "settings", label: t('seller.settings') || "Settings", icon: FileText },
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   ];
 
   return (
@@ -752,12 +838,15 @@ const [vendorDash, setVendorDash] = useState(null);
           >
             <Store className="w-3 h-3" />
             {store.store_name}
+<<<<<<< HEAD
             {allStores.length > 1 && (
               <Trash2
                 className="w-3 h-3 ml-1 cursor-pointer text-red-400/60 hover:text-red-400"
                 onClick={(e) => { e.stopPropagation(); setStoreToDelete(store.id); }}
               />
             )}
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           </button>
         ))}
         <button
@@ -790,6 +879,7 @@ const [vendorDash, setVendorDash] = useState(null);
             <p className="text-2xl font-bold text-white">{products.length}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
+<<<<<<< HEAD
             <TrendingUp className="w-5 h-5 text-emerald-400 mb-2" />
             <p className="text-sm text-gray-400">{t('seller.revenue')}</p>
             <p className="text-2xl font-bold text-white">${vendorDash?.revenue ? Number(vendorDash.revenue).toFixed(2) : "0.00"}</p>
@@ -800,6 +890,8 @@ const [vendorDash, setVendorDash] = useState(null);
             <p className="text-2xl font-bold text-white">{vendorDash ? vendorDash.pending_orders : 0}</p>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5">
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             <DollarSign className="w-5 h-5 text-green-400 mb-2" />
             <p className="text-sm text-gray-400">{t('seller.ordersCount')}</p>
             <p className="text-2xl font-bold text-white">{orders.length}</p>
@@ -825,6 +917,7 @@ const [vendorDash, setVendorDash] = useState(null);
               <input value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} placeholder={t('seller.productName')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })} placeholder={t('seller.price')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.category} onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })} placeholder={t('seller.category')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+<<<<<<< HEAD
               <input value={newProduct.sku} onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })} placeholder={t('seller.sku')} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.stock_quantity} onChange={(e) => setNewProduct({ ...newProduct, stock_quantity: e.target.value })} placeholder={t('seller.stockQuantity')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
               <input value={newProduct.discount_price} onChange={(e) => setNewProduct({ ...newProduct, discount_price: e.target.value })} placeholder={t('seller.discountPrice')} type="number" step="0.01" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
@@ -833,6 +926,10 @@ const [vendorDash, setVendorDash] = useState(null);
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs text-gray-400">
               <span>{t('seller.category')}</span><span>{t('seller.sku')}</span><span>{t('seller.stock')}</span><span>{t('seller.discountPrice')}</span>
             </div>
+=======
+              <input value={newProduct.arbx_allocated} onChange={(e) => setNewProduct({ ...newProduct, arbx_allocated: e.target.value })} placeholder={t('seller.ofaAllocated')} type="number" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-500/50" />
+            </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
             <div>
               <label className="text-xs text-gray-400 mb-1 block">{t('seller.productImages')}</label>
@@ -886,12 +983,18 @@ const [vendorDash, setVendorDash] = useState(null);
                 <div key={p.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium">{p.name}</p>
+<<<<<<< HEAD
                     <p className="text-xs text-gray-400">${Number(p.price || 0).toFixed(2)} | {t('seller.sku')}: {p.sku || "—"} | {t('seller.stock')}: {p.stock_quantity ?? "—"} | {p.is_active ? t('seller.active') : t('seller.inactive')}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => handleEditProductOpen(p)} className="px-3 py-1 rounded-lg text-xs font-medium bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30">
                       {t('seller.edit') || "Edit"}
                     </button>
+=======
+                    <p className="text-xs text-gray-400">${parseFloat(p.price).toFixed(2)} | OFA: {parseFloat(p.arbx_allocated).toFixed(2)} | {p.is_active ? t('seller.active') : t('seller.inactive')}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <button onClick={() => handleToggleProduct(p)} className={`px-3 py-1 rounded-lg text-xs font-medium ${p.is_active ? "bg-yellow-500/20 text-yellow-400" : "bg-green-500/20 text-green-400"}`}>
                       {p.is_active ? t('seller.deactivate') : t('seller.activate')}
                     </button>
@@ -904,6 +1007,7 @@ const [vendorDash, setVendorDash] = useState(null);
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Edit Product Modal */}
       {editProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={handleEditProductClose}>
@@ -1083,6 +1187,30 @@ const [vendorDash, setVendorDash] = useState(null);
               {msg && <p className="text-sm text-green-400">{msg}</p>}
             </div>
           </div>
+=======
+      {tab === "orders" && (
+        <div className="space-y-2">
+          {orders.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">{t('seller.noOrders')}</p>
+          ) : (
+            orders.map((o) => (
+              <div key={o.id} className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 flex justify-between items-center">
+                <div>
+                  <p className="text-white font-medium">{t('seller.orderNumber', { id: o.id })}</p>
+                  <p className="text-xs text-gray-400">{o.customer_name || t('seller.unknown')} | {o.created_at ? new Date(o.created_at).toLocaleDateString() : ""}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-cyan-400 font-bold">${parseFloat(o.total).toFixed(2)}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    o.status === "delivered" ? "bg-green-500/20 text-green-400" :
+                    o.status === "shipped" ? "bg-blue-500/20 text-blue-400" :
+                    "bg-yellow-500/20 text-yellow-400"
+                  }`}>{o.status}</span>
+                </div>
+              </div>
+            ))
+          )}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         </div>
       )}
 
@@ -1100,6 +1228,7 @@ const [vendorDash, setVendorDash] = useState(null);
               <button onClick={handleTransfer} className="px-6 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium hover:from-cyan-500 hover:to-blue-500 transition-all">{t('seller.transfer')}</button>
             </div>
           </div>
+<<<<<<< HEAD
           {vendorDash && (
             <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-3">
               <h3 className="text-white font-semibold flex items-center gap-2"><TrendingUp className="w-4 h-4" /> {t('seller.vendorEarnings')}</h3>
@@ -1137,6 +1266,11 @@ const [vendorDash, setVendorDash] = useState(null);
       )}
     </div>
 
+=======
+        </div>
+      )}
+    </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   );
 };
 
@@ -1155,12 +1289,15 @@ const StoreSwitcher = ({ stores, activeId, onSwitch }) => (
       >
         <Store className="w-3 h-3" />
         {store.store_name}
+<<<<<<< HEAD
           {stores.length > 1 && (
             <Trash2
               className="w-3 h-3 ml-1 cursor-pointer text-red-400/60 hover:text-red-400"
               onClick={(e) => { e.stopPropagation(); setStoreToDelete(store.id); }}
             />
           )}
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       </button>
     ))}
   </div>

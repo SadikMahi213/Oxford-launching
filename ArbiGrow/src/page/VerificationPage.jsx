@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import DOMPurify from "dompurify";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +21,10 @@ import {
 import { submitKYC, getActiveKycPackage } from "../api/kyc.api.js";
 import { refreshUserStore } from "../api/user.api.js";
 import { getFeeInfo } from "../api/user.api.js";
+<<<<<<< HEAD
 import profilePlaceholder from "../assets/banner.jpeg";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 // import logo from "../assets/Arbigrow-Logo.png";
 import { useNavigate } from "react-router";
 import { countries } from "../constants/countries";
@@ -86,6 +92,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
       if (data) {
         setKycFee(data.kyc_fee || "0");
         setHasExistingKyc(data.has_kyc || false);
+<<<<<<< HEAD
         if (data.has_kyc) {
           if (data.kyc_status === "approved") {
             if (onSuccess) onSuccess();
@@ -99,6 +106,10 @@ export default function VerificationPage({ embedded, onSuccess }) {
           if (data.kyc_phone_number) setPhoneNumber(data.kyc_phone_number.replace(/^\+\d+/, ""));
           if (data.kyc_document_type) setIdType(data.kyc_document_type);
           if (data.kyc_document_number) setIdNumber(data.kyc_document_number);
+=======
+        if (data.has_kyc && onSuccess) {
+          onSuccess();
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         }
       }
     }).catch(() => {});
@@ -221,12 +232,15 @@ export default function VerificationPage({ embedded, onSuccess }) {
       return;
     }
 
+<<<<<<< HEAD
     // Profile picture is mandatory (required to compare with NID/passport photo)
     if (!user?.profile_image_url && !profileImageFile) {
       setError(t("kycVerification.errors.profileImageRequired") || "Profile picture is required for KYC verification. Please upload your profile picture.");
       return;
     }
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if (!frontImage) {
       setError(t("kycVerification.errors.uploadFront"));
       return;
@@ -273,6 +287,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
     try {
       const response = await submitKYC(formData);
 
+<<<<<<< HEAD
       const kycMessage = response?.data?.message || "";
       const kycSucceeded =
         kycMessage === "KYC submitted successfully" ||
@@ -283,6 +298,14 @@ export default function VerificationPage({ embedded, onSuccess }) {
           const meRes = await refreshUserStore();
           if (meRes?.data?.user) {
             setUser({ ...meRes.data.user, kyc_status: meRes.data.kyc_status, doc_submitted: meRes.data.doc_submitted, kyc_note: meRes.data.kyc_note });
+=======
+      // console.log("KYC Response:", response?.data);
+      if (response?.data?.message == "KYC submitted successfully") {
+        try {
+          const meRes = await refreshUserStore();
+          if (meRes?.data?.user) {
+            setUser(meRes.data.user);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           }
         } catch (_) {}
         if (onSuccess) {
@@ -357,6 +380,7 @@ export default function VerificationPage({ embedded, onSuccess }) {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+<<<<<<< HEAD
               {/* Profile Image - MANDATORY for KYC (required to compare with NID/passport photo) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -370,6 +394,15 @@ export default function VerificationPage({ embedded, onSuccess }) {
                       backgroundPosition: "center",
                     }}
                   >
+=======
+              {/* Profile Image */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  {t("kycVerification.profileImage")} <span className="text-gray-500">{t("kycVerification.optional")}</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center overflow-hidden flex-shrink-0">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     {profileImagePreview ? (
                       <img src={profileImagePreview} alt="" className="w-full h-full object-cover" />
                     ) : user?.profile_image_url ? (
@@ -675,7 +708,11 @@ export default function VerificationPage({ embedded, onSuccess }) {
                           </p>
                           <p className="mt-1"
                             dangerouslySetInnerHTML={{
+<<<<<<< HEAD
                               __html: DOMPurify.sanitize(t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee }))
+=======
+                              __html: t("kycVerification.feeDescription", { fee: activePackage ? activePackage.price : kycFee })
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                             }}
                           />
                           {parseFloat(user?.deposit_wallet || 0) < parseFloat(kycFee) && (
@@ -882,9 +919,13 @@ export default function VerificationPage({ embedded, onSuccess }) {
                   ) : (
                     <>
                       <ShieldCheck className="w-5 h-5" />
+<<<<<<< HEAD
                       {hasExistingKyc
                         ? t("kycVerification.resubmit")
                         : parseFloat(kycFee) > 0
+=======
+                      {parseFloat(kycFee) > 0
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                         ? t("kycVerification.purchaseSubmit", { fee: activePackage ? activePackage.price : kycFee })
                         : t("kycVerification.submitForVerification")}
                     </>

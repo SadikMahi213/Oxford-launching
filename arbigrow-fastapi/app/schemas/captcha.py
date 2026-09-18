@@ -7,7 +7,10 @@ class CaptchaNextResponse(BaseModel):
     captcha_id: int
     captcha_image: str
     expires_at: datetime
+<<<<<<< HEAD
     timer_seconds: int = 60
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class CaptchaSubmitRequest(BaseModel):
@@ -26,7 +29,10 @@ class CaptchaStatsResponse(BaseModel):
     earn_per_captcha: Decimal
     daily_limit: int
     typed_today: int
+<<<<<<< HEAD
     expired_today: int = 0
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     remaining: int
     total_earned_today: Decimal
     total_earned_all: Decimal

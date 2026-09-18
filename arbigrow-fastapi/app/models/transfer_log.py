@@ -27,6 +27,7 @@ class TransferLog(Base):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="completed"
     )
+<<<<<<< HEAD
     source_wallet: Mapped[str | None] = mapped_column(String(50), nullable=True)
     destination_wallet: Mapped[str | None] = mapped_column(String(50), nullable=True)
     sender_full_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -39,6 +40,8 @@ class TransferLog(Base):
     receiver_username: Mapped[str | None] = mapped_column(String(100), nullable=True)
     receiver_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     receiver_mobile: Mapped[str | None] = mapped_column(String(20), nullable=True)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

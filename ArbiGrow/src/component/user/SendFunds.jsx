@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { motion } from "motion/react";
 import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle, CalendarDays, ArrowUpRight, ArrowDownLeft, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
@@ -81,6 +82,15 @@ function formatHistoryDate(iso) {
   return `${day}.${month}.${year} ${hours}:${minutes} ${ampm}`;
 }
 
+=======
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Search, Send, User, ArrowLeft, Loader, CheckCircle, AlertCircle } from "lucide-react";
+import { sendFunds, searchUsers } from "../../api/user.api.js";
+import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 export default function SendFunds({ setActivePage }) {
   const { t } = useTranslation();
   const { user, setUser } = useUserStore();
@@ -91,6 +101,7 @@ export default function SendFunds({ setActivePage }) {
   const [searching, setSearching] = useState(false);
   const [searchedUser, setSearchedUser] = useState(null);
   const [transferChargePercent, setTransferChargePercent] = useState(5);
+<<<<<<< HEAD
   const [minTransfer, setMinTransfer] = useState(0);
   const [minCurrency, setMinCurrency] = useState("OFA");
   const [msg, setMsg] = useState("");
@@ -122,6 +133,10 @@ export default function SendFunds({ setActivePage }) {
       .catch(() => setMinTransfer(0));
     loadTransferHistory();
   }, [loadTransferHistory]);
+=======
+  const [msg, setMsg] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const handleSearch = async () => {
     if (!recipient.trim()) return;
@@ -153,11 +168,15 @@ export default function SendFunds({ setActivePage }) {
     if (!searchedUser) return;
     const kycStatus = user?.kyc_status;
     if (!kycStatus || kycStatus !== "approved") {
+<<<<<<< HEAD
       setMsg(t('sendFunds.err_kyc'));
       return;
     }
     if (minTransfer > 0 && Number(amount) < minTransfer) {
       setMsg(t('sendFunds.err_min', { min: minTransfer, currency: minCurrency }));
+=======
+      setMsg("KYC verification required. Please complete KYC verification before sending funds.");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       return;
     }
     setLoading(true);
@@ -176,7 +195,10 @@ export default function SendFunds({ setActivePage }) {
       setNote("");
       setRecipient("");
       setSearchedUser(null);
+<<<<<<< HEAD
       loadTransferHistory();
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } catch (err) {
       setMsg(err.response?.data?.detail || t('sendFunds.err_failed'));
     } finally {
@@ -184,6 +206,7 @@ export default function SendFunds({ setActivePage }) {
     }
   };
 
+<<<<<<< HEAD
   const allTransfers = [
     ...(transferHistory.sent || []).map((tr) => ({ ...tr, dir: "sent" })),
     ...(transferHistory.received || []).map((tr) => ({ ...tr, dir: "received" })),
@@ -212,21 +235,54 @@ export default function SendFunds({ setActivePage }) {
         <div className="space-y-3 md:space-y-4">
           <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 md:p-5 space-y-3 md:space-y-4">
             <label className="block text-xs md:text-sm text-gray-400">{t('sendFunds.searchLabel')}</label>
+=======
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen p-4 md:p-6">
+      <div className="max-w-xl mx-auto">
+        <KycWarningBanner />
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={() => setActivePage?.("overview")} className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10">
+            <ArrowLeft className="w-5 h-5 text-gray-400" />
+          </button>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 flex items-center justify-center">
+            <Send className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">{t('sendFunds.title')}</h1>
+            <p className="text-sm text-gray-400">{t('sendFunds.subtitle')}</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
+            <label className="block text-sm text-gray-400">{t('sendFunds.searchLabel')}</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             <div className="flex gap-2">
               <input
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
                 placeholder={t('sendFunds.search_plh')}
+<<<<<<< HEAD
                 className="flex-1 px-3 md:px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm md:text-base text-white focus:outline-none focus:border-emerald-500/50"
+=======
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
               <button
                 onClick={handleSearch}
                 disabled={searching || !recipient.trim()}
+<<<<<<< HEAD
                 className="px-3 md:px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 flex items-center gap-1.5 md:gap-2 text-sm md:text-base flex-shrink-0"
               >
                 {searching ? <Loader className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" /> : <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />}
                 <span className="hidden xs:inline">{t('sendFunds.search')}</span>
+=======
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50 flex items-center gap-2"
+              >
+                {searching ? <Loader className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                {t('sendFunds.search')}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               </button>
             </div>
 
@@ -234,21 +290,36 @@ export default function SendFunds({ setActivePage }) {
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
                 className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30"
               >
+<<<<<<< HEAD
                 <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center flex-shrink-0">
                   <User className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm md:text-base text-white font-medium truncate">{searchedUser.full_name}</p>
                   <p className="text-xs text-gray-400 truncate">{searchedUser.email}</p>
+=======
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-white font-medium">{searchedUser.full_name}</p>
+                  <p className="text-xs text-gray-400">{searchedUser.email}</p>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </div>
               </motion.div>
             )}
           </div>
 
           {searchedUser && (
+<<<<<<< HEAD
             <form onSubmit={handleSubmit} className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-4 md:p-5 space-y-3 md:space-y-4">
               <div>
                 <label className="block text-xs md:text-sm text-gray-400 mb-1.5 md:mb-2">{t('sendFunds.amount')}</label>
+=======
+            <form onSubmit={handleSubmit} className="rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-5 space-y-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">{t('sendFunds.amount')}</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <div className="relative">
                   <input
                     type="number"
@@ -258,6 +329,7 @@ export default function SendFunds({ setActivePage }) {
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder={t('sendFunds.amount_plh')}
                     required
+<<<<<<< HEAD
                     className="w-full px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-white/5 border border-white/10 text-white text-base md:text-lg focus:outline-none focus:border-emerald-500/50"
                   />
                   <span className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-xs md:text-sm text-gray-400">USDT</span>
@@ -279,6 +351,26 @@ export default function SendFunds({ setActivePage }) {
                     <span className="text-amber-400">-${(Number(amount) * transferChargePercent / 100).toFixed(2)}</span>
                   </div>
                   <div className="border-t border-white/10 pt-1.5 flex justify-between text-xs md:text-sm">
+=======
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg focus:outline-none focus:border-emerald-500/50"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">USDT</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{t('sendFunds.available', { balance: Number(user?.main_wallet || 0).toFixed(2) })}</p>
+              </div>
+
+              {amount > 0 && (
+                <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>{t('sendFunds.transferAmount')}</span>
+                    <span className="text-white">${Number(amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400 mt-1">
+                    <span>{t('sendFunds.charge', { percentage: transferChargePercent })}</span>
+                    <span className="text-amber-400">-${(Number(amount) * transferChargePercent / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-white/10 mt-2 pt-2 flex justify-between text-sm">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <span className="text-gray-300 font-semibold">{t('sendFunds.receiverGets')}</span>
                     <span className="text-green-400 font-bold">${(Number(amount) * (1 - transferChargePercent / 100)).toFixed(2)}</span>
                   </div>
@@ -286,18 +378,31 @@ export default function SendFunds({ setActivePage }) {
               )}
 
               <div>
+<<<<<<< HEAD
                 <label className="block text-xs md:text-sm text-gray-400 mb-1.5 md:mb-2">{t('sendFunds.note')}</label>
+=======
+                <label className="block text-sm text-gray-400 mb-2">{t('sendFunds.note')}</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder={t('sendFunds.note_plh')}
+<<<<<<< HEAD
                   className="w-full px-3 md:px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm md:text-base text-white focus:outline-none focus:border-emerald-500/50"
+=======
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 />
               </div>
 
               {msg && (
+<<<<<<< HEAD
                 <p className={`flex items-center gap-2 text-xs md:text-sm ${isSuccess ? "text-emerald-400" : "text-red-400"}`}>
                   {isSuccess ? <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+=======
+                <p className={`flex items-center gap-2 text-sm ${isSuccess ? "text-emerald-400" : "text-red-400"}`}>
+                  {isSuccess ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   {msg}
                 </p>
               )}
@@ -305,14 +410,21 @@ export default function SendFunds({ setActivePage }) {
               <button
                 type="submit"
                 disabled={loading || !amount || parseFloat(amount) <= 0}
+<<<<<<< HEAD
                 className="w-full py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-sm md:text-base font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : <Send className="w-4 h-4 md:w-5 md:h-5" />}
+=======
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 {loading ? t('sendFunds.sending') : t('sendFunds.send', { amount: amount || "0" })}
               </button>
             </form>
           )}
         </div>
+<<<<<<< HEAD
 
         {/* Fund Transfer History */}
         <div className="mt-6 md:mt-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden">
@@ -426,6 +538,8 @@ export default function SendFunds({ setActivePage }) {
             </>
           )}
         </div>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       </div>
     </motion.div>
   );

@@ -2,12 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import Navbar from "../component/Navbar";
 import Button from "../component/Button";
+<<<<<<< HEAD
 import { registerUser, getRegistrationStatus } from "../api/auth.api.js";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { CheckCircle2, Circle, Eye, EyeOff, Rocket } from "lucide-react";
 import api from "../api/axiosInstance.js";
 import { useTranslation } from "react-i18next";
 import loginImg from "../assets/login.jpeg";
+=======
+import { registerUser } from "../api/auth.api.js";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { CheckCircle2, Circle, Eye, EyeOff } from "lucide-react";
+import api from "../api/axiosInstance.js";
+import { useTranslation } from "react-i18next";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 const COUNTRIES = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
@@ -81,7 +89,10 @@ export default function RegisterForm() {
   const [packages, setPackages] = useState([]);
   const [selectedPackageId, setSelectedPackageId] = useState("");
   const [packagesLoading, setPackagesLoading] = useState(true);
+<<<<<<< HEAD
   const [registrationEnabled, setRegistrationEnabled] = useState(true);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const passwordRequirements = useMemo(
     () => [
@@ -105,6 +116,7 @@ export default function RegisterForm() {
   }, [searchParams]);
 
   useEffect(() => {
+<<<<<<< HEAD
     getRegistrationStatus().then((res) => {
       if (res?.data?.enabled === false) {
         setRegistrationEnabled(false);
@@ -115,6 +127,8 @@ export default function RegisterForm() {
   }, []);
 
   useEffect(() => {
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     api.get("v1/investments/packages").then((res) => {
       const data = res.data?.packages || [];
       setPackages(data);
@@ -164,11 +178,14 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     if (!registrationEnabled) {
       setMessage(t("auth.register.regOffDesc"));
       setIsSuccess(false);
       return;
     }
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     const errorMsg = validateForm();
     if (errorMsg) {
       setMessage(errorMsg);
@@ -224,7 +241,11 @@ export default function RegisterForm() {
     }
   };
 
+<<<<<<< HEAD
   const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId || !registrationEnabled;
+=======
+  const isButtonDisabled = loading || !agree || errors.length > 0 || !selectedPackageId;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const fieldClass = "w-full px-4 py-2 border border-white/20 rounded-lg bg-[#0C1035] text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50";
   const labelClass = "block text-sm font-semibold text-gray-300 mb-1";
@@ -235,6 +256,7 @@ export default function RegisterForm() {
   return (
     <>
       <Navbar />
+<<<<<<< HEAD
       <div className="min-h-screen flex items-center justify-center bg-[#0A122C] px-2 xs:px-4 pt-24 pb-12">
         <div className="w-full max-w-6xl rounded-2xl overflow-hidden shadow-2xl shadow-blue-900/40 border border-white/10 flex flex-col lg:flex-row">
           
@@ -280,6 +302,17 @@ export default function RegisterForm() {
                   <p className="mt-1 text-xs text-gray-300">{t("auth.register.regOffDesc")}</p>
                 </div>
               )}
+=======
+      <div className="min-h-screen bg-[#0A122C] px-4 pt-[120px] sm:pt-20 md:pt-28 lg:pt-36 pb-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white">{t("auth.register.title")}</h1>
+            <p className="text-gray-400 mt-2">{t("auth.register.subtitle")}</p>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 shadow-lg rounded-lg p-6">
+            <form className="space-y-6 text-black" onSubmit={handleSubmit}>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
               {/* Package Selection */}
               {packagesLoading ? (
@@ -297,7 +330,11 @@ export default function RegisterForm() {
                     <option value="">{t("auth.register.choosePlan")}</option>
                     {packages.map((pkg) => (
                       <option key={pkg.id} value={pkg.id}>
+<<<<<<< HEAD
                         {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}{t("auth.register.perDay")})
+=======
+                        {pkg.name} — ${Number(pkg.investment_amount).toLocaleString()} (${Number(pkg.daily_payment).toFixed(2)}/day)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       </option>
                     ))}
                   </select>
@@ -516,11 +553,19 @@ export default function RegisterForm() {
                 )}
               </div>
 
+<<<<<<< HEAD
               <div className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   name="agree"
                   className="h-4 w-4 rounded border-gray-300 accent-cyan-500"
+=======
+              <div className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="agree"
+                  className="mt-1 h-4 w-4 rounded border-gray-300 accent-cyan-500"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   checked={agree}
                   onChange={handleAgree}
                 />
@@ -552,7 +597,10 @@ export default function RegisterForm() {
           </div>
         </div>
       </div>
+<<<<<<< HEAD
       </div>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     </>
   );
 }

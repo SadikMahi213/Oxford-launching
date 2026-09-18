@@ -81,6 +81,7 @@ async def _apply_referral_cascade(
     profit_amount: Decimal,
     now_utc: datetime,
 ) -> None:
+<<<<<<< HEAD
     rates = await get_referral_level_rates(db)
 
     # Build parent ancestry chain dynamically from configured levels
@@ -88,6 +89,15 @@ async def _apply_referral_cascade(
     for lvl in range(1, len(rates) + 1):
         ancestor_id = getattr(source_user, f"parent_lvl_{lvl}_id", None)
         parent_ids.append(ancestor_id)
+=======
+    parent_ids = [
+        source_user.parent_lvl_1_id,
+        source_user.parent_lvl_2_id,
+        source_user.parent_lvl_3_id,
+        source_user.parent_lvl_4_id,
+        source_user.parent_lvl_5_id,
+    ]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     active_parent_ids = set()
     parent_rows_result = await db.execute(
@@ -108,6 +118,11 @@ async def _apply_referral_cascade(
     )
     active_parent_ids = set(active_result.scalars().all())
 
+<<<<<<< HEAD
+=======
+    rates = await get_referral_level_rates(db)
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     for level_idx, parent_id in enumerate(parent_ids):
         if not parent_id:
             continue
@@ -253,6 +268,7 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 return False
 
             # Check if investment is already completed
+<<<<<<< HEAD
             # Guard: paid packages snapshot with missing expected_profit (legacy
             # registration rows) must not be falsely completed; keep them active
             # so the dashboard can still detect the active package.
@@ -264,6 +280,8 @@ async def _process_investment_scheduled(investment_id: int, daily_payment: Decim
                 await db.rollback()
                 return False
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             remaining_profit = _to_wallet_precision(
                 investment.expected_profit - investment.profit_earned
             )
@@ -333,17 +351,28 @@ async def run_auto_roi_cycle() -> dict:
     """Credit each active investment with its fixed daily payment once per day."""
     now_utc = datetime.now(timezone.utc)
 
+<<<<<<< HEAD
     # Check UK weekend / admin override for daily_earning, plus ROI 0% = OFF.
     async with AsyncSessionLocal() as db:
         from app.utils.is_system_active import is_daily_earning_enabled
         if not await is_daily_earning_enabled(db):
+=======
+    # Check UK weekend / admin override for daily_earning
+    async with AsyncSessionLocal() as db:
+        from app.utils.is_system_active import is_system_active
+        if not await is_system_active("daily_earning", db):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             logger.info("Auto ROI: daily earning is paused (weekend/system maintenance), skipping cycle")
             return {"processed": 0, "credited": 0}
 
     # Fetch all active investment IDs and their daily payments
     async with AsyncSessionLocal() as db:
         ids_result = await db.execute(
+<<<<<<< HEAD
             select(Investment.id, Investment.daily_payment, Investment.invested_amount)
+=======
+            select(Investment.id, Investment.daily_payment)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             .where(Investment.status == "active")
         )
         investment_rows = list(ids_result.all())
@@ -351,11 +380,17 @@ async def run_auto_roi_cycle() -> dict:
     processed = 0
     credited = 0
 
+<<<<<<< HEAD
     for investment_id, daily_payment, invested_amount in investment_rows:
         if not daily_payment or daily_payment <= 0:
             continue
         if invested_amount <= 0:  # Free package - no ROI to process, keep active
             continue
+=======
+    for investment_id, daily_payment in investment_rows:
+        if not daily_payment or daily_payment <= 0:
+            continue
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         processed += 1
         if await _process_investment_scheduled(investment_id, daily_payment, now_utc):
             credited += 1

@@ -8,6 +8,7 @@ from app.core.security import get_current_user_id
 from app.models.kyc import KYC, DocumentType, KycPackage, PaymentStatus
 from app.models.user import User
 from app.models.system_config import SystemConfig
+<<<<<<< HEAD
 from app.models.wallet_transaction import WalletTransaction, WalletTransactionType, WalletTransactionStatus
 from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
@@ -20,11 +21,17 @@ def _resolve_image_url(stored: str | None) -> str | None:
         return stored
     return generate_presigned_url(stored)
 
+=======
+from app.services.b2_service import upload_to_b2
+from app.utils.notifications import notify_admin
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
+<<<<<<< HEAD
 @router.get("/me")
 async def get_my_kyc(
     db: AsyncSession = Depends(get_db),
@@ -72,6 +79,8 @@ async def get_my_kyc(
     }
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/active-package")
 async def get_active_kyc_package(
     db: AsyncSession = Depends(get_db),
@@ -118,14 +127,21 @@ async def submit_kyc(
     if not full_name or not full_name.strip():
         raise HTTPException(status_code=400, detail="Full name is required")
 
+<<<<<<< HEAD
     # Check if KYC already exists (locked: serializes concurrent resubmits
     # so a retry/double-click cannot deduct the fee twice).
     result = await db.execute(
         select(KYC).where(KYC.user_id == user_id).with_for_update()
+=======
+    # Check if KYC already exists
+    result = await db.execute(
+        select(KYC).where(KYC.user_id == user_id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     existing_kyc = result.scalar_one_or_none()
 
     if existing_kyc:
+<<<<<<< HEAD
         if existing_kyc.status.value == "approved":
             raise HTTPException(status_code=400, detail="KYC already approved")
 
@@ -235,6 +251,9 @@ async def submit_kyc(
             "front_image_url": _resolve_image_url(existing_kyc.front_image_key),
             "back_image_url": _resolve_image_url(existing_kyc.back_image_key) if existing_kyc.back_image_key else None,
         }
+=======
+        raise HTTPException(status_code=400, detail="KYC already submitted")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Check if KYC package is enabled
     pkg_result = await db.execute(
@@ -270,9 +289,12 @@ async def submit_kyc(
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+<<<<<<< HEAD
     # Profile picture is mandatory for KYC (required to compare with NID/passport photo)
     if not user.profile_image_url:
         raise HTTPException(status_code=400, detail="Profile picture is required for KYC verification")
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     deposit_balance = user.deposit_wallet or Decimal("0")
     if total_fee > 0:
@@ -284,6 +306,7 @@ async def submit_kyc(
         user.deposit_wallet = (deposit_balance - total_fee).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
+<<<<<<< HEAD
         user.kyc_hold = (user.kyc_hold or Decimal("0")) + total_fee
 
         wallet_txn = WalletTransaction(
@@ -298,6 +321,8 @@ async def submit_kyc(
             status=WalletTransactionStatus.held,
         )
         db.add(wallet_txn)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Validate NID requires back image
     if document_type == DocumentType.nid and not back_image:
@@ -311,6 +336,7 @@ async def submit_kyc(
 
     front_key = None
     back_key = None
+<<<<<<< HEAD
     front_key = await upload_to_b2(front_image, folder)
     if not front_key:
         raise HTTPException(status_code=500, detail="Failed to upload document image. Please try again.")
@@ -321,6 +347,18 @@ async def submit_kyc(
         user_id=user_id,
         fee_paid=total_fee,
         submission_count=1,
+=======
+    try:
+        front_key = await upload_to_b2(front_image, folder)
+        if back_image:
+            back_key = await upload_to_b2(back_image, folder)
+    except RuntimeError:
+        front_key = None
+        back_key = None
+
+    new_kyc = KYC(
+        user_id=user_id,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         full_name=full_name.strip(),
         country=country,
         phone_number=phone_number,
@@ -348,6 +386,9 @@ async def submit_kyc(
         "status": new_kyc.status,
         "fee_deducted": str(total_fee) if total_fee > 0 else "0",
         "deposit_wallet_balance": str(user.deposit_wallet or Decimal("0")),
+<<<<<<< HEAD
         "front_image_url": _resolve_image_url(new_kyc.front_image_key),
         "back_image_url": _resolve_image_url(new_kyc.back_image_key) if new_kyc.back_image_key else None,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }

@@ -152,6 +152,9 @@ export const adminUpdateEcommerceConfig = (signupBonusArbx, sellerOrderFeePercen
 
 export const adminGetSellerProducts = (sellerId) =>
   api.get(`v1/ecommerce/admin/sellers/${sellerId}/products`, authHeaders());
+<<<<<<< HEAD
 
 export const deleteStore = (sellerId) =>
   api.delete(`v1/ecommerce/seller/store/${sellerId}`, authHeaders());
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

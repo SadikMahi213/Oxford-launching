@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 from app.api.v1 import (
+<<<<<<< HEAD
     marketplace,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     health,
     auth,
     kyc,
@@ -24,15 +27,22 @@ from app.api.v1 import (
     admin_analytics,
     admin_self_analytics,
     tracker,
+<<<<<<< HEAD
+=======
+    admin_notifications,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     admin_security,
     ranks,
     admin_ranks,
     bank_info,
     withdrawal_method,
+<<<<<<< HEAD
     order_management,
     live_stats,
     ledger,
     admin_task_errors,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -60,13 +70,20 @@ api_router.include_router(whatsapp.router)
 api_router.include_router(admin_analytics.router)
 api_router.include_router(admin_self_analytics.router)
 api_router.include_router(tracker.router)
+<<<<<<< HEAD
+=======
+api_router.include_router(admin_notifications.router)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 api_router.include_router(admin_security.router)
 api_router.include_router(ranks.router)
 api_router.include_router(admin_ranks.router)
 api_router.include_router(bank_info.router)
 api_router.include_router(withdrawal_method.router)
+<<<<<<< HEAD
 api_router.include_router(marketplace.router)
 api_router.include_router(order_management.router)
 api_router.include_router(live_stats.router)
 api_router.include_router(ledger.router)
 api_router.include_router(admin_task_errors.router)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

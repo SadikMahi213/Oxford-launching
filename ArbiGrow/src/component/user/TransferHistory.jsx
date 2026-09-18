@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+<<<<<<< HEAD
 import { ArrowLeft, Send, Download, ArrowUpRight, ArrowDownLeft, CalendarDays, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { getTransferHistory } from "../../api/user.api.js";
 import { useTranslation } from "react-i18next";
@@ -90,6 +91,12 @@ function TransferCard({ tr }) {
   );
 }
 
+=======
+import { ArrowLeft, Send, Download, ArrowUpRight, ArrowDownLeft, CalendarDays, FileText } from "lucide-react";
+import { getTransferHistory } from "../../api/user.api.js";
+import { useTranslation } from "react-i18next";
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 export default function TransferHistory({ setActivePage }) {
   const { t } = useTranslation();
   const [data, setData] = useState({ sent: [], received: [] });
@@ -103,10 +110,17 @@ export default function TransferHistory({ setActivePage }) {
       .finally(() => setLoading(false));
   }, []);
 
+<<<<<<< HEAD
   const all = [...(data.sent || []).map((tr) => ({ ...tr, dir: "sent" })), ...(data.received || []).map((tr) => ({ ...tr, dir: "received" }))]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const filtered = tab === "all" ? all : tab === "sent" ? all.filter((tr) => tr.dir === "sent") : all.filter((tr) => tr.dir === "received");
+=======
+  const all = [...(data.sent || []).map((t) => ({ ...t, dir: "sent" })), ...(data.received || []).map((t) => ({ ...t, dir: "received" }))]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const filtered = tab === "all" ? all : tab === "sent" ? all.filter((t) => t.dir === "sent") : all.filter((t) => t.dir === "received");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen p-4 md:p-6">
@@ -148,8 +162,47 @@ export default function TransferHistory({ setActivePage }) {
             </div>
 
             <div className="space-y-2">
+<<<<<<< HEAD
               {filtered.map((tr) => (
                 <TransferCard key={`${tr.dir}-${tr.id}`} tr={tr} />
+=======
+              {filtered.map((t) => (
+                <motion.div
+                  key={`${t.dir}-${t.id}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      t.dir === "sent" ? "bg-red-500/10" : "bg-emerald-500/10"
+                    }`}>
+                      {t.dir === "sent" ? (
+                        <ArrowUpRight className="w-5 h-5 text-red-400" />
+                      ) : (
+                        <ArrowDownLeft className="w-5 h-5 text-emerald-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-medium text-sm truncate">
+                        {t.dir === "sent" ? t("transferHistory.to", { name: t.receiver_name || t("transferHistory.user", { id: t.receiver_id }) }) : t("transferHistory.from", { name: t.sender_name || t("transferHistory.user", { id: t.sender_id }) })}
+                      </p>
+                      {t.note && (
+                        <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-0.5">
+                          <FileText className="w-3 h-3" /> {t.note}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                        <CalendarDays className="w-3 h-3" />
+                        {new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`text-right flex-shrink-0 ${t.dir === "sent" ? "text-red-400" : "text-emerald-400"}`}>
+                    <p className="font-bold">{t.dir === "sent" ? "-" : "+"}{t.amount.toFixed(2)} USDT</p>
+                  </div>
+                </motion.div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               ))}
             </div>
           </>

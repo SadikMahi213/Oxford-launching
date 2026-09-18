@@ -9,6 +9,7 @@ from alembic import context
 
 from app.core.config import settings
 from app.core.base import Base
+<<<<<<< HEAD
 
 # Import ALL models to ensure all tables/columns are detected for autogenerate
 from app.models import (
@@ -44,6 +45,9 @@ from app.models import (
     EcommerceWalletTransaction, OrderAttachment,
     WalletAuditLog, DeliveryZone,
 )
+=======
+from app.models import User, Seller, Product, Order, OrderItem, EcommerceConfig, SystemConfig, MiningLog, CaptchaChallenge, CaptchaEarning, AdView, Ad, UserAdView, Invoice, VisitorLog, AdminNotification, Rank, RankHistory, MatchingBonus, BankInfo
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 config = context.config
 

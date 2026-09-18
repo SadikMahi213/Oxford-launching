@@ -1,4 +1,5 @@
 import hashlib
+<<<<<<< HEAD
 import secrets
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
@@ -9,6 +10,14 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+=======
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
+from app.core.config import settings
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import OAuth2PasswordBearer
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
@@ -38,7 +47,10 @@ def create_access_token(data: dict, expires_minutes: int | None = None) -> str:
         )
 
     to_encode.update({"exp": expire})
+<<<<<<< HEAD
     to_encode.update({"jti": secrets.token_hex(16)})
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     return jwt.encode(
         to_encode,
@@ -64,7 +76,10 @@ def _extract_token(request: Request) -> str | None:
 async def get_current_user_id(
     request: Request,
     token: str | None = Depends(oauth2_scheme),
+<<<<<<< HEAD
     db: AsyncSession = Depends(get_db),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 ) -> int:
     raw = token or _extract_token(request)
     if not raw:
@@ -78,6 +93,7 @@ async def get_current_user_id(
     if user_id is None:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+<<<<<<< HEAD
     jti = payload.get("jti")
     if jti:
         # Reuse the request DB session (same instance FastAPI already
@@ -184,3 +200,18 @@ async def blacklist_access_token(token: str, db: AsyncSession) -> None:
         return
     db.add(TokenBlacklist(jti=jti, expires_at=expires_at))
     await db.commit()
+=======
+    return int(user_id)
+
+
+def verify_password_reset_token(token: str) -> int:
+    payload = _decode_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    if payload.get("type") != "password_reset":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return int(user_id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

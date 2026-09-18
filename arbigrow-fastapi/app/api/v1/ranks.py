@@ -37,6 +37,7 @@ async def get_my_rank(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     """Return the current user's rank info and next rank target.
 
     Team Volume (own deposit + up to 10 generations of descendants) ALWAYS
@@ -101,10 +102,35 @@ async def get_my_rank(
         r for r in active_ranks if r.target_volume > team_volume
     ]
     next_rank = min(upcoming, key=lambda r: r.sort_order) if upcoming else None
+=======
+    """Return the current user's rank info and next rank target."""
+    current_rank = None
+    if current_user.current_rank_id:
+        current_rank = await db.get(Rank, current_user.current_rank_id)
+
+    next_rank_result = await db.execute(
+        select(Rank)
+        .where(
+            Rank.is_active == True,
+            Rank.target_volume > (current_user.team_volume or 0),
+        )
+        .order_by(Rank.sort_order.asc())
+        .limit(1)
+    )
+    next_rank = next_rank_result.scalar_one_or_none()
+
+    # Compute user's own approved deposits
+    personal_result = await db.execute(
+        select(func.coalesce(func.sum(Deposit.amount), 0))
+        .where(Deposit.user_id == current_user.id, Deposit.status == "approved")
+    )
+    personal_volume = Decimal(str(personal_result.scalar()))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Compute total matching bonus earned
     total_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+<<<<<<< HEAD
         .where(
             MatchingBonus.user_id == current_user.id,
             MatchingBonus.is_reversed == False,
@@ -164,6 +190,23 @@ async def get_my_rank(
         "post_kyc_team_volume": str(post_kyc_volume) if post_kyc_volume is not None else None,
         "total_matching_bonus_earned": str(total_matching_bonus),
         "remaining_volume": str(max(0, next_target - team_volume)),
+=======
+        .where(MatchingBonus.user_id == current_user.id)
+    )
+    total_matching_bonus = total_result.scalar() or Decimal("0")
+
+    team_volume = current_user.team_volume or Decimal("0")
+    next_target = next_rank.target_volume if next_rank else Decimal("0")
+
+    return {
+        "user_no": current_user.user_no,
+        "current_rank": RankResponse.model_validate(current_rank) if current_rank else None,
+        "next_rank": RankResponse.model_validate(next_rank) if next_rank else None,
+        "personal_volume": str(personal_volume),
+        "team_volume": str(team_volume),
+        "total_matching_bonus_earned": str(total_matching_bonus),
+        "remaining_volume": str(max(Decimal("0"), next_target - team_volume)),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "next_target_volume": str(next_target),
         "progress": (
             float(team_volume) / float(next_target) * 100
@@ -178,6 +221,7 @@ async def get_my_rank_history(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     from app.utils.kyc_helper import is_kyc_approved
 
     if not await is_kyc_approved(current_user, db):
@@ -189,18 +233,29 @@ async def get_my_rank_history(
             RankHistory.user_id == current_user.id,
             RankHistory.status != "reversed",
         )
+=======
+    result = await db.execute(
+        select(RankHistory)
+        .options(joinedload(RankHistory.user))
+        .where(RankHistory.user_id == current_user.id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         .order_by(RankHistory.created_at.desc())
     )
     return result.scalars().all()
 
 
+<<<<<<< HEAD
 @router.get("/my-bonuses")
+=======
+@router.get("/my-bonuses", response_model=list[MatchingBonusResponse])
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def get_my_matching_bonuses(
     page: int = Query(1, ge=1),
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     from app.utils.kyc_helper import is_kyc_approved
 
     if not await is_kyc_approved(current_user, db):
@@ -212,10 +267,17 @@ async def get_my_matching_bonuses(
             MatchingBonus.user_id == current_user.id,
             MatchingBonus.is_reversed == False,
         )
+=======
+    result = await db.execute(
+        select(MatchingBonus)
+        .options(joinedload(MatchingBonus.user), joinedload(MatchingBonus.source_user))
+        .where(MatchingBonus.user_id == current_user.id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         .order_by(MatchingBonus.created_at.desc())
         .offset((page - 1) * limit)
         .limit(limit)
     )
+<<<<<<< HEAD
     bonuses = result.scalars().all()
     return [
         {
@@ -238,3 +300,6 @@ async def get_my_matching_bonuses(
         }
         for b in bonuses
     ]
+=======
+    return result.scalars().all()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

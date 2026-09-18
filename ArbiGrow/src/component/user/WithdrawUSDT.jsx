@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import { AlertTriangle, ArrowUpRight, Building2, ChevronDown, Copy, Send, CheckCircle, Smartphone } from "lucide-react";
+=======
+import { AlertTriangle, Building2, ChevronDown, Copy, Send, CheckCircle, Smartphone } from "lucide-react";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
 import {
@@ -11,7 +15,10 @@ import {
   refreshUserStore,
 } from "../../api/user.api.js";
 import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
+<<<<<<< HEAD
 import TransactionDetailModal from "./TransactionDetailModal.jsx";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 const MAIN_WALLET_BUFFER_RATE = 0.01;
 
@@ -42,6 +49,7 @@ const getStatusColor = (status) => {
     case "rejected":
       return "text-red-400 bg-red-500/10 border-red-500/30";
     default:
+<<<<<<< HEAD
         return "text-gray-400 bg-gray-500/10 border-gray-500/30";
   }
 };
@@ -55,6 +63,9 @@ const getStatusLabel = (status, t) => {
       return t('withdraw.status_approved');
     default:
       return status;
+=======
+      return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   }
 };
 
@@ -64,6 +75,10 @@ const getErrorMessage = (error) =>
   error?.message;
 
 const INITIAL_FIELD_ERRORS = {
+<<<<<<< HEAD
+=======
+  wallet: "",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   amount: "",
   method: "",
   destination: "",
@@ -77,6 +92,10 @@ const getApiFieldErrors = (error) => {
   details.forEach((item) => {
     const field = item?.loc?.[item.loc.length - 1];
     const message = typeof item?.msg === "string" ? item.msg : "Invalid value";
+<<<<<<< HEAD
+=======
+    if (field === "source_wallet") { mapped.wallet = message; hasMappedError = true; }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if (field === "amount") { mapped.amount = message; hasMappedError = true; }
     if (field === "withdrawal_method_id") { mapped.method = message; hasMappedError = true; }
     if (field === "destination_address") { mapped.destination = message; hasMappedError = true; }
@@ -88,6 +107,10 @@ export default function WithdrawPage() {
   const { t } = useTranslation();
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
+<<<<<<< HEAD
+=======
+  const [selectedWalletKey, setSelectedWalletKey] = useState("");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -95,10 +118,15 @@ export default function WithdrawPage() {
   const [fieldErrors, setFieldErrors] = useState(INITIAL_FIELD_ERRORS);
   const [feedback, setFeedback] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
+<<<<<<< HEAD
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [bankInfo, setBankInfo] = useState(null);
   const [methods, setMethods] = useState([]);
   const [globalMinWithdrawal, setGlobalMinWithdrawal] = useState(10);
+=======
+  const [bankInfo, setBankInfo] = useState(null);
+  const [methods, setMethods] = useState([]);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [selectedMethodId, setSelectedMethodId] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
   const [accountType, setAccountType] = useState("personal");
@@ -109,6 +137,7 @@ export default function WithdrawPage() {
     return () => clearTimeout(timer);
   }, [feedback]);
 
+<<<<<<< HEAD
   const mainWalletBalance = toNumber(user?.main_wallet);
 
   const selectedWallet = useMemo(
@@ -125,6 +154,31 @@ export default function WithdrawPage() {
 
   const selectedMethod = useMemo(
     () => methods.find((m) => String(m.id) === selectedMethodId),
+=======
+  const walletOptions = useMemo(
+    () => [
+      { key: "main_wallet", label: t('withdraw.mainWallet'), balance: toNumber(user?.main_wallet) },
+      { key: "referral_wallet", label: t('withdraw.referralWallet'), balance: toNumber(user?.referral_wallet) },
+      { key: "generation_wallet", label: t('withdraw.generationWallet'), balance: toNumber(user?.generation_wallet) },
+      { key: "captcha_wallet", label: t('withdraw.captchaWallet'), balance: toNumber(user?.captcha_wallet) },
+      { key: "ad_view_wallet", label: t('withdraw.adWallet'), balance: toNumber(user?.ad_view_wallet) },
+    ],
+    [user],
+  );
+
+  const selectedWallet = useMemo(
+    () => walletOptions.find((w) => w.key === selectedWalletKey),
+    [walletOptions, selectedWalletKey],
+  );
+
+  const walletLabelMap = useMemo(
+    () => new Map(walletOptions.map((w) => [w.key, w.label])),
+    [walletOptions],
+  );
+
+  const selectedMethod = useMemo(
+    () => methods.find((m) => m.id === selectedMethodId),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     [methods, selectedMethodId],
   );
 
@@ -133,6 +187,11 @@ export default function WithdrawPage() {
     return Number.isNaN(p) || p <= 0 ? 0 : p;
   }, [amount]);
 
+<<<<<<< HEAD
+=======
+  const EARNING_WALLETS = new Set(["captcha_wallet", "ad_view_wallet"]);
+  const mainWalletBalance = toNumber(user?.main_wallet);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const requiredMainWalletBalance = useMemo(
     () => amountNumber * (1 + MAIN_WALLET_BUFFER_RATE),
     [amountNumber],
@@ -141,6 +200,7 @@ export default function WithdrawPage() {
     () => Math.max(requiredMainWalletBalance - mainWalletBalance, 0),
     [requiredMainWalletBalance, mainWalletBalance],
   );
+<<<<<<< HEAD
   const hasEnoughMainWalletBalance = amountNumber <= 0 || mainWalletShortfall === 0;
 
   const hasApprovedBank = bankInfo?.status === "approved";
@@ -149,6 +209,14 @@ export default function WithdrawPage() {
     selectedMethod?.min_amount ? Number(selectedMethod.min_amount) : 10,
     globalMinWithdrawal > 0 ? globalMinWithdrawal : 10,
   );
+=======
+  const hasEnoughMainWalletBalance =
+    amountNumber <= 0 || EARNING_WALLETS.has(selectedWalletKey) || mainWalletShortfall === 0;
+
+  const hasApprovedBank = bankInfo?.status === "approved";
+
+  const minAmount = selectedMethod?.min_amount ? Number(selectedMethod.min_amount) : 10;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const maxAmount = selectedMethod?.max_amount ? Number(selectedMethod.max_amount) : 700;
   const fixedFee = selectedMethod?.fixed_fee ? Number(selectedMethod.fixed_fee) : 0;
   const percentFee = selectedMethod?.percent_fee ? Number(selectedMethod.percent_fee) : 0;
@@ -171,8 +239,11 @@ export default function WithdrawPage() {
         setWithdrawals(withdrawalsResponse?.data?.data || []);
         setBankInfo(bankRes?.data?.data || null);
         setMethods(methodRes?.data?.data || []);
+<<<<<<< HEAD
         const globalMin = Number(methodRes?.data?.global_min_withdrawal_amount);
         if (globalMin > 0) setGlobalMinWithdrawal(globalMin);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       } catch (error) {
         setFeedback({ type: "error", message: getErrorMessage(error) || t('withdraw.err_general') });
         setWithdrawals([]);
@@ -188,13 +259,21 @@ export default function WithdrawPage() {
     setFeedback(null);
     const kycStatus = user?.kyc_status;
     if (!kycStatus || kycStatus !== "approved") {
+<<<<<<< HEAD
       setFeedback({ type: "error", message: t('withdraw.err_kyc') });
+=======
+      setFeedback({ type: "error", message: "KYC verification required. Please complete KYC verification before withdrawing." });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       return;
     }
     const nextFieldErrors = {};
     const normalizedAmount = amount.trim();
     const parsedAmount = Number(normalizedAmount);
 
+<<<<<<< HEAD
+=======
+    if (!selectedWalletKey) nextFieldErrors.wallet = t('withdraw.err_field');
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if (!normalizedAmount) {
       nextFieldErrors.amount = t('withdraw.err_field');
     } else if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -217,7 +296,11 @@ export default function WithdrawPage() {
     }
     if (selectedMethod?.method_type === "mobile") {
       const dest = destinationAddress.trim();
+<<<<<<< HEAD
       if (!dest || dest.length < 5) nextFieldErrors.destination = t('withdraw.err_mobile');
+=======
+      if (!dest || dest.length < 5) nextFieldErrors.destination = "Invalid mobile number";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
     if (Object.values(nextFieldErrors).some(Boolean)) {
@@ -247,7 +330,11 @@ export default function WithdrawPage() {
       }
 
       if (selectedMethod.method_type === "bank" && !hasApprovedBank) {
+<<<<<<< HEAD
         setFeedback({ type: "error", message: t('withdraw.err_banking') });
+=======
+        setFeedback({ type: "error", message: "Please complete your Banking Setup before requesting a withdrawal." });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         setIsSubmitting(false);
         return;
       }
@@ -260,7 +347,11 @@ export default function WithdrawPage() {
         const wRes = await getMyWithdrawals();
         setWithdrawals(wRes?.data?.data || []);
       }
+<<<<<<< HEAD
       setFeedback({ type: "success", title: t('withdraw.successTitle'), message: t('withdraw.successMessage') });
+=======
+      setFeedback({ type: "success", message: t('withdraw.success') });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       setFieldErrors(INITIAL_FIELD_ERRORS);
       setAmount("");
       setNote("");
@@ -277,6 +368,7 @@ export default function WithdrawPage() {
 
   const copyAddress = (value) => navigator.clipboard.writeText(value);
 
+<<<<<<< HEAD
   const renderWithdrawalDetailModal = () => {
     if (!selectedWithdrawal) return null;
 
@@ -328,6 +420,8 @@ export default function WithdrawPage() {
     );
   };
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   return (
     <div className="space-y-6 p-6">
       <KycWarningBanner />
@@ -340,6 +434,7 @@ export default function WithdrawPage() {
         <p className="text-sm text-gray-400">{t('withdraw.subtitle')}</p>
       </div>
 
+<<<<<<< HEAD
       {/* Main Wallet Display */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-6 backdrop-blur-xl">
         <h3 className="mb-4 text-lg font-semibold">{t('withdraw.withdrawFrom')}</h3>
@@ -355,6 +450,40 @@ export default function WithdrawPage() {
 
       {/* Withdrawal Form */}
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-6 backdrop-blur-xl">
+=======
+      {/* Wallet Selection */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.selectWallet')}</h3>
+        <div className="relative">
+          <select
+            value={selectedWalletKey}
+            onChange={(e) => { setSelectedWalletKey(e.target.value); setFieldErrors((p) => ({ ...p, wallet: "" })); }}
+            className={`w-full appearance-none rounded-xl border bg-[#0A122C] px-4 py-3 text-white ${fieldErrors.wallet ? "border-red-500/60" : "border-white/10"}`}
+          >
+            <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>{t('withdraw.selectWallet_plh')}</option>
+            {walletOptions.map((w) => (
+              <option key={w.key} value={w.key} style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
+                {w.label} ({w.balance.toFixed(7)})
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
+        {fieldErrors.wallet && <p className="mt-2 text-xs text-red-300">{fieldErrors.wallet}</p>}
+
+        {selectedWallet && (
+          <div className="mt-4 space-y-3">
+            <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+              <p className="text-sm text-gray-400">{t('withdraw.availableBalance')}</p>
+              <p className="text-lg font-semibold text-cyan-400">{t('withdraw.balance', { balance: selectedWallet.balance.toFixed(7) })}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Withdrawal Form */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         <h3 className="mb-4 text-lg font-semibold">{t('withdraw.submit')}</h3>
         <form className="space-y-4" onSubmit={handleSubmitWithdraw}>
           {/* Method Selection */}
@@ -364,7 +493,11 @@ export default function WithdrawPage() {
               onChange={(e) => { setSelectedMethodId(e.target.value); setFieldErrors((p) => ({ ...p, method: "", destination: "" })); setDestinationAddress(""); }}
               className={`w-full appearance-none rounded-xl border bg-[#0A122C] px-4 py-3 text-white ${fieldErrors.method ? "border-red-500/60" : "border-white/10"}`}
             >
+<<<<<<< HEAD
               <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>{t('withdraw.selectMethod_plh')}</option>
+=======
+              <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>Select withdrawal method</option>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               {methods.map((m) => (
                 <option key={m.id} value={m.id} style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
                   {m.display_name}
@@ -386,6 +519,7 @@ export default function WithdrawPage() {
           {selectedMethod?.method_type === "bank" && hasApprovedBank && (
             <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 p-4">
               <div className="flex items-center gap-2 text-sm text-gray-300 font-semibold mb-2">
+<<<<<<< HEAD
                 <Building2 className="w-4 h-4 text-cyan-400" /> {t('withdraw.destinationBankAccount')}
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
@@ -393,25 +527,46 @@ export default function WithdrawPage() {
                 <span className="text-gray-500">{t('withdraw.accountLabel')}</span><span className="text-white">{bankInfo.account_number}</span>
                 <span className="text-gray-500">{t('withdraw.holderLabel')}</span><span className="text-white">{bankInfo.account_holder_name}</span>
                 <span className="text-gray-500">{t('withdraw.swiftLabel')}</span><span className="text-white">{bankInfo.swift_code}</span>
+=======
+                <Building2 className="w-4 h-4 text-cyan-400" /> Destination Bank Account
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <span className="text-gray-500">Bank:</span><span className="text-white">{bankInfo.bank_name}</span>
+                <span className="text-gray-500">Account:</span><span className="text-white">{bankInfo.account_number}</span>
+                <span className="text-gray-500">Holder:</span><span className="text-white">{bankInfo.account_holder_name}</span>
+                <span className="text-gray-500">SWIFT:</span><span className="text-white">{bankInfo.swift_code}</span>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               </div>
             </div>
           )}
 
           {selectedMethod?.method_type === "bank" && !hasApprovedBank && (
             <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+<<<<<<< HEAD
               <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> <span dangerouslySetInnerHTML={{ __html: t('withdraw.bankingWarning') }} /></p>
+=======
+              <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Please complete your <strong>Banking Setup</strong> before requesting a withdrawal.</p>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             </div>
           )}
 
           {/* Network address input */}
           {selectedMethod?.method_type === "network" && (
             <div>
+<<<<<<< HEAD
               <label className="mb-1 block text-sm text-gray-400">{t('withdraw.destinationAddress')}</label>
+=======
+              <label className="mb-1 block text-sm text-gray-400">Destination Address</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <input
                 value={destinationAddress}
                 onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
                 className={`w-full rounded-xl border bg-white/5 px-4 py-3 font-mono text-sm ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
+<<<<<<< HEAD
                 placeholder={t('withdraw.networkAddress_plh')}
+=======
+                placeholder="Enter your wallet address"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               />
               {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
             </div>
@@ -421,31 +576,51 @@ export default function WithdrawPage() {
           {selectedMethod?.method_type === "mobile" && (
             <div className="space-y-3">
               <div>
+<<<<<<< HEAD
                 <label className="mb-1 block text-sm text-gray-400">{t('withdraw.mobileNumber')}</label>
+=======
+                <label className="mb-1 block text-sm text-gray-400">Mobile Number</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <input
                   value={destinationAddress}
                   onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
                   className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
+<<<<<<< HEAD
                   placeholder={t('withdraw.mobile_plh')}
+=======
+                  placeholder="e.g. 01XXXXXXXXX"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 />
                 {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
               </div>
               <div>
+<<<<<<< HEAD
                 <label className="mb-1 block text-sm text-gray-400">{t('withdraw.accountType')}</label>
+=======
+                <label className="mb-1 block text-sm text-gray-400">Account Type</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setAccountType("personal")}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "personal" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
                   >
+<<<<<<< HEAD
                     <Smartphone className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountPersonal')}
+=======
+                    <Smartphone className="inline-block w-4 h-4 mr-1" /> Personal
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   </button>
                   <button
                     type="button"
                     onClick={() => setAccountType("agent")}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "agent" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
                   >
+<<<<<<< HEAD
                     <Building2 className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountAgent')}
+=======
+                    <Building2 className="inline-block w-4 h-4 mr-1" /> Agent
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   </button>
                 </div>
               </div>
@@ -484,7 +659,11 @@ export default function WithdrawPage() {
             </div>
           )}
 
+<<<<<<< HEAD
           {amountNumber > 0 && (
+=======
+          {amountNumber > 0 && !EARNING_WALLETS.has(selectedWalletKey) && (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             <div className={`rounded-xl border px-4 py-3 text-sm ${hasEnoughMainWalletBalance ? "border-green-500/30 bg-green-500/10 text-green-200" : "border-red-500/30 bg-red-500/10 text-red-200"}`}>
               <p>{t('withdraw.mainRequired', { amount: requiredMainWalletBalance.toFixed(7) })}</p>
               <p>{t('withdraw.mainAvailable', { balance: mainWalletBalance.toFixed(7) })}</p>
@@ -513,25 +692,43 @@ export default function WithdrawPage() {
 
       {/* History */}
       <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl">
+<<<<<<< HEAD
         <div className="border-b border-white/10 p-3 sm:p-6">
           <h3 className="text-lg font-semibold">{t('withdraw.history')}</h3>
         </div>
         <div className="responsive-table-wrapper hidden md:block">
+=======
+        <div className="border-b border-white/10 p-6">
+          <h3 className="text-lg font-semibold">{t('withdraw.history')}</h3>
+        </div>
+        <div className="overflow-x-auto">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.date')}</th>
+<<<<<<< HEAD
                 <th className="p-4 text-left text-sm text-gray-400">Gross / Fee / Net</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.refId')}</th>
+=======
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.amount')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.address')}</th>
                 <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.status')}</th>
               </tr>
             </thead>
             <tbody>
+<<<<<<< HEAD
               {isLoading && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.loadingHistory')}</td></tr>}
               {!isLoading && withdrawals.length === 0 && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.noHistory')}</td></tr>}
+=======
+              {isLoading && <tr><td colSpan="6" className="p-6 text-center text-gray-400">{t('withdraw.loadingHistory')}</td></tr>}
+              {!isLoading && withdrawals.length === 0 && <tr><td colSpan="6" className="p-6 text-center text-gray-400">{t('withdraw.noHistory')}</td></tr>}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               {withdrawals.map((w) => {
                 const address = w.destination_address || "-";
                 const isLong = address.length > 20;
@@ -539,6 +736,7 @@ export default function WithdrawPage() {
                 return (
                   <tr key={w.id} className="border-b border-white/5 hover:bg-white/5">
                     <td className="p-4 text-gray-400">{formatDate(w.created_at)}</td>
+<<<<<<< HEAD
                     <td className="p-4 text-xs leading-tight">
                       <div className="font-semibold text-white">Gross: {formatAmount(w.gross_amount ?? w.amount)} USDT</div>
                       <div className="text-amber-300">Fee: {formatAmount(w.charge ?? 0)} USDT</div>
@@ -554,17 +752,28 @@ export default function WithdrawPage() {
                       ) : "-"}
                     </td>
                     <td className="p-4">
+=======
+                    <td className="p-4 font-semibold">{formatAmount(w.amount)} USDT</td>
+                    <td className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
+                    <td className="p-4 text-gray-400">{w.network_name || "-"}</td>
+                    <td className="p-4">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       <button onClick={() => copyAddress(address)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
                         {label} <Copy size={14} />
                       </button>
                     </td>
+<<<<<<< HEAD
                     <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{getStatusLabel(w.status, t)}</span></td>
+=======
+                    <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{w.status}</span></td>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+<<<<<<< HEAD
 
         {/* Mobile: compact history cards */}
         <div className="md:hidden px-3 pb-3">
@@ -670,6 +879,10 @@ export default function WithdrawPage() {
 
       {renderWithdrawalDetailModal()}
 
+=======
+      </div>
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       <StatusFeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
     </div>
   );

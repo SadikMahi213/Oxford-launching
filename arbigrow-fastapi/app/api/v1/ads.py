@@ -3,7 +3,11 @@ from datetime import datetime, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+<<<<<<< HEAD
 from sqlalchemy import select, func, and_, or_, update
+=======
+from sqlalchemy import select, func, and_
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -16,6 +20,7 @@ from app.models.user_ad_view import UserAdView
 from app.models.package import TaskType
 from app.schemas.captcha import CaptchaStatsResponse
 from app.core.rate_limiter import limiter
+<<<<<<< HEAD
 from app.api.v1.deps import check_earning_access_by_id
 from app.utils.is_system_active import require_daily_earning
 from app.services.b2_service import generate_presigned_url
@@ -27,12 +32,15 @@ from app.services.task_error_service import (
     ERR_AD_INSUFFICIENT_TIME,
     ERR_AD_DUPLICATE_VIEW,
 )
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 router = APIRouter(prefix="/ads", tags=["Ads"])
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
+<<<<<<< HEAD
 def _resolve_thumbnail_url(stored: str | None) -> str | None:
     if not stored:
         return None
@@ -41,6 +49,8 @@ def _resolve_thumbnail_url(stored: str | None) -> str | None:
     return generate_presigned_url(stored, expires_in=604800)
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 def _get_ad_investment(investments: list[Investment]) -> Investment | None:
     for inv in investments:
         if inv.package_name and True:
@@ -55,12 +65,15 @@ async def start_ad(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     await check_earning_access_by_id(user_id, db)
     await require_daily_earning(db)
     task_access = await check_task_access(db, user_id)
     if not task_access["allowed"]:
         raise HTTPException(403, detail=task_access["reason"])
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     inv_result = await db.execute(
         select(Investment).where(
             and_(
@@ -78,7 +91,11 @@ async def start_ad(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
+=======
+        if pkg and pkg.task_type == TaskType.ad_view:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             ad_investments.append((inv, pkg))
     if not ad_investments:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
@@ -97,14 +114,20 @@ async def start_ad(
     if total_typed >= total_limit:
         raise HTTPException(400, detail="Daily ad view limit reached. Come back tomorrow.")
 
+<<<<<<< HEAD
     # Resume only live sessions: ended ones (completed_at set without
     # completion) are terminal and must not become rewardable later.
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     existing = await db.execute(
         select(AdView).where(
             and_(
                 AdView.user_id == user_id,
                 AdView.is_completed == False,
+<<<<<<< HEAD
                 AdView.completed_at.is_(None),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             )
         )
     )
@@ -119,7 +142,11 @@ async def start_ad(
             "ad_id": active_session.ad_id,
             "video_id": ad_info.video_id if ad_info else None,
             "title": ad_info.title if ad_info else None,
+<<<<<<< HEAD
             "thumbnail": _resolve_thumbnail_url(ad_info.thumbnail) if ad_info else None,
+=======
+            "thumbnail": ad_info.thumbnail if ad_info else None,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             "duration_seconds": package.ad_duration_seconds,
             "required_watch_seconds": ad_info.required_watch_seconds if ad_info else package.ad_duration_seconds,
             "started_at": active_session.started_at.isoformat(),
@@ -136,6 +163,7 @@ async def start_ad(
     if not all_ads:
         raise HTTPException(400, detail="No ads available. Please check back later.")
 
+<<<<<<< HEAD
     # Prefer ads not yet consumed today: an exited or completed ad must not
     # come back as available while fresh ads exist. Fall back to the full
     # pool when everything is consumed so the daily earning limit stays
@@ -160,6 +188,9 @@ async def start_ad(
     # Increment counter when a new ad is assigned (task delivered).
     # This ensures failed/abandoned ads still count toward the daily limit.
     investment.captchas_typed_today = (investment.captchas_typed_today or 0) + 1
+=======
+    selected_ad = all_ads[0] if len(all_ads) == 1 else random.choice(all_ads)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     ad_view = AdView(
         user_id=user_id,
@@ -177,7 +208,11 @@ async def start_ad(
         "ad_id": selected_ad.id,
         "video_id": selected_ad.video_id,
         "title": selected_ad.title,
+<<<<<<< HEAD
         "thumbnail": _resolve_thumbnail_url(selected_ad.thumbnail),
+=======
+        "thumbnail": selected_ad.thumbnail,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "duration_seconds": package.ad_duration_seconds,
         "required_watch_seconds": selected_ad.required_watch_seconds,
         "started_at": ad_view.started_at.isoformat(),
@@ -192,26 +227,36 @@ async def complete_ad(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     await check_earning_access_by_id(user_id, db)
     await require_daily_earning(db)
     # Row-lock the session so concurrent duplicate completes serialize:
     # exactly one of them can transition it.
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(
         select(AdView).where(
             and_(
                 AdView.id == ad_view_id,
                 AdView.user_id == user_id,
             )
+<<<<<<< HEAD
         ).with_for_update()
+=======
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     ad_view = result.scalars().first()
     if not ad_view:
         raise HTTPException(404, detail="Ad view session not found")
     if ad_view.is_completed:
         raise HTTPException(400, detail="Ad already completed")
+<<<<<<< HEAD
     if ad_view.completed_at is not None:
         # Session already ended (early exit): never rewardable, no new penalty.
         raise HTTPException(400, detail="Ad session already ended")
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     now = datetime.now(timezone.utc)
     elapsed = (now - ad_view.started_at).total_seconds()
@@ -223,6 +268,7 @@ async def complete_ad(
         if ad and ad.required_watch_seconds:
             required_seconds = ad.required_watch_seconds
     if elapsed < required_seconds:
+<<<<<<< HEAD
         attempt = await log_task_attempt(
             db, user_id, "ad_view", status="failed",
             reference_id=ad_view.id, reference_type="AdView",
@@ -238,6 +284,8 @@ async def complete_ad(
         # become rewardable merely because wall-clock time has passed.
         ad_view.completed_at = now
         await db.commit()
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(400, detail=f"Please watch at least {required_seconds} seconds of the ad.")
 
     user_result = await db.execute(
@@ -264,7 +312,11 @@ async def complete_ad(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
+=======
+        if pkg and pkg.task_type == TaskType.ad_view:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             ad_investments.append((inv, pkg))
     if not ad_investments:
         raise HTTPException(400, detail="Your active package does not support ad view tasks.")
@@ -275,12 +327,19 @@ async def complete_ad(
             inv.captchas_typed_today = 0
             inv.last_captcha_date = today
 
+<<<<<<< HEAD
     await log_task_attempt(
         db, user_id, "ad_view", status="completed",
         reference_id=ad_view.id, reference_type="AdView",
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent", ""),
     )
+=======
+    total_typed = sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
+    total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
+    if total_typed >= total_limit:
+        raise HTTPException(400, detail="Daily ad view limit reached")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     earned = (ad_investments[0][1].earn_per_captcha or Decimal("0")).quantize(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
@@ -289,6 +348,11 @@ async def complete_ad(
         WALLET_PRECISION, rounding=ROUND_HALF_UP
     )
 
+<<<<<<< HEAD
+=======
+    ad_investments[0][0].captchas_typed_today = (ad_investments[0][0].captchas_typed_today or 0) + 1
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     ad_view.is_completed = True
     ad_view.completed_at = now
     ad_view.amount_earned = earned
@@ -319,7 +383,10 @@ async def complete_ad(
             )
             db.add(uav)
 
+<<<<<<< HEAD
     total_limit = sum(pkg.daily_captcha_limit or 0 for _, pkg in ad_investments)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     remaining = total_limit - sum(inv.captchas_typed_today or 0 for inv, _ in ad_investments)
 
     await db.commit()
@@ -333,6 +400,7 @@ async def complete_ad(
     }
 
 
+<<<<<<< HEAD
 @router.post("/abandon")
 @limiter.limit("12/minute")
 async def abandon_ad(
@@ -374,6 +442,8 @@ async def abandon_ad(
     return {"success": True, "ended": ended}
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/stats", response_model=CaptchaStatsResponse)
 @limiter.limit("30/minute")
 async def get_ad_stats(
@@ -408,7 +478,11 @@ async def get_ad_stats(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.ad_view:
+=======
+        if pkg and pkg.task_type == TaskType.ad_view:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             ad_investments.append((inv, pkg))
     if not ad_investments:
         return zero_stats
@@ -452,6 +526,7 @@ async def get_ad_stats(
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,
     )
+<<<<<<< HEAD
 
 
 @router.get("/my-history")
@@ -481,3 +556,5 @@ async def get_my_ad_history(
             for v in views
         ]
     }
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

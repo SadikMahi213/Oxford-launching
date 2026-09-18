@@ -13,20 +13,32 @@ class ReferralProfitHistory(Base):
 
     source_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
+<<<<<<< HEAD
         nullable=False,
         index=True
+=======
+        nullable=False
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     receiver_user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
+<<<<<<< HEAD
         nullable=False,
         index=True
+=======
+        nullable=False
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     investment_id: Mapped[int | None] = mapped_column(
         ForeignKey("investments.id"),
+<<<<<<< HEAD
         nullable=True,
         index=True
+=======
+        nullable=True
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     deposit_id: Mapped[int | None] = mapped_column(
@@ -34,7 +46,11 @@ class ReferralProfitHistory(Base):
         nullable=True
     )
 
+<<<<<<< HEAD
     level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+=======
+    level: Mapped[int] = mapped_column(Integer, nullable=False)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     percentage: Mapped[Decimal] = mapped_column(
         Numeric(10, 4),
@@ -53,6 +69,10 @@ class ReferralProfitHistory(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+<<<<<<< HEAD
         default=datetime.utcnow,
         index=True
+=======
+        default=datetime.utcnow
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )

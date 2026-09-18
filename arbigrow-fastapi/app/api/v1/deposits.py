@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 from decimal import Decimal, ROUND_HALF_UP
+<<<<<<< HEAD
 from datetime import datetime, timezone, timedelta
+=======
+from datetime import datetime, timezone
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 from app.core.database import get_db
 from app.core.referral import get_referral_level_rates
@@ -16,6 +20,7 @@ from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.system_config import SystemConfig
 from app.schemas.deposit import DepositCreate, DepositStatusUpdate
 from app.api.v1.deps import get_current_user, get_current_admin_user
+<<<<<<< HEAD
 from app.tasks.email_tasks import send_deposit_success_email_task
 from app.services.invoice_service import generate_deposit_invoice
 from app.utils.notifications import notify_admin
@@ -23,6 +28,12 @@ from app.utils.notifications import notify_admin
 WALLET_PRECISION = Decimal("0.00000000000001")
 PERCENT_PRECISION = Decimal("0.0001")
 
+=======
+from app.utils.email import send_deposit_success_email
+from app.services.invoice_service import generate_deposit_invoice
+from app.utils.notifications import notify_admin
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 router = APIRouter(prefix="/deposits", tags=["Deposits"])
 
 
@@ -87,6 +98,7 @@ async def create_deposit_request(
 
 @router.get("/my")
 async def get_my_deposits(
+<<<<<<< HEAD
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -98,21 +110,33 @@ async def get_my_deposits(
         select(func.count(Deposit.id)).where(Deposit.user_id == current_user.id)
     )
     total = total_result.scalar() or 0
+=======
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     result = await db.execute(
         select(Deposit)
         .where(Deposit.user_id == current_user.id)
         .order_by(Deposit.created_at.desc())
+<<<<<<< HEAD
         .offset(offset)
         .limit(limit)
+=======
+        .limit(100)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     deposits = result.scalars().all()
 
     return {
+<<<<<<< HEAD
         "page": page,
         "limit": limit,
         "total": total,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "data": deposits
     }
 
@@ -200,12 +224,15 @@ async def update_deposit_status(
             detail="Deposit already processed"
         )
 
+<<<<<<< HEAD
     # Response fields must exist on every path: the return block below
     # references them unconditionally (previously they were assigned only
     # inside the approved branch, so rejections raised NameError → HTTP 500).
     _deposit_id = deposit.id
     _deposit_status = data.status
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # Update deposit status
     deposit.status = data.status
 
@@ -219,13 +246,17 @@ async def update_deposit_status(
         user = user_result.scalar_one()
 
         amount = Decimal(deposit.amount)
+<<<<<<< HEAD
         balance_before = float(user.deposit_wallet)
         main_wallet_before = float(user.main_wallet or 0)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
         user.deposit_wallet += amount
 
         # Distribute direct referral and generation bonuses on deposit (flat rates)
         wprec = Decimal("0.00000000000001")
+<<<<<<< HEAD
         rates = await get_referral_level_rates(db)
         # Build parent ancestry chain dynamically from configured levels.
         # This adapts automatically when new levels (e.g. commission_l6) are added.
@@ -233,10 +264,23 @@ async def update_deposit_status(
         for lvl in range(1, len(rates) + 1):
             ancestor_id = getattr(user, f"parent_lvl_{lvl}_id", None)
             parent_ids.append(ancestor_id)
+=======
+        parent_ids = [
+            user.parent_lvl_1_id,
+            user.parent_lvl_2_id,
+            user.parent_lvl_3_id,
+            user.parent_lvl_4_id,
+            user.parent_lvl_5_id,
+        ]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         parent_rows = await db.execute(
             select(User).where(User.id.in_([p for p in parent_ids if p]))
         )
         parents_map = {p.id: p for p in parent_rows.scalars().all()}
+<<<<<<< HEAD
+=======
+        rates = await get_referral_level_rates(db)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         for level_idx, pid in enumerate(parent_ids):
             if not pid:
                 continue
@@ -300,6 +344,7 @@ async def update_deposit_status(
             if pkg and user.deposit_wallet >= pkg.investment_amount:
                 now = datetime.now(timezone.utc)
                 user.deposit_wallet -= pkg.investment_amount
+<<<<<<< HEAD
                 expected_profit = (pkg.total_return - pkg.investment_amount).quantize(
                     WALLET_PRECISION,
                     rounding=ROUND_HALF_UP,
@@ -315,23 +360,44 @@ async def update_deposit_status(
                     end_date = now + timedelta(days=36500)  # ~100 years for free packages
                 else:
                     end_date = now + timedelta(days=pkg.duration_days)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 investment = Investment(
                     user_id=user.id,
                     package_name=pkg.name,
                     invested_amount=pkg.investment_amount,
+<<<<<<< HEAD
                     roi_percent=roi_percent,
                     expected_profit=expected_profit,
+=======
+                    roi_percent=Decimal("0"),
+                    expected_profit=Decimal("0"),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     daily_payment=pkg.daily_payment,
                     captcha_required_per_day=pkg.captcha_required_per_day,
                     earn_per_captcha=pkg.earn_per_captcha,
                     daily_captcha_limit=pkg.daily_captcha_limit,
                     captchas_typed_today=0,
                     start_date=now,
+<<<<<<< HEAD
                     end_date=end_date,
                     status="active",
                 )
                 db.add(investment)
                 user.account_status = "active"
+=======
+                    end_date=now,
+                    status="active",
+                )
+                db.add(investment)
+                kyc_result = await db.execute(
+                    select(KYC).where(KYC.user_id == user.id, KYC.status == KYCStatus.approved)
+                )
+                kyc_approved = kyc_result.scalar_one_or_none() is not None or (
+                    user.admin_kyc_status == "approved"
+                )
+                user.account_status = "active" if kyc_approved else "inactive"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 user.pending_package_id = None
                 await db.commit()
 
@@ -344,13 +410,18 @@ async def update_deposit_status(
 
     if data.status == "approved":
         try:
+<<<<<<< HEAD
             send_deposit_success_email_task.delay(
+=======
+            await send_deposit_success_email(
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 userid=deposit.user_id,
                 amount=f"{Decimal(str(deposit.amount)):.2f}",
                 currency="USDT",
                 tx_hash=deposit.txid,
             )
         except Exception as mail_error:
+<<<<<<< HEAD
             print(f"[warn] Failed to enqueue deposit approval email: {mail_error}")
 
         # Save values before invoice generation to avoid lazy-load after commit/rollback
@@ -358,6 +429,11 @@ async def update_deposit_status(
         _deposit_status = deposit.status
 
         # Auto-generate deposit invoice (in a savepoint so failure doesn't expire the session)
+=======
+            print(f"[warn] Failed to send deposit approval email: {mail_error}")
+
+        # Auto-generate deposit invoice
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         try:
             await generate_deposit_invoice(
                 db=db,
@@ -366,17 +442,23 @@ async def update_deposit_status(
                 tx_data={
                     "network": deposit.network_name,
                     "transaction_hash": deposit.txid,
+<<<<<<< HEAD
                     "transaction_id": deposit.txid,
                     "previous_balance": balance_before,
                     "current_balance": balance_before + float(deposit.amount),
                     "main_wallet_balance": float(user.main_wallet or 0),
                     "wallet_name": "Deposit Wallet",
                     "wallet_balance": float(user.deposit_wallet or 0),
+=======
+                    "previous_balance": float(user.deposit_wallet) - float(deposit.amount),
+                    "current_balance": float(user.deposit_wallet),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 },
             )
             await db.commit()
         except Exception as inv_error:
             print(f"[warn] Failed to generate deposit invoice: {inv_error}")
+<<<<<<< HEAD
             # No rollback here — the deposit approval is already committed above.
             # Rolling back would expire ORM objects and cause MissingGreenlet on return.
 
@@ -385,5 +467,14 @@ async def update_deposit_status(
         "data": {
             "deposit_id": _deposit_id,
             "status": _deposit_status
+=======
+            await db.rollback()
+
+    return {
+        "message": f"Deposit {data.status}",
+        "data": {
+            "deposit_id": deposit.id,
+            "status": deposit.status
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         }
     }

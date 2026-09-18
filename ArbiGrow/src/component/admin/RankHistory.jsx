@@ -109,6 +109,7 @@ export default function RankHistoryPage() {
                   history.map((h) => (
                     <tr key={h.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-4 py-3 font-mono text-xs text-gray-400">{h.id}</td>
+<<<<<<< HEAD
                       <td className="px-4 py-3 min-w-[180px] whitespace-nowrap">
                         <div className="font-medium text-white">{h.user_full_name || h.user_username || h.user_no || `#${h.user_id}`}</div>
                         <div className="mt-0.5 font-mono text-[11px] leading-tight text-gray-400">
@@ -118,6 +119,9 @@ export default function RankHistoryPage() {
                         </div>
                         <div className="font-mono text-[10px] text-gray-500">ID: {h.user_id}</div>
                       </td>
+=======
+                      <td className="px-4 py-3 text-white">{h.user_no || `#${h.user_id}`}</td>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Trophy className="size-4 text-yellow-400" />

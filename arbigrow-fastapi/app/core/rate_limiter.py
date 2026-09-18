@@ -1,5 +1,6 @@
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+<<<<<<< HEAD
 from app.core.config import settings
 
 def _user_or_ip_key(request):
@@ -35,4 +36,10 @@ limiter = Limiter(
     key_func=_user_or_ip_key,
     default_limits=["100/minute"],
     storage_uri=_storage_uri,  # None = in-memory
+=======
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100/minute"]  # Global limit
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 )

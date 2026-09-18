@@ -29,13 +29,18 @@ FROM base AS dev
 ENV RELOAD=true
 CMD ["python", "run.py"]
 
+<<<<<<< HEAD
 # ── Stage 3: Production (uvicorn) ─────────────────
+=======
+# ── Stage 3: Production (gunicorn + uvicorn) ──────
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 FROM base AS prod
 ENV RELOAD=false
 ENV PLAYWRIGHT_BROWSERS_PATH=/app/.cache/ms-playwright
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser && \
     chown -R appuser:appuser /app /app/.cache
 EXPOSE 8000
+<<<<<<< HEAD
 USER appuser
 CMD uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers "${UVICORN_WORKERS:-1}"
 
@@ -47,3 +52,6 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuse
     chown -R appuser:appuser /app /app/.cache
 USER appuser
 CMD celery -A app.core.celery_app worker -l info
+=======
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

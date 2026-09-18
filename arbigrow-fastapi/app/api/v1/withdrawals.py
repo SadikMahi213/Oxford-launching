@@ -6,7 +6,11 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+<<<<<<< HEAD
 from app.api.v1.deps import get_current_admin_user, get_current_user, check_earning_access
+=======
+from app.api.v1.deps import get_current_admin_user, get_current_user
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.core.database import get_db
 from app.models.bank_info import BankInfo
 from app.models.withdrawal_method import WithdrawalMethod
@@ -14,13 +18,20 @@ from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.withdrawal import Withdrawal
 from app.schemas.withdrawal import WithdrawalCreate, WithdrawalStatusUpdate
+<<<<<<< HEAD
 from app.tasks.email_tasks import send_withdraw_success_email_task
+=======
+from app.utils.email import send_withdraw_success_email
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.utils.is_system_active import is_system_active
 from app.services.invoice_service import generate_withdrawal_invoice
 from app.utils.notifications import notify_admin
 from app.utils.kyc_helper import check_kyc_approved
+<<<<<<< HEAD
 from app.utils.transaction_id import generate_unique_transaction_id, format_withdrawal_reference
 from app.services.security_logger import SecurityLogger
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 router = APIRouter(prefix="/withdrawals", tags=["Withdrawals"])
 
@@ -36,27 +47,37 @@ def _to_wallet_precision(amount: Decimal) -> Decimal:
 
 
 def _serialize_withdrawal(withdrawal: Withdrawal, include_user: bool = False) -> dict:
+<<<<<<< HEAD
     gross = Decimal(str(withdrawal.amount or 0))
     charge_val = Decimal(str(withdrawal.charge or 0))
     net = _to_wallet_precision(gross - charge_val) if gross else Decimal("0")
     # Clamp net to 0 if charge exceeds gross (defensive)
     if net < 0:
         net = Decimal("0")
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     item = {
         "id": withdrawal.id,
         "source_wallet": withdrawal.source_wallet,
         "withdrawal_method_id": withdrawal.withdrawal_method_id,
         "method_type": withdrawal.method_type,
         "network_name": withdrawal.network_name,
+<<<<<<< HEAD
         "amount": float(gross),
         "gross_amount": float(gross),
         "charge": float(charge_val),
         "net_amount": float(net),
+=======
+        "amount": float(withdrawal.amount),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "destination_address": withdrawal.destination_address,
         "account_type": withdrawal.account_type,
         "note": withdrawal.note,
         "status": withdrawal.status,
+<<<<<<< HEAD
         "transaction_id": withdrawal.transaction_id,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "created_at": withdrawal.created_at,
         "processed_at": withdrawal.processed_at,
         "approved_by": withdrawal.approved_by,
@@ -87,7 +108,16 @@ async def create_withdrawal_request(
     if not await is_system_active("withdrawal", db):
         raise HTTPException(status_code=403, detail="Withdrawals are currently paused (weekend/system maintenance)")
     await check_kyc_approved(current_user, db)
+<<<<<<< HEAD
     check_earning_access(current_user)
+=======
+    if (current_user.account_status or "").lower() == "on_hold":
+        issue_note = (current_user.account_issue or "").strip()
+        detail = "Your account is on hold. Withdrawals are currently disabled."
+        if issue_note:
+            detail = f"{detail} Issue: {issue_note}"
+        raise HTTPException(status_code=403, detail=detail)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     if data.source_wallet not in ALLOWED_SOURCE_WALLETS:
         raise HTTPException(status_code=400, detail="Invalid wallet selected")
@@ -103,6 +133,7 @@ async def create_withdrawal_request(
     if not method:
         raise HTTPException(status_code=400, detail="Selected withdrawal method is not active or not found")
 
+<<<<<<< HEAD
     # Validate amount against method limits, floored by the admin-configured
     # global minimum withdrawal amount (defaults to 10, preserving legacy).
     amount = _to_wallet_precision(Decimal(str(data.amount)))
@@ -122,6 +153,11 @@ async def create_withdrawal_request(
         global_min = Decimal("10")
     method_min = method.min_amount if method.min_amount else Decimal("10")
     min_amt = method_min if method_min > global_min else global_min
+=======
+    # Validate amount against method limits
+    amount = _to_wallet_precision(Decimal(str(data.amount)))
+    min_amt = method.min_amount if method.min_amount else Decimal("10")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     max_amt = method.max_amount if method.max_amount else Decimal("700")
     if amount < min_amt:
         raise HTTPException(status_code=400, detail=f"Minimum withdrawal amount is {min_amt} USDT")
@@ -164,6 +200,7 @@ async def create_withdrawal_request(
     else:
         raise HTTPException(status_code=400, detail="Invalid withdrawal method type")
 
+<<<<<<< HEAD
     # ── Atomic balance reservation ─────────────────────────────────────
     # Lock the user row to prevent concurrent withdrawal double-spend.
     user_result = await db.execute(
@@ -178,6 +215,10 @@ async def create_withdrawal_request(
     # Re-read balance from the locked row ( authoritative, prevents race )
     source_balance = Decimal(
         str(getattr(locked_user, data.source_wallet, Decimal("0")) or 0)
+=======
+    source_balance = Decimal(
+        str(getattr(current_user, data.source_wallet, Decimal("0")) or 0)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     if source_balance < amount:
@@ -189,6 +230,7 @@ async def create_withdrawal_request(
             ),
         )
 
+<<<<<<< HEAD
     # Fee: method fixed_fee + percent_fee is authoritative (matches frontend);
     # global withdrawal_charge_percent is fallback when method has no fee.
     if method is not None and (method.fixed_fee is not None or method.percent_fee is not None):
@@ -217,6 +259,23 @@ async def create_withdrawal_request(
         main_balance = Decimal(
             str(getattr(locked_user, "main_wallet", Decimal("0")) or 0))
         required_main_balance = _to_wallet_precision(amount)
+=======
+    # Read withdrawal charge from config
+    charge_config = await db.execute(
+        select(SystemConfig).where(SystemConfig.key == "withdrawal_charge_percent")
+    )
+    charge_row = charge_config.scalar_one_or_none()
+    withdrawal_charge_percent = Decimal(charge_row.value) if charge_row and charge_row.value else Decimal("5")
+    charge_amount = (amount * withdrawal_charge_percent / Decimal("100")).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
+
+    EARNING_WALLETS = {"captcha_wallet", "ad_view_wallet"}
+    if data.source_wallet not in EARNING_WALLETS:
+        main_balance = Decimal(
+            str(getattr(current_user, "main_wallet", Decimal("0")) or 0))
+        required_main_balance = _to_wallet_precision(
+            amount + charge_amount
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         if main_balance < required_main_balance:
             raise HTTPException(
                 status_code=400,
@@ -226,10 +285,13 @@ async def create_withdrawal_request(
                 ),
             )
 
+<<<<<<< HEAD
     # ── Deduct from source wallet atomically ───────────────────────────
     new_balance = _to_wallet_precision(source_balance - amount)
     setattr(locked_user, data.source_wallet, new_balance)
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     withdrawal = Withdrawal(
         user_id=current_user.id,
         source_wallet=data.source_wallet,
@@ -245,12 +307,15 @@ async def create_withdrawal_request(
         status="pending",
     )
     db.add(withdrawal)
+<<<<<<< HEAD
     await db.flush()
     await db.refresh(withdrawal)
 
     # Generate withdrawal reference ID from auto-increment ID: OFAWD + 6 digits
     withdrawal.transaction_id = format_withdrawal_reference(withdrawal.id)
     await db.flush()
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     await db.commit()
     await db.refresh(withdrawal)
@@ -269,6 +334,7 @@ async def create_withdrawal_request(
 
 @router.get("/my")
 async def get_my_withdrawals(
+<<<<<<< HEAD
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
@@ -281,20 +347,32 @@ async def get_my_withdrawals(
     )
     total = total_result.scalar() or 0
 
+=======
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(
         select(Withdrawal)
         .where(Withdrawal.user_id == current_user.id)
         .order_by(Withdrawal.created_at.desc())
+<<<<<<< HEAD
         .offset(offset)
         .limit(limit)
+=======
+        .limit(100)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     withdrawals = result.scalars().all()
 
     return {
+<<<<<<< HEAD
         "page": page,
         "limit": limit,
         "total": total,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "data": [_serialize_withdrawal(withdrawal) for withdrawal in withdrawals]
     }
 
@@ -352,10 +430,13 @@ async def update_withdrawal_status(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
+<<<<<<< HEAD
     # Lock only the withdrawal row. PostgreSQL forbids FOR UPDATE on the
     # nullable side of an outer join, so the bank_info eager-load cannot
     # share this locking query (bank_info is re-fetched explicitly below
     # after commit instead).
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(
         select(Withdrawal)
         .where(Withdrawal.id == withdrawal_id)
@@ -384,6 +465,7 @@ async def update_withdrawal_status(
             raise HTTPException(status_code=404, detail="User not found")
 
         amount = Decimal(str(withdrawal.amount))
+<<<<<<< HEAD
         # Credit withdraw_wallet (cumulative tracking of total withdrawn)
         user.withdraw_wallet = _to_wallet_precision(
             Decimal(str(user.withdraw_wallet or 0)) + amount
@@ -406,6 +488,11 @@ async def update_withdrawal_status(
         # Refund the held amount back to the source wallet
         source_balance = Decimal(str(getattr(user, withdrawal.source_wallet, "0") or 0))
         setattr(user, withdrawal.source_wallet, _to_wallet_precision(source_balance + amount))
+=======
+        user.withdraw_wallet = _to_wallet_precision(
+            Decimal(str(user.withdraw_wallet or 0)) + amount
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     withdrawal.status = data.status
     withdrawal.approved_by = admin.id
@@ -414,12 +501,15 @@ async def update_withdrawal_status(
     await db.commit()
     await db.refresh(withdrawal)
 
+<<<<<<< HEAD
     if withdrawal.bank_info_id:
         bi_result = await db.execute(
             select(BankInfo).where(BankInfo.id == withdrawal.bank_info_id)
         )
         withdrawal.bank_info = bi_result.scalar_one_or_none()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     notif_type = "withdrawal_approved" if data.status == "approved" else "withdrawal_rejected"
     await notify_admin(
         db=db, type=notif_type,
@@ -429,7 +519,11 @@ async def update_withdrawal_status(
 
     if data.status == "approved":
         try:
+<<<<<<< HEAD
             send_withdraw_success_email_task.delay(
+=======
+            await send_withdraw_success_email(
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 userid=withdrawal.user_id,
                 amount=f"{Decimal(str(withdrawal.amount)):.2f}",
                 currency="USDT",
@@ -448,12 +542,17 @@ async def update_withdrawal_status(
                 tx_data={
                     "network": withdrawal.network_name,
                     "destination": withdrawal.destination_address,
+<<<<<<< HEAD
                     "transaction_id": withdrawal.transaction_id,
                     "previous_balance": max(0, float(user.withdraw_wallet) - float(withdrawal.amount)),
                     "current_balance": float(user.withdraw_wallet),
                     "main_wallet_balance": float(user.main_wallet or 0),
                     "wallet_name": "Withdraw Wallet",
                     "wallet_balance": float(user.withdraw_wallet or 0),
+=======
+                    "previous_balance": float(user.withdraw_wallet) + float(withdrawal.amount),
+                    "current_balance": float(user.withdraw_wallet),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 },
             )
             await db.commit()

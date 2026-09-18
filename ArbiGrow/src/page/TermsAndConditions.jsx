@@ -166,4 +166,7 @@ export function TermsAndConditions() {
     </>
   );
 }
+<<<<<<< HEAD
 export default TermsAndConditions;
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

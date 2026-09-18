@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -133,3 +134,48 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     @apply block text-right py-2 before:content-[attr(data-label)] before:float-left before:font-medium before:text-gray-400;
   }
 }
+=======
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @font-face {
+  font-family: "Transcity";
+  src: url("/src/assets/fonts/Transcity-DEMO.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+} */
+
+body {
+  @apply bg-dark-bg text-white min-h-screen;
+  /* font-family: "Transcity", sans-serif; */
+  font-family: "Poppins", sans-serif;
+}
+
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

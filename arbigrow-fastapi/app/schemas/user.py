@@ -31,11 +31,15 @@ class UserResponse(BaseModel):
     id: int
     user_no: Optional[str] = None
     full_name: str
+<<<<<<< HEAD
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     email: EmailStr
     referral_code: str
     is_admin: bool
     username: str
+<<<<<<< HEAD
     member_id: str = ""
 
     @model_validator(mode="after")
@@ -43,6 +47,8 @@ class UserResponse(BaseModel):
         if self.username:
             self.member_id = self.username
         return self
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     main_wallet: Decimal
     deposit_wallet: Decimal
@@ -55,10 +61,15 @@ class UserResponse(BaseModel):
     ad_view_wallet: Decimal
     ecommerce_wallet: Decimal
     matching_bonus_wallet: Decimal = Decimal("0")
+<<<<<<< HEAD
     team_volume: Decimal = Decimal("0")
     email_verified: bool
     profile_image_url: Optional[str] = None
     kyc_hold: Decimal = Decimal("0")
+=======
+    email_verified: bool
+    profile_image_url: Optional[str] = None
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -84,7 +95,10 @@ class UserResponse(BaseModel):
     account_issue: Optional[str] = None
     pending_package_id: Optional[int] = None
     created_at: Optional[datetime] = None
+<<<<<<< HEAD
     updated_at: Optional[datetime] = None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     @model_validator(mode="before")
     @classmethod
@@ -101,7 +115,10 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+<<<<<<< HEAD
     remember_me: Optional[bool] = False
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class LoginResponse(BaseModel):
@@ -122,10 +139,13 @@ class UserRefreshResponse(BaseModel):
     doc_submitted: bool
     kyc_status: Optional[str] = None
     kyc_note: Optional[str] = None
+<<<<<<< HEAD
     kyc_fee_refunded: bool = False
     personal_volume: str = "0"
     total_matching_bonus_earned: str = "0"
     network_volume: str = "0"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class IdentityVerificationRequest(BaseModel):
@@ -133,14 +153,19 @@ class IdentityVerificationRequest(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
+<<<<<<< HEAD
     identifier: str = Field(..., min_length=1, max_length=255)
     verification: str = Field(..., min_length=1, max_length=255)
+=======
+    email: EmailStr
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class ResetPasswordRequest(BaseModel):
     new_password: str
     token: str
 
+<<<<<<< HEAD
     @model_validator(mode="after")
     def validate_password_strength(self):
         password = self.new_password
@@ -156,6 +181,8 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError("Password must contain a special character")
         return self
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
@@ -271,6 +298,7 @@ class TransferLogSchema(BaseModel):
     note: str | None = None
     status: str
     created_at: str
+<<<<<<< HEAD
     source_wallet: str | None = None
     destination_wallet: str | None = None
     sender_full_name: str | None = None
@@ -283,6 +311,8 @@ class TransferLogSchema(BaseModel):
     receiver_username: str | None = None
     receiver_email: str | None = None
     receiver_mobile: str | None = None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class TransferHistoryResponse(BaseModel):

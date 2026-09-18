@@ -1,17 +1,25 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+<<<<<<< HEAD
 from sqlalchemy import select, func as sa_func
 from decimal import Decimal
 from app.models.system_config import SystemConfig
 from app.models.withdrawal_method import WithdrawalMethod
 from app.models.withdrawal import Withdrawal
+=======
+from app.models.withdrawal_method import WithdrawalMethod
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.user import User
 from app.schemas.withdrawal_method import WithdrawalMethodCreate, WithdrawalMethodUpdate, WithdrawalMethodResponse
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
+<<<<<<< HEAD
 import logging
 
 logger = logging.getLogger(__name__)
+=======
+from sqlalchemy import select
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 router = APIRouter(
@@ -41,6 +49,7 @@ async def get_active_withdrawal_methods(
         select(WithdrawalMethod).where(WithdrawalMethod.status == True)
     )
     methods = result.scalars().all()
+<<<<<<< HEAD
     try:
         cfg_result = await db.execute(
             select(SystemConfig).where(SystemConfig.key == "min_withdrawal_amount")
@@ -56,6 +65,9 @@ async def get_active_withdrawal_methods(
     except Exception:
         global_min = Decimal("10")
     return {"data": methods, "global_min_withdrawal_amount": str(global_min)}
+=======
+    return {"data": methods}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.get("/")
@@ -124,6 +136,7 @@ async def delete_withdrawal_method(
     method = result.scalar_one_or_none()
     if not method:
         raise HTTPException(status_code=404, detail="Withdrawal method not found")
+<<<<<<< HEAD
 
     withdrawal_count_result = await db.execute(
         select(sa_func.count(Withdrawal.id)).where(Withdrawal.withdrawal_method_id == method_id)
@@ -140,4 +153,8 @@ async def delete_withdrawal_method(
     await db.delete(method)
     await db.commit()
     logger.info("Withdrawal method %d permanently deleted", method_id)
+=======
+    await db.delete(method)
+    await db.commit()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {"message": "Withdrawal method deleted"}

@@ -51,7 +51,10 @@ six==1.17.0
 slowapi==0.1.9
 SQLAlchemy==2.0.46
 starlette==0.50.0
+<<<<<<< HEAD
 tenacity==9.0.0
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.6.3
@@ -64,6 +67,9 @@ reportlab>=4.2.0
 google-analytics-data>=0.18.0
 google-auth>=2.27.0
 cachetools>=5.3.0
+<<<<<<< HEAD
 redis[hiredis]>=5.2.0
 httpx>=0.28.0
 celery>=5.4.0
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

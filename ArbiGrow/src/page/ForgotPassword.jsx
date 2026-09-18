@@ -3,8 +3,12 @@ import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 import {
   KeyRound,
+<<<<<<< HEAD
   User,
   ShieldCheck,
+=======
+  Mail,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   ArrowLeft,
   CheckCircle,
   AlertCircle,
@@ -18,10 +22,16 @@ export default function ForgotPassword() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   const [identifier, setIdentifier] = useState("");
   const [verification, setVerification] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+=======
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [isDisabled, setIsDisabled] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -31,6 +41,7 @@ export default function ForgotPassword() {
     setError("");
     setMessage("");
 
+<<<<<<< HEAD
     if (!identifier.trim()) {
       setError(t("forgotPassword.err_identifier"));
       return;
@@ -38,11 +49,22 @@ export default function ForgotPassword() {
 
     if (!verification.trim()) {
       setError(t("forgotPassword.err_verification"));
+=======
+    if (!email.trim()) {
+      setError(t("forgotPassword.err_email"));
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError(t("forgotPassword.err_validEmail"));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       return;
     }
 
     try {
       setIsSubmitting(true);
+<<<<<<< HEAD
       const res = await forgotPassword({
         identifier: identifier.trim(),
         verification: verification.trim(),
@@ -62,6 +84,12 @@ export default function ForgotPassword() {
       navigate("/reset-password", {
         state: { reset_token: resetToken },
       });
+=======
+      const res = await forgotPassword({ email });
+
+      setMessage(res.data?.message || t("forgotPassword.success"));
+      setIsEmailSent(true);
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } catch (err) {
       const res = err.response;
 
@@ -81,6 +109,35 @@ export default function ForgotPassword() {
     }
   };
 
+<<<<<<< HEAD
+=======
+  const handleResend = async () => {
+    setError("");
+    setMessage("");
+    try {
+      setIsSubmitting(true);
+      const res = await forgotPassword({ email });
+      setIsDisabled(true);
+      setMessage(res.data?.message || t("forgotPassword.resent_success"));
+    } catch (err) {
+      const res = err.response;
+      if (res?.data?.message) {
+        setError(res.data.message);
+      } else if (res?.data?.detail) {
+        if (Array.isArray(res.data.detail)) {
+          setError(res.data.detail.map((d) => d.msg || d).join(", "));
+        } else {
+          setError(res.data.detail);
+        }
+      } else {
+        setError(t("forgotPassword.resent_failed"));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#060913] via-[#080b1f] to-[#060913] text-white flex items-center justify-center px-4 py-12">
       <div className="fixed inset-0 pointer-events-none">
@@ -101,7 +158,11 @@ export default function ForgotPassword() {
           <div className="relative w-12 h-12 rounded-xl overflow-hidden group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-blue-500/50">
             <img
               src={logo}
+<<<<<<< HEAD
               alt={t("app.name")}
+=======
+              alt="Oxford Financial Ads Logo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               className="w-full h-full object-contain"
             />
           </div>
@@ -109,11 +170,19 @@ export default function ForgotPassword() {
         <div>
           <div className="text-xl font-bold">
             <span className="bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent">
+<<<<<<< HEAD
               {t("app.name")}
             </span>
           </div>
           <div className="text-[8px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-0.5">
             {t("app.tagline")}
+=======
+              Oxford Financial Ads
+            </span>
+          </div>
+          <div className="text-[8px] text-cyan-400/80 uppercase tracking-[0.2em] font-semibold -mt-0.5">
+            Professional Financial Services
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           </div>
         </div>
       </motion.a>
@@ -128,7 +197,11 @@ export default function ForgotPassword() {
           <div className="absolute -inset-[1px] bg-gradient-to-br from-blue-500/20 via-cyan-500/20 to-blue-500/20 rounded-3xl blur-xl opacity-50"></div>
 
           <div className="relative z-10">
+<<<<<<< HEAD
             {!isVerified ? (
+=======
+            {!isEmailSent ? (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <>
                 <div className="text-center mb-8">
                   <motion.div
@@ -153,6 +226,7 @@ export default function ForgotPassword() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
+<<<<<<< HEAD
                       {t("forgotPassword.identifier")}
                     </label>
                     <div className="relative">
@@ -184,6 +258,20 @@ export default function ForgotPassword() {
                           setError("");
                         }}
                         placeholder={t("forgotPassword.verification_plh")}
+=======
+                      {t("forgotPassword.email")}
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setError("");
+                        }}
+                        placeholder={t("forgotPassword.email_plh")}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                         className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all duration-300"
                       />
                     </div>
@@ -221,7 +309,11 @@ export default function ForgotPassword() {
                         </>
                       ) : (
                         <>
+<<<<<<< HEAD
                           <ShieldCheck className="w-5 h-5" />
+=======
+                          <Mail className="w-5 h-5" />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                           {t("forgotPassword.submit")}
                         </>
                       )}
@@ -238,7 +330,13 @@ export default function ForgotPassword() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="text-sm text-gray-400">
+<<<<<<< HEAD
                       <p>{t("forgotPassword.successMsg")}</p>
+=======
+                      <p>
+                        {t("forgotPassword.successMsg")}
+                      </p>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     </div>
                   </div>
                 </motion.div>
@@ -257,6 +355,7 @@ export default function ForgotPassword() {
 
                   <h2 className="text-3xl font-bold mb-3">
                     <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+<<<<<<< HEAD
                       {t("forgotPassword.success")}
                     </span>
                   </h2>
@@ -268,12 +367,51 @@ export default function ForgotPassword() {
                     className="px-6 py-3 bg-cyan-500 rounded-xl font-semibold hover:bg-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {t("forgotPassword.submit")}
+=======
+                      {t("forgotPassword.checkEmail")}
+                    </span>
+                  </h2>
+                  <p className="text-gray-400 mb-8">
+                    {t("forgotPassword.emailSent")}
+                    <br />
+                    <span className="text-white font-medium">{email}</span>
+                  </p>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 mb-8"
+                  >
+                    <Mail className="w-16 h-16 text-cyan-400 mx-auto mb-4" />
+                    <p className="text-sm text-gray-400">
+                      {t("forgotPassword.instructions")}
+                      <br />
+                      {t("forgotPassword.expiry")}
+                    </p>
+                  </motion.div>
+
+                  <button
+                    onClick={handleResend}
+                    disabled={isSubmitting || isDisabled}
+                    className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting
+                      ? t("forgotPassword.resending")
+                      : isDisabled
+                        ? t("forgotPassword.resent")
+                        : t("forgotPassword.resendLink")}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   </button>
                 </div>
               </>
             )}
 
+<<<<<<< HEAD
             {!isVerified && (
+=======
+            {!isEmailSent && (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <div className="mt-8 pt-6 border-t border-white/10 text-center">
                 <p className="text-sm text-gray-400">
                   {t("forgotPassword.rememberPassword")}{" "}

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from sqlalchemy import String, ForeignKey, Enum, DateTime, func, Text, Integer, Numeric, text, Boolean
+=======
+from sqlalchemy import String, ForeignKey, Enum, DateTime, func, Text, Integer
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -21,7 +25,10 @@ class KYCStatus(str, enum.Enum):
 class PaymentStatus(str, enum.Enum):
     pending = "pending"
     paid = "paid"
+<<<<<<< HEAD
     refunded = "refunded"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class KycPackage(Base):
@@ -95,6 +102,7 @@ class KYC(Base):
         default=PaymentStatus.pending,
         nullable=False
     )
+<<<<<<< HEAD
     fee_paid: Mapped[Decimal] = mapped_column(
         Numeric(20, 14),
         default=Decimal("0"),
@@ -108,6 +116,9 @@ class KYC(Base):
     # Lets admin accounting separate first-KYC revenue from resubmission
     # revenue without touching historical transaction rows.
     submission_count: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+=======
+    admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

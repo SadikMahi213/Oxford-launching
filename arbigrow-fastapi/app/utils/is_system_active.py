@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone, timedelta
+<<<<<<< HEAD
 from decimal import Decimal
 from typing import Literal
 
@@ -8,6 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.roi_setting import ROISetting
+=======
+from typing import Literal
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.system_config import SystemConfig
 
 logger = logging.getLogger(__name__)
@@ -21,6 +29,7 @@ FEATURE_CONFIG_KEYS: dict[FeatureType, str] = {
     "mining": "mining_enabled",
 }
 
+<<<<<<< HEAD
 WEEKEND_PAUSED_FEATURES: set[FeatureType] = {"daily_work", "daily_earning", "withdrawal"}
 
 ROI_GLOBAL_KEY = "global_daily_roi_percent"
@@ -71,6 +80,8 @@ async def require_daily_earning(db: AsyncSession) -> None:
             detail=DAILY_EARNING_DISABLED_DETAIL,
         )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 def _is_uk_weekend() -> bool:
     """Check if current time in Europe/London is Saturday (5) or Sunday (6)."""
@@ -93,6 +104,7 @@ def _is_uk_weekend() -> bool:
     return is_weekend
 
 
+<<<<<<< HEAD
 async def _is_weekend_restricted(db: AsyncSession) -> bool:
     """Check if weekend restriction is enabled (default: True)."""
     result = await db.execute(
@@ -104,14 +116,20 @@ async def _is_weekend_restricted(db: AsyncSession) -> bool:
     return True
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def is_system_active(feature: FeatureType, db: AsyncSession) -> bool:
     """Check whether a system feature is currently active.
 
     Rules:
     1. If admin override exists in SystemConfig, respect it.
+<<<<<<< HEAD
     2. On UK weekends (Sat/Sun) with weekend restriction enabled:
        daily_work, daily_earning, and withdrawal are disabled.
        Mining remains ON.
+=======
+    2. On UK weekends (Sat/Sun): daily_work and daily_earning are disabled.
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     3. All other features (deposit, purchase) are always active.
     """
     if feature not in FEATURE_CONFIG_KEYS:
@@ -125,6 +143,7 @@ async def is_system_active(feature: FeatureType, db: AsyncSession) -> bool:
     config = result.scalar_one_or_none()
 
     if config is not None:
+<<<<<<< HEAD
         active = (config.value or "").lower() == "true"
         logger.info("System feature '%s' → %s (admin override)", feature, "active" if active else "paused")
         return active
@@ -136,6 +155,15 @@ async def is_system_active(feature: FeatureType, db: AsyncSession) -> bool:
         else:
             logger.info("System feature '%s' → active (UK weekend, but restriction disabled by admin)", feature)
             return True
+=======
+        active = config.value.lower() == "true"
+        logger.info("System feature '%s' → %s (admin override)", feature, "active" if active else "paused")
+        return active
+
+    if _is_uk_weekend():
+        logger.info("System feature '%s' → paused (UK weekend)", feature)
+        return False
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     logger.debug("System feature '%s' → active", feature)
     return True

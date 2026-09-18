@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from sqlalchemy import String, Integer, Boolean, DateTime, func, Numeric, ForeignKey, Text
+=======
+from sqlalchemy import String, Integer, DateTime, func, Numeric, ForeignKey, Text
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -52,6 +56,7 @@ class MatchingBonus(Base):
 
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+<<<<<<< HEAD
     is_reversed: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
@@ -69,6 +74,8 @@ class MatchingBonus(Base):
     )
     reversal_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, GitBranch, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import useUserStore from "../../store/userStore.js";
+<<<<<<< HEAD
 import { getGenerationBonuses, getGenerationBonusRates } from "../../api/user.api.js";
+=======
+import { getGenerationBonuses } from "../../api/user.api.js";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { useTranslation } from "react-i18next";
 
 const getErrorMessage = (error) =>
@@ -11,6 +15,7 @@ const getErrorMessage = (error) =>
   error?.message;
 
 const LEVEL_LABELS = { 2: "genLevel2", 3: "genLevel3", 4: "genLevel4", 5: "genLevel5" };
+<<<<<<< HEAD
 const LEVEL_SHORT = { 2: "Gen 2", 3: "Gen 3", 4: "Gen 4", 5: "Gen 5" };
 const LEVEL_COLORS = {
   2: {
@@ -37,6 +42,15 @@ const LEVEL_COLORS = {
 
 const LEVELS = [2, 3, 4, 5];
 
+=======
+const LEVEL_COLORS = {
+  2: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  3: "text-purple-400 bg-purple-500/10 border-purple-500/30",
+  4: "text-orange-400 bg-orange-500/10 border-orange-500/30",
+  5: "text-pink-400 bg-pink-500/10 border-pink-500/30",
+};
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 export default function GenerationBonusHistory({ setActivePage }) {
   const { t } = useTranslation();
   const token = useUserStore((state) => state.token);
@@ -47,7 +61,10 @@ export default function GenerationBonusHistory({ setActivePage }) {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [levelFilter, setLevelFilter] = useState("");
+<<<<<<< HEAD
   const [rates, setRates] = useState({});
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const limit = 20;
 
   const load = useCallback(async () => {
@@ -72,6 +89,7 @@ export default function GenerationBonusHistory({ setActivePage }) {
     load();
   }, [load]);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (!token) return;
     getGenerationBonusRates()
@@ -79,6 +97,8 @@ export default function GenerationBonusHistory({ setActivePage }) {
       .catch(() => {});
   }, [token]);
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const totalPages = Math.ceil(total / limit);
 
   return (
@@ -97,6 +117,7 @@ export default function GenerationBonusHistory({ setActivePage }) {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Rates summary card — shows configured percentage for each generation level from DB */}
         {Object.keys(rates).length > 0 && (
           <div className="rounded-xl bg-gradient-to-br from-blue-600/10 to-cyan-600/5 border border-blue-500/20 p-4 mb-6">
@@ -179,6 +200,30 @@ export default function GenerationBonusHistory({ setActivePage }) {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
           />
+=======
+        <div className="flex flex-wrap gap-3 mb-6">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              placeholder={t("genBonus.search_plh")}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
+            />
+          </div>
+          <select
+            value={levelFilter}
+            onChange={(e) => { setLevelFilter(e.target.value); setPage(1); }}
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-cyan-500/50"
+          >
+            <option value="">{t("genBonus.all")}</option>
+            <option value="2">{t("genBonus.gen2")}</option>
+            <option value="3">{t("genBonus.gen3")}</option>
+            <option value="4">{t("genBonus.gen4")}</option>
+            <option value="5">{t("genBonus.gen5")}</option>
+          </select>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         </div>
 
         {error && (
@@ -215,7 +260,11 @@ export default function GenerationBonusHistory({ setActivePage }) {
                       <td className="p-4 text-white">{b.source_name}</td>
                       <td className="p-4 text-gray-400">@{b.source_username}</td>
                       <td className="p-4 text-center">
+<<<<<<< HEAD
                         <span className={`px-2 py-0.5 rounded text-xs font-medium border ${LEVEL_COLORS[b.level]?.badge || "text-gray-400 bg-white/5 border-white/10"}`}>
+=======
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${LEVEL_COLORS[b.level] || "text-gray-400 bg-white/5 border-white/10"}`}>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                           {LEVEL_LABELS[b.level] ? t(`genBonus.${LEVEL_LABELS[b.level]}`) : t("genBonus.genLevelN", { level: b.level })}
                         </span>
                       </td>

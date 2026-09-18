@@ -27,7 +27,10 @@ class UpdateWalletBalancesRequest(BaseModel):
     arbx_mining_wallet: Optional[Decimal] = Field(default=None, ge=0)
     captcha_wallet: Optional[Decimal] = Field(default=None, ge=0)
     ad_view_wallet: Optional[Decimal] = Field(default=None, ge=0)
+<<<<<<< HEAD
     ecommerce_wallet: Optional[Decimal] = Field(default=None, ge=0)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 class BulkTogglePackagesRequest(BaseModel):
@@ -37,6 +40,7 @@ class BulkTogglePackagesRequest(BaseModel):
 
 class ConfigUpdate(BaseModel):
     value: str
+<<<<<<< HEAD
 
 
 class AdminUpdateUserProfile(BaseModel):
@@ -62,3 +66,5 @@ class AdminUpdateUserProfile(BaseModel):
 
 class AdminResetPassword(BaseModel):
     new_password: str = Field(..., min_length=6, max_length=128)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

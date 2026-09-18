@@ -189,11 +189,14 @@ export default function InvoicePage() {
                     <div className="font-semibold text-white text-sm truncate">
                       {inv.invoice_number}
                     </div>
+<<<<<<< HEAD
                     {inv.transaction_id && (
                       <div className="text-[10px] font-mono text-gray-500 truncate mt-0.5">
                         {dep ? "Deposit TX:" : "Withdrawal Ref:"} {inv.transaction_id}
                       </div>
                     )}
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />

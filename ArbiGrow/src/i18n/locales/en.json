@@ -1,7 +1,11 @@
 {
   "app": {
     "name": "Oxford Financial Ads",
+<<<<<<< HEAD
     "tagline": "Digital Services",
+=======
+    "tagline": "Professional Financial Services",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "description": "Elevate Your Brand Globally. Oxford Financial Ads is a fully international advertising agency dedicated to helping businesses establish their brands in the global marketplace.",
     "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
   },
@@ -20,7 +24,12 @@
     "followUs": "Follow us on social media to find out the latest updates on our progress.",
     "comingSoon": "Coming Soon",
     "brandName": "Oxford Financial Ads",
+<<<<<<< HEAD
     "tagline": "Digital Services",
+=======
+    "tagline": "Professional Financial Services",
+    "taglineMobile": "AI Trading",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
     "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
@@ -45,6 +54,7 @@
     "serving": "Serving Members Worldwide",
     "support247": "24/7 Online Operations & Support",
     "supportEmail": "support.oxfordfinancialads@gmail.com",
+<<<<<<< HEAD
     "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
     "social": {
       "telegram": "Telegram",
@@ -61,6 +71,16 @@
     "subtitle": "Freelancing Journey",
     "description": "Connect with clients, complete professional projects, and grow your freelance career worldwide.",
     "cta": "Free Register Now"
+=======
+    "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
+  },
+  "hero": {
+    "title": "Digital Advertising & Online",
+    "subtitle": "Earning Platform",
+    "description": "Oxford Financial Ads is a modern digital advertising and online engagement platform where members can participate in various digital earning activities.",
+    "cta": "Free-Register Now",
+    "whitepaper": "Read Technical Whitepaper"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -75,9 +95,13 @@
       "success": "Login successful",
       "blocked": "Your account has been temporarily blocked due to multiple failed login attempts. Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com",
       "invalid": "Invalid login",
+<<<<<<< HEAD
       "failed": "Login failed",
       "welcomeBack": "Welcome Back",
       "welcomeSubtitle": "Sign in to access your dashboard and grow your portfolio."
+=======
+      "failed": "Login failed"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Create Your Account",
@@ -177,12 +201,16 @@
       "success": "Registration successful!",
       "success_paid": "Registration submitted! Please complete payment to activate your account.",
       "networkError": "Network error or server not reachable",
+<<<<<<< HEAD
       "error": "Something went wrong",
       "joinTitle": "Join Us Today",
       "joinSubtitle": "Create an account to start earning with our modern platform for digital advertising.",
       "perDay": "/day",
       "regOffTitle": "Registration is currently unavailable",
       "regOffDesc": "New user registration is currently disabled by the administrator. Please check back later."
+=======
+      "error": "Something went wrong"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "Reset Your Password",
@@ -241,7 +269,10 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Your account is currently on hold. You can only use deposits right now.",
+<<<<<<< HEAD
     "accountSuspended": "Your account has been temporarily suspended due to task errors. Please wait until the suspension expires.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Coming Soon",
     "inDevelopment": "This page is under development",
     "sidebar": {
@@ -267,7 +298,11 @@
       "referralBonuses": "Referral Bonuses",
       "referralBonuses_desc": "10% direct referral earnings",
       "genBonuses": "Generation Bonuses",
+<<<<<<< HEAD
       "genBonuses_desc": "Team earnings",
+=======
+      "genBonuses_desc": "8/7/6/5% team earnings",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Matching Bonus",
       "matchingBonus_desc": "Rank-based bonus plan",
       "walletTransfer": "Wallet Transfer",
@@ -292,11 +327,15 @@
       "privacy_desc": "Data & privacy",
       "whitepaper": "Technical Whitepaper",
       "whitepaper_desc": "Project documentation",
+<<<<<<< HEAD
       "soon": "Soon",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards",
       "ledger": "Ledger",
       "ledger_desc": "Your balances across every wallet"
+=======
+      "soon": "Soon"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -336,9 +375,13 @@
       "clickHistory": "Click to view history",
       "openTokenInfo": "Open token information",
       "viewHistory": "View History",
+<<<<<<< HEAD
       "transfer": "Transfer",
       "usable": "Usable Balance",
       "ofaToken": "OFA token"
+=======
+      "transfer": "Transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Token Information",
@@ -374,8 +417,12 @@
       "title": "Team Performance",
       "level": "Level {{level}}",
       "loading": "Loading...",
+<<<<<<< HEAD
       "netEarnings": "Net Earnings (All Levels)",
       "growth": "15.7% vs last 30 days"
+=======
+      "netEarnings": "Net Earnings (All Levels)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "OFA token Mining Wallet",
@@ -387,6 +434,7 @@
       "claiming": "Claiming...",
       "claim": "Claim Reward",
       "howTitle": "How Mining Works",
+<<<<<<< HEAD
       "step1": "Start mining session — OFA tokens begin accumulating every second over a 24-hour cycle.",
       "step2": "Mining rate is calculated based on your current network volume and staking tier.",
       "step3": "Accumulated tokens are deposited directly into your Mining Wallet in real-time.",
@@ -398,6 +446,14 @@
       "dailyCap": "DAILY CAP",
       "lastClaim": "LAST CLAIM",
       "notClaimed": "Not claimed yet"
+=======
+      "step1": "1. Click \"Start Mining\" to begin a 24-hour mining cycle.",
+      "step2": "2. OFA tokens are mined continuously at a rate proportional to the daily cap divided by 86,400 seconds.",
+      "step3": "3. After at least 1 minute, you can click \"Claim Reward\" to transfer mined tokens to your Mining Wallet.",
+      "step4": "4. You can claim multiple times during a cycle — each claim gives you the tokens mined since your last claim.",
+      "step5": "5. When the 24-hour cycle ends, mining resets automatically. Start a new cycle to continue earning.",
+      "step6": "6. Mined OFA tokens can be converted to USDT via the Convert page. External transfers are coming soon."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "No {{type}} history found.",
@@ -413,11 +469,15 @@
       "fromUser": "From User",
       "level": "Level",
       "status": "Status",
+<<<<<<< HEAD
       "received": "received",
       "type": "Type",
       "details": "Details",
       "typeDeposit": "Deposit",
       "typeKycRefund": "KYC Refund"
+=======
+      "received": "received"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -425,6 +485,7 @@
       "referral": "Referral Earnings History",
       "matching": "Matching Bonus History",
       "generation": "Generation Earnings History"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "OFA Cryptocurrency",
@@ -439,6 +500,9 @@
     "pendingPayment": "Your package payment has not been completed yet. Please complete your payment. Once your payment has been approved by the Our Compliance Team, all earning features will be activated automatically.",
     "viewAll": "View All",
     "allLevels": "All Levels"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Profile",
@@ -467,8 +531,12 @@
     "photo_uploaded": "Profile image uploaded",
     "photo_saved": "Photo saved",
     "photo_failed": "Upload failed",
+<<<<<<< HEAD
     "photo_saveFailed": "Failed to save photo",
     "rejectionReason": "Rejection Reason:"
+=======
+    "photo_saveFailed": "Failed to save photo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Deposit USDT",
@@ -488,6 +556,7 @@
     "network": "Network",
     "txid": "TXID",
     "status": "Status",
+<<<<<<< HEAD
     "status_pending": "Processing",
     "status_approved": "Successful",
     "loadingHistory": "Loading deposit history...",
@@ -495,6 +564,10 @@
     "detailsTitle": "Transaction Details",
     "amountLabel": "Deposit Amount",
     "copied": "Copied!",
+=======
+    "loadingHistory": "Loading deposit history...",
+    "noHistory": "No deposit history found.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_general": "Something went wrong",
     "success": "Deposit request submitted successfully.",
     "err_field": "Field required",
@@ -502,14 +575,21 @@
     "err_txid": "Must be at least 5 characters.",
     "err_min_amount": "Minimum deposit amount is {{min}} USDT.",
     "min_amount_hint": "Minimum: {{min}} USDT",
+<<<<<<< HEAD
     "err_noNetwork": "No active deposit network found. Please contact support.",
     "successTitle": "✅ Deposit Request Successful",
     "successMessage": "Status: 🟢 Pending — OFA Management Review\n\nYour deposit request has been successfully submitted and is currently under management review.\n\n⏳ Verification and processing may take up to 24 hours. Once the management review is completed, your deposit amount will be credited to your Balance Account.\n\nThank you for your patience.\n— OFA Management"
+=======
+    "err_noNetwork": "No active deposit network found. Please contact support."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Withdraw Funds",
     "subtitle": "Submit a withdrawal request from your wallet balances",
+<<<<<<< HEAD
     "withdrawFrom": "Withdraw From",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "selectWallet": "Select Wallet",
     "selectWallet_plh": "Select wallet",
     "mainWallet": "Main Wallet",
@@ -544,6 +624,7 @@
     "wallet": "Wallet",
     "network": "Network",
     "address": "Address",
+<<<<<<< HEAD
     "refId": "Reference",
     "status": "Status",
     "status_pending": "Processing",
@@ -557,6 +638,13 @@
     "success": "Withdrawal request submitted. It is now pending Our Compliance Team review.",
     "successTitle": "Withdrawal Request Successful",
     "successMessage": "Status: Pending — Management Review\n\nYour withdrawal request has been received successfully and is currently under review.\n\n⏳ Please allow up to 3 business days for review and payment processing.\n\nThank you for your patience.\n— OFA Management",
+=======
+    "status": "Status",
+    "loadingHistory": "Loading withdrawal history...",
+    "noHistory": "No withdrawal history found.",
+    "err_general": "Something went wrong",
+    "success": "Withdrawal request submitted. It is now pending admin review.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_field": "Field required",
     "err_validAmount": "Please enter a valid amount.",
     "err_min": "Minimum withdrawal amount is {{min}} USDT.",
@@ -568,6 +656,7 @@
     "mode_network": "Network Withdrawal",
     "mode_both": "Banking + Network",
     "err_mode_banking": "Only bank transfer withdrawals are allowed at this time.",
+<<<<<<< HEAD
     "err_mode_network": "Network withdrawals are currently disabled.",
     "err_kyc": "KYC verification required. Please complete KYC verification before withdrawing.",
     "err_mobile": "Invalid mobile number",
@@ -586,6 +675,9 @@
     "accountType": "Account Type",
     "accountPersonal": "Personal",
     "accountAgent": "Agent"
+=======
+    "err_mode_network": "Network withdrawals are currently disabled."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Wallet Transfer",
@@ -603,6 +695,7 @@
     "err_amount": "Enter a valid amount",
     "err_sameWallet": "Source and destination must be different",
     "err_balance": "Insufficient balance",
+<<<<<<< HEAD
     "err_failed": "Transfer failed",
     "walletMain": "Main Wallet",
     "walletReferral": "Referral Wallet",
@@ -612,6 +705,9 @@
     "walletCaptcha": "Captcha Typing Wallet",
     "walletAdView": "Ad View Wallet",
     "walletDeposit": "Deposit Wallet"
+=======
+    "err_failed": "Transfer failed"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Send Funds",
@@ -633,10 +729,14 @@
     "err_noUser": "No user found matching '{{query}}'",
     "err_search": "Search failed: {{error}}",
     "success": "Sent {{amount}} USDT to {{name}}",
+<<<<<<< HEAD
     "err_failed": "Transfer failed",
     "err_kyc": "KYC verification required. Please complete KYC verification before sending funds.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Transfer failed"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Matching Bonus Transfer",
@@ -724,7 +824,11 @@
     "purchaseSubmit": "Purchase & Submit ({{fee}} USDT)",
     "submitForVerification": "Submit for Verification",
     "infoBox": "This KYC package enables fund transfers and withdrawals. Your information is encrypted and securely stored.",
+<<<<<<< HEAD
     "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the Our Compliance Team.",
+=======
+    "infoBoxSub": "Verification typically takes 1-2 business days. The package fee is fully configurable by the administrator.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "errors": {
       "enterFullName": "Please enter your full name",
       "enterIdNumber": "Please enter your ID number",
@@ -741,8 +845,12 @@
       "fileTooLarge": "File size must be less than 5MB",
       "invalidFileType": "Please upload a valid image file (JPEG, PNG, WebP) or PDF",
       "uploadFailed": "Failed to upload"
+<<<<<<< HEAD
     },
     "resubmit": "Resubmit"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "investments": {
     "title": "My Investments",
@@ -750,6 +858,7 @@
     "loading": "Loading investments...",
     "error": "Failed to load investments."
   },
+<<<<<<< HEAD
   "dailyEarningNotice": {
     "title": "OFFICIAL NOTICE",
     "intro": "Due to an administrative decision, Daily Earning activities are temporarily unavailable.",
@@ -758,6 +867,8 @@
     "resume": "Daily Earning activities will resume from Monday.",
     "sign": "★OFA Management"
   },
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   "referral": {
     "title": "Referral Program",
     "subtitle": "Invite friends and earn rewards up to 5 levels deep",
@@ -787,6 +898,7 @@
   },
   "genBonus": {
     "title": "Generation Bonuses",
+<<<<<<< HEAD
     "subtitle": "Cascading bonuses from your team's deposits",
     "ratesTitle": "Current Bonus Rates",
     "search_plh": "Search by name or username...",
@@ -795,6 +907,15 @@
     "gen3": "3rd Generation",
     "gen4": "4th Generation",
     "gen5": "5th Generation",
+=======
+    "subtitle": "Cascading 8/7/6/5% bonuses from your team's deposits",
+    "search_plh": "Search by name or username...",
+    "all": "All Generations",
+    "gen2": "2nd Generation (8%)",
+    "gen3": "3rd Generation (7%)",
+    "gen4": "4th Generation (6%)",
+    "gen5": "5th Generation (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "genLevel2": "2nd Gen",
     "genLevel3": "3rd Gen",
     "genLevel4": "4th Gen",
@@ -816,7 +937,10 @@
     "title": "Convert OFA to USDT",
     "subtitle": "Swap your OFA tokens for USDT",
     "ofaBalance": "Your OFA Balance",
+<<<<<<< HEAD
     "convertedBalance": "Converted Balance",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Your USDT Balance",
     "rate": "Conversion Rate",
     "ofaAmount": "OFA Amount",
@@ -826,8 +950,12 @@
     "convert": "Convert to USDT",
     "err_amount": "Enter a valid OFA amount",
     "err_balance": "Insufficient OFA balance",
+<<<<<<< HEAD
     "err_failed": "Conversion failed",
     "err_kyc": "KYC verification is required before converting OFA Tokens. Please complete KYC verification to unlock token conversion."
+=======
+    "err_failed": "Conversion failed"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -929,6 +1057,7 @@
         "missing_info": "Required information is missing. Please complete all fields.",
         "approved_std": "Your KYC verification has been approved. You can now access all platform features."
       }
+<<<<<<< HEAD
     },
     "overview": {
       "totalSignupBonusDistributed": "Total Signup OFA Bonus Distributed",
@@ -940,6 +1069,23 @@
     }
   },
   "home": {
+=======
+    }
+  },
+  "home": {
+    "executiveSummary": {
+      "badge": "About Us",
+      "paragraph": "Oxford Financial Ads is a modern digital advertising and online engagement platform where members can participate in various digital activities. These include captcha typing, data entry, video editing, graphic design, digital marketing, and other online-based tasks. Through these activities, members can connect with a global network and gain opportunities to work at an international level as well as real-world experience. Our goal is to create a professional, development-oriented, and growth-focused environment through skill development, global connectivity, and community-based collaboration. By participating here, members can build an international network and also gain access to various performance-based opportunities such as generation bonuses, group bonuses, company profit sharing, and different position achievements. This platform provides a structured opportunity for members to gain new experiences in the digital world, enhance their skills, and move forward financially.",
+      "activities": "Activities",
+      "network": "Network",
+      "opportunities": "Opportunities",
+      "goal": "Goal",
+      "activitiesVal": "Digital & Online",
+      "networkVal": "Global Community",
+      "opportunitiesVal": "Performance-Based",
+      "goalVal": "Skill & Growth"
+    },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "whyChooseUs": {
       "title": "Our",
       "titleHighlight": "Financial Service",
@@ -959,9 +1105,13 @@
       "networkTitle": "Networking & Community",
       "networkDesc": "A professional global community has been built to connect individuals across different countries and cultures, enabling knowledge sharing and experience exchange on an international level. Based on skills and performance, members gain opportunities to work globally.",
       "benefitsTitle": "Member Benefits",
+<<<<<<< HEAD
       "benefitsDesc": "By joining Oxford Financial Ads, members gain access to a structured environment designed for professional and personal excellence with opportunities to develop advanced digital and professional skills.",
       "ecommerceTitle": "Free Global E-Commerce Seller Account",
       "ecommerceDesc": "Members receive a free global e-commerce seller account to start selling products online across international marketplaces. Through this opportunity, members can build their own online business, reach customers worldwide, and earn income from product sales."
+=======
+      "benefitsDesc": "By joining Oxford Financial Ads, members gain access to a structured environment designed for professional and personal excellence with opportunities to develop advanced digital and professional skills."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "memberBenefits": {
       "badge": "Member Benefits",
@@ -1067,18 +1217,25 @@
     },
     "platformStats": {
       "badge": "Live Platform Statistics",
+<<<<<<< HEAD
       "title": "Oxford Financial Ads",
       "titleHighlight": "Live Statistics",
       "subtitle": "Real-time transparency into our global network, active memberships, and successful financial engagements.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "totalUsers": "Total Users",
       "totalActiveInvestors": "Total Active Investors",
       "totalInvestmentsMade": "Total Investments Made",
       "totalProfitsGenerated": "Total Profits Generated",
+<<<<<<< HEAD
       "successfulWithdrawals": "Successful Withdrawals",
       "totalRegisteredMembers": "Total Registered Members",
       "verifiedFreelancers": "Verified Freelancers",
       "packageInvestmentOverview": "Package Investment Overview",
       "countriesConnected": "Countries Connected"
+=======
+      "successfulWithdrawals": "Successful Withdrawals"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1092,6 +1249,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "about": {
       "badge": "Company Overview",
@@ -1191,6 +1349,8 @@
       "ctaTitle": "Ready to Start Earning?",
       "ctaText": "Create your free account today and begin your digital earning journey in minutes.",
       "ctaButton": "Get Started Free"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "securityStandards": {
@@ -1239,10 +1399,17 @@
     "card4Title": "Campaign Performance & Responsibility",
     "card4Sub": "Decentralized Responsibility",
     "card4Desc": "Oxford Financial Ads: Advertising campaigns operate based on market dynamics and platform algorithms. Clients maintain full responsibility for their marketing decisions, budget allocations, and business outcomes.",
+<<<<<<< HEAD
     "footer": "Committed to transparency, accountability, and ethical leadership worldwide",
     "card5Title": "Service Risk & Market Disclaimer",
     "card5Sub": "Risk Acknowledgment",
     "card5Desc": "Oxford Financial Ads: Executing digital advertising campaigns involves market risks and fluctuations in audience engagement. Past campaign performance does not guarantee identical future results. Oxford Financial Ads uses advanced optimization models, but cannot guarantee specific sales or market conversion outcomes with absolute certainty. Clients should allocate marketing budgets based on their business goals and conduct independent market research before launching large-scale campaigns."
+=======
+    "card5Title": "Service Risk & Market Disclaimer",
+    "card5Sub": "Risk Acknowledgment",
+    "card5Desc": "Oxford Financial Ads: Executing digital advertising campaigns involves market risks and fluctuations in audience engagement. Past campaign performance does not guarantee identical future results. Oxford Financial Ads uses advanced optimization models, but cannot guarantee specific sales or market conversion outcomes with absolute certainty. Clients should allocate marketing budgets based on their business goals and conduct independent market research before launching large-scale campaigns.",
+    "footer": "Committed to transparency, accountability, and ethical leadership worldwide"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "privacySecurity": {
     "badge": "Important Risk Disclosure",
@@ -1255,8 +1422,13 @@
     "section2Desc": "All strategy executions are governed by audited smart contracts deployed on Arbitrum Layer-2. Automated protocols handle trade execution, position management, and rebalancing according to algorithmic parameters without human intervention or discretionary control.",
     "section3Title": "Complete Wallet Control",
     "section3Desc": "Your connected wallet retains withdrawal rights at all times. You can disconnect, withdraw partial or full balances, and exit strategies according to smart contract parameters. No lock-up periods or withdrawal restrictions beyond standard blockchain confirmation times.",
+<<<<<<< HEAD
     "section4Title": "Advertising Policy",
     "section4Desc": "We never guarantee sales, revenue, or business growth based on our advertising services. We also do not make any promises or guarantees based on past performance or previous growth.\n\nHowever, we are committed to promoting your products or brand and maximizing their visibility by reaching millions of potential customers worldwide through our advertising platform.\n\nWe Promote Your Brand. The Market Determines the Results.",
+=======
+    "section4Title": "Market Risk Disclosure",
+    "section4Desc": "All projected performance scenarios are simulations based on historical data and algorithmic models. Past performance does not guarantee future results. Cryptocurrency markets are highly volatile and involve substantial risk of loss. Only allocate capital you can afford to lose.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "featuresTitle": "Additional Features",
     "feature1Title": "Smart Selection",
     "feature1Desc": "View the maximum possible profit per package — e.g., a $100 package progress bar shows 0 to $150.",
@@ -1266,8 +1438,13 @@
     "feature3Desc": "Each package has a badge or medal based on its name — e.g., $10 = 'Micro', $100,000 = 'Sovereign'.",
     "feature4Title": "Expiry & Lock",
     "feature4Desc": "When profit reaches 150%, the package card shows Expired and the withdrawal button is locked until a new package is purchased.",
+<<<<<<< HEAD
     "legalNotice": "Market Risk Disclosure",
     "legalNoticeDesc": "Oxford Financial Ads (OFA) is committed to transparency, responsible participation, and sustainable platform growth.\n\nAll earnings, rewards, and business opportunities available on this platform depend on user activity, eligibility, platform policies, and market conditions. Past performance or previous results do not guarantee future outcomes.\n\nDigital advertising, e-commerce, cryptocurrency, and online financial activities involve market fluctuations and financial risk. Every user is encouraged to carefully evaluate all opportunities and participate responsibly.\n\nBefore using any OFA services, please read our Terms & Conditions, Risk Policy, and Privacy Policy carefully.\n\nMake Informed Decisions. Manage Risk Responsibly. Build Your Future with Confidence."
+=======
+    "legalNotice": "Legal Notice",
+    "legalNoticeDesc": "Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "dailyTasks": {
     "title": "Captcha Typing",
@@ -1279,8 +1456,13 @@
     "noPackageTitle": "No Active Package",
     "noPackageDesc": "Purchase a package to start earning by typing captchas.",
     "resetsIn": "Resets in {{time}}",
+<<<<<<< HEAD
     "timeRemaining": "Time Remaining",
     "today": "Today:",
+=======
+    "today": "Today:",
+    "captchaId": "Captcha ID: #{{id}} · Expires in 2 min",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "captchaPlaceholder": "Type the captcha text above...",
     "verifying": "Verifying...",
     "submitAnswer": "Submit Answer",
@@ -1295,9 +1477,13 @@
     "dailyLimitReached": "Daily Limit Reached",
     "comeBack": "Come back tomorrow! Resets in {{time}}",
     "todaysEarnings": "Today's Earnings",
+<<<<<<< HEAD
     "lifetimeEarnings": "Lifetime Earnings",
     "expiredDesc": "This task has expired. Please get a new captcha.",
     "expired": "Task Expired"
+=======
+    "lifetimeEarnings": "Lifetime Earnings"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "adsView": {
     "title": "Ad View Tasks",
@@ -1373,6 +1559,7 @@
     "err_emailInvalid": "Invalid email format",
     "err_phoneRequired": "Phone number is required",
     "err_phoneInvalid": "Invalid phone number",
+<<<<<<< HEAD
     "err_addressRequired": "Delivery address is required",
     "allProducts": "All Products",
     "apply": "Apply",
@@ -1409,6 +1596,9 @@
     "variants": "Variants",
     "writeReview": "Write a Review",
     "yourReview": "Your review"
+=======
+    "err_addressRequired": "Delivery address is required"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "seller": {
     "dashboard": "Seller Dashboard",
@@ -1462,7 +1652,11 @@
     "nidPlaceholder": "NID number",
     "nidFront": "NID Front Image *",
     "nidBack": "NID Back Image *",
+<<<<<<< HEAD
     "country": "Country",
+=======
+    "country": "Country *",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "countryPlaceholder": "Bangladesh",
     "divisionState": "Division / State *",
     "divisionPlaceholder": "Dhaka",
@@ -1506,6 +1700,7 @@
     "available": "Available: ${{balance}}",
     "transfer": "Transfer",
     "storeCreated": "Store created! Status: {{status}}",
+<<<<<<< HEAD
     "storeDeleted": "Store deleted!",
     "profileSaved": "Profile saved! ({{percent}}%)",
     "submittedForReview": "Submitted for review!",
@@ -1513,11 +1708,17 @@
     "productUpdated": "Product updated!",
     "edit": "Edit",
     "settings": "Settings",
+=======
+    "profileSaved": "Profile saved! ({{percent}}%)",
+    "submittedForReview": "Submitted for review!",
+    "productAdded": "Product added!",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "transferred": "Transferred ${{amount}}",
     "deleteConfirm": "Delete this product?",
     "notSet": "Not set",
     "productsCount": "Products",
     "ordersCount": "Orders",
+<<<<<<< HEAD
     "whatsapp": "WhatsApp",
     "revenue": "Revenue",
     "pendingOrders": "Pending Orders",
@@ -1582,6 +1783,9 @@
     "estDeliveryDays": "Est. delivery days (e.g. 3-5)",
     "createZone": "Create Zone",
     "delete": "Delete"
+=======
+    "whatsapp": "WhatsApp"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusInfo": {
     "title": "Matching Bonus Plan",
@@ -1590,8 +1794,13 @@
     "unranked": "Unranked",
     "rate": "Rate",
     "startBuilding": "Start building your team",
+<<<<<<< HEAD
     "yourDeposit": "Personal Volume",
     "ownDepositDesc": "Total approved deposits",
+=======
+    "yourDeposit": "Your Deposit",
+    "ownDepositDesc": "Your own approved deposits",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "teamVolume": "Team Volume",
     "networkTotal": "Total deposits in your network",
     "toNextRank": "{{amount}} USDT to next rank",
@@ -1645,9 +1854,15 @@
     "yourInvoices": "Transaction Invoices",
     "loadingInvoices": "Loading invoices...",
     "noInvoices": "No invoices yet",
+<<<<<<< HEAD
     "noInvoicesDesc": "Invoices are automatically generated when your deposits and withdrawals are approved by Our Compliance Team.",
     "needHelp": "Need Help?",
     "helpDesc": "Each deposit and withdrawal generates a professional PDF invoice upon Our Compliance Team approval. Download or view your invoices below.",
+=======
+    "noInvoicesDesc": "Invoices are automatically generated when your deposits and withdrawals are approved by admin.",
+    "needHelp": "Need Help?",
+    "helpDesc": "Each deposit and withdrawal generates a professional PDF invoice upon admin approval. Download or view your invoices below.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "viewPdf": "View PDF",
     "downloadPdf": "Download PDF",
     "ready": "Ready",
@@ -1670,10 +1885,13 @@
     "noTransfers": "No transfers yet",
     "sent": "Sent ({{count}})",
     "received": "Received ({{count}})",
+<<<<<<< HEAD
     "type": "Type",
     "details": "Details",
     "typeDeposit": "Deposit",
     "typeKycRefund": "KYC Refund",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "all": "All",
     "to": "To: {{name}}",
     "from": "From: {{name}}",
@@ -1755,7 +1973,11 @@
       "s6_title": "6. Your Rights",
       "s6_c1": "Verify information related to your account.",
       "s6_c2": "Remove your account from our platform at any time.",
+<<<<<<< HEAD
       "s6_c3": "Security Tips: Oxford Financial Ads Our Compliance Team will never ask for your password or recovery phrase. Avoid sharing such information with anyone."
+=======
+      "s6_c3": "Security Tips: Oxford Financial Ads admin will never ask for your password or recovery phrase. Avoid sharing such information with anyone."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "questionsTitle": "Questions About These Privacy Policy?",
     "questionsText": "If you have any questions about these Privacy Policy, please contact us:"
@@ -1997,8 +2219,12 @@
     "kycStatus": "KYC Status",
     "memberId": "Member ID",
     "position": "Position",
+<<<<<<< HEAD
     "since": "Since",
     "verified": "Verified"
+=======
+    "since": "Since"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "investmentDetails": {
     "title": "Investment Details",
@@ -2006,8 +2232,11 @@
     "dailyPayment": "Daily Payment",
     "totalReturn": "Total Return",
     "dailyCaptchaRequirement": "Daily Captcha Requirement",
+<<<<<<< HEAD
  "adsRequirement": "Ads Requirement",
  "ads": "Ads",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "profitEarned": "Profit Earned",
     "progress": "Progress",
     "startDate": "Start Date",
@@ -2037,9 +2266,13 @@
     "rejectionReason": "Reason for Rejection",
     "estimatedTime": "Estimated Processing Time",
     "timeValue": "2-3 Business Days",
+<<<<<<< HEAD
     "timeDesc": "We'll notify you via email once your verification is complete",
     "editButton": "Edit Documents",
     "resubmitButton": "Resubmit Documents"
+=======
+    "timeDesc": "We'll notify you via email once your verification is complete"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "emailVerification": {
     "title": "Email Verification",
@@ -2098,9 +2331,13 @@
     "collapse": "Collapse",
     "announcement": "Announcement",
     "continue": "Continue",
+<<<<<<< HEAD
     "closeAnnouncement": "Close announcement",
     "skip": "Skip",
     "scrollToTop": "Scroll to top"
+=======
+    "closeAnnouncement": "Close announcement"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "roadmap": {
     "badge": "Roadmap",
@@ -2126,7 +2363,11 @@
   },
   "kycWarningBanner": {
     "title": "KYC Verification Required",
+<<<<<<< HEAD
     "pendingMessage": "Your KYC verification is being reviewed. Please wait for Our Compliance Team approval.",
+=======
+    "pendingMessage": "Your KYC verification is being reviewed. Please wait for admin approval.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "rejectedMessage": "Your KYC verification was rejected. Please resubmit with correct documents.",
     "notVerifiedMessage": "Complete your KYC verification to unlock fund transfers and withdrawals.",
     "status": "Status:",
@@ -2180,12 +2421,16 @@
   },
   "quickShortcuts": {
     "title": "Quick Shortcuts",
+<<<<<<< HEAD
     "soon": "Soon",
     "p2p": "P2P",
     "internationalCurrency": "International Currency",
     "comingSoon": "Coming Soon",
     "comingSoonDesc": "This feature is coming soon. Stay tuned for future updates!",
     "gotIt": "Got it"
+=======
+    "soon": "Soon"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "whatsappButton": {
     "chatTitle": "Chat with us on WhatsApp",
@@ -2214,10 +2459,17 @@
     "legalText": "Oxford Financial Ads provides algorithmic trading infrastructure and does not offer investment advice, financial planning, or portfolio management services. This platform is intended for sophisticated users who understand blockchain technology and cryptocurrency market risks. Participation constitutes acceptance of all inherent smart contract, market, technological, and regulatory risks. Consult independent legal, tax, and financial advisors before participating."
   },
   "heroSection": {
+<<<<<<< HEAD
     "badge": "Investment Plans",
     "title": "Choose Your Perfect",
     "titleHighlight": "Package",
     "subtitle": "Tailored investment solutions designed to match your financial goals, risk appetite, and vision for the future."
+=======
+    "badge": "Smart Contract Secured Allocations",
+    "title": "Strategy Participation",
+    "titleHighlight": "Tiers",
+    "subtitle": "Select your capital allocation tier to participate in automated AI-driven trading strategies on Arbitrum Layer-2. All allocations are non-custodial and secured by smart contracts."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "packageModal": {
     "adViewPackage": "Ad View",
@@ -2266,6 +2518,7 @@
     "status_pending": "Pending",
     "status_processing": "Processing",
     "status_rejected": "Rejected",
+<<<<<<< HEAD
     "ofa_token": "OFA token",
     "type_investment": "Investment",
     "type_matching_bonus": "Matching Bonus",
@@ -2281,6 +2534,9 @@
     "wallet_arbx_mining": "OFA Mining Wallet",
     "wallet_ad_view": "Ad View Wallet",
     "wallet_ecommerce": "Ecommerce Wallet"
+=======
+    "ofa_token": "OFA token"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "statusFeedbackModal": {
     "success": "Success",
@@ -2295,6 +2551,7 @@
   "liveActivityFeed": {
     "title": "Global Live Activity",
     "justNow": "Just now",
+<<<<<<< HEAD
     "minutesAgo": "{{count}} minutes ago",
     "minutesAgo_one": "{{count}} minute ago",
     "minutesAgo_other": "{{count}} minutes ago",
@@ -2335,6 +2592,17 @@
       "seconds": "Seconds",
       "live": "We Are Live"
     }
+=======
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "from": "from",
+    "pausedWeekend": "Activity paused on weekends (UK time)",
+    "pausedAdmin": "Activity paused by admin"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services",
+    "altOurCommitment": "Our Commitment"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "language": {
     "switch": "Switch Language"
@@ -2362,6 +2630,7 @@
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Shift+Z)",
     "footerText": "Supports bold, italic, lists, headings, links, images & more"
+<<<<<<< HEAD
   },
   "showcase": {
     "events": {
@@ -2694,3 +2963,7 @@
     "lifetime": "Lifetime"
   }
 }
+=======
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

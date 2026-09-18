@@ -167,8 +167,13 @@ export default function WithdrawalMethodManager() {
 
     try {
       setActionMethodId(method.id);
+<<<<<<< HEAD
       const res = await deleteWithdrawalMethod(token, method.id);
       setSuccessMessage(res?.message || "Withdrawal method deleted successfully.");
+=======
+      await deleteWithdrawalMethod(token, method.id);
+      setSuccessMessage("Withdrawal method deleted successfully.");
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       await loadMethods();
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
@@ -180,8 +185,13 @@ export default function WithdrawalMethodManager() {
   const sortedMethods = useMemo(
     () =>
       [...methods].sort((a, b) => {
+<<<<<<< HEAD
         const aDate = new Date(a.date_created || 0).getTime();
         const bDate = new Date(b.date_created || 0).getTime();
+=======
+        const aDate = new Date(a.created_at || 0).getTime();
+        const bDate = new Date(b.created_at || 0).getTime();
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         return bDate - aDate;
       }),
     [methods],
@@ -317,7 +327,11 @@ export default function WithdrawalMethodManager() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+<<<<<<< HEAD
           <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15 bg-[#0d1137] p-6 shadow-2xl">
+=======
+          <div className="w-full max-w-xl rounded-2xl border border-white/15 bg-[#0d1137] p-6 shadow-2xl">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">
                 {editingMethod ? "Edit Withdrawal Method" : "Add Withdrawal Method"}

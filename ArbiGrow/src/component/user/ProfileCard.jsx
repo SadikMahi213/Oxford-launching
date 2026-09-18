@@ -8,6 +8,10 @@ import {
   Award,
   Users,
   Settings,
+<<<<<<< HEAD
+=======
+  BadgeCheck,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   Clock,
   CalendarDays,
   IdCard,
@@ -17,11 +21,17 @@ import {
   Check,
   X,
 } from "lucide-react";
+<<<<<<< HEAD
 import VerifiedBadge from "../common/VerifiedBadge";
 import useUserStore from "../../store/userStore";
 import api from "../../api/axiosInstance.js";
 import profileBg from "../../assets/profile-bg.jpeg";
 import profilePlaceholder from "../../assets/banner.jpeg";
+=======
+import useUserStore from "../../store/userStore";
+import api from "../../api/axiosInstance.js";
+import profileBg from "../../assets/profile-bg.jpeg";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 function getInitials(name) {
   if (!name) return "?";
@@ -51,10 +61,14 @@ function formatJoinDate(dateStr) {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return null;
+<<<<<<< HEAD
   const d = date.getDate().toString().padStart(2, '0');
   const m = (date.getMonth() + 1).toString().padStart(2, '0');
   const y = date.getFullYear();
   return `${d}/${m}/${y}`;
+=======
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 }
 
 function getInitialsGradient(name) {
@@ -89,7 +103,11 @@ export default function ProfileCard({ setActivePage }) {
   const joinDate = formatJoinDate(user?.created_at);
   const lastLogin = getTimeAgo(user?.updated_at, t);
   const userId = user?.user_no || null;
+<<<<<<< HEAD
   const memberId = user?.member_id || userId;
+=======
+  const memberId = user?.referral_code ? `MEM-${user.referral_code}` : userId;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const kycRaw = user?.kyc_status;
   const getKycStatus = () => {
     if (kycRaw === "approved") return t("profileCard.verified");
@@ -148,7 +166,11 @@ export default function ProfileCard({ setActivePage }) {
     badges.push({ label: t("profileCard.emailVerified"), icon: Mail, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/30" });
   }
   if (hasKYC) {
+<<<<<<< HEAD
     badges.push({ label: t("profileCard.kycVerified"), icon: "verified", color: kycBadgeColor, bg: kycBadgeBg });
+=======
+    badges.push({ label: t("profileCard.kycVerified"), icon: BadgeCheck, color: kycBadgeColor, bg: kycBadgeBg });
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   }
   if (user?.is_mining) {
     badges.push({ label: t("profileCard.miningActive"), icon: Pickaxe, color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30" });
@@ -180,12 +202,16 @@ export default function ProfileCard({ setActivePage }) {
           <div className="flex items-center gap-4 md:flex-col md:items-center">
             <div className="relative flex-shrink-0">
               <div
+<<<<<<< HEAD
                 className="w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden relative"
                 style={{
                   backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${profilePlaceholder})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
+=======
+                className={`w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden relative`}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               >
                 {displayUrl ? (
                   <img
@@ -202,7 +228,11 @@ export default function ProfileCard({ setActivePage }) {
               </div>
               {hasKYC && (
                 <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 border-2 border-[#0a0e27] flex items-center justify-center shadow-lg shadow-emerald-500/20">
+<<<<<<< HEAD
                   <VerifiedBadge size="sm" />
+=======
+                  <BadgeCheck className="w-4 h-4 text-white" />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </div>
               )}
             </div>
@@ -210,11 +240,15 @@ export default function ProfileCard({ setActivePage }) {
               <div className="flex flex-wrap gap-1.5 md:hidden">
                 {badges.slice(0, 2).map((b) => (
                   <span key={b.label} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${b.bg} ${b.color} text-[10px] font-medium`}>
+<<<<<<< HEAD
                     {b.icon === "verified" ? (
                       <VerifiedBadge size="xs" />
                     ) : b.icon ? (
                       <b.icon className="w-3 h-3" />
                     ) : null}
+=======
+                    <b.icon className="w-3 h-3" />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     {b.label}
                   </span>
                 ))}
@@ -300,6 +334,7 @@ export default function ProfileCard({ setActivePage }) {
                   {user?.full_name || t("profileCard.user")}
                 </h2>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-400">
+<<<<<<< HEAD
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                     kycRaw === "approved"
                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
@@ -311,6 +346,13 @@ export default function ProfileCard({ setActivePage }) {
                   }`}>
                     {kycStatus}
                   </span>
+=======
+                  {user?.username && (
+                    <span className="flex items-center gap-1">
+                      <span>@{user.username}</span>
+                    </span>
+                  )}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   {userId && (
                     <span className="flex items-center gap-1 text-xs text-gray-500">
                       <IdCard className="w-3 h-3" />
@@ -356,11 +398,15 @@ export default function ProfileCard({ setActivePage }) {
             <div className="hidden md:flex flex-wrap gap-2 mt-3">
               {badges.map((b) => (
                 <span key={b.label} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border ${b.bg} ${b.color} text-xs font-medium`}>
+<<<<<<< HEAD
                   {b.icon === "verified" ? (
                     <VerifiedBadge size="xs" />
                   ) : b.icon ? (
                     <b.icon className="w-3.5 h-3.5" />
                   ) : null}
+=======
+                  <b.icon className="w-3.5 h-3.5" />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   {b.label}
                 </span>
               ))}

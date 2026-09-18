@@ -18,7 +18,11 @@ class Investment(Base):
     )
 
     # package snapshot
+<<<<<<< HEAD
     package_name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+=======
+    package_name: Mapped[str] = mapped_column(String(100), nullable=False)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     invested_amount: Mapped[Decimal] = mapped_column(
         Numeric(24, 14),
@@ -65,12 +69,15 @@ class Investment(Base):
         server_default="0"
     )
 
+<<<<<<< HEAD
     captchas_expired_today: Mapped[int] = mapped_column(
         Integer,
         default=0,
         server_default="0"
     )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     last_captcha_date: Mapped[date | None] = mapped_column(
         Date, nullable=True
     )
@@ -99,14 +106,22 @@ class Investment(Base):
 
     status: Mapped[str] = mapped_column(
         String(20),
+<<<<<<< HEAD
         default="active",
         index=True,
+=======
+        default="active"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+<<<<<<< HEAD
         default=datetime.utcnow,
         index=True,
+=======
+        default=datetime.utcnow
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     user = relationship("User")

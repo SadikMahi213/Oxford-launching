@@ -16,8 +16,11 @@ class Invoice(Base):
 
     invoice_number = Column(String(64), unique=True, nullable=False, index=True)
 
+<<<<<<< HEAD
     transaction_id = Column(String(128), unique=True, nullable=False, index=True)
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     amount = Column(Numeric(24, 14), nullable=True)
     currency = Column(String(10), default="USDT")
     status = Column(String(20), default="generated")

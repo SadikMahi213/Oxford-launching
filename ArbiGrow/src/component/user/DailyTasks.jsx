@@ -12,7 +12,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getNextCaptcha, submitCaptcha, getCaptchaStats } from "../../api/user.api.js";
+<<<<<<< HEAD
 import DailyEarningNotice from "./DailyEarningNotice.jsx";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import api from "../../api/axiosInstance.js";
 import useUserStore from "../../store/userStore.js";
 
@@ -26,6 +29,7 @@ export default function DailyTasks() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
+<<<<<<< HEAD
   const [timer, setTimer] = useState(0);
   const [expired, setExpired] = useState(false);
   const [taskAccess, setTaskAccess] = useState(null);
@@ -46,6 +50,10 @@ export default function DailyTasks() {
     fetchTaskAccess();
   }, [fetchTaskAccess]);
 
+=======
+  const { setUser } = useUserStore();
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const fetchStats = useCallback(async () => {
     try {
       const res = await getCaptchaStats();
@@ -67,8 +75,11 @@ export default function DailyTasks() {
       const res = await getNextCaptcha();
       const data = res.data || res;
       setCaptcha(data);
+<<<<<<< HEAD
       setTimer(data.timer_seconds || 60);
       setExpired(false);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       setCooldown(5);
     } catch (err) {
       const detail = err.response?.data?.detail || err.message || t('dailyTasks.loading');
@@ -88,6 +99,7 @@ export default function DailyTasks() {
     return () => clearInterval(t);
   }, [cooldown]);
 
+<<<<<<< HEAD
   // Captcha real-time countdown timer
   useEffect(() => {
     if (!captcha || result || timer <= 0 || expired) return;
@@ -115,6 +127,8 @@ export default function DailyTasks() {
     } catch {}
   };
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const handleSubmit = async () => {
     if (!captcha || !userInput.trim()) return;
     setSubmitting(true);
@@ -125,14 +139,21 @@ export default function DailyTasks() {
       setResult(data);
       if (data.success) {
         setUser({ captcha_wallet: data.new_balance });
+<<<<<<< HEAD
+=======
+        await fetchStats();
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       }
     } catch (err) {
       const detail = err.response?.data?.detail || err.message || t('dailyTasks.verifying');
       setError(detail);
     } finally {
       setSubmitting(false);
+<<<<<<< HEAD
       await fetchStats();
       await fetchTaskAccess();
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -162,8 +183,11 @@ export default function DailyTasks() {
         </div>
       </div>
 
+<<<<<<< HEAD
       <DailyEarningNotice />
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -198,6 +222,7 @@ export default function DailyTasks() {
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Task Access Blocked */}
       {taskAccess && !taskAccess.allowed && (
         <div className="max-w-lg mx-auto">
@@ -263,6 +288,8 @@ export default function DailyTasks() {
         </div>
       )}
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       {/* No active package */}
       {stats && stats.daily_limit === 0 && (
         <div className="p-6 text-center">
@@ -290,6 +317,7 @@ export default function DailyTasks() {
               )}
             </div>
 
+<<<<<<< HEAD
             {/* Timer bar */}
             {captcha && !result && !expired && (
               <div className="space-y-2 mb-2">
@@ -349,6 +377,22 @@ export default function DailyTasks() {
                   >
                     <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
                   </button>
+=======
+            {/* Captcha display */}
+            {captcha && !result && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-black/40 border border-white/10 text-center">
+                  <img
+                    src={`data:image/png;base64,${captcha.captcha_image}`}
+                    alt="captcha"
+                    className="mx-auto rounded-lg select-none"
+                    style={{ maxWidth: "100%", height: "auto" }}
+                    draggable={false}
+                  />
+                  <div className="text-xs text-gray-500 mt-2">
+                    {t('dailyTasks.captchaId', { id: captcha.captcha_id })}
+                  </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </div>
 
                 <input
@@ -359,11 +403,15 @@ export default function DailyTasks() {
                   disabled={submitting}
                   placeholder={t('dailyTasks.captchaPlaceholder')}
                   autoFocus
+<<<<<<< HEAD
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
                   spellCheck={false}
                   className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-xl tracking-widest"
+=======
+                  className="w-full p-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 font-mono text-center text-lg tracking-widest"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 />
 
                 <button
@@ -404,7 +452,11 @@ export default function DailyTasks() {
                   {t('dailyTasks.remainingCaptchas', { count: result.remaining_today })}
                 </div>
                 <button
+<<<<<<< HEAD
                   onClick={() => { setResult(null); setCaptcha(null); setUserInput(""); setTimer(0); setExpired(false); fetchCaptcha(); }}
+=======
+                  onClick={() => { setResult(null); setCaptcha(null); setUserInput(""); }}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   className="mt-3 w-full p-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-sm font-bold"
                 >
                   {t('dailyTasks.getNextCaptcha')}

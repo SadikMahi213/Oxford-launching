@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Navbar from "../component/Navbar";
+<<<<<<< HEAD
 import ScrollToTopButton from "../component/ScrollToTopButton";
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { Hero } from "../component/Hero";
 import ExecutiveSummary from "../component/ExecutiveSummary";
 import Footer from "../component/Footer";
@@ -13,6 +16,7 @@ import Founders from "../component/Founder";
 import { PrivacySecurity } from "../component/PrivacySecurity";
 import { WhyChooseUs } from "../component/WhyChooseUs";
 import { MemberBenefits } from "../component/MemberBenefits";
+<<<<<<< HEAD
 import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
 import { ShowcaseSection } from "../component/ShowcaseSection";
 import LaunchCountdown from "../component/LaunchCountdown";
@@ -57,6 +61,11 @@ const trainingImages = [
 const communityImages = [
   com1, com2, com3, com4, com5, com6
 ];
+=======
+import { EcommercePromo } from "../component/EcommercePromo";
+import { PlatformStatistics } from "../component/PlatformStatistics.jsx";
+import { getPlatformStats } from "../api/admin.api.js";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 const Home = () => {
   const { t } = useTranslation();
@@ -75,6 +84,7 @@ const Home = () => {
     fetchStats();
   }, []);
   return (
+<<<<<<< HEAD
     <>
       <Navbar />
       <ScrollToTopButton />
@@ -83,13 +93,23 @@ const Home = () => {
         <Hero />
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+=======
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <Navbar />
+      <div id="home">
+        <Hero />
+      </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       <ExecutiveSummary />
       <div className="flex justify-center my-8 md:my-12">
         <img
           src="/WhatsApp%20Image%202026-06-24%20at%2021.12.20%20(1).jpeg"
           alt={t("homePage.imageAlt")}
+<<<<<<< HEAD
           loading="lazy"
           decoding="async"
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           className="w-full max-w-3xl md:max-w-4xl lg:max-w-5xl h-auto object-contain rounded-2xl"
         />
       </div>
@@ -97,13 +117,19 @@ const Home = () => {
         <WhyChooseUs />
       </div>
       <MemberBenefits />
+<<<<<<< HEAD
       <PlatformStatistics stats={stats} />
+=======
+      <EcommercePromo />
+      {stats && <PlatformStatistics stats={stats} />}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       <div id="founders">
         <Founders />
       </div>
       <div id="commitment">
         <SecurityCompliance />
       </div>
+<<<<<<< HEAD
 
       {/* Commitment Hero Image */}
       <div className="flex justify-center my-3 md:my-4 px-4 md:px-8">
@@ -131,10 +157,15 @@ const Home = () => {
             imageAlt={t("homePage.imageAlt")}
           />
         </GlobalCertifications>
+=======
+      <div id="certifications">
+        <GlobalCertifications />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       </div>
       <div id="security">
         <SecurityStandards />
       </div>
+<<<<<<< HEAD
 
       <ShowcaseSection
         badge={t("showcase.training.badge")}
@@ -178,6 +209,16 @@ const Home = () => {
       <Footer />
       </div>
     </>
+=======
+      <div id="corporate">
+        <CorporateIntegrity />
+      </div>
+      <div id="privacy">
+        <PrivacySecurity />
+      </div>
+      <Footer />
+    </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   );
 };
 

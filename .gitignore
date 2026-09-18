@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
@@ -96,3 +97,54 @@ server-full-deployment.zip
 /msys2*
 /mingw*
 /ucrt64*
+=======
+# Environment
+.env
+.env.local
+.env.production
+
+# Credentials
+login*.json
+
+# Build
+dist/
+arbigrow-fastapi/storage/
+*.egg-info/
+
+# Backups and dumps
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+generated_avatars/
+
+# Deployment artifacts
+*.pem
+*.key
+id_*
+known_hosts
+
+
+# Node
+node_modules/
+node_modules/
+
+oxford-498705-9dc7c24032c6.json
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

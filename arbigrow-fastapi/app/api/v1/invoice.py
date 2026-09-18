@@ -17,7 +17,10 @@ from app.models.withdrawal import Withdrawal
 from app.services.invoice_service import (
     generate_deposit_invoice,
     generate_withdrawal_invoice,
+<<<<<<< HEAD
     regenerate_invoice_pdf,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     serialize_invoice,
 )
 
@@ -48,10 +51,15 @@ async def get_deposit_invoice(
         tx_data={
             "network": deposit.network_name,
             "transaction_hash": deposit.txid,
+<<<<<<< HEAD
             "transaction_id": deposit.txid,
             "main_wallet_balance": float(current_user.main_wallet or 0),
             "wallet_name": "Deposit Wallet",
             "wallet_balance": float(current_user.deposit_wallet or 0),
+=======
+            "previous_balance": float(current_user.deposit_wallet) - float(deposit.amount),
+            "current_balance": float(current_user.deposit_wallet),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         },
     )
     if not invoice:
@@ -83,10 +91,15 @@ async def get_withdrawal_invoice(
         tx_data={
             "network": withdrawal.network_name,
             "destination": withdrawal.destination_address,
+<<<<<<< HEAD
             "transaction_id": withdrawal.transaction_id,
             "main_wallet_balance": float(current_user.main_wallet or 0),
             "wallet_name": "Deposit Wallet",
             "wallet_balance": float(current_user.deposit_wallet or 0),
+=======
+            "previous_balance": float(current_user.withdraw_wallet) + float(withdrawal.amount),
+            "current_balance": float(current_user.withdraw_wallet),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         },
     )
     if not invoice:
@@ -113,6 +126,7 @@ async def download_invoice_pdf(
     pdf_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "storage", "invoices")
     pdf_path = os.path.join(pdf_dir, invoice.pdf_storage_key)
     if not os.path.exists(pdf_path):
+<<<<<<< HEAD
         # The PDF file is stored on ephemeral local disk (no persistent
         # volume), so container rebuilds/restarts orphan previously generated
         # files while their DB rows survive. Regenerate the identical invoice
@@ -121,6 +135,9 @@ async def download_invoice_pdf(
         regenerated = await regenerate_invoice_pdf(db, invoice)
         if not regenerated or not os.path.exists(pdf_path):
             raise HTTPException(404, "PDF file not found on disk")
+=======
+        raise HTTPException(404, "PDF file not found on disk")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     return FileResponse(
         pdf_path,

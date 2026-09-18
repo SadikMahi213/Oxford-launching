@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿from app.core.base import Base
+=======
+from app.core.base import Base
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 
@@ -30,9 +34,12 @@ class Seller(Base):
     profile_completion = Column(Numeric(5, 2), default=0, nullable=True)
     rejection_reason = Column(String(1000), nullable=True)
     submitted_at = Column(DateTime(timezone=True), nullable=True)
+<<<<<<< HEAD
     default_delivery_charge = Column(Numeric(10, 2), default=0, nullable=True)
     shipping_settings = Column(Text, nullable=True)
     return_policy = Column(Text, nullable=True)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

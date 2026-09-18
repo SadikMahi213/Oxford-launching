@@ -1,17 +1,29 @@
 import hashlib
+<<<<<<< HEAD
 import random
 import secrets
 import anyio
+=======
+import secrets
+import string
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from datetime import datetime, timedelta, date, timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+<<<<<<< HEAD
 from sqlalchemy import select, func, and_, update
+=======
+from sqlalchemy import select, func, and_
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user_id
+<<<<<<< HEAD
 from app.models.system_config import SystemConfig
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.user import User
 from app.models.investments import Investment
 from app.models.captcha import CaptchaChallenge, CaptchaEarning
@@ -22,6 +34,7 @@ from app.schemas.captcha import (
     CaptchaStatsResponse,
 )
 from app.core.rate_limiter import limiter
+<<<<<<< HEAD
 from app.api.v1.deps import check_earning_access_by_id
 from app.utils.is_system_active import require_daily_earning
 from app.services.captcha_generator import generate_captcha_image
@@ -35,6 +48,10 @@ from app.services.task_error_service import (
     ERR_CAPTCHA_DUPLICATE,
     ERR_CAPTCHA_RAPID_SUBMISSION,
 )
+=======
+from app.services.captcha_generator import generate_captcha_image
+from app.models.package import Package, TaskType
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 router = APIRouter(prefix="/captcha", tags=["Captcha"])
 
@@ -42,6 +59,7 @@ CAPTCHA_EXPIRY_MINUTES = 2
 CAPTCHA_RATE_LIMIT_SECONDS = 5
 WALLET_PRECISION = Decimal("0.00000000000001")
 
+<<<<<<< HEAD
 # Controlled, unambiguous alphanumeric charset.
 # Validation is case-sensitive (no case conversion anywhere), and characters
 # that are easily confused (O/0, I/1/l, S/5, B/8) are excluded in both cases.
@@ -92,6 +110,12 @@ def _normalize_captcha_input(value: str) -> str:
     is applied here or anywhere in the validation flow.
     """
     return (value or "").strip()
+=======
+
+def _generate_captcha_text(length: int = 5) -> str:
+    chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+    return "".join(secrets.choice(chars) for _ in range(length))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 def _hash_captcha(text: str, salt: str) -> str:
@@ -101,6 +125,7 @@ def _hash_captcha(text: str, salt: str) -> str:
 def _reset_daily_counter_if_needed(investment: Investment, today: date):
     if investment.last_captcha_date is None or investment.last_captcha_date < today:
         investment.captchas_typed_today = 0
+<<<<<<< HEAD
         investment.captchas_expired_today = 0
         investment.last_captcha_date = today
 
@@ -127,6 +152,11 @@ async def _get_active_captcha_investment(db, user_id: int):
     return None
 
 
+=======
+        investment.last_captcha_date = today
+
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/next", response_model=CaptchaNextResponse)
 @limiter.limit("12/minute")
 async def get_next_captcha(
@@ -134,8 +164,11 @@ async def get_next_captcha(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     await check_earning_access_by_id(user_id, db)
     await require_daily_earning(db)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     inv_result = await db.execute(
         select(Investment).where(
             and_(
@@ -152,7 +185,11 @@ async def get_next_captcha(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
+=======
+        if pkg and pkg.task_type == TaskType.captcha:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             investment = inv
             package = pkg
             break
@@ -163,11 +200,16 @@ async def get_next_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
+<<<<<<< HEAD
     if (investment.captchas_typed_today or 0) >= (investment.daily_captcha_limit or 0):
+=======
+    if investment.captchas_typed_today >= (investment.daily_captcha_limit or 0):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(400, detail="Daily captcha limit reached. Come back tomorrow.")
 
     captcha_text = _generate_captcha_text()
     salt = secrets.token_hex(8)
+<<<<<<< HEAD
     # Hash the exact generated text (trimmed only): submit compares the
     # user's exact input, so validation is case-sensitive end to end.
     text_hash = _hash_captcha(_normalize_captcha_input(captcha_text), salt)
@@ -186,6 +228,11 @@ async def get_next_captcha(
         .values(is_used=True)
     )
 
+=======
+    text_hash = _hash_captcha(captcha_text, salt)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=CAPTCHA_EXPIRY_MINUTES)
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     challenge = CaptchaChallenge(
         user_id=user_id,
         captcha_text_hash=text_hash,
@@ -196,17 +243,24 @@ async def get_next_captcha(
     await db.commit()
     await db.refresh(challenge)
 
+<<<<<<< HEAD
     # CPU-bound PIL render runs in a worker thread so the event loop
     # stays responsive under concurrent captcha load.
     captcha_image = await anyio.to_thread.run_sync(
         generate_captcha_image, captcha_text
     )
+=======
+    captcha_image = generate_captcha_image(captcha_text)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     return CaptchaNextResponse(
         captcha_id=challenge.id,
         captcha_image=captcha_image,
         expires_at=expires_at,
+<<<<<<< HEAD
         timer_seconds=await _get_captcha_timer_seconds(db, package),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
 
@@ -218,6 +272,7 @@ async def submit_captcha(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     await check_earning_access_by_id(user_id, db)
     await require_daily_earning(db)
     task_access = await check_task_access(db, user_id)
@@ -226,19 +281,26 @@ async def submit_captcha(
 
     # Row-lock the challenge so concurrent duplicate submits of the same
     # captcha serialize: exactly one of them can consume it.
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(
         select(CaptchaChallenge).where(
             and_(
                 CaptchaChallenge.id == body.captcha_id,
                 CaptchaChallenge.user_id == user_id,
             )
+<<<<<<< HEAD
         ).with_for_update()
+=======
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     challenge = result.scalars().first()
     if not challenge:
         raise HTTPException(404, detail="Captcha not found")
     if challenge.is_used:
         raise HTTPException(400, detail="Captcha already used")
+<<<<<<< HEAD
     # Validate the answer before checking expiry so a successfully
     # completed task is recorded as completed even if late.
     expected_hash = _hash_captcha(_normalize_captcha_input(body.user_input), challenge.salt)
@@ -260,6 +322,10 @@ async def submit_captcha(
         )
         await log_task_error(db, user_id, "captcha", ERR_CAPTCHA_TIMEOUT,
             task_attempt_id=attempt.id, attempt_number=attempt.attempt_number)
+=======
+    if datetime.now(timezone.utc) > challenge.expires_at:
+        challenge.is_used = True
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         await db.commit()
         raise HTTPException(400, detail="Captcha expired")
 
@@ -286,7 +352,11 @@ async def submit_captcha(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
+=======
+        if pkg and pkg.task_type == TaskType.captcha:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             investment = inv
             break
     if not investment:
@@ -295,6 +365,7 @@ async def submit_captcha(
     today = date.today()
     _reset_daily_counter_if_needed(investment, today)
 
+<<<<<<< HEAD
     # is_correct was computed up front so expiry never blocks a completion.
     challenge.is_used = True
 
@@ -323,10 +394,25 @@ async def submit_captcha(
         user_id=user_id,
         captcha_text_original=challenge.captcha_text_hash,
         user_input=_normalize_captcha_input(body.user_input),
+=======
+    expected_hash = _hash_captcha(body.user_input.strip().upper(), challenge.salt)
+    is_correct = expected_hash == challenge.captcha_text_hash
+
+    challenge.is_used = True
+
+    earning = CaptchaEarning(
+        user_id=user_id,
+        captcha_text_original=challenge.captcha_text_hash,
+        user_input=body.user_input.strip().upper(),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         is_correct=is_correct,
         amount_earned=Decimal("0"),
     )
 
+<<<<<<< HEAD
+=======
+    remaining_today = (investment.daily_captcha_limit or 0) - investment.captchas_typed_today
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     earned = Decimal("0")
 
     if is_correct:
@@ -336,9 +422,15 @@ async def submit_captcha(
         user.captcha_wallet = (user.captcha_wallet + earned).quantize(
             WALLET_PRECISION, rounding=ROUND_HALF_UP
         )
+<<<<<<< HEAD
         earning.amount_earned = earned
 
     remaining_today = (investment.daily_captcha_limit or 0) - (investment.captchas_typed_today or 0)
+=======
+        investment.captchas_typed_today += 1
+        earning.amount_earned = earned
+        remaining_today = (investment.daily_captcha_limit or 0) - investment.captchas_typed_today
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     db.add(earning)
     await db.commit()
@@ -352,6 +444,7 @@ async def submit_captcha(
     )
 
 
+<<<<<<< HEAD
 @router.post("/expire")
 @limiter.limit("30/minute")
 async def expire_captcha(
@@ -422,6 +515,8 @@ async def expire_captcha(
     }
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/stats", response_model=CaptchaStatsResponse)
 @limiter.limit("30/minute")
 async def get_captcha_stats(
@@ -455,7 +550,11 @@ async def get_captcha_stats(
     for inv in all_investments:
         pkg_result = await db.execute(select(Package).where(Package.name == inv.package_name))
         pkg = pkg_result.scalar_one_or_none()
+<<<<<<< HEAD
         if pkg and pkg.is_active and pkg.task_type == TaskType.captcha:
+=======
+        if pkg and pkg.task_type == TaskType.captcha:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             investment = inv
             break
     if not investment:
@@ -497,6 +596,7 @@ async def get_captcha_stats(
         total_earned_today=total_earned_today,
         total_earned_all=total_earned_all,
     )
+<<<<<<< HEAD
 
 
 @router.get("/task-access")
@@ -536,3 +636,5 @@ async def get_my_captcha_earnings(
             for e in earnings
         ]
     }
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

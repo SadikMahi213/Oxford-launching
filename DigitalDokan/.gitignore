@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+dist/
+build/
+*.spec
+.DigitalDokan-dev-db/
+# R2: never commit live databases, journals, logs, local backups or receipts
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.bak
+*.log
+backups/
+logs/
+print-*.txt
+.DigitalDokan/

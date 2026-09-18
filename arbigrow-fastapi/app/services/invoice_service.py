@@ -15,12 +15,16 @@ from app.models.user import User
 from app.models.deposit import Deposit
 from app.models.withdrawal import Withdrawal
 from app.models.invoice import Invoice
+<<<<<<< HEAD
 from app.utils.transaction_id import generate_unique_transaction_id, format_invoice_number
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 logger = logging.getLogger(__name__)
 
 COMPANY_INFO = {
     "name": "Oxford Financial Ads",
+<<<<<<< HEAD
     "description": "Global Digital Advertising Platform",
     "address": "25 Business Square, Canary District, London, EC2A 4AB, United Kingdom",
     "email": "support.oxfordfinancialads@gmail.com",
@@ -29,11 +33,24 @@ COMPANY_INFO = {
 BUSINESS_HOURS = "24/7 Online Operations & Support"
 SUPPORT_CONTACT = "support.oxfordfinancialads@gmail.com"
 FOOTER_NOTES = "Serving Members Worldwide | 24/7 Online Operations & Support"
+=======
+    "description": "Professional Financial Services",
+    "address": "71 Queen Victoria Street, London EC4V 4AY, UK",
+    "email": "support@oxfordfinancialads.com",
+    "website": "www.oxfordfinancialads.com",
+    "phone": "+44 20 7946 0958",
+}
+
+BUSINESS_HOURS = "Mon–Fri 9:00 AM – 6:00 PM GMT"
+SUPPORT_CONTACT = "support@oxfordfinancialads.com / +44 20 7946 0958"
+FOOTER_NOTES = "This invoice is a confidential document. Unauthorised distribution is prohibited."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 INVOICE_CSS = """
 <style>
     @page { margin: 0; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+<<<<<<< HEAD
     body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #2c2c2c; font-size: 12.5px; line-height: 1.25; background: #fff; }
     .page { width: 210mm; height: 297mm; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; }
     .content { padding: 8px 18px 0; }
@@ -103,6 +120,76 @@ INVOICE_CSS = """
     .footer-band { background: linear-gradient(135deg, #032F61, #0a4180); padding: 4px 18px; text-align: center; }
     .footer-band p { color: #FCD34D; font-size: 9.5px; line-height: 1.15; }
 </style>"""
+=======
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #4F4F4F; font-size: 9px; line-height: 1.3; background: #fff; }
+    .page { width: 210mm; min-height: 297mm; margin: 0 auto; display: flex; flex-direction: column; }
+    .content { flex: 1; padding: 18px 28px 0; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .logo-crest { width: 36px; height: 36px; flex-shrink: 0; }
+    .company-name { font-size: 14px; font-weight: 700; color: #032F61; line-height: 1.2; }
+    .company-sub { font-size: 8px; color: #7A7A7A; margin-top: 1px; }
+    .header-right { text-align: right; }
+    .invoice-title { font-size: 22px; font-weight: 800; color: #032F61; letter-spacing: 1px; line-height: 1; }
+    .invoice-subtitle { font-size: 9px; color: #7A7A7A; margin-top: 2px; }
+    .divider-line { border: none; border-top: 1px solid #E0E0E0; margin: 6px 0; }
+    .contact-row { display: flex; gap: 24px; margin-bottom: 8px; font-size: 8px; color: #4F4F4F; flex-wrap: wrap; }
+    .contact-row .col { display: flex; align-items: flex-start; gap: 3px; min-width: 160px; }
+    .details-grid { display: flex; border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
+    .details-grid .side { flex: 1; padding: 6px 10px; }
+    .details-grid .vdivider { width: 1px; background: #E0E0E0; }
+    .detail-row { display: flex; justify-content: space-between; padding: 1px 0; font-size: 8px; }
+    .detail-row .label { color: #7A7A7A; min-width: 70px; }
+    .detail-row .value { color: #4F4F4F; font-weight: 600; text-align: right; }
+    .box { border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; }
+    .box-header { background: #032F61; color: #fff; padding: 5px 12px; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
+    .status-box { display: flex; border: 1px solid #E0E0E0; border-radius: 6px; margin-bottom: 6px; overflow: hidden; }
+    .status-box .col { flex: 1; padding: 8px 12px; }
+    .status-box .vdivider { width: 1px; background: #E0E0E0; }
+    .status-label { font-size: 8px; color: #7A7A7A; font-weight: 700; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-row { display: flex; align-items: center; gap: 6px; }
+    .icon-circle { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .icon-circle.green { background: #0B8B41; }
+    .icon-circle.red { background: #DC2626; }
+    .icon-circle.yellow { background: #D97706; }
+    .tx-type { font-size: 12px; font-weight: 700; }
+    .tx-type.green { color: #0B8B41; }
+    .tx-type.red { color: #DC2626; }
+    .tx-type.yellow { color: #D97706; }
+    .tx-sub { font-size: 8px; color: #7A7A7A; margin-top: 1px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 16px; font-size: 9px; font-weight: 700; color: #fff; }
+    .status-badge.green { background: #0B8B41; }
+    .status-badge.red { background: #DC2626; }
+    .status-badge.yellow { background: #D97706; }
+    .status-sub { font-size: 8px; color: #7A7A7A; margin-top: 2px; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 8px; }
+    .tx-table td { padding: 3px 10px; border-bottom: 1px solid #E0E0E0; }
+    .tx-table tr:last-child td { border-bottom: none; }
+    .tx-table .label { color: #7A7A7A; width: 120px; background: #FAFAFA; font-weight: 600; }
+    .tx-table .value { color: #4F4F4F; font-weight: 600; }
+    .tx-table .val-green { color: #0B8B41; font-weight: 700; }
+    .tx-table .val-blue { color: #032F61; font-weight: 700; }
+    .summary-grid { display: flex; }
+    .summary-grid .scol { flex: 1; padding: 6px 6px; text-align: center; }
+    .summary-grid .sdivider { width: 1px; background: #E0E0E0; }
+    .summary-label { font-size: 7px; color: #7A7A7A; text-transform: uppercase; letter-spacing: 0.3px; }
+    .summary-value { font-size: 11px; font-weight: 700; color: #4F4F4F; margin-top: 2px; }
+    .summary-value.green { color: #0B8B41; }
+    .summary-value.large { font-size: 13px; }
+    .notice { background: #E3F2FD; border: 1px solid #BBDEFB; border-radius: 6px; padding: 6px 12px; margin-bottom: 6px; }
+    .notice-title { font-size: 9px; font-weight: 700; color: #032F61; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+    .notice ul { list-style: none; padding: 0; margin: 0; }
+    .notice li { font-size: 8px; color: #4F4F4F; padding: 1px 0 1px 12px; position: relative; }
+    .notice li::before { content: "\\2022"; position: absolute; left: 2px; color: #032F61; }
+    .footer-info { display: flex; border-top: 1px solid #E0E0E0; padding: 8px 28px; background: #FAFAFA; }
+    .footer-info .fcol { flex: 1; text-align: center; padding: 0 4px; }
+    .footer-info .fcol .ftitle { font-size: 8px; font-weight: 700; color: #032F61; margin-bottom: 2px; }
+    .footer-info .fcol .ftext { font-size: 7px; color: #7A7A7A; line-height: 1.3; }
+    .footer-band { background: #032F61; padding: 8px 28px; text-align: center; }
+    .footer-band p { color: #B78A32; font-size: 9px; line-height: 1.3; }
+</style>
+"""
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -118,6 +205,7 @@ def _fmt_date(dt) -> str:
 def _fmt_currency(val, decimals=2) -> str:
     try:
         v = float(val or 0)
+<<<<<<< HEAD
         return f"{v:,.{decimals}f} USDT"
     except (ValueError, TypeError):
         return "0.00 USDT"
@@ -130,6 +218,11 @@ def _sanitize_transaction_id(txid: str) -> str:
     if txid.isdigit():
         return f"TXN-{txid}"
     return txid
+=======
+        return f"${v:,.{decimals}f}"
+    except (ValueError, TypeError):
+        return "$0.00"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 # ── HTML Template ───────────────────────────────────────────────────────────
@@ -162,12 +255,19 @@ def _build_invoice_html(
     tx_data: Optional[dict] = None,
     *,
     user_id: Optional[str] = None,
+<<<<<<< HEAD
     
+=======
+    user_phone: Optional[str] = None,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     payment_method: Optional[str] = None,
     remarks: Optional[str] = None,
     prev_balance: Optional[float] = None,
     current_balance: Optional[float] = None,
+<<<<<<< HEAD
     main_wallet_balance: Optional[float] = None,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     account_holder_name: Optional[str] = None,
     company_info: Optional[dict] = None,
     business_hours: Optional[str] = None,
@@ -194,6 +294,7 @@ def _build_invoice_html(
 
     fee = float(tx_data.get("fee", 0)) if tx_data else 0
     net_amount = float(amount or 0)
+<<<<<<< HEAD
     # For deposits: total = requested + fee (user pays more).
     # For withdrawals: net = requested - fee (user receives less).
     if is_withdrawal:
@@ -210,6 +311,9 @@ def _build_invoice_html(
         amount_label = f"{tx_label} Amount"
         fee_label = "Processing Fee"
         total_label = "Total Amount"
+=======
+    total_amount = net_amount + fee
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     logo_img = _get_logo_data_uri()
 
@@ -224,6 +328,7 @@ def _build_invoice_html(
     amt_sign = "+" if is_deposit else "-"
     prev_bal_fmt = _fmt_currency(prev_balance) if prev_balance is not None else "-"
     curr_bal_fmt = _fmt_currency(current_balance) if current_balance is not None else "-"
+<<<<<<< HEAD
     if main_wallet_balance is None and tx_data:
         raw_mw = tx_data.get("main_wallet_balance")
         main_wallet_balance = float(raw_mw) if raw_mw is not None else None
@@ -246,6 +351,20 @@ def _build_invoice_html(
     ref_col += f'<div class="detail-row"><span class="label">User ID</span><span class="value">{user_id or "-"}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Customer</span><span class="value">{user_name}</span></div>'
     ref_col += f'<div class="detail-row"><span class="label">Email</span><span class="value">{user_email}</span></div>'
+=======
+
+    ref_col = ""
+    ref_col += f'<div class="detail-row"><span class="label">Invoice No</span><span class="value">{invoice_number}</span></div>'
+    if tx_hash:
+        ref_col += f'<div class="detail-row"><span class="label">Tx Hash</span><span class="value">{tx_hash_display}</span></div>'
+    if tx_id_val:
+        ref_col += f'<div class="detail-row"><span class="label">Transaction ID</span><span class="value">{tx_id_val}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">User ID</span><span class="value">{user_id or "-"}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">Customer</span><span class="value">{user_name}</span></div>'
+    ref_col += f'<div class="detail-row"><span class="label">Email</span><span class="value">{user_email}</span></div>'
+    if user_phone:
+        ref_col += f'<div class="detail-row"><span class="label">Phone</span><span class="value">{user_phone}</span></div>'
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     period_col = f'<div class="detail-row"><span class="label">Date</span><span class="value">{created_at}</span></div>'
     if account_holder_name:
@@ -287,6 +406,7 @@ def _build_invoice_html(
   </div>
 
   <hr class="divider-line">
+<<<<<<< HEAD
   <div class="accent-bar"></div>
 
   <div class="contact-row">
@@ -296,6 +416,13 @@ def _build_invoice_html(
   </div>
   <div style="text-align:center;font-size:8px;color:#6b7280;margin-bottom:3px;padding:2px 0;border-top:1px solid #d1d5db;border-bottom:1px solid #d1d5db;">
     {ci["description"]} | Serving Members Worldwide | 24/7 Online Operations &amp; Support
+=======
+
+  <div class="contact-row">
+    <div class="col"><strong style="color:#032F61;">Email:</strong> {ci["email"]}</div>
+    <div class="col"><strong style="color:#032F61;">Phone:</strong> {ci["phone"]}</div>
+    <div class="col"><strong style="color:#032F61;">Web:</strong> {ci["website"]}</div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   </div>
 
   <div class="details-grid">
@@ -334,6 +461,7 @@ def _build_invoice_html(
   </div>
 
   <div class="box">
+<<<<<<< HEAD
     <div class="box-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> {tx_label} Transaction Details</div>
     <table class="tx-table">
       <tr><td class="label">Transaction Type</td><td class="value">{tx_label}</td></tr>
@@ -348,10 +476,25 @@ def _build_invoice_html(
       <tr><td class="label">{total_label}</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
       <tr><td class="label">Transaction Date &amp; Time</td><td class="value">{created_at}</td></tr>
       {html_mid_rows}
+=======
+    <div class="box-header">{tx_label} Transaction Details</div>
+    <table class="tx-table">
+      <tr><td class="label">Transaction Type</td><td class="value">{tx_label}</td></tr>
+      <tr><td class="label">Current Status</td><td class="value">{badge_text}</td></tr>
+      <tr><td class="label">Transaction ID</td><td class="value">{tx_id_val or invoice_number}</td></tr>
+      <tr><td class="label">Payment Method</td><td class="value">{pm}</td></tr>
+      <tr><td class="label">{tx_label} Amount</td><td class="value val-green">{amt_fmt}</td></tr>
+      <tr><td class="label">Processing Fee</td><td class="value">{_fmt_currency(fee)}</td></tr>
+      <tr><td class="label">Total Amount</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
+      <tr><td class="label">Transaction Date &amp; Time</td><td class="value">{created_at}</td></tr>
+      {html_mid_rows}
+      <tr><td class="label">Reference</td><td class="value">{invoice_number}</td></tr>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     </table>
   </div>
 
   <div class="box">
+<<<<<<< HEAD
     <div class="box-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg> Amount Summary</div>
     <div class="summary-grid">
       <div class="scol"><div class="summary-label">Subtotal</div><div class="summary-value">{amt_fmt}</div></div>
@@ -359,21 +502,42 @@ def _build_invoice_html(
       <div class="scol"><div class="summary-label">{fee_label}</div><div class="summary-value">{_fmt_currency(fee)}</div></div>
       <div class="sdivider"></div>
       <div class="scol"><div class="summary-label">{total_label}</div><div class="summary-value green large">{_fmt_currency(total_amount)}</div></div>
+=======
+    <div class="box-header">Amount Summary</div>
+    <div class="summary-grid">
+      <div class="scol"><div class="summary-label">Subtotal</div><div class="summary-value">{amt_fmt}</div></div>
+      <div class="sdivider"></div>
+      <div class="scol"><div class="summary-label">Fee</div><div class="summary-value">{_fmt_currency(fee)}</div></div>
+      <div class="sdivider"></div>
+      <div class="scol"><div class="summary-label">Total Amount</div><div class="summary-value green large">{_fmt_currency(total_amount)}</div></div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     </div>
   </div>
 
   <div class="box">
+<<<<<<< HEAD
     <div class="box-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Account Summary</div>
     <table class="tx-table">
       <tr><td class="label">Transaction Amount</td><td class="value val-green">{amt_sign} {amt_fmt}</td></tr>
       <tr><td class="label">{fee_label}</td><td class="value">{_fmt_currency(fee)}</td></tr>
       <tr><td class="label">{total_label}</td><td class="value val-blue">{_fmt_currency(total_amount)}</td></tr>
       <tr><td class="label" style="padding-top:6px;border-top:1px solid #E0E0E0;">{wallet_name} Balance</td><td class="value val-blue" style="padding-top:6px;border-top:1px solid #E0E0E0;font-size:13px;">{wallet_balance_fmt}</td></tr>
+=======
+    <div class="box-header">Account Summary</div>
+    <table class="tx-table">
+      <tr><td class="label">Previous Balance</td><td class="value">{prev_bal_fmt}</td></tr>
+      <tr><td class="label">Transaction Amount</td><td class="value val-green">{amt_sign} {amt_fmt}</td></tr>
+      <tr><td class="label">Current Balance</td><td class="value val-blue">{curr_bal_fmt}</td></tr>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     </table>
   </div>
 
   <div class="notice">
+<<<<<<< HEAD
     <div class="notice-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg> Important Notice</div>
+=======
+    <div class="notice-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#032F61" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="14"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Important Notice</div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     <ul>
       <li>This invoice is computer-generated and does not require a physical signature.</li>
       <li>For any discrepancies, please contact support within 48 hours.</li>
@@ -391,8 +555,12 @@ def _build_invoice_html(
 
   <div class="footer-band">
     <p>{ci["name"]} &mdash; {ci.get("description", "")} &bull; {ci["website"]}</p>
+<<<<<<< HEAD
     <p style="font-size:8px;color:#B78A32;opacity:0.8;">{ci["address"]} | {ci["email"]}</p>
     <p style="font-size:7px;color:#B78A32;opacity:0.7;">{fnotes}</p>
+=======
+    <p style="font-size:9px;color:#B78A32;opacity:0.8;">{fnotes}</p>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   </div>
 
 </div>
@@ -403,12 +571,16 @@ def _build_invoice_html(
 
 
 async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
+<<<<<<< HEAD
     """Generate a PDF from HTML using Playwright (Chromium).
 
     Never raises: PDF generation is best-effort. If the PDF cannot be written
     (e.g. missing permissions), a placeholder is attempted and False is returned
     so that invoice DB record creation can still proceed.
     """
+=======
+    """Generate a PDF from HTML using Playwright (Chromium)."""
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     try:
         from playwright.async_api import async_playwright
         async with async_playwright() as p:
@@ -427,6 +599,7 @@ async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
         return True
     except ImportError:
         logger.warning("Playwright not installed. Creating placeholder PDF.")
+<<<<<<< HEAD
         try:
             _create_placeholder_pdf(output_path, html_content)
         except Exception as e:
@@ -438,14 +611,25 @@ async def generate_invoice_pdf(html_content: str, output_path: str) -> bool:
             _create_placeholder_pdf(output_path, html_content)
         except Exception as pe:
             logger.warning(f"Failed to create placeholder PDF: {pe}")
+=======
+        _create_placeholder_pdf(output_path, html_content)
+        return False
+    except Exception as e:
+        logger.error(f"Failed to generate PDF: {e}", exc_info=True)
+        _create_placeholder_pdf(output_path, html_content)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         return False
 
 
 def _create_placeholder_pdf(output_path: str, html_content: str):
+<<<<<<< HEAD
     """Create a simple text-based placeholder when Playwright is unavailable.
 
     Never raises: placeholder creation must not abort invoice generation.
     """
+=======
+    """Create a simple text-based placeholder when Playwright is unavailable."""
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -460,6 +644,7 @@ def _create_placeholder_pdf(output_path: str, html_content: str):
         story.append(Paragraph("Install with: pip install playwright && playwright install chromium", styles["Normal"]))
         doc.build(story)
     except ImportError:
+<<<<<<< HEAD
         try:
             with open(output_path, "w") as f:
                 f.write("PDF generation unavailable. Install Playwright.\n")
@@ -467,11 +652,16 @@ def _create_placeholder_pdf(output_path: str, html_content: str):
             logger.warning(f"Could not write placeholder PDF to {output_path}: {e}")
     except OSError as e:
         logger.warning(f"Could not write placeholder PDF to {output_path}: {e}")
+=======
+        with open(output_path, "w") as f:
+            f.write("PDF generation unavailable. Install Playwright.\n")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 # ── Invoice Generators ──────────────────────────────────────────────────────
 
 
+<<<<<<< HEAD
 async def regenerate_invoice_pdf(db: AsyncSession, invoice: Invoice) -> bool:
     """Re-create a missing PDF file for an existing invoice row.
 
@@ -570,6 +760,8 @@ async def regenerate_invoice_pdf(db: AsyncSession, invoice: Invoice) -> bool:
         return False
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def generate_transaction_invoice(
     db: AsyncSession,
     user: User,
@@ -582,17 +774,25 @@ async def generate_transaction_invoice(
     reference_type: Optional[str] = None,
     tx_data: Optional[dict] = None,
 ) -> Optional[Invoice]:
+<<<<<<< HEAD
     """Generate a per-transaction invoice: DB record, HTML, PDF.
 
     Invoice number format: OFA + 6-digit zero-padded DB auto-increment ID.
     Generated post-insert to guarantee uniqueness without race conditions.
     """
     timestamp = datetime.now(timezone.utc)
+=======
+    """Generate a per-transaction invoice: DB record, HTML, PDF."""
+    timestamp = datetime.now(timezone.utc)
+    ts_str = timestamp.strftime("%Y%m%d%H%M%S")
+    inv_number = f"INV-{invoice_type.upper()[:4]}-{user.id}-{ts_str}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     if not description:
         type_labels = {
             "deposit": "Deposit Confirmation",
             "withdrawal": "Withdrawal Confirmation",
+<<<<<<< HEAD
             "daily": "Daily Earnings Statement",
             "weekly": "Weekly Earnings Statement",
             "monthly": "Monthly Earnings Statement",
@@ -639,14 +839,23 @@ async def generate_transaction_invoice(
     invoice.invoice_number = inv_number
 
     # Step 3: Build HTML and generate PDF with the real invoice number
+=======
+        }
+        description = type_labels.get(invoice_type, f"{invoice_type.replace('_', ' ').title()} Invoice")
+
+    user_phone = getattr(user, "mobile_number", None)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     user_id_str = user.user_no or str(user.id)
     account_holder_name = user.full_name or None
     raw_prev = tx_data.get("previous_balance") if tx_data else None
     raw_curr = tx_data.get("current_balance") if tx_data else None
     prev_balance = float(raw_prev) if raw_prev is not None else None
     current_balance = float(raw_curr) if raw_curr is not None else None
+<<<<<<< HEAD
     raw_mw = tx_data.get("main_wallet_balance") if tx_data else None
     main_wallet_balance = float(raw_mw) if raw_mw is not None else None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     payment_method = tx_data.get("payment_method") if tx_data else None
     remarks = tx_data.get("remarks") if tx_data else None
 
@@ -662,11 +871,18 @@ async def generate_transaction_invoice(
         created_at=_fmt_date(timestamp),
         tx_data=tx_data,
         user_id=user_id_str,
+<<<<<<< HEAD
+=======
+        user_phone=user_phone,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         payment_method=payment_method,
         remarks=remarks,
         prev_balance=prev_balance,
         current_balance=current_balance,
+<<<<<<< HEAD
         main_wallet_balance=main_wallet_balance,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         account_holder_name=account_holder_name,
     )
 
@@ -679,10 +895,27 @@ async def generate_transaction_invoice(
     if not success:
         logger.warning(f"PDF generation failed for invoice {inv_number}")
 
+<<<<<<< HEAD
     # Step 4: Finalize the record
     invoice.status = status if success else "failed"
     invoice.pdf_url = f"/storage/invoices/{pdf_filename}" if success else None
     invoice.pdf_storage_key = pdf_filename if success else None
+=======
+    invoice = Invoice(
+        user_id=user.id,
+        invoice_type=invoice_type,
+        invoice_number=inv_number,
+        amount=amount,
+        currency=currency,
+        status=status if success else "failed",
+        description=description,
+        pdf_url=f"/storage/invoices/{pdf_filename}" if success else None,
+        pdf_storage_key=pdf_filename if success else None,
+        reference_id=reference_id,
+        reference_type=reference_type,
+    )
+    db.add(invoice)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.flush()
     await db.refresh(invoice)
     return invoice
@@ -730,7 +963,11 @@ async def generate_withdrawal_invoice(
         bi = withdrawal.bank_info
         data["bank_info"] = {
             "bank_name": getattr(bi, "bank_name", ""),
+<<<<<<< HEAD
             "account_holder": getattr(bi, "account_holder_name", ""),
+=======
+            "account_holder": getattr(bi, "account_holder", ""),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             "account_number": getattr(bi, "account_number", ""),
             "network": getattr(bi, "network", withdrawal.network_name or ""),
         }
@@ -752,7 +989,10 @@ def serialize_invoice(invoice: Invoice) -> dict:
     return {
         "id": invoice.id,
         "invoice_number": invoice.invoice_number,
+<<<<<<< HEAD
         "transaction_id": invoice.transaction_id,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "invoice_type": invoice.invoice_type,
         "amount": float(invoice.amount) if invoice.amount else None,
         "currency": invoice.currency,

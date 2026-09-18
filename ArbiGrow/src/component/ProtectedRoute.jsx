@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Navigate } from "react-router";
 import useUserStore from "../store/userStore";
 
@@ -20,3 +21,17 @@ export default function ProtectedRoute({ children }) {
 
   return children;
 }
+=======
+import { Navigate } from "react-router";
+import useUserStore from "../store/userStore";
+
+export default function ProtectedRoute({ children }) {
+  const { user } = useUserStore();
+  // console.log("ProtectedRoute user", user);
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

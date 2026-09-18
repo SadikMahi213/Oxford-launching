@@ -16,6 +16,7 @@ from app.services.b2_service import upload_to_b2, generate_presigned_url
 router = APIRouter(prefix="/admin/ads", tags=["Admin Ads"])
 
 
+<<<<<<< HEAD
 def _resolve_thumbnail_url(stored: str | None) -> str | None:
     if not stored:
         return None
@@ -24,6 +25,8 @@ def _resolve_thumbnail_url(stored: str | None) -> str | None:
     return generate_presigned_url(stored, expires_in=604800)
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 def extract_youtube_video_id(url: str) -> str | None:
     patterns = [
         r'(?:youtube\.com/watch\?v=)([\w-]+)',
@@ -65,7 +68,11 @@ async def admin_list_ads(
                 "title": a.title,
                 "youtube_url": a.youtube_url,
                 "video_id": a.video_id,
+<<<<<<< HEAD
                 "thumbnail": _resolve_thumbnail_url(a.thumbnail),
+=======
+                "thumbnail": a.thumbnail,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "required_watch_seconds": a.required_watch_seconds,
                 "is_active": a.is_active,
                 "created_by": a.created_by,
@@ -114,7 +121,11 @@ async def admin_create_ad(
         if thumbnail.content_type not in ("image/jpeg", "image/png", "image/webp", "image/gif"):
             raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
         object_key = await upload_to_b2(thumbnail, f"ads/{ad.id}")
+<<<<<<< HEAD
         ad.thumbnail = object_key
+=======
+        ad.thumbnail = generate_presigned_url(object_key, expires_in=604800)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     else:
         ad.thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 
@@ -126,7 +137,11 @@ async def admin_create_ad(
         "ad_id": ad.id,
         "title": ad.title,
         "video_id": ad.video_id,
+<<<<<<< HEAD
         "thumbnail": _resolve_thumbnail_url(ad.thumbnail),
+=======
+        "thumbnail": ad.thumbnail,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
 
@@ -161,7 +176,11 @@ async def admin_update_ad(
         if thumbnail.content_type not in ("image/jpeg", "image/png", "image/webp", "image/gif"):
             raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
         object_key = await upload_to_b2(thumbnail, f"ads/{ad_id}")
+<<<<<<< HEAD
         ad.thumbnail = object_key
+=======
+        ad.thumbnail = generate_presigned_url(object_key, expires_in=604800)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if youtube_url is not None and not (thumbnail and thumbnail.filename):
         ad.thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 

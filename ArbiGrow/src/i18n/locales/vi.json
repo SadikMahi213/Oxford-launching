@@ -21,12 +21,16 @@
     "comingSoon": "Sắp Ra Mắt",
     "terms": "Điều Khoản Dịch Vụ",
     "privacy": "Chính Sách Bảo Mật",
+<<<<<<< HEAD
     "legal": "Thông Tin Pháp Lý",
     "brandName": "Oxford Financial Ads",
     "copyright": "© {{year}} Oxford Financial Ads. Đã đăng ký bản quyền. | Chính Sách Quyền Riêng Tư | Điều Khoản & Điều Kiện | Chính Sách AML & KYC | Liên Hệ",
     "logoAlt": "Logo Của Tôi",
     "logoAltMobile": "Logo Oxford Financial Ads",
     "tagline": "Dịch Vụ Kỹ Thuật Số"
+=======
+    "legal": "Thông Tin Pháp Lý"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "footer": {
     "description": "Nâng Tầm Thương Hiệu Toàn Cầu. Oxford Financial Ads là công ty quảng cáo quốc tế chuyên giúp doanh nghiệp thiết lập thương hiệu trên thị trường toàn cầu.",
@@ -43,6 +47,7 @@
     "address1": "Quảng trường thương mại 25",
     "address2": "Quận Canary",
     "address3": "Luân Đôn, EC2A 4AB",
+<<<<<<< HEAD
     "address4": "Vương quốc Anh",
     "social": {
       "telegram": "Telegram",
@@ -55,10 +60,24 @@
     },
     "brandName": "Oxford Financial Ads",
     "supportEmail": "support.oxfordfinancialads@gmail.com"
+=======
+    "address4": "Vương quốc Anh"
+  },
+  "hero": {
+    "title": "Nền Tảng Quảng Cáo Kỹ Thuật Số & Kiếm Tiền Trực Tuyến",
+    "subtitle": "Nền Tảng Kiếm Tiền",
+    "description": "Oxford Financial Ads là nền tảng quảng cáo kỹ thuật số và tương tác trực tuyến hiện đại, nơi thành viên có thể tham gia nhiều hoạt động kiếm tiền kỹ thuật số.",
+    "cta": "Đăng Ký Miễn Phí Ngay",
+    "whitepaper": "Đọc Sách Trắng Kỹ Thuật"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "faq": {
     "badge": "FAQ",
     "title": "Các Câu Hỏi Thường Gặp",
+<<<<<<< HEAD
+=======
+    "questions": "Câu Hỏi",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "q1": "Oxford Financial Ads là gì?",
     "a1": "Oxford Financial Ads là nền tảng giao dịch chênh lệch giá (arbitrage) được hỗ trợ bởi AI, sử dụng mạng lưới Arbitrum để tạo lợi nhuận từ chênh lệch giá giữa nhiều sàn giao dịch với rủi ro tối thiểu.",
     "q2": "Token OFA là gì và làm thế nào để nhận được?",
@@ -73,8 +92,12 @@
     "a6": "Chúng tôi cung cấp hệ thống giới thiệu 5 cấp mạnh mẽ. Khi ai đó tham gia qua đường link giới thiệu của bạn, bạn sẽ nhận được hoa hồng hàng ngày cùng với token OFA thưởng.",
     "stillQuestions": "Vẫn còn thắc mắc?",
     "supportText": "Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng 24/7 để giúp bạn giải đáp mọi vấn đề liên quan đến Oxford Financial Ads.",
+<<<<<<< HEAD
     "contactSupport": "Liên Hệ Hỗ Trợ",
     "titleHighlight": "Câu Hỏi"
+=======
+    "contactSupport": "Liên Hệ Hỗ Trợ"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -89,9 +112,13 @@
       "success": "Đăng nhập thành công",
       "blocked": "Tài khoản của bạn đã bị tạm khóa do nhiều lần đăng nhập thất bại. Vui lòng liên hệ đội ngũ hỗ trợ: support.oxfordfinancialads@gmail.com",
       "invalid": "Thông tin đăng nhập không hợp lệ",
+<<<<<<< HEAD
       "failed": "Đăng nhập thất bại",
       "welcomeBack": "Chào Mừng Trở Lại",
       "welcomeSubtitle": "Đăng nhập để truy cập bảng điều khiển của bạn và phát triển danh mục đầu tư của bạn."
+=======
+      "failed": "Đăng nhập thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Tạo Tài Khoản",
@@ -190,11 +217,15 @@
       "err_agree": "Bạn phải đồng ý với điều khoản & điều kiện",
       "success": "Đăng ký thành công!",
       "networkError": "Lỗi mạng hoặc máy chủ không khả dụng",
+<<<<<<< HEAD
       "error": "Đã xảy ra lỗi",
       "joinTitle": "Tham Gia Ngay Hôm Nay",
       "joinSubtitle": "Tạo tài khoản để bắt đầu kiếm tiền với nền tảng quảng cáo kỹ thuật số hiện đại của chúng tôi.",
       "perDay": "/ngày",
       "success_paid": "Đã gửi đăng ký! Vui lòng hoàn tất thanh toán để kích hoạt tài khoản của bạn."
+=======
+      "error": "Đã xảy ra lỗi"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "Đặt Lại Mật Khẩu",
@@ -253,7 +284,10 @@
   "userDashboard": {
     "header": "Cổng Người Dùng",
     "accountOnHold": "Tài khoản của bạn đang tạm giữ. Hiện tại bạn chỉ có thể thực hiện nạp tiền.",
+<<<<<<< HEAD
     "accountSuspended": "Tài khoản của bạn đã bị đình chỉ tạm thời do lỗi nhiệm vụ. Vui lòng đợi cho đến khi thời gian đình chỉ kết thúc.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Sắp Ra Mắt",
     "inDevelopment": "Trang này đang được phát triển",
     "sidebar": {
@@ -279,7 +313,11 @@
       "referralBonuses": "Thưởng Giới Thiệu",
       "referralBonuses_desc": "10% thu nhập giới thiệu trực tiếp",
       "genBonuses": "Thưởng Thế Hệ",
+<<<<<<< HEAD
       "genBonuses_desc": "Thu nhập nhóm",
+=======
+      "genBonuses_desc": "8/7/6/5% thu nhập nhóm",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Thưởng Cấp Bậc",
       "matchingBonus_desc": "Kế hoạch thưởng theo cấp bậc",
       "walletTransfer": "Chuyển Ví",
@@ -302,6 +340,7 @@
       "privacy_desc": "Dữ liệu & quyền riêng tư",
       "whitepaper": "Sách Trắng Kỹ Thuật",
       "whitepaper_desc": "Tài liệu dự án",
+<<<<<<< HEAD
       "soon": "Sắp ra mắt",
       "banking": "Thiết Lập Ngân Hàng",
       "banking_desc": "Đăng ký chi tiết ngân hàng",
@@ -309,6 +348,9 @@
       "ledger_desc": "Your balances across every wallet",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards"
+=======
+      "soon": "Sắp ra mắt"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -326,9 +368,13 @@
       "sendFunds": "Gửi Tiền",
       "transfers": "Chuyển Khoản",
       "mbTransfer": "Chuyển MB",
+<<<<<<< HEAD
       "kyc": "Xác Minh KYC",
       "matchingBonusPlan": "Kế Hoạch Thưởng Khớp",
       "walletTransfer": "Chuyển Ví"
+=======
+      "kyc": "Xác Minh KYC"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "wallets": {
       "main": "Ví Chính",
@@ -348,9 +394,13 @@
       "clickHistory": "Nhấp xem lịch sử",
       "openTokenInfo": "Mở thông tin token",
       "viewHistory": "Xem Lịch Sử",
+<<<<<<< HEAD
       "transfer": "Chuyển",
       "usable": "Số dư khả dụng",
       "ofaToken": "Token OFA"
+=======
+      "transfer": "Chuyển"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Thông Tin Token",
@@ -386,8 +436,12 @@
       "title": "Hiệu Suất Nhóm",
       "level": "Cấp {{level}}",
       "loading": "Đang tải...",
+<<<<<<< HEAD
       "netEarnings": "Thu nhập ròng (Tất cả cấp độ)",
       "growth": "15,7% so với 30 ngày qua"
+=======
+      "netEarnings": "Thu nhập ròng (Tất cả cấp độ)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "Ví Đào Token OFA",
@@ -399,6 +453,7 @@
       "claiming": "Đang nhận...",
       "claim": "Nhận Thưởng",
       "howTitle": "Cách Thức Đào",
+<<<<<<< HEAD
       "step1": "Bắt đầu phiên khai thác — token OFA bắt đầu tích lũy mỗi giây trong chu kỳ 24 giờ.",
       "step2": "Tốc độ khai thác được tính dựa trên khối lượng mạng lưới và hạng staking hiện tại của bạn.",
       "step3": "Token tích lũy được gửi trực tiếp vào Ví khai thác của bạn theo thời gian thực.",
@@ -410,6 +465,14 @@
       "dailyCap": "HẠN MỨC HÀNG NGÀY",
       "lastClaim": "NHẬN GẦN NHẤT",
       "notClaimed": "Chưa nhận"
+=======
+      "step1": "1. Nhấn \"Bắt Đầu Đào\" để bắt đầu chu kỳ đào 24 giờ.",
+      "step2": "2. Token OFA được đào liên tục với tốc độ tỷ lệ thuận với hạn mức hàng ngày chia cho 86.400 giây.",
+      "step3": "3. Sau ít nhất 1 phút, bạn có thể nhấn \"Nhận Thưởng\" để chuyển token đã đào vào Ví Đào.",
+      "step4": "4. Bạn có thể nhận thưởng nhiều lần trong một chu kỳ — mỗi lần bạn nhận được token đã đào kể từ lần nhận trước.",
+      "step5": "5. Khi chu kỳ 24 giờ kết thúc, quá trình đào tự động reset. Bắt đầu chu kỳ mới để tiếp tục kiếm thêm.",
+      "step6": "6. Token OFA đã đào có thể được đổi sang USDT qua trang Chuyển Đổi. Chuyển ra ngoài sắp có."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "Không tìm thấy lịch sử {{type}}.",
@@ -425,11 +488,15 @@
       "fromUser": "Từ Người Dùng",
       "level": "Cấp",
       "status": "Trạng Thái",
+<<<<<<< HEAD
       "received": "đã nhận",
       "type": "Loại",
       "details": "Chi tiết",
       "typeDeposit": "Nạp tiền",
       "typeKycRefund": "Hoàn phí KYC"
+=======
+      "received": "đã nhận"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Lịch Sử Nạp Tiền",
@@ -437,6 +504,7 @@
       "referral": "Lịch Sử Hoa Hồng Giới Thiệu",
       "matching": "Lịch Sử Thưởng Cấp Bậc",
       "generation": "Lịch Sử Thu Nhập Thế Hệ"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "Tiền điện tử OFA",
@@ -451,6 +519,9 @@
     "pendingPayment": "Thanh toán gói của bạn chưa hoàn tất. Vui lòng hoàn tất thanh toán. Sau khi thanh toán được Đội Ngũ Tuân Thủ phê duyệt, tất cả tính năng kiếm tiền sẽ được kích hoạt tự động.",
     "viewAll": "Xem tất cả",
     "allLevels": "Tất cả cấp độ"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Hồ Sơ",
@@ -479,8 +550,12 @@
     "photo_uploaded": "Ảnh đại diện đã tải lên",
     "photo_saved": "Ảnh đã lưu",
     "photo_failed": "Tải lên thất bại",
+<<<<<<< HEAD
     "photo_saveFailed": "Lưu ảnh thất bại",
     "rejectionReason": "Lý do từ chối:"
+=======
+    "photo_saveFailed": "Lưu ảnh thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Nạp USDT",
@@ -507,9 +582,13 @@
     "err_field": "Vui lòng nhập thông tin",
     "err_amount": "Số tiền phải lớn hơn 0.",
     "err_txid": "Phải có ít nhất 5 ký tự.",
+<<<<<<< HEAD
     "err_noNetwork": "Không tìm thấy mạng nạp tiền khả dụng. Vui lòng liên hệ hỗ trợ.",
     "err_min_amount": "Số tiền nạp tối thiểu là {{min}} USDT.",
     "min_amount_hint": "Tối thiểu: {{min}} USDT"
+=======
+    "err_noNetwork": "Không tìm thấy mạng nạp tiền khả dụng. Vui lòng liên hệ hỗ trợ."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Rút Tiền",
@@ -559,6 +638,7 @@
     "err_max": "Số tiền rút tối đa là {{max}} USDT.",
     "err_balance": "Số dư không đủ trong {{wallet}}. Khả dụng: {{balance}}.",
     "err_mainBalance": "Số dư Ví Chính không đủ. Yêu cầu: {{required}} USDT (Số tiền + 1%), Khả dụng: {{available}} USDT.",
+<<<<<<< HEAD
     "err_address": "Địa chỉ phải có ít nhất 5 ký tự.",
     "err_mode_banking": "Chỉ cho phép rút qua chuyển khoản ngân hàng vào lúc này.",
     "err_mode_network": "Rút qua mạng lưới hiện đang bị vô hiệu hóa.",
@@ -582,6 +662,9 @@
     "accountType": "Loại Tài Khoản",
     "accountPersonal": "Cá nhân",
     "accountAgent": "Đại lý"
+=======
+    "err_address": "Địa chỉ phải có ít nhất 5 ký tự."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Chuyển Ví",
@@ -599,6 +682,7 @@
     "err_amount": "Nhập số tiền hợp lệ",
     "err_sameWallet": "Ví nguồn và ví đích phải khác nhau",
     "err_balance": "Số dư không đủ",
+<<<<<<< HEAD
     "err_failed": "Chuyển tiền thất bại",
     "walletMain": "Ví Chính",
     "walletReferral": "Ví Giới thiệu",
@@ -608,6 +692,9 @@
     "walletCaptcha": "Ví Gõ Captcha",
     "walletAdView": "Ví Xem Quảng cáo",
     "walletDeposit": "Ví Nạp tiền"
+=======
+    "err_failed": "Chuyển tiền thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Gửi Tiền",
@@ -629,10 +716,14 @@
     "err_noUser": "Không tìm thấy người dùng '{{query}}'",
     "err_search": "Tìm kiếm thất bại: {{error}}",
     "success": "Đã gửi {{amount}} USDT đến {{name}}",
+<<<<<<< HEAD
     "err_failed": "Chuyển tiền thất bại",
     "err_kyc": "Cần xác minh KYC. Vui lòng hoàn tất xác minh KYC trước khi gửi tiền.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Chuyển tiền thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Chuyển Thưởng Cấp Bậc",
@@ -714,6 +805,7 @@
   },
   "genBonus": {
     "title": "Thưởng Thế Hệ",
+<<<<<<< HEAD
     "subtitle": "Thưởng xếp tầng từ tiền nạp của nhóm",
     "ratesTitle": "Tỷ Lệ Thưởng Hiện Tại",
     "search_plh": "Tìm theo tên hoặc tên đăng nhập...",
@@ -722,6 +814,15 @@
     "gen3": "Thế Hệ 3",
     "gen4": "Thế Hệ 4",
     "gen5": "Thế Hệ 5",
+=======
+    "subtitle": "Thưởng 8/7/6/5% từ tiền nạp của nhóm",
+    "search_plh": "Tìm theo tên hoặc tên đăng nhập...",
+    "all": "Tất Cả Thế Hệ",
+    "gen2": "Thế Hệ 2 (8%)",
+    "gen3": "Thế Hệ 3 (7%)",
+    "gen4": "Thế Hệ 4 (6%)",
+    "gen5": "Thế Hệ 5 (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "user": "Người Dùng",
     "username": "Tên Đăng Nhập",
     "generation": "Thế Hệ",
@@ -732,18 +833,25 @@
     "empty": "Chưa có thưởng thế hệ",
     "loading": "Đang tải...",
     "error": "Đã xảy ra lỗi",
+<<<<<<< HEAD
     "page": "Trang {{page}} trên {{totalPages}}",
     "genLevel2": "Thế hệ thứ 2",
     "genLevel3": "Thế hệ thứ 3",
     "genLevel4": "Thế hệ thứ 4",
     "genLevel5": "Thế hệ thứ 5",
     "genLevelN": "Thế hệ thứ {{level}}"
+=======
+    "page": "Trang {{page}} trên {{totalPages}}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "convertOFA": {
     "title": "Đổi OFA Sang USDT",
     "subtitle": "Đổi token OFA của bạn sang USDT",
     "ofaBalance": "Số Dư OFA",
+<<<<<<< HEAD
     "convertedBalance": "Số dư đã chuyển đổi",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Số Dư USDT",
     "rate": "Tỷ Giá Chuyển Đổi",
     "ofaAmount": "Số Lượng OFA",
@@ -753,8 +861,12 @@
     "convert": "Đổi Sang USDT",
     "err_amount": "Nhập số lượng OFA hợp lệ",
     "err_balance": "Số dư OFA không đủ",
+<<<<<<< HEAD
     "err_failed": "Chuyển đổi thất bại",
     "err_kyc": "Cần xác minh KYC trước khi đổi token OFA. Vui lòng hoàn tất xác minh KYC để mở khóa tính năng chuyển đổi token."
+=======
+    "err_failed": "Chuyển đổi thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -777,6 +889,7 @@
     "phone": "Điện Thoại",
     "photo_uploaded": "Ảnh đại diện đã tải lên",
     "photo_saved": "Ảnh đã lưu",
+<<<<<<< HEAD
     "photo_failed": "Lưu ảnh thất bại",
     "kycPackages": {
       "title": "Quản Lý Gói KYC",
@@ -865,6 +978,9 @@
       "totalOfaDistribution": "Total OFA Distribution",
       "totalOfaDistributionSubtitle": "Signup Bonus + Daily Mining"
     }
+=======
+    "photo_failed": "Lưu ảnh thất bại"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "common": {
     "loading": "Đang tải...",
@@ -894,6 +1010,7 @@
     "all": "Tất Cả",
     "none": "Không",
     "required": "Bắt Buộc",
+<<<<<<< HEAD
     "optional": "Không Bắt Buộc",
     "scrollToTop": "Cuộn lên đầu trang",
     "announcement": "Thông Báo",
@@ -918,6 +1035,27 @@
     }
   },
   "home": {
+=======
+    "optional": "Không Bắt Buộc"
+  },
+  "homePage": {
+    "imageAlt": "Dịch vụ tài chính",
+    "altOurCommitment": "Cam kết của chúng tôi"
+  },
+  "home": {
+    "executiveSummary": {
+      "badge": "Về chúng tôi",
+      "paragraph": "Oxford Financial Ads là một nền tảng tương tác trực tuyến và quảng cáo kỹ thuật số hiện đại, nơi các thành viên có thể tham gia vào nhiều hoạt động kỹ thuật số khác nhau. Chúng bao gồm nhập hình ảnh xác thực, nhập dữ liệu, chỉnh sửa video, thiết kế đồ họa, tiếp thị kỹ thuật số và các tác vụ trực tuyến khác. Thông qua các hoạt động này, các thành viên có thể kết nối với mạng lưới toàn cầu và có cơ hội làm việc ở cấp độ quốc tế cũng như trải nghiệm thực tế. Mục tiêu của chúng tôi là tạo ra một môi trường chuyên nghiệp, định hướng phát triển và tập trung vào tăng trưởng thông qua phát triển kỹ năng, kết nối toàn cầu và hợp tác dựa trên cộng đồng. Bằng cách tham gia tại đây, các thành viên có thể xây dựng mạng lưới quốc tế và cũng có quyền truy cập vào các cơ hội dựa trên hiệu suất khác nhau như tiền thưởng thế hệ, tiền thưởng nhóm, chia sẻ lợi nhuận của công ty và các thành tựu vị trí khác nhau. Nền tảng này cung cấp cơ hội có cấu trúc để các thành viên có được trải nghiệm mới trong thế giới kỹ thuật số, nâng cao kỹ năng của họ và tiến về phía trước về mặt tài chính.",
+      "activities": "Các hoạt động",
+      "network": "Mạng",
+      "opportunities": "Những cơ hội",
+      "goal": "Mục tiêu",
+      "activitiesVal": "Kỹ thuật số & Trực tuyến",
+      "networkVal": "Cộng đồng toàn cầu",
+      "opportunitiesVal": "Dựa trên hiệu suất",
+      "goalVal": "Kỹ năng & Tăng trưởng"
+    },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "whyChooseUs": {
       "title": "Của chúng tôi",
       "titleHighlight": "Dịch vụ tài chính",
@@ -937,9 +1075,13 @@
       "networkTitle": "Mạng & Cộng đồng",
       "networkDesc": "Một cộng đồng chuyên nghiệp toàn cầu đã được xây dựng để kết nối các cá nhân từ các quốc gia và nền văn hóa khác nhau, cho phép chia sẻ kiến ​​thức và trao đổi kinh nghiệm ở cấp độ quốc tế. Dựa trên kỹ năng và hiệu suất, các thành viên có cơ hội làm việc trên toàn cầu.",
       "benefitsTitle": "Lợi ích thành viên",
+<<<<<<< HEAD
       "benefitsDesc": "Khi tham gia Oxford Financial Ads, các thành viên có quyền truy cập vào một môi trường có cấu trúc được thiết kế để đạt được sự xuất sắc về mặt chuyên môn và cá nhân với cơ hội phát triển các kỹ năng chuyên môn và kỹ thuật số nâng cao.",
       "ecommerceTitle": "Tài Khoản Người Bán Thương Mại Điện Tử Toàn Cầu Miễn Phí",
       "ecommerceDesc": "Thành viên nhận được tài khoản người bán thương mại điện tử toàn cầu miễn phí để bắt đầu bán sản phẩm trực tuyến trên các chợ quốc tế. Thông qua cơ hội này, thành viên có thể xây dựng doanh nghiệp trực tuyến của riêng mình, tiếp cận khách hàng trên toàn thế giới và kiếm thu nhập từ việc bán sản phẩm."
+=======
+      "benefitsDesc": "Khi tham gia Oxford Financial Ads, các thành viên có quyền truy cập vào một môi trường có cấu trúc được thiết kế để đạt được sự xuất sắc về mặt chuyên môn và cá nhân với cơ hội phát triển các kỹ năng chuyên môn và kỹ thuật số nâng cao."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "memberBenefits": {
       "badge": "Lợi ích thành viên",
@@ -1049,6 +1191,7 @@
       "totalActiveInvestors": "Tổng số nhà đầu tư tích cực",
       "totalInvestmentsMade": "Tổng số tiền đầu tư đã thực hiện",
       "totalProfitsGenerated": "Tổng lợi nhuận được tạo ra",
+<<<<<<< HEAD
       "successfulWithdrawals": "Rút tiền thành công",
       "title": "Oxford Financial Ads",
       "titleHighlight": "Thống Kê Trực Tiếp",
@@ -1057,6 +1200,9 @@
       "verifiedFreelancers": "Freelancer Đã Xác Minh",
       "packageInvestmentOverview": "Tổng Quan Đầu Tư Gói",
       "countriesConnected": "Quốc Gia Kết Nối"
+=======
+      "successfulWithdrawals": "Rút tiền thành công"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1070,6 +1216,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "about": {
       "badge": "Tổng Quan Về Công Ty",
@@ -1206,6 +1353,8 @@
       "commitmentTitle": "Cam Kết Của Chúng Tôi",
       "commitmentText": "Oxford Financial Ads cam kết xây dựng một hệ sinh thái kỹ thuật số bền vững, lấy thành viên làm trung tâm. Chúng tôi sát cánh cùng mỗi thành viên trong cộng đồng toàn cầu của mình — bảo vệ lợi ích của họ, tôn vinh hiệu suất của họ và giúp họ xây dựng một tương lai ổn định, thịnh vượng và thành công.",
       "tagline": "Trao Quyền Cho Công Việc Kỹ Thuật Số Toàn Cầu Thông Qua Công Nghệ, Đổi Mới và Niềm Tin."
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "securityStandards": {
@@ -1254,10 +1403,17 @@
     "card4Title": "Hiệu suất và trách nhiệm của chiến dịch",
     "card4Sub": "Trách nhiệm phi tập trung",
     "card4Desc": "Quảng cáo tài chính Oxford: Chiến dịch quảng cáo hoạt động dựa trên động lực thị trường và thuật toán nền tảng. Khách hàng chịu hoàn toàn trách nhiệm về các quyết định tiếp thị, phân bổ ngân sách và kết quả kinh doanh của mình.",
+<<<<<<< HEAD
     "footer": "Cam kết minh bạch, trách nhiệm giải trình và lãnh đạo có đạo đức trên toàn thế giới",
     "card5Title": "Tuyên bố từ chối trách nhiệm về rủi ro dịch vụ và thị trường",
     "card5Sub": "Xác nhận rủi ro",
     "card5Desc": "Quảng cáo tài chính Oxford: Việc thực hiện các chiến dịch quảng cáo kỹ thuật số tiềm ẩn rủi ro thị trường và sự biến động trong mức độ tương tác của khán giả. Hiệu suất chiến dịch trong quá khứ không đảm bảo kết quả tương tự trong tương lai. Quảng cáo tài chính Oxford sử dụng các mô hình tối ưu hóa nâng cao nhưng không thể đảm bảo kết quả bán hàng cụ thể hoặc chuyển đổi thị trường một cách chắc chắn tuyệt đối. Khách hàng nên phân bổ ngân sách tiếp thị dựa trên mục tiêu kinh doanh của mình và tiến hành nghiên cứu thị trường độc lập trước khi tung ra các chiến dịch quy mô lớn."
+=======
+    "card5Title": "Tuyên bố từ chối trách nhiệm về rủi ro dịch vụ và thị trường",
+    "card5Sub": "Xác nhận rủi ro",
+    "card5Desc": "Quảng cáo tài chính Oxford: Việc thực hiện các chiến dịch quảng cáo kỹ thuật số tiềm ẩn rủi ro thị trường và sự biến động trong mức độ tương tác của khán giả. Hiệu suất chiến dịch trong quá khứ không đảm bảo kết quả tương tự trong tương lai. Quảng cáo tài chính Oxford sử dụng các mô hình tối ưu hóa nâng cao nhưng không thể đảm bảo kết quả bán hàng cụ thể hoặc chuyển đổi thị trường một cách chắc chắn tuyệt đối. Khách hàng nên phân bổ ngân sách tiếp thị dựa trên mục tiêu kinh doanh của mình và tiến hành nghiên cứu thị trường độc lập trước khi tung ra các chiến dịch quy mô lớn.",
+    "footer": "Cam kết minh bạch, trách nhiệm giải trình và lãnh đạo có đạo đức trên toàn thế giới"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "privacySecurity": {
     "badge": "Tiết lộ rủi ro quan trọng",
@@ -1289,6 +1445,7 @@
   },
   "language": {
     "switch": "Chuyển đổi ngôn ngữ"
+<<<<<<< HEAD
   },
   "hero": {
     "title": "Bắt Đầu",
@@ -2701,3 +2858,7 @@
     "totalUsdt": "Total USDT Balance"
   }
 }
+=======
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

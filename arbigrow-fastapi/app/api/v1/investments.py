@@ -10,7 +10,11 @@ from app.models.user import User
 from app.models.investments import Investment
 from app.models.package import Package
 from app.schemas.investment import BuyInvestmentRequest, BuyInvestmentResponse
+<<<<<<< HEAD
 from app.api.v1.deps import get_current_user, check_earning_access
+=======
+from app.api.v1.deps import get_current_user
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.core.rate_limiter import limiter
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.utils.notifications import notify_admin
@@ -42,11 +46,22 @@ async def buy_investment(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     amount = Decimal(str(payload.amount))
 
     # Free package activation does not require an active account
     if amount > 0:
         check_earning_access(current_user)
+=======
+    if (current_user.account_status or "").lower() == "on_hold":
+        issue_note = (current_user.account_issue or "").strip()
+        detail = "Your account is on hold. Investment purchases are currently disabled."
+        if issue_note:
+            detail = f"{detail} Issue: {issue_note}"
+        raise HTTPException(status_code=403, detail=detail)
+
+    amount = Decimal(str(payload.amount))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Look up the package by name
     pkg_result = await db.execute(
@@ -94,6 +109,7 @@ async def buy_investment(
             detail="User not found",
         )
 
+<<<<<<< HEAD
     # Each user may successfully hold at most one zero-value package, across
     # all package names. Checked after acquiring the user row lock so that
     # concurrent requests serialize here and cannot both pass.
@@ -115,6 +131,8 @@ async def buy_investment(
     if amount == 0 and user.account_status == "inactive":
         user.account_status = "active"
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # check balance in deposit wallet
     if user.deposit_wallet < amount:
         raise HTTPException(
@@ -136,10 +154,14 @@ async def buy_investment(
         roi_percent = Decimal("0")
 
     start_date = datetime.now(timezone.utc)
+<<<<<<< HEAD
     if amount == 0:
         end_date = start_date + timedelta(days=36500)  # ~100 years for free packages
     else:
         end_date = start_date + timedelta(days=package.duration_days)
+=======
+    end_date = start_date + timedelta(days=package.duration_days)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # deduct from deposit wallet
     user.deposit_wallet = (user.deposit_wallet - amount).quantize(
@@ -255,6 +277,7 @@ async def get_my_investments(
 ):
 
     result = await db.execute(
+<<<<<<< HEAD
         select(Investment, Package)
         .join(Package, Investment.package_name == Package.name)
         .where(
@@ -265,6 +288,14 @@ async def get_my_investments(
     )
 
     rows = result.all()
+=======
+        select(Investment)
+        .where(Investment.user_id == current_user.id)
+        .order_by(Investment.created_at.desc())
+    )
+
+    investments = result.scalars().all()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     return [
         {
@@ -286,10 +317,15 @@ async def get_my_investments(
             "start_date": inv.start_date,
             "end_date": inv.end_date,
             "status": inv.status,
+<<<<<<< HEAD
             "package_is_active": pkg.is_active,
             "task_type": pkg.task_type.value if pkg.task_type else "captcha",
         }
         for inv, pkg in rows
+=======
+        }
+        for inv in investments
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     ]
 
 

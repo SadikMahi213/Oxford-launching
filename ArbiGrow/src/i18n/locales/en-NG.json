@@ -1,7 +1,11 @@
 {
   "app": {
     "name": "Oxford Financial Ads",
+<<<<<<< HEAD
     "tagline": "Digital Services Wey You Fit Trust",
+=======
+    "tagline": "Professional Financial Services Wey You Fit Trust",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "description": "Make Your Brand Shine for Global People. Oxford Financial Ads na international advertising agency wey dey help businesses make their brand known for global market.",
     "copyright": "© 2019 Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us"
   },
@@ -21,12 +25,16 @@
     "comingSoon": "Coming Soon",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
+<<<<<<< HEAD
     "legal": "Legal Info",
     "brandName": "Oxford Financial Ads",
     "copyright": "© {{year}} Oxford Financial Ads. All Rights Reserved. | Privacy Policy | Terms & Conditions | AML & KYC Policy | Contact Us",
     "logoAlt": "My Logo",
     "logoAltMobile": "Oxford Financial Ads Logo",
     "tagline": "Digital Services"
+=======
+    "legal": "Legal Info"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "footer": {
     "description": "Make Your Brand Shine for Global People. Oxford Financial Ads na international advertising agency wey dey help businesses make their brand known for global market.",
@@ -43,6 +51,7 @@
     "address1": "25 Business Square",
     "address2": "Canary District",
     "address3": "London, EC2A 4AB",
+<<<<<<< HEAD
     "address4": "United Kingdom",
     "social": {
       "telegram": "Telegram",
@@ -55,10 +64,24 @@
     },
     "brandName": "Oxford Financial Ads",
     "supportEmail": "support.oxfordfinancialads@gmail.com"
+=======
+    "address4": "United Kingdom"
+  },
+  "hero": {
+    "title": "Digital Advertising & Online",
+    "subtitle": "Earning Platform",
+    "description": "Oxford Financial Ads na better digital advertising and online engagement platform where members fit join different digital earning activities.",
+    "cta": "Free-Register Now",
+    "whitepaper": "Read Technical Whitepaper"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "faq": {
     "badge": "FAQ",
     "title": "Questions Wey People Dey Ask",
+<<<<<<< HEAD
+=======
+    "questions": "Questions",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "q1": "Wetin be Oxford Financial Ads?",
     "a1": "Oxford Financial Ads na AI-powered arbitrage trading platform wey dey use Arbitrum network to make profit from price differences across many exchanges with minimal risk.",
     "q2": "Wetin be OFA token and how I go get am?",
@@ -73,8 +96,12 @@
     "a6": "We get powerful 5-level referral system. When person join through your referral link, you go earn daily commissions plus bonus OFA tokens.",
     "stillQuestions": "You still get questions?",
     "supportText": "Our support team dey available 24/7 to help you with anything concerning Oxford Financial Ads.",
+<<<<<<< HEAD
     "contactSupport": "Contact Support",
     "titleHighlight": "Questions"
+=======
+    "contactSupport": "Contact Support"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -89,9 +116,13 @@
       "success": "You don login success",
       "blocked": "Your account don dey blocked temporarily because plenty failed login attempts. Abeg contact support: support.oxfordfinancialads@gmail.com",
       "invalid": "Login no correct",
+<<<<<<< HEAD
       "failed": "Login no work",
       "welcomeBack": "Welcome Back",
       "welcomeSubtitle": "Sign in to access your dashboard and grow your portfolio."
+=======
+      "failed": "Login no work"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Create Your Account",
@@ -190,11 +221,15 @@
       "err_agree": "You must agree to terms & conditions",
       "success": "Registration success!",
       "networkError": "Network error or server no dey reachable",
+<<<<<<< HEAD
       "error": "Something don happen",
       "joinTitle": "Join Us Today",
       "joinSubtitle": "Create account to start earning with our modern platform for digital advertising.",
       "perDay": "/day",
       "success_paid": "Registration submitted! Please complete payment to activate your account."
+=======
+      "error": "Something don happen"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "Reset Your Password",
@@ -253,7 +288,10 @@
   "userDashboard": {
     "header": "User Portal",
     "accountOnHold": "Your account dey on hold. You fit only deposit for now.",
+<<<<<<< HEAD
     "accountSuspended": "Your account dey suspended. Abeg wait until the suspension expire.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Coming Soon",
     "inDevelopment": "Dis page dey under development",
     "sidebar": {
@@ -279,7 +317,11 @@
       "referralBonuses": "Referral Bonuses",
       "referralBonuses_desc": "10% direct referral earnings",
       "genBonuses": "Generation Bonuses",
+<<<<<<< HEAD
       "genBonuses_desc": "Team earnings",
+=======
+      "genBonuses_desc": "8/7/6/5% team earnings",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Matching Bonus",
       "matchingBonus_desc": "Rank-based bonus plan",
       "walletTransfer": "Wallet Transfer",
@@ -302,6 +344,7 @@
       "privacy_desc": "Data & privacy",
       "whitepaper": "Technical Whitepaper",
       "whitepaper_desc": "Project documentation",
+<<<<<<< HEAD
       "soon": "Soon",
       "banking": "Banking Setup",
       "banking_desc": "Register bank details",
@@ -309,6 +352,9 @@
       "ledger_desc": "Your balances across every wallet",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards"
+=======
+      "soon": "Soon"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -326,9 +372,13 @@
       "sendFunds": "Send Funds",
       "transfers": "Transfers",
       "mbTransfer": "MB Transfer",
+<<<<<<< HEAD
       "kyc": "KYC Verification",
       "matchingBonusPlan": "Matching Bonus Plan",
       "walletTransfer": "Wallet Transfer"
+=======
+      "kyc": "KYC Verification"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "wallets": {
       "main": "Main Wallet",
@@ -348,9 +398,13 @@
       "clickHistory": "Click to view history",
       "openTokenInfo": "Open token information",
       "viewHistory": "View History",
+<<<<<<< HEAD
       "transfer": "Transfer",
       "usable": "Usable Balance",
       "ofaToken": "OFA token"
+=======
+      "transfer": "Transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Token Information",
@@ -386,8 +440,12 @@
       "title": "Team Performance",
       "level": "Level {{level}}",
       "loading": "Dey load...",
+<<<<<<< HEAD
       "netEarnings": "Total Earnings (All Levels)",
       "growth": "15.7% vs last 30 days"
+=======
+      "netEarnings": "Total Earnings (All Levels)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "OFA Token Mining Wallet",
@@ -399,6 +457,7 @@
       "claiming": "Dey claim...",
       "claim": "Claim Reward",
       "howTitle": "How Mining Take Work",
+<<<<<<< HEAD
       "step1": "Start mining session — OFA tokens dey begin to accumulate every second for 24-hour cycle.",
       "step2": "Mining rate dey calculated based on your current network volume and staking tier.",
       "step3": "Accumulated tokens dey go directly into your Mining Wallet in real-time.",
@@ -410,6 +469,14 @@
       "dailyCap": "DAILY CAP",
       "lastClaim": "LAST CLAIM",
       "notClaimed": "No dey claim yet"
+=======
+      "step1": "1. Click \"Start Mining\" to begin 24-hour mining cycle.",
+      "step2": "2. OFA tokens dey mine continuously at rate wey match daily cap divide by 86,400 seconds.",
+      "step3": "3. After at least 1 minute, you fit click \"Claim Reward\" to transfer mined tokens to your Mining Wallet.",
+      "step4": "4. You fit claim plenty times for one cycle — every claim give you the tokens wey you don mine since your last claim.",
+      "step5": "5. When the 24-hour cycle finish, mining go reset automatically. Start new cycle to continue earning.",
+      "step6": "6. Mined OFA tokens fit convert to USDT via Convert page. External transfers dey come soon."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "No {{type}} history found.",
@@ -425,11 +492,15 @@
       "fromUser": "From User",
       "level": "Level",
       "status": "Status",
+<<<<<<< HEAD
       "received": "don receive",
       "type": "Type",
       "details": "Details",
       "typeDeposit": "Deposit",
       "typeKycRefund": "KYC Refund"
+=======
+      "received": "don receive"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Deposit History",
@@ -437,6 +508,7 @@
       "referral": "Referral Earnings History",
       "matching": "Matching Bonus History",
       "generation": "Generation Earnings History"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "OFA Cryptocurrency",
@@ -451,6 +523,9 @@
     "pendingPayment": "Your package payment no don complete. Please complete your payment. Once your payment don approve by the Our Compliance Team, all earning features go activate automatically.",
     "viewAll": "View All",
     "allLevels": "All Levels"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Profile",
@@ -479,8 +554,12 @@
     "photo_uploaded": "Profile image don upload",
     "photo_saved": "Photo don save",
     "photo_failed": "Upload no work",
+<<<<<<< HEAD
     "photo_saveFailed": "We no fit save photo",
     "rejectionReason": "Why we reject:"
+=======
+    "photo_saveFailed": "We no fit save photo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Deposit USDT",
@@ -507,9 +586,13 @@
     "err_field": "Field needed",
     "err_amount": "Amount must pass 0.",
     "err_txid": "Must be at least 5 characters.",
+<<<<<<< HEAD
     "err_noNetwork": "No active deposit network found. Abeg contact support.",
     "err_min_amount": "Minimum deposit amount is {{min}} USDT.",
     "min_amount_hint": "Minimum: {{min}} USDT"
+=======
+    "err_noNetwork": "No active deposit network found. Abeg contact support."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Withdraw Funds",
@@ -552,13 +635,18 @@
     "loadingHistory": "Dey load withdrawal history...",
     "noHistory": "No withdrawal history found.",
     "err_general": "Something don happen",
+<<<<<<< HEAD
     "success": "Withdrawal request don submit. Dey wait Our Compliance Team review.",
+=======
+    "success": "Withdrawal request don submit. Dey wait admin review.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_field": "Field needed",
     "err_validAmount": "Abeg enter correct amount.",
     "err_min": "Minimum withdrawal amount na {{min}} USDT.",
     "err_max": "Maximum withdrawal amount na {{max}} USDT.",
     "err_balance": "Balance no sufficient for {{wallet}}. Wey dey: {{balance}}.",
     "err_mainBalance": "Main Wallet balance no enough. Wey dem need: {{required}} USDT (Amount + 1%), Wey dey: {{available}} USDT.",
+<<<<<<< HEAD
     "err_address": "Must be at least 5 characters.",
     "err_mode_banking": "Only bank transfer withdrawals are allowed at this time.",
     "err_mode_network": "Network withdrawals are currently disabled.",
@@ -582,6 +670,9 @@
     "accountType": "Account Type",
     "accountPersonal": "Personal",
     "accountAgent": "Agent"
+=======
+    "err_address": "Must be at least 5 characters."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Wallet Transfer",
@@ -599,6 +690,7 @@
     "err_amount": "Enter correct amount",
     "err_sameWallet": "Source and destination must different",
     "err_balance": "Balance no enough",
+<<<<<<< HEAD
     "err_failed": "Transfer no work",
     "walletMain": "Main Wallet",
     "walletReferral": "Referral Wallet",
@@ -608,6 +700,9 @@
     "walletCaptcha": "Captcha Typing Wallet",
     "walletAdView": "Ad View Wallet",
     "walletDeposit": "Deposit Wallet"
+=======
+    "err_failed": "Transfer no work"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Send Funds",
@@ -629,10 +724,14 @@
     "err_noUser": "No user wey match '{{query}}'",
     "err_search": "Search no work: {{error}}",
     "success": "Don send {{amount}} USDT to {{name}}",
+<<<<<<< HEAD
     "err_failed": "Transfer no work",
     "err_kyc": "KYC verification dey needed. Abeg complete your KYC verification before you send funds.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Transfer no work"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Matching Bonus Transfer",
@@ -714,6 +813,7 @@
   },
   "genBonus": {
     "title": "Generation Bonuses",
+<<<<<<< HEAD
     "subtitle": "Cascading bonuses from your team's deposits",
     "ratesTitle": "Current Bonus Rates",
     "search_plh": "Search by name or username...",
@@ -722,6 +822,15 @@
     "gen3": "3rd Generation",
     "gen4": "4th Generation",
     "gen5": "5th Generation",
+=======
+    "subtitle": "Cascading 8/7/6/5% bonuses from your team deposits",
+    "search_plh": "Search by name or username...",
+    "all": "All Generations",
+    "gen2": "2nd Generation (8%)",
+    "gen3": "3rd Generation (7%)",
+    "gen4": "4th Generation (6%)",
+    "gen5": "5th Generation (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "user": "User",
     "username": "Username",
     "generation": "Generation",
@@ -732,18 +841,25 @@
     "empty": "No generation bonuses yet",
     "loading": "Dey load...",
     "error": "Something don happen",
+<<<<<<< HEAD
     "page": "Page {{page}} of {{totalPages}}",
     "genLevel2": "2nd Gen",
     "genLevel3": "3rd Gen",
     "genLevel4": "4th Gen",
     "genLevel5": "5th Gen",
     "genLevelN": "{{level}}th Gen"
+=======
+    "page": "Page {{page}} of {{totalPages}}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "convertOFA": {
     "title": "Convert OFA to USDT",
     "subtitle": "Swap your OFA tokens for USDT",
     "ofaBalance": "Your OFA Balance",
+<<<<<<< HEAD
     "convertedBalance": "Converted Balance",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Your USDT Balance",
     "rate": "Conversion Rate",
     "ofaAmount": "OFA Amount",
@@ -753,8 +869,12 @@
     "convert": "Convert to USDT",
     "err_amount": "Enter correct OFA amount",
     "err_balance": "OFA balance no enough",
+<<<<<<< HEAD
     "err_failed": "Conversion no work",
     "err_kyc": "KYC verification dey needed before you convert OFA Token. Abeg complete your KYC verification to unlock token conversion."
+=======
+    "err_failed": "Conversion no work"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -777,6 +897,7 @@
     "phone": "Phone",
     "photo_uploaded": "Profile image don upload",
     "photo_saved": "Photo don save",
+<<<<<<< HEAD
     "photo_failed": "We no fit save photo",
     "kycPackages": {
       "title": "KYC Package Management",
@@ -865,6 +986,9 @@
       "totalOfaDistribution": "Total OFA Distribution",
       "totalOfaDistributionSubtitle": "Signup Bonus + Daily Mining"
     }
+=======
+    "photo_failed": "We no fit save photo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "common": {
     "loading": "Dey load...",
@@ -894,6 +1018,7 @@
     "all": "All",
     "none": "None",
     "required": "Needed",
+<<<<<<< HEAD
     "optional": "No Be Must",
     "scrollToTop": "Scroll go top",
     "announcement": "Announcement",
@@ -916,6 +1041,12 @@
       "seconds": "Seconds",
       "live": "We Are Live"
     }
+=======
+    "optional": "No Be Must"
+  },
+  "homePage": {
+    "imageAlt": "Financial Services"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "home": {
     "ecommerce": {
@@ -930,6 +1061,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "platformStats": {
       "title": "Oxford Financial Ads",
@@ -2701,3 +2833,8 @@
     "totalUsdt": "Total USDT Balance"
   }
 }
+=======
+    }
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

@@ -106,7 +106,10 @@ async def update_announcement(
     is_active: str | None = Form(None),
     image: UploadFile | None = File(None),
     image_url: str | None = Form(None),
+<<<<<<< HEAD
     clear_image: str | None = Form(None),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
@@ -133,6 +136,7 @@ async def update_announcement(
             image,
             f"announcements/{item.created_by or 'admin'}",
         )
+<<<<<<< HEAD
     elif _parse_bool(clear_image, default=False):
         item.image_key = None
 
@@ -140,6 +144,11 @@ async def update_announcement(
         item.image_url = (image_url or "").strip() or None
     elif _parse_bool(clear_image, default=False):
         item.image_url = None
+=======
+
+    if image_url is not None:
+        item.image_url = (image_url or "").strip() or None
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     if is_active is not None:
         active_value = _parse_bool(is_active, default=bool(item.is_active))

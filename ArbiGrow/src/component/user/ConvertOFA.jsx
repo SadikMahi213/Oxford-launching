@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Repeat, Coins, Wallet } from "lucide-react";
@@ -6,6 +7,17 @@ import { convertOFAtoUSDT, getOFAConversionRate, getOfaConversionTotal } from ".
 import useUserStore from "../../store/userStore.js";
 import KycWarningBanner from "./KycWarningBanner.jsx";
 
+=======
+import { useState } from "react";
+import { motion } from "motion/react";
+import { Repeat, Coins, Wallet } from "lucide-react";
+import { convertOFAtoUSDT } from "../../api/user.api.js";
+import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
+
+const CONVERSION_RATE = 0.0001;
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 export default function ConvertOFA() {
   const { t } = useTranslation();
   const { user, setUser } = useUserStore();
@@ -13,6 +25,7 @@ export default function ConvertOFA() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+<<<<<<< HEAD
   const [conversionRate, setConversionRate] = useState(null);
   const [convertedBalance, setConvertedBalance] = useState(0);
 
@@ -36,18 +49,27 @@ export default function ConvertOFA() {
       active = false;
     };
   }, []);
+=======
+
+  const arbxBalance = Number(user?.arbx_wallet ?? 0);
+  const mainBalance = Number(user?.main_wallet ?? 0);
+  const usdtAmount = ofaAmount ? (parseFloat(ofaAmount) * CONVERSION_RATE) : 0;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
     setIsSuccess(false);
 
+<<<<<<< HEAD
     if (!kycApproved) {
       setMessage(t('convertOFA.err_kyc'));
       setIsSuccess(false);
       return;
     }
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if (!ofaAmount || parseFloat(ofaAmount) <= 0) {
       setMessage(t('convertOFA.err_amount'));
       return;
@@ -70,12 +92,15 @@ export default function ConvertOFA() {
       setMessage(res.data.message);
       setIsSuccess(true);
       setOfaAmount("");
+<<<<<<< HEAD
 
       getOfaConversionTotal()
         .then((res2) => {
           setConvertedBalance(Number(res2.data?.ofa_converted_usdt) || 0);
         })
         .catch(() => {});
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } catch (err) {
       const msg = err.response?.data?.detail || t('convertOFA.err_failed');
       setMessage(msg);
@@ -115,8 +140,13 @@ export default function ConvertOFA() {
             <div className="flex items-center gap-3">
               <Wallet className="w-8 h-8 text-cyan-400" />
               <div>
+<<<<<<< HEAD
                 <div className="text-sm text-gray-400">{t('convertOFA.convertedBalance')}</div>
                 <div className="text-xl font-bold text-white">${convertedBalance.toFixed(2)}</div>
+=======
+                <div className="text-sm text-gray-400">{t('convertOFA.usdtBalance')}</div>
+                <div className="text-xl font-bold text-white">${mainBalance.toFixed(2)}</div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               </div>
             </div>
           </div>
@@ -126,11 +156,17 @@ export default function ConvertOFA() {
               <span className="text-sm text-gray-400">{t('convertOFA.rate')}</span>
             </div>
             <div className="flex items-center justify-center gap-4 text-lg">
+<<<<<<< HEAD
               <span className="text-yellow-400 font-semibold">1 OFA</span>
               <Repeat className="w-5 h-5 text-cyan-400" />
               <span className="text-green-400 font-semibold">
                 {conversionRate != null ? `${conversionRate} USDT` : "—"}
               </span>
+=======
+              <span className="text-yellow-400 font-semibold">100 OFA</span>
+              <Repeat className="w-5 h-5 text-cyan-400" />
+              <span className="text-green-400 font-semibold">0.01 USDT</span>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             </div>
           </div>
 
@@ -157,12 +193,15 @@ export default function ConvertOFA() {
             </div>
           )}
 
+<<<<<<< HEAD
           {!kycApproved && (
             <p className="text-center text-sm text-red-400">
               {t('convertOFA.err_kyc')}
             </p>
           )}
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           {message && (
             <p className={`text-center text-sm ${isSuccess ? "text-green-400" : "text-red-400"}`}>
               {message}
@@ -171,7 +210,11 @@ export default function ConvertOFA() {
 
           <button
             type="submit"
+<<<<<<< HEAD
             disabled={loading || !kycApproved}
+=======
+            disabled={loading}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {loading ? t('convertOFA.converting') : t('convertOFA.convert')}

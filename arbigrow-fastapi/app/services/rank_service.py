@@ -1,5 +1,8 @@
 from decimal import Decimal, ROUND_HALF_UP
+<<<<<<< HEAD
 from datetime import datetime, timezone
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 from sqlalchemy import select, func as sa_func, text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +13,7 @@ from app.models.rank_history import RankHistory
 from app.models.matching_bonus import MatchingBonus
 from app.models.deposit import Deposit
 from app.models.rank_bonus_config import RankBonusConfig
+<<<<<<< HEAD
 from app.utils.kyc_helper import is_kyc_approved
 WALLET_PRECISION = Decimal("0.00000000000001")
 BONUS_PERCENT_PRECISION = Decimal("0.0001")
@@ -23,19 +27,27 @@ NETWORK_GENERATION_LIMIT = 10
 # source above so the two can never drift apart.
 TEAM_VOLUME_MAX_DEPTH = NETWORK_GENERATION_LIMIT
 MATCHING_BONUS_MAX_DEPTH = NETWORK_GENERATION_LIMIT
+=======
+WALLET_PRECISION = Decimal("0.00000000000001")
+BONUS_PERCENT_PRECISION = Decimal("0.0001")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 async def get_team_volume(
     user_id: int,
     db: AsyncSession,
+<<<<<<< HEAD
     *,
     cutover: datetime | None = None,
     max_depth: int = NETWORK_GENERATION_LIMIT,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 ) -> tuple[Decimal, Decimal]:
     """Calculate personal deposit and total team volume.
 
     Returns (personal_volume, team_volume) where:
       - personal_volume = user's own approved deposits
+<<<<<<< HEAD
       - team_volume    = personal_volume + descendants' approved deposits
         (up to ``max_depth`` generations; default ``NETWORK_GENERATION_LIMIT``
         (10) matches the documented business formula for Team Volume)
@@ -53,6 +65,16 @@ async def get_team_volume(
         self_conds.append(Deposit.created_at >= cutover)
     self_result = await db.execute(
         select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*self_conds)
+=======
+      - team_volume    = personal_volume + all descendants' approved deposits
+    """
+    # Self deposits (approved)
+    self_result = await db.execute(
+        select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
+            Deposit.user_id == user_id,
+            Deposit.status == "approved",
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     self_volume = Decimal(str(self_result.scalar()))
 
@@ -68,11 +90,16 @@ async def get_team_volume(
         )
         SELECT id FROM team_tree
     """)
+<<<<<<< HEAD
     descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": max_depth})
+=======
+    descendant_result = await db.execute(descendant_stmt, {"uid": user_id, "max_depth": 40})
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     descendant_ids = [row[0] for row in descendant_result.fetchall()]
 
     team_volume = self_volume
     if descendant_ids:
+<<<<<<< HEAD
         team_conds = [
             Deposit.user_id.in_(descendant_ids),
             Deposit.status == "approved",
@@ -81,6 +108,13 @@ async def get_team_volume(
             team_conds.append(Deposit.created_at >= cutover)
         team_result = await db.execute(
             select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(*team_conds)
+=======
+        team_result = await db.execute(
+            select(sa_func.coalesce(sa_func.sum(Deposit.amount), 0)).where(
+                Deposit.user_id.in_(descendant_ids),
+                Deposit.status == "approved",
+            )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         )
         team_volume += Decimal(str(team_result.scalar()))
 
@@ -88,6 +122,7 @@ async def get_team_volume(
     return self_volume, team_volume
 
 
+<<<<<<< HEAD
 async def get_matching_bonus_volume(
     user_id: int,
     db: AsyncSession,
@@ -187,6 +222,8 @@ async def enforce_kyc_rank_gate(user: User, db: AsyncSession) -> bool:
     return True
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def _get_highest_qualified_rank(
     team_volume: Decimal,
     db: AsyncSession,
@@ -214,7 +251,10 @@ async def _has_rank_bonus_been_paid(
         .where(
             MatchingBonus.user_id == user_id,
             MatchingBonus.rank_id == rank_id,
+<<<<<<< HEAD
             MatchingBonus.is_reversed == False,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         )
         .with_for_update()
         .limit(1)
@@ -222,6 +262,7 @@ async def _has_rank_bonus_been_paid(
     return result.first() is not None
 
 
+<<<<<<< HEAD
 def _snapshot_floor(user: User) -> Decimal:
     """The permanent KYC snapshot volume that must never generate bonus again.
 
@@ -248,6 +289,8 @@ def _advance_bonused_up_to(user: User, volume: Decimal) -> None:
         user.bonused_up_to = volume.quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP)
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def _create_bonus_entries(
     user_id: int,
     source_user_id: int | None,
@@ -302,6 +345,7 @@ async def _distribute_rank_bonuses(
     bonus_configs: list[tuple[str, Decimal]],
     reference_id: int | None = None,
     reference_type: str | None = None,
+<<<<<<< HEAD
 ) -> bool:
     """Distribute all bonus types for a newly achieved rank.
 
@@ -309,6 +353,10 @@ async def _distribute_rank_bonuses(
     (i.e. a real payout happened). Callers should only advance the
     ``bonused_up_to`` floor when this returns True.
     """
+=======
+):
+    """Distribute all bonus types for a newly achieved rank."""
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     total_pct = sum(p for _, p in bonus_configs)
     if total_pct > rank.max_matching_percent:
         scale = rank.max_matching_percent / total_pct
@@ -317,9 +365,14 @@ async def _distribute_rank_bonuses(
             for bt, p in bonus_configs
         ]
 
+<<<<<<< HEAD
     created = False
     for bonus_type, percent in bonus_configs:
         entry = await _create_bonus_entries(
+=======
+    for bonus_type, percent in bonus_configs:
+        await _create_bonus_entries(
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             user_id=user_id,
             source_user_id=source_user_id,
             rank=rank,
@@ -330,10 +383,13 @@ async def _distribute_rank_bonuses(
             reference_id=reference_id,
             reference_type=reference_type,
         )
+<<<<<<< HEAD
         if entry is not None:
             created = True
 
     return created
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 async def _create_rank_history(
@@ -353,6 +409,7 @@ async def _create_rank_history(
     db.add(history)
 
 
+<<<<<<< HEAD
 async def _legacy_evaluate_and_process_rank(
     user_id: int,
     db: AsyncSession,
@@ -383,6 +440,8 @@ async def _legacy_evaluate_and_process_rank(
     )
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def evaluate_and_process_rank(
     user_id: int,
     db: AsyncSession,
@@ -390,6 +449,7 @@ async def evaluate_and_process_rank(
     source_user_id: int | None = None,
     reference_id: int | None = None,
     reference_type: str | None = None,
+<<<<<<< HEAD
     skip_bonus: bool = False,
     use_snapshot_volume: bool = False,
     snapshot_volume: Decimal | None = None,
@@ -410,11 +470,25 @@ async def evaluate_and_process_rank(
         "previous_rank": None,
         "new_rank": None,
     }
+=======
+) -> dict:
+    """
+    Main entry point called after a deposit approval or investment purchase.
+    
+    1. Recalculates team volume
+    2. Checks if user qualifies for a new rank
+    3. Distributes matching bonuses for any newly achieved ranks
+    4. Saves rank history
+    5. Updates user's current_rank_id
+    """
+    result = {"rank_upgraded": False, "bonuses_paid": [], "previous_rank": None, "new_rank": None}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     user_result = await db.execute(
         select(User).where(User.id == user_id).with_for_update()
     )
     user = user_result.scalar_one_or_none()
+<<<<<<< HEAD
     if not user or await enforce_kyc_rank_gate(user, db):
         return result
 
@@ -534,11 +608,107 @@ async def evaluate_and_process_rank(
             source_user_id=source_user_id,
             rank=rank,
             eligible_amount=eligible_amount,
+=======
+    if not user:
+        return result
+
+    # Step 1: Calculate personal deposit and total team volume
+    personal_volume, team_volume = await get_team_volume(user_id, db)
+
+    # Update user's team_volume (even if personal_volume is 0)
+    user.team_volume = team_volume
+
+    # Users with zero personal deposit are not eligible for matching bonuses
+    if personal_volume <= 0:
+        return result
+
+    # Step 2: Find highest qualified rank
+    qualified_rank = await _get_highest_qualified_rank(team_volume, db)
+    if not qualified_rank:
+        return result
+
+    # Step 3: Determine current rank sort order
+    current_rank_sort = 0
+    previous_rank_id = None
+    if user.current_rank_id:
+        current_rank = await db.get(Rank, user.current_rank_id)
+        if current_rank:
+            current_rank_sort = current_rank.sort_order
+            previous_rank_id = current_rank.id
+
+    if qualified_rank.sort_order <= current_rank_sort:
+        return result
+
+    # Step 4: Get all newly achievable ranks between current and qualified
+    new_ranks_result = await db.execute(
+        select(Rank)
+        .where(
+            Rank.is_active == True,
+            Rank.sort_order > current_rank_sort,
+            Rank.sort_order <= qualified_rank.sort_order,
+        )
+        .order_by(Rank.sort_order.asc())
+    )
+    new_ranks = new_ranks_result.scalars().all()
+    if not new_ranks:
+        return result
+
+    # Step 5: Get the previous rank's target volume for eligible calculation
+    previous_target = Decimal("0")
+    if previous_rank_id:
+        prev_rank = await db.get(Rank, previous_rank_id)
+        if prev_rank:
+            previous_target = prev_rank.target_volume
+
+    # Pre-load bonus configs for all new ranks
+    new_rank_ids = [r.id for r in new_ranks]
+    config_rows = await db.execute(
+        select(RankBonusConfig)
+        .where(RankBonusConfig.rank_id.in_(new_rank_ids))
+        .order_by(RankBonusConfig.sort_order)
+    )
+    bonus_map: dict[int, list[tuple[str, Decimal]]] = {}
+    for c in config_rows.scalars().all():
+        bonus_map.setdefault(c.rank_id, []).append((c.bonus_type, c.bonus_percent))
+
+    # Step 6: Process each newly achieved rank
+    last_achieved_rank = None
+    for rank in new_ranks:
+        # Skip if bonus already paid for this rank (prevents double pay)
+        if await _has_rank_bonus_been_paid(user_id, rank.id, db):
+            previous_target = rank.target_volume
+            last_achieved_rank = rank
+            continue
+
+        # Calculate eligible amount for this rank
+        eligible = (rank.target_volume - previous_target).quantize(
+            WALLET_PRECISION, rounding=ROUND_HALF_UP
+        )
+        if eligible <= 0:
+            previous_target = rank.target_volume
+            last_achieved_rank = rank
+            continue
+
+        # Get bonus configs for this rank
+        configs = bonus_map.get(rank.id, [])
+        if not configs:
+            previous_target = rank.target_volume
+            last_achieved_rank = rank
+            continue
+
+        # Distribute bonuses for this rank
+        await _distribute_rank_bonuses(
+            user_id=user_id,
+            source_user_id=source_user_id,
+            rank=rank,
+            eligible_amount=eligible,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             db=db,
             bonus_configs=configs,
             reference_id=reference_id,
             reference_type=reference_type,
         )
+<<<<<<< HEAD
         if not distributed:
             break
 
@@ -550,4 +720,33 @@ async def evaluate_and_process_rank(
             "eligible_amount": str(eligible_amount),
         })
 
+=======
+
+        # Save rank history
+        await _create_rank_history(
+            user_id=user_id,
+            rank_id=rank.id,
+            previous_rank_id=previous_rank_id,
+            team_volume=team_volume,
+            db=db,
+        )
+
+        result["bonuses_paid"].append({
+            "rank_id": rank.id,
+            "rank_name": rank.name,
+            "eligible_amount": str(eligible),
+        })
+
+        previous_rank_id = rank.id
+        previous_target = rank.target_volume
+        last_achieved_rank = rank
+
+    # Step 7: Update user's current rank (highest achieved)
+    if last_achieved_rank:
+        result["previous_rank"] = user.current_rank_id
+        user.current_rank_id = last_achieved_rank.id
+        result["new_rank"] = last_achieved_rank.id
+        result["rank_upgraded"] = True
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return result

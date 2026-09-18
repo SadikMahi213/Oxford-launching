@@ -20,8 +20,11 @@ class Withdrawal(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
+<<<<<<< HEAD
     transaction_id = Column(String(16), unique=True, nullable=True, index=True)
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     source_wallet = Column(String(50), nullable=False)
     withdrawal_method_id = Column(Integer, ForeignKey("withdrawal_methods.id"), nullable=True)
     method_type = Column(String(20), nullable=True)

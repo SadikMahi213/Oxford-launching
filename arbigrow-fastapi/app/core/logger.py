@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import json
 import logging
 import sys
@@ -32,6 +33,17 @@ def setup_logging():
     root.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
     root.handlers.clear()
     root.addHandler(handler)
+=======
+import logging
+from app.core.config import settings
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO),
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Optional: reduce noisy libraries
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)

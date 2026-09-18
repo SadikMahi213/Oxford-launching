@@ -5,7 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.system_config import SystemConfig
 
+<<<<<<< HEAD
 DEFAULT_REFERRAL_RATES: dict[int, Decimal] = {
+=======
+DEFAULT_REFERRAL_RATES = {
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     1: Decimal("10"),
     2: Decimal("9"),
     3: Decimal("8"),
@@ -15,6 +19,7 @@ DEFAULT_REFERRAL_RATES: dict[int, Decimal] = {
 
 
 async def get_referral_level_rates(db: AsyncSession) -> dict[int, Decimal]:
+<<<<<<< HEAD
     """Read commission rates from SystemConfig, fall back to defaults.
 
     Scans all SystemConfig keys matching 'commission_l%d' dynamically,
@@ -43,3 +48,23 @@ async def get_referral_level_rates(db: AsyncSession) -> dict[int, Decimal]:
             rates[level] = DEFAULT_REFERRAL_RATES[level]
 
     return dict(sorted(rates.items()))
+=======
+    """Read commission rates from SystemConfig, fall back to defaults."""
+    rates = {}
+    for level in range(1, 6):
+        result = await db.execute(
+            select(SystemConfig).where(SystemConfig.key == f"commission_l{level}")
+        )
+        row = result.scalar_one_or_none()
+        if row and row.value:
+            try:
+                rates[level] = Decimal(row.value)
+            except Exception:
+                rates[level] = DEFAULT_REFERRAL_RATES[level]
+        else:
+            rates[level] = DEFAULT_REFERRAL_RATES[level]
+    return rates
+
+
+REFERRAL_LEVEL_RATES = DEFAULT_REFERRAL_RATES
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

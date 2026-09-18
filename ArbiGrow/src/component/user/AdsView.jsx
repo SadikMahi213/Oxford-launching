@@ -10,10 +10,15 @@ import {
   AlertCircle,
   Eye,
   Youtube,
+<<<<<<< HEAD
   X,
 } from "lucide-react";
 import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
 import DailyEarningNotice from "./DailyEarningNotice.jsx";
+=======
+} from "lucide-react";
+import { startAd, completeAd, getAdStats } from "../../api/user.api.js";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import useUserStore from "../../store/userStore.js";
 
 export default function AdsView() {
@@ -31,8 +36,11 @@ export default function AdsView() {
   const timerRef = useRef(null);
   const playerRef = useRef(null);
   const playerContainerRef = useRef(null);
+<<<<<<< HEAD
   const openSessionRef = useRef(null);
   const completingRef = useRef(false);
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
   const fetchStats = useCallback(async () => {
     try {
@@ -49,6 +57,7 @@ export default function AdsView() {
     fetchStats();
   }, [fetchStats]);
 
+<<<<<<< HEAD
   // Tracks the currently open (uncompleted, no-result) session id so that
   // leaving the page reports the abandon. Null-safe: cleared on completion.
   openSessionRef.current =
@@ -87,6 +96,8 @@ export default function AdsView() {
     };
   }, [sendAbandon]);
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const initPlayer = useCallback((videoId) => {
     if (!window.YT || !window.YT.Player) {
       window.onYouTubeIframeAPIReady = () => initPlayer(videoId);
@@ -120,8 +131,11 @@ export default function AdsView() {
       setWatching(true);
       setTimer(data.duration_seconds || 30);
       setCanComplete(false);
+<<<<<<< HEAD
       // A start consumes one daily unit server-side: refresh the display.
       await fetchStats();
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     } catch (err) {
       setError(err.response?.data?.detail || err.message || t('adsView.failedStartAd'));
     }
@@ -173,7 +187,10 @@ export default function AdsView() {
   const handleComplete = async () => {
     if (!adSession) return;
     setError("");
+<<<<<<< HEAD
     completingRef.current = true;
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     try {
       const res = await completeAd(adSession.ad_view_id);
       const data = res.data || res;
@@ -185,6 +202,7 @@ export default function AdsView() {
       }
       if (data.success) {
         setUser({ ad_view_wallet: data.new_balance });
+<<<<<<< HEAD
       }
       await fetchStats();
     } catch (err) {
@@ -236,6 +254,12 @@ export default function AdsView() {
       await fetchStats();
     } finally {
       completingRef.current = false;
+=======
+        await fetchStats();
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || t('adsView.completionFailed'));
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   };
 
@@ -264,8 +288,11 @@ export default function AdsView() {
         </div>
       </div>
 
+<<<<<<< HEAD
       <DailyEarningNotice />
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="p-4 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/10">
@@ -373,6 +400,7 @@ export default function AdsView() {
                     <><RefreshCw className="w-5 h-5 animate-spin" /> {t('adsView.watchingSeconds', { count: timer })}</>
                   )}
                 </button>
+<<<<<<< HEAD
                 {!canComplete && (
                   <button
                     onClick={handleExitAd}
@@ -401,6 +429,12 @@ export default function AdsView() {
             )}
 
             {result && !result.exited && (
+=======
+              </div>
+            )}
+
+            {result && (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 className="w-5 h-5 text-green-400" />

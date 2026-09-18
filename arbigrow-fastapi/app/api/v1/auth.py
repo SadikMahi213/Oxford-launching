@@ -1,4 +1,5 @@
 from sqlalchemy.exc import IntegrityError
+<<<<<<< HEAD
 import anyio
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,11 +8,20 @@ from decimal import Decimal
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
+=======
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, update
+from decimal import Decimal
+from datetime import datetime, timedelta, timezone
+import hashlib
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import secrets
 
 
 from app.core.database import get_db
 from app.core.config import settings
+<<<<<<< HEAD
 from app.services.b2_service import generate_presigned_url
 from app.models.user import User
 from app.models.refresh_token import RefreshToken
@@ -36,6 +46,17 @@ from app.core.security import (
 from app.core.rate_limiter import limiter
 from app.core.config import settings
 from app.tasks.email_tasks import send_email_verification_task
+=======
+from app.models.user import User
+from app.models.kyc import KYC
+from app.models.package import Package
+from app.models.investments import Investment
+from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, VerifyEmailOTPRequest
+from app.core.security import hash_password, verify_password, create_access_token, get_current_user_id, verify_password_reset_token
+from app.core.rate_limiter import limiter
+from app.core.config import settings
+from app.utils.email import send_password_reset_email, send_email_verification
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.utils.generate_username import generate_username
 from app.utils.notifications import notify_admin
 from app.services.security_logger import SecurityLogger
@@ -45,6 +66,7 @@ from app.services.security_logger import SecurityLogger
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
+<<<<<<< HEAD
 REGISTRATION_ENABLED_KEY = "system_registration_enabled"
 
 # OFA User Approval workflow (KYC-independent)
@@ -99,6 +121,8 @@ async def registration_status(request: Request, db: AsyncSession = Depends(get_d
     return {"enabled": await _is_registration_enabled(db)}
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 def _normalize_email(email: str) -> str:
     return str(email).strip().lower()
 
@@ -116,6 +140,7 @@ def _generate_user_no() -> str:
     return str(secrets.randbelow(9 * 10**10) + 10**10)
 
 
+<<<<<<< HEAD
 def _client_context(request: Request) -> tuple[str | None, str | None]:
     ip_address = request.client.host if request.client else None
     if request.headers.get("x-forwarded-for"):
@@ -188,6 +213,11 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
             detail="Registration is currently disabled",
         )
 
+=======
+@router.post("/signup", response_model=UserResponse)
+@limiter.limit("60/minute")
+async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     normalized_email = _normalize_email(user_data.email)
 
     ref_user = None
@@ -211,12 +241,16 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
     if result.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+<<<<<<< HEAD
     # bcrypt hashing runs in a worker thread (CPU-bound, ~200ms).
     signup_password_hash = await anyio.to_thread.run_sync(
         hash_password, user_data.password
     )
 
     # Create user - OFA approval pending (KYC-independent)
+=======
+    # Create user
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     new_user = User(
         full_name=user_data.full_name,
         first_name=user_data.first_name,
@@ -235,9 +269,14 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
         religion=user_data.religion,
         marital_status=user_data.marital_status,
         email=normalized_email,
+<<<<<<< HEAD
         hashed_password=signup_password_hash,
         is_admin=False,
         approval_status=APPROVAL_STATUS_PENDING,
+=======
+        hashed_password=hash_password(user_data.password),
+        is_admin=False,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         email_verified=True,
         main_wallet=Decimal("0.00000000000000"),
         deposit_wallet=Decimal("0.00000000000000"),
@@ -274,6 +313,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
 
     #  Give 10 ARBX to referrer
     if ref_user:
+<<<<<<< HEAD
         ref_before = ref_user.arbx_wallet or Decimal("0")
         ref_user.arbx_wallet = ref_before + Decimal("10.00000000000000")
         db.add(OFACoinTransaction(
@@ -287,6 +327,11 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
             reference_id=new_user.id,
             description="Referral bonus for referring new user",
         ))
+=======
+        ref_user.arbx_wallet = (
+            ref_user.arbx_wallet + Decimal("10.00000000000000")
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # Handle package selection
     if user_data.package_id:
@@ -301,6 +346,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
                 new_user.account_status = "pending_payment"
                 new_user.pending_package_id = selected_pkg.id
             else:
+<<<<<<< HEAD
                 # Free package — activate immediately, give signup bonus and create auto-investment
                 new_user.account_status = "active"
                 pkg_bonus = selected_pkg.signup_arbx_bonus or Decimal("0")
@@ -318,6 +364,10 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
                         reference_id=selected_pkg.id,
                         description=f"Package signup bonus for {selected_pkg.name}",
                     ))
+=======
+                # Free package — give signup bonus and create auto-investment
+                new_user.arbx_wallet = (new_user.arbx_wallet or 0) + (selected_pkg.signup_arbx_bonus or 0)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 now = datetime.now(timezone.utc)
                 investment = Investment(
                     user_id=new_user.id,
@@ -336,6 +386,7 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
                 )
                 db.add(investment)
 
+<<<<<<< HEAD
     # ── OFA Signup Bonus ──────────────────────────────
     bonus_result = await db.execute(
         select(SystemConfig).where(SystemConfig.key == "ofa_signup_bonus")
@@ -357,6 +408,8 @@ async def signup(request: Request, user_data: UserCreate, db: AsyncSession = Dep
             description="OFA signup bonus",
         ))
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.commit()
     await db.refresh(new_user)
 
@@ -392,6 +445,7 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
+<<<<<<< HEAD
     # Check if account is blocked (auto-unlock if lock duration expired)
     if user.blocked_at:
         lockout_row = await db.execute(
@@ -412,10 +466,20 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
                 "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
             )
             raise HTTPException(status_code=423, detail=blocked_msg)
+=======
+    # Check if account is blocked
+    if user.blocked_at:
+        blocked_msg = (
+            "Your account has been temporarily blocked due to multiple failed login attempts. "
+            "Please contact the company support team for assistance: support.oxfordfinancialads@gmail.com"
+        )
+        raise HTTPException(status_code=423, detail=blocked_msg)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     # pending_payment users are allowed to login (they will see the payment page)
     is_pending_payment = (user.account_status or "").lower() == "pending_payment"
 
+<<<<<<< HEAD
     # Read configured max failed attempts from SystemConfig (dynamic, no restart needed)
     max_attempts_row = await db.execute(
         select(SystemConfig).where(SystemConfig.key == "login_max_attempts")
@@ -429,6 +493,12 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         user.failed_attempts = (user.failed_attempts or 0) + 1
 
         if user.failed_attempts >= max_failed_attempts:
+=======
+    if not verify_password(user_data.password, user.hashed_password):
+        user.failed_attempts = (user.failed_attempts or 0) + 1
+
+        if user.failed_attempts >= settings.MAX_FAILED_ATTEMPTS:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             user.blocked_at = datetime.now(timezone.utc)
             user.blocked_reason = f"Auto-blocked after {user.failed_attempts} consecutive failed login attempts"
             await db.commit()
@@ -453,11 +523,16 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
 
         await notify_admin(
             db=db, type="failed_login",
+<<<<<<< HEAD
             message=f"Failed login attempt ({user.failed_attempts}/{max_failed_attempts}) for {user.full_name} ({user.email})",
+=======
+            message=f"Failed login attempt ({user.failed_attempts}/{settings.MAX_FAILED_ATTEMPTS}) for {user.full_name} ({user.email})",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             user_id=user.id, request=request,
         )
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
+<<<<<<< HEAD
     # OFA User Approval gate (KYC-independent) - after password check, before session
     if _is_rejected(user):
         raise HTTPException(
@@ -470,6 +545,8 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
             detail={"code": "PENDING_APPROVAL", "message": PENDING_LOGIN_MESSAGE},
         )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # Successful login — reset failed attempts
     was_blocked = bool(user.blocked_at)
     user.failed_attempts = 0
@@ -499,6 +576,7 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         data={"sub": str(user.id)}
     )
 
+<<<<<<< HEAD
     # Persistent session: httpOnly refresh cookie (30-day sliding window).
     # This is what keeps the user logged in across refreshes, restarts and
     # access-token expirations. Always persistent — `remember_me` only widens
@@ -523,6 +601,14 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         max_age=cookie_max_age,
         httponly=True,
         secure=settings.APP_ENV != "development",
+=======
+    # Session cookie (no max_age — deleted on browser close)
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         samesite="lax",
     )
 
@@ -541,6 +627,7 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
         device=device,
     )
 
+<<<<<<< HEAD
     profile_image_url = user.profile_image_url
     if profile_image_url and not profile_image_url.startswith("http"):
         profile_image_url = generate_presigned_url(profile_image_url, expires_in=604800)
@@ -555,6 +642,11 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
     return {
         "access_token": access_token,
         "user": user_resp,
+=======
+    return {
+        "access_token": access_token,
+        "user": UserResponse(**user.__dict__,  phone_number=kyc.phone_number if kyc else None, country=kyc.country if kyc else None),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "doc_submitted": doc_submitted,
         "kyc_status": kyc_status,
         "payment_required": is_pending_payment,
@@ -562,6 +654,7 @@ async def login(request: Request, response: Response, user_data: UserLogin, db: 
     }
 
 
+<<<<<<< HEAD
 @router.post("/refresh")
 @limiter.limit("60/minute")
 async def refresh_session(
@@ -614,11 +707,14 @@ async def refresh_session(
     return {"access_token": access_token}
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.post("/logout")
 async def logout(
     response: Response,
     request: Request,
     db: AsyncSession = Depends(get_db),
+<<<<<<< HEAD
 ):
     """Best-effort logout: always succeeds and always clears cookies.
 
@@ -666,6 +762,20 @@ async def logout(
                 .limit(1)
             )
             user = result.scalars().first() if result else None
+=======
+    user_id: int = Depends(get_current_user_id),
+):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/",
+    )
+
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if user:
         await notify_admin(
             db=db, type="logout",
@@ -694,6 +804,7 @@ async def forgot_password(
     data: ForgotPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ):
+<<<<<<< HEAD
     _check_origin(request)
     ip_address, device = _client_context(request)
     sec_logger = SecurityLogger(db)
@@ -755,6 +866,35 @@ async def forgot_password(
     # The token is returned to the client that proved profile-data knowledge.
     # It is NOT placed in the URL to avoid browser history / log exposure.
     return {"message": "Password reset session created.", "reset_token": reset_token}
+=======
+    normalized_email = _normalize_email(data.email)
+    result = await db.execute(
+        select(User).where(func.lower(User.email) == normalized_email)
+    )
+    user = result.scalar_one_or_none()
+
+    # returning success message (to prevent email enumeration)
+    if not user:
+        return {"message": "If this email exists, a reset link has been sent."}
+
+    # short-lived token (15 minutes)
+    reset_token = create_access_token(
+        data={
+            "sub": str(user.id),
+            "type": "password_reset"
+        },
+        expires_minutes=15
+    )
+
+    reset_link = f"{settings.FRONTEND_DOMAIN}/reset-password"
+
+    # NOTE: Token is sent in email body, NOT in URL query string.
+    # This prevents exposure in browser history, server logs, and Referer headers.
+
+    await send_password_reset_email(user.email, f"Your reset link: {reset_link}\n\nYour reset token: {reset_token}")
+
+    return {"message": "If this email exists, a reset link has been sent."}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.post("/reset-password")
@@ -764,6 +904,7 @@ async def reset_password(
     data: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ):
+<<<<<<< HEAD
     _check_origin(request)
     ip_address, device = _client_context(request)
     sec_logger = SecurityLogger(db)
@@ -806,20 +947,31 @@ async def reset_password(
 
     result = await db.execute(
         select(User).where(User.id == session.user_id)
+=======
+    user_id = verify_password_reset_token(data.token)
+
+    result = await db.execute(
+        select(User).where(User.id == user_id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     user = result.scalar_one_or_none()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+<<<<<<< HEAD
     user.hashed_password = await anyio.to_thread.run_sync(
         hash_password, data.new_password
     )
+=======
+    user.hashed_password = hash_password(data.new_password)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # Reset security fields on password change
     user.failed_attempts = 0
     user.blocked_at = None
     user.blocked_reason = None
 
+<<<<<<< HEAD
     # Mark this session as used (one-time token) and drop any leftover sessions.
     session.used_at = datetime.now(timezone.utc)
     await db.execute(
@@ -829,6 +981,8 @@ async def reset_password(
         )
     )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.commit()
 
     await notify_admin(
@@ -837,13 +991,24 @@ async def reset_password(
         user_id=user.id, request=request,
     )
 
+<<<<<<< HEAD
+=======
+    sec_logger = SecurityLogger(db)
+    ip_address = request.client.host if request.client else None
+    if request.headers.get("x-forwarded-for"):
+        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await sec_logger.log(
         event_type="password_change",
         user_id=user.id,
         email=user.email,
         ip_address=ip_address,
+<<<<<<< HEAD
         device=device,
         details="Password reset via recovery session",
+=======
+        device=(request.headers.get("user-agent", "") or "")[:255],
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     return {"message": "Password reset successful"}
@@ -919,6 +1084,10 @@ async def resend_verification(
     user.otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
     await db.commit()
 
+<<<<<<< HEAD
     send_email_verification_task.delay(user.email, otp_code, user.full_name)
+=======
+    await send_email_verification(user.email, otp_code, user.full_name)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     return {"message": "If this email exists, a verification OTP has been sent."}

@@ -1,13 +1,20 @@
 import json
 from datetime import datetime, timezone
+<<<<<<< HEAD
 from urllib.parse import urlsplit
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
+=======
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, UploadFile, File, Form
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from decimal import Decimal
 from pydantic import BaseModel, EmailStr
 import re
 
+<<<<<<< HEAD
 from app.core.config import settings
 from app.core.database import get_db
 from app.api.v1.deps import get_current_user, get_current_admin_user, check_no_suspension
@@ -82,6 +89,19 @@ async def validate_upload_file(file: UploadFile, max_size: int = MAX_UPLOAD_SIZE
     await file.seek(0)
     return file
 
+=======
+from app.core.database import get_db
+from app.api.v1.deps import get_current_user, get_current_admin_user
+from app.models.user import User
+from app.models.seller import Seller
+from app.models.product import Product
+from app.models.order import Order, OrderItem
+from app.models.ecommerce_config import EcommerceConfig
+from app.services.b2_service import upload_to_b2, generate_presigned_url
+
+router = APIRouter(prefix="/ecommerce", tags=["Ecommerce"])
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 WALLET_PRECISION = Decimal("0.00000000000001")
 
 
@@ -113,11 +133,14 @@ async def register_seller(
     await db.commit()
     await db.refresh(seller)
 
+<<<<<<< HEAD
     await notify_admin(
         db=db, type="seller_registered",
         message=f"New seller '{store_name}' registered by {current_user.full_name or current_user.email}",
         user_id=current_user.id,
     )
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {"seller_id": seller.id, "status": seller.status}
 
 
@@ -187,22 +210,33 @@ def _seller_to_dict(seller, user):
         "whatsapp_number": seller.whatsapp_number,
         "nid_number": seller.nid_number,
         "nid_front_image_key": seller.nid_front_image_key,
+<<<<<<< HEAD
         "nid_front_image_url": _resolve_image_url(seller.nid_front_image_key),
         "nid_back_image_key": seller.nid_back_image_key,
         "nid_back_image_url": _resolve_image_url(seller.nid_back_image_key),
+=======
+        "nid_back_image_key": seller.nid_back_image_key,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "country": seller.country,
         "division_state": seller.division_state,
         "district_city": seller.district_city,
         "full_address": seller.full_address,
         "store_logo_key": seller.store_logo_key,
+<<<<<<< HEAD
         "store_logo_url": _resolve_image_url(seller.store_logo_key),
         "store_banner_key": seller.store_banner_key,
         "store_banner_url": _resolve_image_url(seller.store_banner_key),
+=======
+        "store_banner_key": seller.store_banner_key,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "facebook_url": seller.facebook_url,
         "youtube_url": seller.youtube_url,
         "tiktok_url": seller.tiktok_url,
         "website_url": seller.website_url,
+<<<<<<< HEAD
         "default_delivery_charge": float(seller.default_delivery_charge or 0) if seller.default_delivery_charge is not None else 0,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "profile_completion": float(seller.profile_completion or 0),
         "rejection_reason": seller.rejection_reason,
         "submitted_at": seller.submitted_at.isoformat() if seller.submitted_at else None,
@@ -241,7 +275,10 @@ class SellerProfileUpdate(BaseModel):
     youtube_url: str | None = None
     tiktok_url: str | None = None
     website_url: str | None = None
+<<<<<<< HEAD
     default_delivery_charge: float | None = None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.put("/seller/profile/update")
@@ -252,7 +289,11 @@ async def update_seller_profile(
     current_user: User = Depends(get_current_user),
 ):
     seller = await _get_seller(db, current_user, seller_id)
+<<<<<<< HEAD
     ALLOWED_SELLER_FIELDS = {"store_name", "description", "phone", "whatsapp_number", "nid_number", "nid_front_image_key", "nid_back_image_key", "country", "division_state", "district_city", "full_address", "store_logo_key", "store_banner_key", "facebook_url", "youtube_url", "tiktok_url", "website_url", "default_delivery_charge"}
+=======
+    ALLOWED_SELLER_FIELDS = {"store_name", "description", "contact_email", "phone_number", "address", "city", "country"}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     update_data = body.model_dump(exclude_none=True)
     for field, value in update_data.items():
         if field not in ALLOWED_SELLER_FIELDS:
@@ -305,7 +346,10 @@ async def transfer_to_ecommerce_wallet(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     check_no_suspension(current_user)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     dec_amount = Decimal(str(amount)).quantize(WALLET_PRECISION)
     available = current_user.main_wallet or Decimal("0")
     if available < dec_amount:
@@ -340,7 +384,11 @@ async def create_product(
     seller_id: int | None = None,
     description: str | None = None,
     image_url: str | None = None,
+<<<<<<< HEAD
     image_urls: str | list[str] | None = None,
+=======
+    image_urls: str | None = None,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     category: str | None = None,
     arbx_allocated: float = 0,
     db: AsyncSession = Depends(get_db),
@@ -360,10 +408,14 @@ async def create_product(
 
     urls = []
     if image_urls:
+<<<<<<< HEAD
         if isinstance(image_urls, list):
             urls = [u.strip() for u in image_urls if u.strip()]
         else:
             urls = [u.strip() for u in image_urls.split(",") if u.strip()]
+=======
+        urls = [u.strip() for u in image_urls.split(",") if u.strip()]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if image_url and image_url not in urls:
         urls.insert(0, image_url)
 
@@ -438,8 +490,13 @@ async def list_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
+<<<<<<< HEAD
                 "image_url": _resolve_image_url(p.image_url),
                 "image_urls": _resolve_image_urls(p.get_image_urls()),
+=======
+                "image_url": p.image_url,
+                "image_urls": p.get_image_urls(),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "category": p.category,
                 "store_name": sellers_map.get(p.seller_id, ""),
                 "seller_whatsapp": seller_whatsapp_map.get(p.seller_id, ""),
@@ -469,8 +526,13 @@ async def get_product(
         "name": product.name,
         "description": product.description,
         "price": float(product.price),
+<<<<<<< HEAD
         "image_url": _resolve_image_url(product.image_url),
         "image_urls": _resolve_image_urls(product.get_image_urls()),
+=======
+        "image_url": product.image_url,
+        "image_urls": product.get_image_urls(),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "category": product.category,
         "store_name": seller.store_name if seller else "",
         "seller_status": seller.status if seller else "",
@@ -488,7 +550,11 @@ async def update_product(
     price: float | None = None,
     description: str | None = None,
     image_url: str | None = None,
+<<<<<<< HEAD
     image_urls: str | list[str] | None = None,
+=======
+    image_urls: str | None = None,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     category: str | None = None,
     is_active: bool | None = None,
     seller_id: int | None = None,
@@ -511,10 +577,14 @@ async def update_product(
     if image_url is not None:
         product.image_url = image_url
     if image_urls is not None:
+<<<<<<< HEAD
         if isinstance(image_urls, list):
             urls = [u.strip() for u in image_urls if u.strip()]
         else:
             urls = [u.strip() for u in image_urls.split(",") if u.strip()]
+=======
+        urls = [u.strip() for u in image_urls.split(",") if u.strip()]
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         if image_url and image_url not in urls:
             urls.insert(0, image_url)
         product.image_urls = json.dumps(urls) if urls else None
@@ -540,6 +610,7 @@ async def delete_product(
     if not product or product.seller_id != seller.id:
         raise HTTPException(404, "Product not found or not yours")
 
+<<<<<<< HEAD
     await db.execute(delete(CartItem).where(CartItem.product_id == product_id))
     await db.execute(delete(WishlistItem).where(WishlistItem.product_id == product_id))
     await db.execute(delete(CompareItem).where(CompareItem.product_id == product_id))
@@ -550,6 +621,8 @@ async def delete_product(
     await db.execute(delete(ProductAttributeValue).where(ProductAttributeValue.product_id == product_id))
     await db.execute(delete(ProductVariant).where(ProductVariant.product_id == product_id))
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.delete(product)
     await db.commit()
     return {"status": "deleted"}
@@ -576,8 +649,13 @@ async def get_my_products(
                 "name": p.name,
                 "description": p.description,
                 "price": float(p.price),
+<<<<<<< HEAD
                 "image_url": _resolve_image_url(p.image_url),
                 "image_urls": _resolve_image_urls(p.get_image_urls()),
+=======
+                "image_url": p.image_url,
+                "image_urls": p.get_image_urls(),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "category": p.category,
                 "arbx_allocated": float(p.arbx_allocated),
                 "is_active": p.is_active,
@@ -595,7 +673,10 @@ async def upload_product_image(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     await validate_upload_file(file)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     seller = await _get_seller(db, current_user, seller_id)
 
     object_key = await upload_to_b2(file, f"products/{seller.id}")
@@ -620,7 +701,10 @@ async def upload_seller_image(
     """
     if image_type not in ("logo", "banner", "nid_front", "nid_back"):
         raise HTTPException(400, f"Invalid image_type: {image_type}. Use: logo, banner, nid_front, nid_back")
+<<<<<<< HEAD
     await validate_upload_file(file)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     result = await db.execute(
         select(Seller).where(Seller.user_id == current_user.id).order_by(Seller.created_at.desc())
@@ -894,17 +978,25 @@ async def admin_list_sellers(
                 "whatsapp_number": s.whatsapp_number,
                 "nid_number": s.nid_number,
                 "nid_front_image_key": s.nid_front_image_key,
+<<<<<<< HEAD
                 "nid_front_image_url": _resolve_image_url(s.nid_front_image_key),
                 "nid_back_image_key": s.nid_back_image_key,
                 "nid_back_image_url": _resolve_image_url(s.nid_back_image_key),
+=======
+                "nid_back_image_key": s.nid_back_image_key,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "country": s.country,
                 "division_state": s.division_state,
                 "district_city": s.district_city,
                 "full_address": s.full_address,
                 "store_logo_key": s.store_logo_key,
+<<<<<<< HEAD
                 "store_logo_url": _resolve_image_url(s.store_logo_key),
                 "store_banner_key": s.store_banner_key,
                 "store_banner_url": _resolve_image_url(s.store_banner_key),
+=======
+                "store_banner_key": s.store_banner_key,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "facebook_url": s.facebook_url,
                 "youtube_url": s.youtube_url,
                 "tiktok_url": s.tiktok_url,
@@ -949,6 +1041,7 @@ async def admin_update_seller_status(
             config = await db.execute(select(EcommerceConfig).limit(1))
             cfg = config.scalar_one_or_none()
             bonus = cfg.signup_bonus_arbx if cfg else Decimal("50")
+<<<<<<< HEAD
             bal_before = user.arbx_wallet or Decimal("0")
             user.arbx_wallet = bal_before + bonus
             db.add(OFACoinTransaction(
@@ -962,6 +1055,9 @@ async def admin_update_seller_status(
                 reference_id=seller.id,
                 description="Ecommerce seller approval ARBX bonus",
             ))
+=======
+            user.arbx_wallet = (user.arbx_wallet or 0) + bonus
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     await db.commit()
     return {"status": "updated", "seller_status": status}
@@ -1025,7 +1121,11 @@ async def admin_list_seller_products(
                 "id": p.id,
                 "name": p.name,
                 "price": float(p.price),
+<<<<<<< HEAD
                 "image_urls": _resolve_image_urls(p.get_image_urls()),
+=======
+                "image_urls": p.get_image_urls(),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "is_active": p.is_active,
                 "arbx_allocated": float(p.arbx_allocated),
                 "created_at": p.created_at.isoformat() if p.created_at else None,
@@ -1035,6 +1135,7 @@ async def admin_list_seller_products(
     }
 
 
+<<<<<<< HEAD
 @router.delete("/seller/store/{seller_id}")
 async def delete_seller_store(
     seller_id: int,
@@ -1081,6 +1182,8 @@ async def delete_seller_store(
     return {"status": "deleted", "seller_id": seller_id}
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/admin/sellers/stats")
 async def admin_get_seller_stats(
     db: AsyncSession = Depends(get_db),

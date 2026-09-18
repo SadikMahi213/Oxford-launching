@@ -14,7 +14,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 
+<<<<<<< HEAD
 export function GlobalCertifications({ children }) {
+=======
+export function GlobalCertifications() {
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const { t } = useTranslation();
   const [showCertModal, setShowCertModal] = useState(false);
   const certifications = [
@@ -69,7 +73,11 @@ export function GlobalCertifications({ children }) {
 
   return (
     <>
+<<<<<<< HEAD
     <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
+=======
+    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-[600px] h-[600px] bg-blue-500/3 rounded-full blur-3xl"></div>
@@ -105,7 +113,11 @@ export function GlobalCertifications({ children }) {
         </motion.div>
 
         {/* Certification Grid */}
+<<<<<<< HEAD
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16">
+=======
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-5 mb-16">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           {certifications.map((item, index) => (
             <motion.div
               key={index}
@@ -140,8 +152,11 @@ export function GlobalCertifications({ children }) {
           ))}
         </div>
 
+<<<<<<< HEAD
         {children}
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         {/* Trust Statement + Document Downloads */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -224,15 +239,24 @@ export function GlobalCertifications({ children }) {
       {/* Certificate Modal */}
       {showCertModal && (
         <div
+<<<<<<< HEAD
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4"
           onClick={() => setShowCertModal(false)}
         >
           <div
             className="relative w-full max-w-[92vw] sm:max-w-[85vw] lg:max-w-[75vw] max-h-[90vh] rounded-2xl overflow-auto bg-gray-900 border border-white/10 shadow-2xl"
+=======
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setShowCertModal(false)}
+        >
+          <div
+            className="relative max-w-[95vw] max-h-[95vh] w-auto h-auto rounded-2xl overflow-auto bg-gray-900 border border-white/10 shadow-2xl"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowCertModal(false)}
+<<<<<<< HEAD
               className="sticky top-2 float-right mr-2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white hover:bg-black/80 transition-all"
             >
               <X className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -241,6 +265,16 @@ export function GlobalCertifications({ children }) {
               src="/revised.jpeg"
               alt="Certificate"
               className="w-full h-auto object-contain"
+=======
+              className="sticky top-3 float-right mr-3 z-10 w-9 h-9 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-gray-300 hover:text-white hover:bg-black/80 transition-all"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src="/certificate.jpeg"
+              alt="Certificate"
+              className="max-w-none"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             />
           </div>
         </div>

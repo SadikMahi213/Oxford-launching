@@ -1,6 +1,9 @@
 import logging
+<<<<<<< HEAD
 import anyio
 from datetime import datetime, timezone
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from decimal import Decimal, ROUND_HALF_UP
 
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
@@ -10,11 +13,16 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
+<<<<<<< HEAD
 from app.core.security import hash_password
 from app.models.user import User
 from app.models.kyc import KYC, KYCStatus, KycPackage, PaymentStatus
 from app.models.wallet_transaction import WalletTransaction, WalletTransactionType, WalletTransactionStatus
 from app.models.company_wallet import CompanyWallet
+=======
+from app.models.user import User
+from app.models.kyc import KYC, KYCStatus, KycPackage, PaymentStatus
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.investments import Investment
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.referral_profit_history import ReferralProfitHistory
@@ -37,6 +45,7 @@ from app.schemas.admin import (
     UpdateWalletBalancesRequest,
     BulkTogglePackagesRequest,
     ConfigUpdate,
+<<<<<<< HEAD
     AdminUpdateUserProfile,
     AdminResetPassword,
 )
@@ -52,12 +61,21 @@ def _resolve_image_url(stored: str | None) -> str | None:
     if stored.startswith("http"):
         return stored
     return generate_presigned_url(stored)
+=======
+)
+from app.models.system_config import SystemConfig
+from app.models.mining_log import MiningLog
+from app.services.b2_service import generate_presigned_url
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.utils.format_decimal import format_decimal
 from app.utils.is_system_active import FEATURE_CONFIG_KEYS
 from app.core.referral import get_referral_level_rates
 from app.utils.referral import apply_cascading_referral_commissions
 from app.utils.notifications import notify_admin
+<<<<<<< HEAD
 from app.services.security_logger import SecurityLogger
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +95,7 @@ def _resolve_effective_status(
 ) -> str:
     if (account_status or "").lower() == "on_hold":
         return "issue"
+<<<<<<< HEAD
     if admin_kyc_status and admin_kyc_status != "pending":
         return admin_kyc_status
     if kyc_status:
@@ -84,6 +103,11 @@ def _resolve_effective_status(
     if (account_status or "").lower() != "active" or not email_verified:
         return "not_submitted"
     return "not_submitted"
+=======
+    if (account_status or "").lower() != "active" or not email_verified:
+        return "inactive"
+    return kyc_status.value if kyc_status else (admin_kyc_status or "pending")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.get("/dashboard-overview")
@@ -306,7 +330,11 @@ async def get_admin_users(
     normalized_search = (search or "").strip()
     normalized_status = (status or "all").strip().lower()
 
+<<<<<<< HEAD
     if normalized_status not in {"all", "approved", "pending", "rejected", "issue", "inactive", "not_submitted"}:
+=======
+    if normalized_status not in {"all", "approved", "pending", "rejected", "issue", "inactive"}:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(status_code=400, detail="Invalid status filter")
 
     def apply_filters(statement, include_status: bool = True):
@@ -348,6 +376,7 @@ async def get_admin_users(
                         )
                     )
             elif normalized_status == "pending":
+<<<<<<< HEAD
                 # Only users with an actual KYC row pending review
                 statement = statement.where(
                     and_(
@@ -362,6 +391,16 @@ async def get_admin_users(
                         User.email_verified.is_(True),
                         KYC.id.is_(None),
                         User.admin_kyc_status == "pending",
+=======
+                # If KYC exists, KYC status is authoritative. Otherwise fallback to admin_kyc_status.
+                statement = statement.where(
+                    and_(
+                        User.account_status != "on_hold",
+                        or_(
+                            KYC.status == KYCStatus.pending,
+                            and_(KYC.id.is_(None), User.admin_kyc_status == "pending"),
+                        ),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     )
                 )
             else:
@@ -422,8 +461,18 @@ async def get_admin_users(
                 func.sum(
                     case(
                         (
+<<<<<<< HEAD
                             and_(
                                 User.account_status != "on_hold",
+=======
+                            and_(User.account_status != "on_hold", KYC.status == KYCStatus.approved),
+                            1,
+                        ),
+                        (
+                            and_(
+                                User.account_status != "on_hold",
+                                KYC.id.is_(None),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                                 User.admin_kyc_status == "approved",
                             ),
                             1,
@@ -437,10 +486,21 @@ async def get_admin_users(
                 func.sum(
                     case(
                         (
+<<<<<<< HEAD
                             and_(
                                 User.account_status != "on_hold",
                                 KYC.status == KYCStatus.pending,
                                 User.admin_kyc_status != "approved",
+=======
+                            and_(User.account_status != "on_hold", KYC.status == KYCStatus.pending),
+                            1,
+                        ),
+                        (
+                            and_(
+                                User.account_status != "on_hold",
+                                KYC.id.is_(None),
+                                User.admin_kyc_status == "pending",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                             ),
                             1,
                         ),
@@ -472,6 +532,7 @@ async def get_admin_users(
             func.coalesce(
                 func.sum(
                     case(
+<<<<<<< HEAD
                         (
                             and_(
                                 User.account_status == "active",
@@ -489,6 +550,8 @@ async def get_admin_users(
             func.coalesce(
                 func.sum(
                     case(
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                         (User.account_status == "on_hold", 1),
                         else_=0,
                     )
@@ -513,7 +576,11 @@ async def get_admin_users(
         ).select_from(User).join(KYC, KYC.user_id == User.id, isouter=True),
         include_status=False,
     )
+<<<<<<< HEAD
     approved_count, pending_count, rejected_count, not_submitted_count, issue_count, inactive_count = (
+=======
+    approved_count, pending_count, rejected_count, issue_count, inactive_count = (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         await db.execute(status_counts_query)
     ).one()
 
@@ -526,7 +593,10 @@ async def get_admin_users(
             "approved": int(approved_count or 0),
             "pending": int(pending_count or 0),
             "rejected": int(rejected_count or 0),
+<<<<<<< HEAD
             "not_submitted": int(not_submitted_count or 0),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             "issue": int(issue_count or 0),
             "inactive": int(inactive_count or 0),
         }
@@ -595,7 +665,11 @@ async def get_user_details(
         )
         SELECT id, depth FROM team_tree
     """)
+<<<<<<< HEAD
     team_rows = await db.execute(team_stmt, {"user_id": user.id, "max_depth": 999})
+=======
+    team_rows = await db.execute(team_stmt, {"user_id": user.id, "max_depth": 40})
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     team_data = team_rows.fetchall()
 
     bonus_eligible_ids = {row[0] for row in team_data if row[1] <= 5}
@@ -719,6 +793,7 @@ async def get_user_details(
     )
     withdrawals = withdrawals_result.scalars().all()
 
+<<<<<<< HEAD
     # Total earned from captcha
     captcha_total_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -733,6 +808,8 @@ async def get_user_details(
     )
     total_ad_view_earned = ad_total_result.scalar()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     active_investments_result = await db.execute(
         select(Investment)
         .where(
@@ -793,10 +870,13 @@ async def get_user_details(
             "generation_wallet": format_decimal(user.generation_wallet),
             "arbx_wallet": format_decimal(user.arbx_wallet),
             "arbx_mining_wallet": format_decimal(user.arbx_mining_wallet),
+<<<<<<< HEAD
             "captcha_wallet": format_decimal(user.captcha_wallet),
             "ad_view_wallet": format_decimal(user.ad_view_wallet),
             "ecommerce_wallet": format_decimal(user.ecommerce_wallet),
             "matching_bonus_wallet": format_decimal(user.matching_bonus_wallet),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         },
         "kyc": {
             "full_name": kyc.full_name if kyc else None,
@@ -814,8 +894,13 @@ async def get_user_details(
                 "name": kyc.package.name,
                 "price": str(kyc.package.price),
             } if kyc and kyc.package else None,
+<<<<<<< HEAD
             "front_image_url": _resolve_image_url(kyc.front_image_key) if kyc else None,
             "back_image_url": _resolve_image_url(kyc.back_image_key) if kyc else None,
+=======
+            "front_image_url": generate_presigned_url(kyc.front_image_key) if kyc else None,
+            "back_image_url": generate_presigned_url(kyc.back_image_key) if kyc else None,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         } if kyc else None,
         "referrers": referrers,
         "referral_tree": {
@@ -828,8 +913,11 @@ async def get_user_details(
         },
         "current_active_package": current_active_packages[0] if current_active_packages else None,
         "current_active_packages": current_active_packages,
+<<<<<<< HEAD
         "total_captcha_earned": format_decimal(total_captcha_earned),
         "total_ad_view_earned": format_decimal(total_ad_view_earned),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "deposit_history": [
             {
                 "id": dep.id,
@@ -870,16 +958,24 @@ async def update_kyc_status(
     if requested_status not in {"pending", "approved", "rejected", "issue"}:
         raise HTTPException(status_code=400, detail="Invalid KYC status")
 
+<<<<<<< HEAD
     user_result = await db.execute(
         select(User).where(User.id == user_id).with_for_update()
     )
+=======
+    user_result = await db.execute(select(User).where(User.id == user_id))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+<<<<<<< HEAD
     result = await db.execute(
         select(KYC).where(KYC.user_id == user_id).with_for_update()
     )
+=======
+    result = await db.execute(select(KYC).where(KYC.user_id == user_id))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     kyc = result.scalar_one_or_none()
     previous_status = kyc.status if kyc else None
 
@@ -892,6 +988,7 @@ async def update_kyc_status(
             )
         user.account_status = "on_hold"
         user.account_issue = issue_note
+<<<<<<< HEAD
 
         # Refund hold on issue
         hold_amount = user.kyc_hold or Decimal("0")
@@ -951,6 +1048,15 @@ async def update_kyc_status(
             message=message,
             user_id=user.id, request=request,
             metadata_dict=notif_metadata,
+=======
+        await db.commit()
+        await db.refresh(user)
+
+        await notify_admin(
+            db=db, type="kyc_rejected",
+            message=f"User {user.full_name} ({user.email}) was flagged as issue. Note: {issue_note}",
+            user_id=user.id, request=request,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         )
 
         return {
@@ -971,6 +1077,7 @@ async def update_kyc_status(
     user.admin_kyc_status = new_kyc_status.value
     user.account_status = "active" if new_kyc_status == KYCStatus.approved else "inactive"
     user.account_issue = None
+<<<<<<< HEAD
     was_approved = new_kyc_status == KYCStatus.approved
     was_rejected = new_kyc_status in (KYCStatus.rejected,)
     was_reset = new_kyc_status == KYCStatus.pending and previous_status and previous_status.value != "pending"
@@ -1066,11 +1173,14 @@ async def update_kyc_status(
 
     if was_approved and not user.kyc_approved_at:
         user.kyc_approved_at = datetime.now(timezone.utc)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.commit()
     await db.refresh(user)
     if kyc:
         await db.refresh(kyc)
 
+<<<<<<< HEAD
     # Trigger rank evaluation for newly KYC-approved user
     if was_approved:
         try:
@@ -1142,6 +1252,13 @@ async def update_kyc_status(
         message=message,
         user_id=user_id, request=request,
         metadata_dict=notif_metadata,
+=======
+    notif_type = "kyc_approved" if new_kyc_status == KYCStatus.approved else "kyc_rejected"
+    await notify_admin(
+        db=db, type=notif_type,
+        message=f"User #{user_id} KYC was {new_kyc_status.value} by admin",
+        user_id=user_id, request=request,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     return {
@@ -1180,7 +1297,10 @@ async def update_user_wallets(
         "main_wallet", "deposit_wallet", "withdraw_wallet",
         "referral_wallet", "generation_wallet", "arbx_wallet",
         "arbx_mining_wallet", "captcha_wallet", "ad_view_wallet",
+<<<<<<< HEAD
         "ecommerce_wallet", "matching_bonus_wallet",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
     for field, raw_value in update_fields.items():
@@ -1213,7 +1333,10 @@ async def update_user_wallets(
             "arbx_mining_wallet": format_decimal(user.arbx_mining_wallet),
             "captcha_wallet": format_decimal(user.captcha_wallet),
             "ad_view_wallet": format_decimal(user.ad_view_wallet),
+<<<<<<< HEAD
             "matching_bonus_wallet": format_decimal(user.matching_bonus_wallet),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         },
     }
 
@@ -1283,6 +1406,7 @@ async def delete_user(
     await db.execute(delete(RankHistory).where(RankHistory.user_id == user_id))
     from app.models.bank_info import BankInfo
     await db.execute(delete(BankInfo).where(BankInfo.user_id == user_id))
+<<<<<<< HEAD
     from app.models.cart import Cart, CartItem
     cart_result = await db.execute(
         select(Cart.id).where(Cart.user_id == user_id)
@@ -1374,6 +1498,14 @@ async def delete_user(
         await db.execute(delete(Seller).where(Seller.id.in_(seller_ids)))
 
     await db.execute(delete(Announcement).where(Announcement.created_by == user_id))
+=======
+    await db.execute(delete(OrderItem).where(OrderItem.order_id.in_(
+        select(Order.id).where(Order.user_id == user_id).scalar_subquery()
+    )))
+    await db.execute(delete(Order).where(Order.user_id == user_id))
+    await db.execute(delete(Seller).where(Seller.user_id == user_id))
+    await db.execute(delete(Announcement).where(Announcement.user_id == user_id))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     await db.execute(
         update(User)
@@ -1407,12 +1539,17 @@ async def delete_user(
     await notify_admin(
         db=db, type="user_deleted",
         message=f"User #{user_id} was deleted by admin",
+<<<<<<< HEAD
         request=request,
+=======
+        user_id=user_id, request=request,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     return {"message": "User deleted successfully"}
 
 
+<<<<<<< HEAD
 # ── Admin: User Profile Edit ───────────────────────────────────────────────
 @router.put("/users/{user_id}/profile")
 async def admin_update_user_profile(
@@ -1580,6 +1717,9 @@ async def admin_reset_user_password(
     )
 
     return {"message": "Password reset successfully. The new password is now active."}
+=======
+@router.post("/users/{user_id}/credit-profit")
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def credit_user_profit(
     user_id: int,
     payload: CreditProfitRequest,
@@ -1648,7 +1788,11 @@ async def get_system_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     configs = {}
+<<<<<<< HEAD
     for key in list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted", "system_registration_enabled"]:
+=======
+    for key in FEATURE_CONFIG_KEYS.values():
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         result = await db.execute(
             select(SystemConfig).where(SystemConfig.key == key)
         )
@@ -1664,8 +1808,12 @@ async def update_system_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
+<<<<<<< HEAD
     allowed_keys = list(FEATURE_CONFIG_KEYS.values()) + ["system_weekend_restricted", "system_registration_enabled"]
     if key not in allowed_keys:
+=======
+    if key not in FEATURE_CONFIG_KEYS.values():
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(status_code=400, detail="Invalid config key")
     if value.lower() not in ("true", "false"):
         raise HTTPException(status_code=400, detail="Value must be 'true' or 'false'")
@@ -1691,7 +1839,11 @@ async def get_mining_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     config = {}
+<<<<<<< HEAD
     for key in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus", "captcha_timer_seconds"):
+=======
+    for key in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes"):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
         config[key] = row.value if row else None
@@ -1705,7 +1857,11 @@ async def update_mining_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
+<<<<<<< HEAD
     if key not in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes", "ofa_signup_bonus", "captcha_timer_seconds"):
+=======
+    if key not in ("mining_enabled", "mining_daily_cap", "ofa_to_usdt_rate", "mining_claim_cooldown_minutes"):
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(status_code=400, detail="Invalid mining config key")
     if key == "mining_enabled" and value.lower() not in ("true", "false"):
         raise HTTPException(status_code=400, detail="mining_enabled must be 'true' or 'false'")
@@ -1730,6 +1886,7 @@ async def update_mining_config(
                 raise HTTPException(status_code=400, detail="Cooldown must be between 0 and 1440 minutes")
         except Exception:
             raise HTTPException(status_code=400, detail="mining_claim_cooldown_minutes must be a number")
+<<<<<<< HEAD
     if key == "ofa_signup_bonus":
         try:
             bonus = Decimal(value)
@@ -1744,6 +1901,8 @@ async def update_mining_config(
                 raise HTTPException(status_code=400, detail="Captcha timer must be between 5 and 300 seconds")
         except Exception:
             raise HTTPException(status_code=400, detail="captcha_timer_seconds must be a number")
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
     config = result.scalar_one_or_none()
     if not config:
@@ -1813,13 +1972,22 @@ async def get_fee_config(
     current_admin: User = Depends(get_current_admin_user),
 ):
     configs = {}
+<<<<<<< HEAD
     for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode", "min_user_transfer_amount", "min_withdrawal_amount"]:
+=======
+    for key in ["transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode"]:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         result = await db.execute(select(SystemConfig).where(SystemConfig.key == key))
         row = result.scalar_one_or_none()
         if key == "kyc_package_enabled":
             configs[key] = row.value if row else "true"
+<<<<<<< HEAD
         elif key in ("min_deposit_amount", "min_user_transfer_amount", "min_withdrawal_amount"):
             configs[key] = row.value if row else ("10" if key == "min_withdrawal_amount" else "0")
+=======
+        elif key == "min_deposit_amount":
+            configs[key] = row.value if row else "10"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         elif key == "withdrawal_mode":
             configs[key] = row.value if row else "both"
         else:
@@ -1834,12 +2002,17 @@ async def update_fee_config(
     db: AsyncSession = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user),
 ):
+<<<<<<< HEAD
     valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode", "min_user_transfer_amount", "min_withdrawal_amount"}
+=======
+    valid_keys = {"transfer_charge_percent", "withdrawal_charge_percent", "kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode"}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if key not in valid_keys:
         raise HTTPException(status_code=400, detail=f"Invalid key. Must be one of: {', '.join(sorted(valid_keys))}")
     if key == "kyc_package_enabled":
         if data.value.lower() not in ("true", "false"):
             raise HTTPException(status_code=400, detail="Value must be 'true' or 'false'")
+<<<<<<< HEAD
     elif key == "min_withdrawal_amount":
         try:
             min_wd = Decimal(data.value)
@@ -1847,6 +2020,8 @@ async def update_fee_config(
             raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
         if min_wd <= 0:
             raise HTTPException(status_code=400, detail="Minimum withdrawal amount must be greater than 0")
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     elif key == "withdrawal_mode":
         if data.value not in ("banking_only", "network_only", "both"):
             raise HTTPException(status_code=400, detail="Value must be 'banking_only', 'network_only', or 'both'")
@@ -1855,7 +2030,11 @@ async def update_fee_config(
             val = Decimal(data.value)
             if val < 0:
                 raise HTTPException(status_code=400, detail="Value must not be negative")
+<<<<<<< HEAD
             if key != "kyc_fee" and key != "min_deposit_amount" and key != "min_user_transfer_amount" and val > 100:
+=======
+            if key != "kyc_fee" and key != "min_deposit_amount" and val > 100:
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 raise HTTPException(status_code=400, detail="Charge must be between 0 and 100")
         except Exception:
             raise HTTPException(status_code=400, detail="Value must be a valid decimal number")
@@ -1875,11 +2054,17 @@ async def update_fee_config(
         "withdrawal_charge_percent": "Withdrawal % charge",
         "min_deposit_amount": "Minimum deposit amount",
         "withdrawal_mode": "Withdrawal mode",
+<<<<<<< HEAD
         "min_user_transfer_amount": "Minimum user-to-user transfer amount",
         "min_withdrawal_amount": "Minimum withdrawal amount",
     }
     label = labels.get(key, key.replace("_", " ").title())
     suffix = "" if key in ("kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode", "min_user_transfer_amount", "min_withdrawal_amount") else "%"
+=======
+    }
+    label = labels.get(key, key.replace("_", " ").title())
+    suffix = "" if key in ("kyc_fee", "kyc_package_enabled", "min_deposit_amount", "withdrawal_mode") else "%"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {"message": f"{label} updated to {data.value}{suffix}"}
 
 
@@ -2059,7 +2244,11 @@ async def get_mining_stats(
                 "email": u.email,
                 "mining_active": u.mining_active,
                 "daily_mined": float(u.daily_mined or 0),
+<<<<<<< HEAD
                 "arbx_wallet": float(u.arbx_wallet or 0),
+=======
+                "arbx_mining_wallet": float(u.arbx_mining_wallet or 0),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "mining_started_at": u.mining_started_at.isoformat() if u.mining_started_at else None,
                 "last_mine_time": u.last_mine_time.isoformat() if u.last_mine_time else None,
             }
@@ -2155,6 +2344,7 @@ async def admin_update_package(
     if is_active is not None:
         package.is_active = is_active
 
+<<<<<<< HEAD
     # Propagate captcha/ad config changes to existing active investments for this package
     from app.models.investments import Investment
     inv_result = await db.execute(
@@ -2176,6 +2366,10 @@ async def admin_update_package(
 
     await db.commit()
     return {"status": "updated", "package_id": package.id, "investments_updated": len(active_investments)}
+=======
+    await db.commit()
+    return {"status": "updated", "package_id": package.id}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.patch("/packages/{package_id}/toggle")
@@ -2226,6 +2420,7 @@ async def admin_package_subscribers(
     )
     rows = (await db.execute(query)).all()
 
+<<<<<<< HEAD
     # Gather user IDs to batch-query captcha and ad view totals
     user_ids = [user.id for _, user in rows]
 
@@ -2249,6 +2444,8 @@ async def admin_package_subscribers(
         )
         ad_totals = {row[0]: float(row[1]) for row in ad_result.all()}
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {
         "package_name": package.name,
         "total_subscribers": total,
@@ -2267,8 +2464,11 @@ async def admin_package_subscribers(
                 "expected_profit": float(inv.expected_profit),
                 "start_date": inv.start_date.isoformat() if inv.start_date else None,
                 "status": inv.status,
+<<<<<<< HEAD
                 "total_captcha_earned": captcha_totals.get(user.id, 0),
                 "total_ad_view_earned": ad_totals.get(user.id, 0),
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             }
             for inv, user in rows
         ],
@@ -2335,14 +2535,22 @@ async def admin_delete_package(
     count_result = await db.execute(
         select(func.count(Investment.id)).where(
             Investment.package_name == package.name,
+<<<<<<< HEAD
             Investment.status == "active"
+=======
+            Investment.status.in_(["active", "completed"])
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         )
     )
     active_count = count_result.scalar() or 0
     if active_count > 0:
         raise HTTPException(
             400,
+<<<<<<< HEAD
             f"Cannot delete package with {active_count} active investments. "
+=======
+            f"Cannot delete package with {active_count} active/completed investments. "
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             "Deactivate it instead."
         )
 
@@ -2431,6 +2639,7 @@ async def get_realtime_stats(
     total_deposited = Decimal(str(approved_deposits_result.scalar() or 0))
 
     approved_withdrawals_result = await db.execute(
+<<<<<<< HEAD
         select(
             func.coalesce(
                 func.sum(Withdrawal.amount - func.coalesce(Withdrawal.charge, 0)), 0
@@ -2466,6 +2675,29 @@ async def get_realtime_stats(
     total_matching_result = await db.execute(
         select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
         .where(MatchingBonus.is_reversed == False)
+=======
+        select(func.coalesce(func.sum(Withdrawal.amount), 0)).where(Withdrawal.status == "approved")
+    )
+    total_withdrawn = Decimal(str(approved_withdrawals_result.scalar() or 0))
+
+    users_with_deposits_result = await db.execute(
+        select(func.count(func.distinct(Deposit.user_id))).where(Deposit.status == "approved")
+    )
+    users_with_deposits = users_with_deposits_result.scalar() or 0
+
+    total_transferred_result = await db.execute(
+        select(func.coalesce(func.sum(TransferLog.amount), 0))
+    )
+    total_transferred = Decimal(str(total_transferred_result.scalar() or 0))
+
+    total_referral_result = await db.execute(
+        select(func.coalesce(func.sum(ReferralProfitHistory.amount), 0))
+    )
+    total_referral = Decimal(str(total_referral_result.scalar() or 0))
+
+    total_matching_result = await db.execute(
+        select(func.coalesce(func.sum(MatchingBonus.bonus_amount), 0))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     total_matching = Decimal(str(total_matching_result.scalar() or 0))
 
@@ -2474,6 +2706,7 @@ async def get_realtime_stats(
     )
     total_profit_shared = Decimal(str(total_profit_result.scalar() or 0))
 
+<<<<<<< HEAD
     # ── Combined OFA Ledger: mining_reward + signup/package (2→1) ──
     ofa_row = await db.execute(
         select(
@@ -2492,6 +2725,12 @@ async def get_realtime_stats(
     ofa_vals = ofa_row.one()
     total_mining = Decimal(str(ofa_vals[0]))
     total_signup_bonus_distributed = Decimal(str(ofa_vals[1]))
+=======
+    total_mining_result = await db.execute(
+        select(func.coalesce(func.sum(MiningLog.amount), 0))
+    )
+    total_mining = Decimal(str(total_mining_result.scalar() or 0))
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     total_captcha_result = await db.execute(
         select(func.coalesce(func.sum(CaptchaEarning.amount_earned), 0))
@@ -2503,6 +2742,7 @@ async def get_realtime_stats(
     )
     total_ad = Decimal(str(total_ad_result.scalar() or 0))
 
+<<<<<<< HEAD
     total_distributed = total_referral + total_generation_bonus + total_matching + total_profit_shared + total_captcha + total_ad
 
     # ── Combined Users: ecommerce_wallet + kyc_status + count + online (4→1) ──
@@ -2817,3 +3057,24 @@ async def reject_user_approval(
     )
     return {"message": "User rejected successfully", "approval_status": "rejected"}
 
+=======
+    total_distributed = total_referral + total_matching + total_profit_shared + total_mining + total_captcha + total_ad
+
+    ecommerce_result = await db.execute(
+        select(func.coalesce(func.sum(User.ecommerce_wallet), 0))
+    )
+    total_ecommerce_funded = Decimal(str(ecommerce_result.scalar() or 0))
+
+    company_running_profit = total_deposited - total_withdrawn - total_distributed
+
+    return {
+        "users_with_deposits": users_with_deposits,
+        "total_deposited": format_decimal(total_deposited),
+        "total_withdrawn": format_decimal(total_withdrawn),
+        "total_transferred": format_decimal(total_transferred),
+        "total_distributed": format_decimal(total_distributed),
+        "total_ecommerce_funded": format_decimal(total_ecommerce_funded),
+        "company_running_profit": format_decimal(company_running_profit),
+    }
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

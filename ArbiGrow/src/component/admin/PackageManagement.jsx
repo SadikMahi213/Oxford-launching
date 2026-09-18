@@ -334,9 +334,14 @@ export default function PackageManagement() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Total Return</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Payment</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+<<<<<<< HEAD
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Required</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Daily Max</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
+=======
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tasks/Day</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Earn/Task</th>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">OFA Bonus</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Duration</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
@@ -369,7 +374,10 @@ export default function PackageManagement() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-300">{pkg.captcha_required_per_day}</td>
+<<<<<<< HEAD
                     <td className="px-4 py-3 text-gray-300">{pkg.daily_captcha_limit}</td>
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     <td className="px-4 py-3 text-green-300">${(pkg.earn_per_captcha || 0).toFixed(4)}</td>
                     <td className="px-4 py-3 text-purple-300">{(pkg.signup_arbx_bonus || 0).toFixed(2)} OFA</td>
                     <td className="px-4 py-3 text-gray-300">{pkg.duration_days}d</td>
@@ -524,6 +532,7 @@ export default function PackageManagement() {
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div>
                 <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Ad Duration (sec)" : "Task Duration (sec)"}</label>
                 <input
@@ -539,6 +548,35 @@ export default function PackageManagement() {
                   }}
                   className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                 />
+=======
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Tasks/Day</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.captcha_required_per_day}
+                    onChange={(e) => setForm({ ...form, captcha_required_per_day: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Ad Duration (sec)" : "Task Duration (sec)"}</label>
+                  <input
+                    type="number"
+                    min="5"
+                    value={form.task_type === "ad_view" ? form.ad_duration_seconds : form.captcha_task_duration_seconds}
+                    onChange={(e) => {
+                      if (form.task_type === "ad_view") {
+                        setForm({ ...form, ad_duration_seconds: e.target.value });
+                      } else {
+                        setForm({ ...form, captcha_task_duration_seconds: e.target.value });
+                      }
+                    }}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                  />
+                </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -554,6 +592,7 @@ export default function PackageManagement() {
                   />
                 </div>
                 <div>
+<<<<<<< HEAD
                   <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Daily Ads Required" : "Daily Captchas Required"}</label>
                   <input
                     type="number"
@@ -569,6 +608,9 @@ export default function PackageManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm text-gray-400 block mb-1">{form.task_type === "ad_view" ? "Max Ads Per Day" : "Max Captchas Per Day"}</label>
+=======
+                  <label className="text-sm text-gray-400 block mb-1">Daily Task Limit</label>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   <input
                     type="number"
                     min="0"
@@ -576,6 +618,7 @@ export default function PackageManagement() {
                     onChange={(e) => setForm({ ...form, daily_captcha_limit: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
                   />
+<<<<<<< HEAD
                   <p className="text-xs text-gray-500 mt-1">Maximum tasks a user can complete per day</p>
                 </div>
                 <div>
@@ -591,6 +634,23 @@ export default function PackageManagement() {
                 </div>
               </div>
 
+=======
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 block mb-1">OFA Signup Bonus</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.signup_arbx_bonus}
+                  onChange={(e) => setForm({ ...form, signup_arbx_bonus: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-[#0A122C] px-4 py-3 text-white"
+                />
+              </div>
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               {showEdit && (
                 <div className="flex items-center gap-3">
                   <label className="text-sm text-gray-400">Status:</label>
@@ -675,7 +735,11 @@ export default function PackageManagement() {
                         ${sub.invested_amount.toLocaleString()}
                       </p>
                       <p className="text-xs text-green-400">
+<<<<<<< HEAD
                         Earned: ${(sub.profit_earned + (sub.total_captcha_earned || 0) + (sub.total_ad_view_earned || 0)).toFixed(2)}
+=======
+                        Earned: ${sub.profit_earned.toFixed(2)}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       </p>
                     </div>
                     <span

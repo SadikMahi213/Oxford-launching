@@ -2,12 +2,22 @@ import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import {
   Building2,
+<<<<<<< HEAD
   Shield,
   Users,
   Handshake,
   Award,
   ShieldCheck,
   Scale,
+=======
+  ShieldCheck,
+  FileText,
+  Scale,
+  AlertTriangle,
+  CheckCircle2,
+  Landmark,
+  ScrollText,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   Globe,
   HeartHandshake,
 } from "lucide-react";
@@ -15,11 +25,19 @@ import {
 export function CorporateIntegrity() {
   const { t } = useTranslation();
   const principles = [
+<<<<<<< HEAD
     { icon: Shield, text: t("corporateIntegrity.principle1") },
     { icon: Building2, text: t("corporateIntegrity.principle2") },
     { icon: Users, text: t("corporateIntegrity.principle3") },
     { icon: Handshake, text: t("corporateIntegrity.principle4") },
     { icon: Award, text: t("corporateIntegrity.principle5") },
+=======
+    t("corporateIntegrity.principle1"),
+    t("corporateIntegrity.principle2"),
+    t("corporateIntegrity.principle3"),
+    t("corporateIntegrity.principle4"),
+    t("corporateIntegrity.principle5"),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   ];
 
   const cards = [
@@ -59,10 +77,26 @@ export function CorporateIntegrity() {
       border: "border-purple-500/30",
       iconColor: "text-purple-400",
     },
+<<<<<<< HEAD
   ];
 
   return (
     <section className="relative py-8 md:py-12 px-2 sm:px-4 overflow-hidden">
+=======
+    {
+      icon: AlertTriangle,
+      title: t("corporateIntegrity.card5Title"),
+      subtitle: t("corporateIntegrity.card5Sub"),
+      description: t("corporateIntegrity.card5Desc"),
+      gradient: "from-rose-600/20 to-pink-600/20",
+      border: "border-rose-500/30",
+      iconColor: "text-rose-400",
+    },
+  ];
+
+  return (
+    <section className="relative py-24 px-2 sm:px-4 overflow-hidden">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-10 right-10 w-[600px] h-[600px] bg-blue-500/4 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-[500px] h-[500px] bg-emerald-500/3 rounded-full blur-3xl"></div>
@@ -94,13 +128,18 @@ export function CorporateIntegrity() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-6">
+<<<<<<< HEAD
             {principles.map((item, i) => (
+=======
+            {principles.map((p, i) => (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
+<<<<<<< HEAD
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all duration-300"
               >
                 <div className="flex-shrink-0 w-6 h-6 rounded-full border border-cyan-400/40 bg-cyan-500/10 flex items-center justify-center">
@@ -108,6 +147,13 @@ export function CorporateIntegrity() {
                 </div>
                 <span className="text-sm text-gray-300 font-medium">
                   {item.text}
+=======
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all duration-300"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-sm text-gray-300 font-medium">
+                  {p}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 </span>
               </motion.div>
             ))}

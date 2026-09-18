@@ -70,16 +70,20 @@ class User(Base):
         server_default="pending",
     )
 
+<<<<<<< HEAD
     kyc_approved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # Account access control: inactive until KYC is approved.
     account_status: Mapped[str] = mapped_column(
         String(20),
         nullable=False,
         default="inactive",
         server_default="inactive",
+<<<<<<< HEAD
     )  # inactive | pending_payment | active | on_hold | suspended | permanently_closed
     account_issue: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -140,6 +144,11 @@ class User(Base):
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
 
+=======
+    )
+    account_issue: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     # Email verification OTP (hashed + expiry)
     otp_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     otp_expiry: Mapped[datetime | None] = mapped_column(
@@ -250,9 +259,12 @@ class User(Base):
     blocked_reason: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )
+<<<<<<< HEAD
     blocked_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     last_login_ip: Mapped[str | None] = mapped_column(
         String(45), nullable=True
     )
@@ -263,6 +275,7 @@ class User(Base):
         DateTime(timezone=True), nullable=True
     )
 
+<<<<<<< HEAD
     # Activity heartbeat: updated on each authenticated request (throttled) so
     # the admin dashboard can count real members currently online (not just
     # anonymous visitor sessions).
@@ -270,6 +283,8 @@ class User(Base):
         DateTime(timezone=True), nullable=True, index=True
     )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     profile_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Pending package for registration (paid packages require payment before activation)
@@ -288,6 +303,7 @@ class User(Base):
         server_default="0"
     )
 
+<<<<<<< HEAD
     kyc_approved_team_volume: Mapped[Decimal | None] = mapped_column(
         Numeric(24, 14), nullable=True, default=None
     )
@@ -306,6 +322,10 @@ class User(Base):
     # parent_lvl_1_id is indexed: team-tree CTEs (network-analytics,
     # referral-network, level-analytics) join on it at every recursion level.
     parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+=======
+    # ancestry cache (up to 5 generations)
+    parent_lvl_1_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     parent_lvl_2_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     parent_lvl_3_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     parent_lvl_4_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -321,6 +341,7 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
+<<<<<<< HEAD
         nullable=False
     )
 
@@ -331,4 +352,10 @@ class User(Base):
         server_default="0"
     )
 
+=======
+        onupdate=func.now(),
+        nullable=False
+    )
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     kyc = relationship("KYC", back_populates="user", uselist=False)

@@ -16,11 +16,14 @@ class Product(Base):
     category = Column(String(100), nullable=True)
     arbx_allocated = Column(Numeric(24, 14), nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
+<<<<<<< HEAD
     sku = Column(String(100), nullable=True)
     stock_quantity = Column(Integer, nullable=False, default=0)
     discount_price = Column(Numeric(24, 14), nullable=True)
     attributes = Column(Text, nullable=True)
     shipping_info = Column(String(500), nullable=True)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

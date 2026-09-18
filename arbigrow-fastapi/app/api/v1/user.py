@@ -2,19 +2,27 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+<<<<<<< HEAD
 from sqlalchemy import select, or_, and_, func, literal, cast, Numeric, Integer
+=======
+from sqlalchemy import select, or_, and_, func
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 from app.core.database import get_db
 
 from app.models.user import User
 from app.models.kyc import KYC
+<<<<<<< HEAD
 from app.models.seller import Seller
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.investments import Investment
 from app.models.referral_profit_history import ReferralProfitHistory
 from app.models.investment_profit_history import InvestmentProfitHistory
 from app.models.mining_log import MiningLog
 from app.models.system_config import SystemConfig
 from app.models.transfer_log import TransferLog
+<<<<<<< HEAD
 from app.models.ofa_coin_transaction import OFACoinTransaction, OFATransactionType
 from app.models.wallet_transaction import WalletTransaction
 from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
@@ -26,12 +34,23 @@ from app.services.b2_service import upload_to_b2, generate_presigned_url
 from app.utils.notifications import notify_admin
 from app.utils.kyc_helper import check_kyc_approved
 
+=======
+from app.schemas.user import UserCreate, UserResponse, UserLogin, LoginResponse, IdentityVerificationRequest, ForgotPasswordRequest, ResetPasswordRequest, ResendVerificationRequest, UserRefreshResponse, ReferralNetworkResponse, WalletTransferRequest, WalletTransferResponse, ConvertOFARequest, ConvertOFAResponse, ProfileImageUpdateRequest, SendFundsRequest, TransferMatchingBonusRequest, TransferHistoryResponse, TransferLogSchema
+from app.core.rate_limiter import limiter
+
+from app.api.v1.deps import get_current_user
+from app.utils.is_system_active import is_system_active
+from app.services.b2_service import upload_to_b2, generate_presigned_url
+from app.utils.notifications import notify_admin
+from app.utils.kyc_helper import check_kyc_approved
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.core.referral import get_referral_level_rates
 
 WALLET_PRECISION = Decimal("0.00000000000001")
 MINING_CYCLE_SECONDS = 86400  # 24 hours
 
 
+<<<<<<< HEAD
 async def _create_ofa_tx(
     db: AsyncSession,
     user_id: int,
@@ -69,6 +88,8 @@ def _resolve_profile_image_url(stored: str | None) -> str | None:
     return generate_presigned_url(stored, expires_in=604800)
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def _get_mining_cap(db: AsyncSession) -> Decimal:
     result = await db.execute(
         select(SystemConfig).where(SystemConfig.key == "mining_daily_cap")
@@ -94,6 +115,7 @@ async def _is_mining_enabled(db: AsyncSession) -> bool:
 
 router = APIRouter(prefix="/user", tags=["User"])
 
+<<<<<<< HEAD
 
 @router.get("/conversion-rate")
 @limiter.limit("120/minute")
@@ -138,6 +160,9 @@ async def get_earning_status(
 ):
     del current_user
     return {"enabled": await is_daily_earning_enabled(db)}
+=======
+# Display commission rates loaded dynamically from SystemConfig
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 
 @router.get("/me", response_model=UserRefreshResponse)
@@ -147,6 +172,7 @@ async def get_me(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+<<<<<<< HEAD
     kyc_result = await db.execute(select(KYC).where(KYC.user_id == current_user.id))
     seller_result = await db.execute(
         select(Seller).where(Seller.user_id == current_user.id, Seller.status == "approved").limit(1)
@@ -185,6 +211,28 @@ async def get_me(
         "kyc_note": kyc.admin_note if kyc else None,
         "kyc_fee_refunded": kyc_fee_refunded,
         "has_active_seller": seller is not None,
+=======
+
+    # Fetch latest KYC data
+    kyc_result = await db.execute(
+        select(KYC).where(KYC.user_id == current_user.id)
+    )
+    kyc = kyc_result.scalar_one_or_none()
+
+    doc_submitted = bool(kyc and kyc.document_number)
+    kyc_status = kyc.status.value if kyc else None
+    kyc_note = kyc.admin_note if kyc else None
+
+    return {
+        "user": UserResponse(
+            **current_user.__dict__,
+            phone_number=kyc.phone_number if kyc else None,
+            country=kyc.country if kyc else None,
+        ),
+        "doc_submitted": doc_submitted,
+        "kyc_status": kyc_status,
+        "kyc_note": kyc_note,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
 
@@ -213,12 +261,19 @@ async def get_referral_network(
         )
         SELECT id, depth FROM team_tree
     """)
+<<<<<<< HEAD
     team_rows = await db.execute(team_stmt, {"user_id": current_user.id, "max_depth": 999})
+=======
+    team_rows = await db.execute(team_stmt, {"user_id": current_user.id, "max_depth": 40})
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     team_data = team_rows.fetchall()
 
     total_team_members = len(team_data)
     if not team_data:
+<<<<<<< HEAD
         await db.close()
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         return {
             "total_team_members": 0,
             "total_referrals": 0,
@@ -240,6 +295,7 @@ async def get_referral_network(
     non_bonus_ids = {row[0] for row in team_data if row[1] > 5}
 
     team_users_result = await db.execute(
+<<<<<<< HEAD
         select(
             User.id,
             User.user_no,
@@ -252,10 +308,17 @@ async def get_referral_network(
         ).where(User.id.in_([row[0] for row in team_data]))
     )
     team_users_map = {row.id: row for row in team_users_result.all()}
+=======
+        select(User).where(User.id.in_([row[0] for row in team_data]))
+    )
+    team_users = team_users_result.scalars().all()
+    team_users_map = {u.id: u for u in team_users}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     level_map = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     l1_user_ids = {uid for uid, d in team_data if d == 1}
+<<<<<<< HEAD
     # Depth-1 rows satisfy parent_lvl_1_id == current_user.id by CTE
     # construction, so L1 referrer names resolve without a query. Deeper
     # members resolve from the already-loaded team map; unknown parents
@@ -316,6 +379,36 @@ async def get_referral_network(
             active_user_ids.add(a)
         elif kind == "rph" and a in earned_by_level:
             earned_by_level[a] += Decimal(str(c))
+=======
+    parent_ids = {
+        team_users_map[uid].parent_lvl_1_id
+        for uid in l1_user_ids
+        if uid in team_users_map and team_users_map[uid].parent_lvl_1_id
+    }
+    parent_usernames = {}
+    if parent_ids:
+        parent_result = await db.execute(
+            select(User.id, User.username).where(User.id.in_(parent_ids))
+        )
+        parent_usernames = {pid: username for pid, username in parent_result.all()}
+
+    candidate_ids = [current_user.id] + [row[0] for row in team_data]
+    direct_counts_result = await db.execute(
+        select(User.parent_lvl_1_id, func.count(User.id))
+        .where(User.parent_lvl_1_id.in_(candidate_ids))
+        .group_by(User.parent_lvl_1_id)
+    )
+    direct_counts = {pid: count for pid, count in direct_counts_result.all() if pid}
+
+    all_team_ids = [row[0] for row in team_data]
+    active_result = await db.execute(
+        select(Investment.user_id).where(
+            Investment.status == "active",
+            Investment.user_id.in_(all_team_ids),
+        )
+    )
+    active_user_ids = {row[0] for row in active_result.all()}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     total_active_referrals = 0
 
@@ -324,6 +417,12 @@ async def get_referral_network(
         if not member:
             continue
 
+<<<<<<< HEAD
+=======
+        if not member.email_verified:
+            continue
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         if depth <= 5:
             total_active_referrals += 1
 
@@ -349,6 +448,20 @@ async def get_referral_network(
         if depth <= 5:
             level_map[depth].append(member_data)
 
+<<<<<<< HEAD
+=======
+    # Calculate level-wise commissions the current user earned
+    rph_result = await db.execute(
+        select(ReferralProfitHistory).where(
+            ReferralProfitHistory.receiver_user_id == current_user.id
+        )
+    )
+    earned_by_level = {1: Decimal("0"), 2: Decimal("0"), 3: Decimal("0"), 4: Decimal("0"), 5: Decimal("0")}
+    for row in rph_result.scalars().all():
+        if row.level in earned_by_level:
+            earned_by_level[row.level] += row.amount
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     levels = []
     for level in range(1, 6):
         users = level_map[level]
@@ -361,11 +474,14 @@ async def get_referral_network(
             }
         )
 
+<<<<<<< HEAD
     # All DB reads are complete and the response is built from plain
     # values: release the connection before returning instead of holding
     # it until request teardown.
     await db.close()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return {
         "total_team_members": total_team_members,
         "total_referrals": len(bonus_eligible_ids),
@@ -387,6 +503,7 @@ async def start_mining(
         raise HTTPException(status_code=403, detail="Daily work is currently paused (weekend/system maintenance)")
     if not await _is_mining_enabled(db):
         raise HTTPException(status_code=403, detail="Mining is currently disabled by admin")
+<<<<<<< HEAD
     check_earning_access(current_user)
 
     now_utc = datetime.now(timezone.utc)
@@ -407,10 +524,26 @@ async def start_mining(
             locked_user.daily_mined = Decimal("0")
             locked_user.mining_started_at = None
             locked_user.last_mine_time = None
+=======
+    if (current_user.account_status or "").lower() == "on_hold":
+        raise HTTPException(status_code=403, detail="Your account is on hold. Mining is disabled.")
+
+    now_utc = datetime.now(timezone.utc)
+
+    # If already mining and 24h passed, auto-reset the cycle first
+    if current_user.mining_active and current_user.mining_started_at:
+        cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
+        if now_utc >= cycle_end:
+            current_user.mining_active = False
+            current_user.daily_mined = Decimal("0")
+            current_user.mining_started_at = None
+            current_user.last_mine_time = None
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         else:
             raise HTTPException(status_code=400, detail="Mining already active. Use claim to collect rewards.")
 
     # Start new mining session
+<<<<<<< HEAD
     locked_user.mining_active = True
     locked_user.mining_started_at = now_utc
     locked_user.daily_mined = Decimal("0")
@@ -418,15 +551,32 @@ async def start_mining(
 
     await db.commit()
     await db.refresh(locked_user)
+=======
+    current_user.mining_active = True
+    current_user.mining_started_at = now_utc
+    current_user.daily_mined = Decimal("0")
+    current_user.last_mine_time = now_utc
+
+    await db.commit()
+    await db.refresh(current_user)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     cap = await _get_mining_cap(db)
     return {
         "message": "Mining started",
+<<<<<<< HEAD
         "mining_active": locked_user.mining_active,
         "mining_started_at": locked_user.mining_started_at.isoformat() if locked_user.mining_started_at else None,
         "daily_mined": float(locked_user.daily_mined or 0),
         "daily_cap": float(cap),
         "arbx_wallet": float(locked_user.arbx_wallet or 0),
+=======
+        "mining_active": current_user.mining_active,
+        "mining_started_at": current_user.mining_started_at.isoformat() if current_user.mining_started_at else None,
+        "daily_mined": float(current_user.daily_mined or 0),
+        "daily_cap": float(cap),
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
 
@@ -436,12 +586,16 @@ async def claim_mining(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+<<<<<<< HEAD
     idempotency_key: str | None = None,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 ):
     if not await is_system_active("daily_work", db):
         raise HTTPException(status_code=403, detail="Daily work is currently paused (weekend/system maintenance)")
     if not await _is_mining_enabled(db):
         raise HTTPException(status_code=403, detail="Mining is currently disabled by admin")
+<<<<<<< HEAD
     check_earning_access(current_user)
 
     # Re-fetch user with row-level lock to prevent race conditions
@@ -474,6 +628,24 @@ async def claim_mining(
     cycle_end = locked_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
     if now_utc >= cycle_end:
         reference_time = locked_user.last_mine_time or locked_user.mining_started_at
+=======
+    if (current_user.account_status or "").lower() == "on_hold":
+        raise HTTPException(status_code=403, detail="Your account is on hold. Mining is disabled.")
+
+    if not current_user.mining_active or not current_user.mining_started_at:
+        raise HTTPException(status_code=400, detail="No active mining session. Start mining first.")
+
+    now_utc = datetime.now(timezone.utc)
+    cap = await _get_mining_cap(db)
+    daily_mined = Decimal(str(current_user.daily_mined or 0))
+    remaining = cap - daily_mined
+
+    # Auto-reset if 24h cycle completed
+    cycle_end = current_user.mining_started_at + timedelta(seconds=MINING_CYCLE_SECONDS)
+    if now_utc >= cycle_end:
+        # Credit remaining accrued rewards first
+        reference_time = current_user.last_mine_time or current_user.mining_started_at
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         final_reward = Decimal("0")
         if reference_time < cycle_end:
             final_elapsed = max(0, int((cycle_end - reference_time).total_seconds()))
@@ -481,6 +653,7 @@ async def claim_mining(
             final_accrued = per_second_rate * Decimal(str(final_elapsed))
             final_reward = min(final_accrued, remaining).quantize(WALLET_PRECISION)
             if final_reward > 0:
+<<<<<<< HEAD
                 bal_before = locked_user.arbx_wallet or Decimal("0")
                 locked_user.arbx_wallet = bal_before + final_reward
                 locked_user.daily_mined = daily_mined + final_reward
@@ -518,10 +691,32 @@ async def claim_mining(
         locked_user.daily_mined = Decimal("0")
         locked_user.mining_started_at = None
         locked_user.last_mine_time = None
+=======
+                current_user.arbx_mining_wallet = (current_user.arbx_mining_wallet or Decimal("0")) + final_reward
+                daily_mined = daily_mined + final_reward
+                current_user.daily_mined = daily_mined
+                db.add(MiningLog(
+                    user_id=current_user.id,
+                    amount=final_reward,
+                    mined_from=reference_time,
+                    mined_to=cycle_end,
+                    daily_mined_after=daily_mined,
+                ))
+                await notify_admin(
+                    db=db, type="mining_claimed",
+                    message=f"User {current_user.full_name} claimed {float(final_reward)} OFA mining reward (cycle end)",
+                    user_id=current_user.id, request=request,
+                )
+        current_user.mining_active = False
+        current_user.daily_mined = Decimal("0")
+        current_user.mining_started_at = None
+        current_user.last_mine_time = None
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         await db.commit()
         return {
             "message": "Mining cycle ended. Start a new mining session.",
             "reward": float(final_reward),
+<<<<<<< HEAD
             "daily_mined": float(locked_user.daily_mined),
             "daily_cap": float(cap),
             "remaining_today": float(cap),
@@ -535,6 +730,23 @@ async def claim_mining(
         raise HTTPException(status_code=400, detail=f"Daily cap of {cap} OFA reached. Wait for next cycle.")
 
     reference_time = locked_user.last_mine_time or locked_user.mining_started_at
+=======
+            "daily_mined": float(current_user.daily_mined),
+            "daily_cap": float(cap),
+            "remaining_today": float(cap),
+            "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+            "mining_active": current_user.mining_active,
+        }
+
+    # Check if already at cap
+    if remaining <= 0:
+        current_user.mining_active = False
+        await db.commit()
+        raise HTTPException(status_code=400, detail=f"Daily cap of {cap} OFA reached. Wait for next cycle.")
+
+    # Calculate reward based on time elapsed since last claim (or start)
+    reference_time = current_user.last_mine_time or current_user.mining_started_at
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     elapsed_seconds = max(0, int((now_utc - reference_time).total_seconds()))
     r = await db.execute(select(SystemConfig).where(SystemConfig.key == "mining_claim_cooldown_minutes"))
     cc = r.scalar_one_or_none()
@@ -549,6 +761,7 @@ async def claim_mining(
     if reward <= 0:
         raise HTTPException(status_code=400, detail="No rewards to claim yet.")
 
+<<<<<<< HEAD
     bal_before = locked_user.arbx_wallet or Decimal("0")
     locked_user.arbx_wallet = bal_before + reward
     locked_user.daily_mined = daily_mined + reward
@@ -586,16 +799,47 @@ async def claim_mining(
         db=db, type="mining_claimed",
         message=f"User {locked_user.full_name} claimed {float(reward)} OFA mining reward",
         user_id=locked_user.id, request=request,
+=======
+    # Credit wallet
+    current_user.arbx_mining_wallet = (current_user.arbx_mining_wallet or Decimal("0")) + reward
+    current_user.daily_mined = daily_mined + reward
+    current_user.last_mine_time = now_utc
+
+    # Log the claim
+    db.add(MiningLog(
+        user_id=current_user.id,
+        amount=reward,
+        mined_from=reference_time,
+        mined_to=now_utc,
+        daily_mined_after=current_user.daily_mined,
+    ))
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    await notify_admin(
+        db=db, type="mining_claimed",
+        message=f"User {current_user.full_name} claimed {float(reward)} OFA mining reward",
+        user_id=current_user.id, request=request,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
 
     return {
         "message": "Mining reward claimed",
         "reward": float(reward),
+<<<<<<< HEAD
         "daily_mined": float(locked_user.daily_mined),
         "daily_cap": float(cap),
         "remaining_today": float(cap - locked_user.daily_mined),
         "arbx_wallet": float(locked_user.arbx_wallet or 0),
         "mining_active": locked_user.mining_active,
+=======
+        "daily_mined": float(current_user.daily_mined),
+        "daily_cap": float(cap),
+        "remaining_today": float(cap - current_user.daily_mined),
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet),
+        "mining_active": current_user.mining_active,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
 
@@ -625,7 +869,11 @@ async def get_mining_status(
         "daily_mined": float(current_user.daily_mined or 0),
         "daily_cap": float(cap),
         "remaining_today": float(cap - Decimal(str(current_user.daily_mined or 0))),
+<<<<<<< HEAD
         "arbx_wallet": float(current_user.arbx_wallet or 0),
+=======
+        "arbx_mining_wallet": float(current_user.arbx_mining_wallet or 0),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         "cycle_end": cycle_end.isoformat() if cycle_end else None,
         "time_remaining_seconds": time_remaining,
     }
@@ -736,6 +984,7 @@ async def get_referral_bonuses(
     return {"total": total, "page": page, "limit": limit, "data": data}
 
 
+<<<<<<< HEAD
 @router.get("/generation-bonus-rates")
 @limiter.limit("120/minute")
 async def get_generation_bonus_rates(
@@ -756,6 +1005,8 @@ async def get_generation_bonus_rates(
     }
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.get("/generation-bonuses")
 @limiter.limit("120/minute")
 async def get_generation_bonuses(
@@ -878,12 +1129,30 @@ async def get_user_statistics_public(
     total_users = total_users_result.scalar() or 0
 
     active_users_result = await db.execute(
+<<<<<<< HEAD
         select(func.count(User.id)).where(User.account_status == "active")
+=======
+        select(func.count(User.id)).where(
+            and_(
+                User.email_verified.is_(True),
+                User.account_status == "active",
+            )
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     active_users = active_users_result.scalar() or 0
 
     inactive_users_result = await db.execute(
+<<<<<<< HEAD
         select(func.count(User.id)).where(User.account_status != "active")
+=======
+        select(func.count(User.id)).where(
+            or_(
+                User.email_verified.is_(False),
+                User.account_status == "on_hold",
+            )
+        )
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     inactive_users = inactive_users_result.scalar() or 0
 
@@ -902,6 +1171,7 @@ async def wallet_transfer(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     check_no_suspension(current_user)
     if data.from_wallet == data.to_wallet:
         raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
@@ -913,6 +1183,11 @@ async def wallet_transfer(
         if not seller.scalar_one_or_none():
             raise HTTPException(403, "You must create and activate a Seller Account before transferring funds from your eCommerce Wallet.")
 
+=======
+    if data.from_wallet == data.to_wallet:
+        raise HTTPException(status_code=400, detail="Source and destination wallets must be different")
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
     from_balance = getattr(current_user, data.from_wallet) or Decimal("0")
     to_balance = getattr(current_user, data.to_wallet) or Decimal("0")
@@ -923,6 +1198,7 @@ async def wallet_transfer(
     setattr(current_user, data.from_wallet, (from_balance - amount).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP))
     setattr(current_user, data.to_wallet, (to_balance + amount).quantize(WALLET_PRECISION, rounding=ROUND_HALF_UP))
 
+<<<<<<< HEAD
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=current_user.id,
@@ -934,6 +1210,8 @@ async def wallet_transfer(
         destination_wallet=data.to_wallet,
     )
     db.add(transfer)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await db.commit()
     await db.refresh(current_user)
 
@@ -961,8 +1239,11 @@ async def convert_ofa_to_usdt(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     check_earning_access(current_user)
     await check_kyc_approved(current_user, db)
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     result = await db.execute(select(SystemConfig).where(SystemConfig.key == "ofa_to_usdt_rate"))
     cfg = result.scalar_one_or_none()
     OFA_TO_USDT_RATE = Decimal(cfg.value) if cfg and cfg.value else Decimal("0.0001")
@@ -973,6 +1254,7 @@ async def convert_ofa_to_usdt(
     if arbx_balance < ofa_amount:
         raise HTTPException(status_code=400, detail=f"Insufficient OFA balance. You have {float(arbx_balance)} OFA")
 
+<<<<<<< HEAD
     new_arbx = (arbx_balance - ofa_amount).quantize(WALLET_PRECISION)
     current_user.arbx_wallet = new_arbx
     main_balance = current_user.main_wallet or Decimal("0")
@@ -989,6 +1271,11 @@ async def convert_ofa_to_usdt(
         reference_type="conversion",
         description=f"Converted {float(ofa_amount)} OFA to {float(usdt_amount)} USDT",
     )
+=======
+    current_user.arbx_wallet = (arbx_balance - ofa_amount).quantize(WALLET_PRECISION)
+    main_balance = current_user.main_wallet or Decimal("0")
+    current_user.main_wallet = (main_balance + usdt_amount).quantize(WALLET_PRECISION)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
     await db.commit()
     await db.refresh(current_user)
@@ -1010,6 +1297,7 @@ async def convert_ofa_to_usdt(
     )
 
 
+<<<<<<< HEAD
 @router.get("/ofa-conversion-total")
 @limiter.limit("60/minute")
 async def get_ofa_conversion_total(
@@ -1041,6 +1329,8 @@ async def get_ofa_conversion_total(
     return {"ofa_converted_usdt": converted_usdt}
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 @router.post("/profile-image")
 @limiter.limit("10/minute")
 async def update_profile_image(
@@ -1071,12 +1361,20 @@ async def upload_profile_image(
         raise HTTPException(400, detail="Only JPEG, PNG, WebP, and GIF images are allowed.")
 
     object_key = await upload_to_b2(file, f"profiles/{current_user.id}")
+<<<<<<< HEAD
 
     current_user.profile_image_url = object_key
     await db.commit()
 
     fresh_url = generate_presigned_url(object_key, expires_in=604800)
 
+=======
+    presigned_url = generate_presigned_url(object_key, expires_in=604800)  # 7 days
+
+    current_user.profile_image_url = presigned_url
+    await db.commit()
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     await notify_admin(
         db=db, type="profile_updated",
         message=f"User {current_user.full_name} updated their profile image",
@@ -1085,7 +1383,11 @@ async def upload_profile_image(
 
     return {
         "message": "Profile image uploaded",
+<<<<<<< HEAD
         "profile_image_url": fresh_url,
+=======
+        "profile_image_url": presigned_url,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
 
 
@@ -1097,11 +1399,16 @@ async def send_funds(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     check_earning_access(current_user)
+=======
+    await check_kyc_approved(current_user, db)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
 
+<<<<<<< HEAD
     # Enforce the admin-configured minimum user-to-user transfer amount.
     # Read dynamically from SystemConfig so changes apply without deployment.
     min_result = await db.execute(
@@ -1115,6 +1422,8 @@ async def send_funds(
             detail=f"Minimum transfer amount is {float(min_transfer)}",
         )
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     if current_user.main_wallet is None or current_user.main_wallet < amount:
         raise HTTPException(status_code=400, detail="Insufficient balance in main wallet")
 
@@ -1153,7 +1462,11 @@ async def send_funds(
     current_user.main_wallet = (current_user.main_wallet - total_deduction).quantize(WALLET_PRECISION)
     recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
 
+<<<<<<< HEAD
     # Log transfer with full sender/receiver audit snapshots
+=======
+    # Log transfer
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=recipient.id,
@@ -1161,6 +1474,7 @@ async def send_funds(
         fee=charge_amount,
         note=data.note,
         status="completed",
+<<<<<<< HEAD
         source_wallet="main_wallet",
         destination_wallet="main_wallet",
         sender_full_name=current_user.full_name,
@@ -1173,6 +1487,8 @@ async def send_funds(
         receiver_username=recipient.username,
         receiver_email=recipient.email,
         receiver_mobile=recipient.mobile_number,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     db.add(transfer)
     await db.commit()
@@ -1204,7 +1520,11 @@ async def transfer_matching_bonus(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
     check_earning_access(current_user)
+=======
+    await check_kyc_approved(current_user, db)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     amount = Decimal(str(data.amount)).quantize(WALLET_PRECISION)
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
@@ -1248,7 +1568,11 @@ async def transfer_matching_bonus(
     # Credit recipient's main wallet
     recipient.main_wallet = (recipient.main_wallet or Decimal("0")) + receiver_gets
 
+<<<<<<< HEAD
     # Log transfer with full sender/receiver audit snapshots
+=======
+    # Log transfer
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     transfer = TransferLog(
         sender_id=current_user.id,
         receiver_id=recipient.id,
@@ -1256,6 +1580,7 @@ async def transfer_matching_bonus(
         fee=charge_amount,
         note=data.note or "Matching bonus transfer",
         status="completed",
+<<<<<<< HEAD
         source_wallet="matching_bonus_wallet",
         destination_wallet="main_wallet",
         sender_full_name=current_user.full_name,
@@ -1268,6 +1593,8 @@ async def transfer_matching_bonus(
         receiver_username=recipient.username,
         receiver_email=recipient.email,
         receiver_mobile=recipient.mobile_number,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     db.add(transfer)
     await db.commit()
@@ -1299,14 +1626,19 @@ async def get_transfer_history(
     current_user: User = Depends(get_current_user),
 ):
     sent_result = await db.execute(
+<<<<<<< HEAD
         select(TransferLog).where(
             TransferLog.sender_id == current_user.id,
             TransferLog.sender_id != TransferLog.receiver_id,
         ).order_by(TransferLog.created_at.desc()).limit(50)
+=======
+        select(TransferLog).where(TransferLog.sender_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     sent_logs = sent_result.scalars().all()
 
     received_result = await db.execute(
+<<<<<<< HEAD
         select(TransferLog).where(
             TransferLog.receiver_id == current_user.id,
             TransferLog.sender_id != TransferLog.receiver_id,
@@ -1321,10 +1653,35 @@ async def get_transfer_history(
             sender_name=tx.sender_full_name or "",
             receiver_id=tx.receiver_id,
             receiver_name=tx.receiver_full_name or "",
+=======
+        select(TransferLog).where(TransferLog.receiver_id == current_user.id).order_by(TransferLog.created_at.desc()).limit(50)
+    )
+    received_logs = received_result.scalars().all()
+
+    user_ids = {current_user.id}
+    for tx in sent_logs:
+        user_ids.add(tx.receiver_id)
+        user_ids.add(tx.sender_id)
+    for tx in received_logs:
+        user_ids.add(tx.sender_id)
+        user_ids.add(tx.receiver_id)
+    users_result = await db.execute(select(User).where(User.id.in_(user_ids)))
+    user_map = {u.id: u.full_name for u in users_result.scalars().all()}
+
+    def enrich(tx: TransferLog, as_sender: bool) -> TransferLogSchema:
+        other_id = tx.receiver_id if as_sender else tx.sender_id
+        return TransferLogSchema(
+            id=tx.id,
+            sender_id=tx.sender_id,
+            sender_name=user_map.get(tx.sender_id, ""),
+            receiver_id=tx.receiver_id,
+            receiver_name=user_map.get(tx.receiver_id, ""),
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             amount=float(tx.amount),
             note=tx.note,
             status=tx.status,
             created_at=tx.created_at.isoformat() if tx.created_at else "",
+<<<<<<< HEAD
             source_wallet=tx.source_wallet,
             destination_wallet=tx.destination_wallet,
             sender_full_name=tx.sender_full_name,
@@ -1337,6 +1694,8 @@ async def get_transfer_history(
             receiver_username=tx.receiver_username,
             receiver_email=tx.receiver_email,
             receiver_mobile=tx.receiver_mobile,
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         )
 
     return TransferHistoryResponse(
@@ -1355,11 +1714,14 @@ async def get_user_list(
 ):
     offset = (page - 1) * limit
 
+<<<<<<< HEAD
     # Non-admin users may only look up a specific recipient (Fund Send / MB Transfer).
     # Full user listing stays an admin-only capability so user data is not enumerated.
     if not current_user.is_admin and not (search and search.strip()):
         return {"total": 0, "page": page, "limit": limit, "users": []}
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     base_query = select(User)
     count_query = select(func.count(User.id))
 
@@ -1395,7 +1757,11 @@ async def get_user_list(
                 "full_name": u.full_name,
                 "email": u.email,
                 "username": u.username,
+<<<<<<< HEAD
                 "status": "active" if u.account_status == "active" else "inactive",
+=======
+                "status": "active" if u.account_status == "active" and u.email_verified else "inactive",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "created_at": u.created_at.isoformat() if u.created_at else None,
             }
             for u in users
@@ -1424,6 +1790,7 @@ async def get_fee_info(
         "has_kyc": existing_kyc is not None,
         "kyc_status": existing_kyc.status.value if existing_kyc else None,
         "kyc_note": existing_kyc.admin_note if existing_kyc else None,
+<<<<<<< HEAD
         "kyc_full_name": existing_kyc.full_name if existing_kyc else None,
         "kyc_country": existing_kyc.country if existing_kyc else None,
         "kyc_phone_number": existing_kyc.phone_number if existing_kyc else None,
@@ -1504,4 +1871,6 @@ async def get_my_wallet_transactions(
             }
             for wt in items
         ],
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }

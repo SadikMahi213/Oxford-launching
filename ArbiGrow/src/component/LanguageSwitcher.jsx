@@ -30,7 +30,11 @@ const LanguageSwitcher = ({ position = "bottom" }) => {
         title={t("language.switch")}
       >
         <Globe className="w-3.5 h-3.5" />
+<<<<<<< HEAD
         
+=======
+        <span className="text-[11px] uppercase tracking-wider text-gray-400">Language</span>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       </button>
       {open && (
         <div

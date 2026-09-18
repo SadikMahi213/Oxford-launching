@@ -6,6 +6,7 @@ from app.models.kyc import KYC
 from app.models.user import User
 
 
+<<<<<<< HEAD
 async def get_effective_kyc_status(user: User, db: AsyncSession) -> str:
     """Return the effective KYC status for a user, reusing the production KYC mechanism.
 
@@ -25,6 +26,16 @@ async def is_kyc_approved(user: User, db: AsyncSession) -> bool:
 async def check_kyc_approved(user: User, db: AsyncSession):
     """Raise HTTPException(403) if the user has not completed KYC approval."""
     if not await is_kyc_approved(user, db):
+=======
+async def check_kyc_approved(user: User, db: AsyncSession):
+    """Raise HTTPException(403) if the user has not completed KYC approval."""
+    kyc_result = await db.execute(select(KYC).where(KYC.user_id == user.id))
+    kyc = kyc_result.scalar_one_or_none()
+
+    effective_status = kyc.status.value if kyc else (user.admin_kyc_status or "pending")
+
+    if effective_status != "approved":
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         raise HTTPException(
             status_code=403,
             detail=(

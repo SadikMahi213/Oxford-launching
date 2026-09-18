@@ -9,7 +9,11 @@ from app.models.user import User
 from app.schemas.bank_info import BankInfoCreate, BankInfoUpdate, BankInfoResponse
 from app.api.v1.deps import get_current_user, get_current_admin_user
 from app.utils.notifications import notify_admin
+<<<<<<< HEAD
 
+=======
+from app.utils.kyc_helper import check_kyc_approved
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 
 router = APIRouter(prefix="/bank-info", tags=["Bank Information"])
 
@@ -43,6 +47,11 @@ async def submit_bank_info(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+<<<<<<< HEAD
+=======
+    await check_kyc_approved(current_user, db)
+
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     existing = await db.execute(
         select(BankInfo).where(BankInfo.user_id == current_user.id)
     )
@@ -124,7 +133,11 @@ async def update_bank_info_status(
     admin: User = Depends(get_current_admin_user),
 ):
     result = await db.execute(
+<<<<<<< HEAD
         select(BankInfo).options(joinedload(BankInfo.user)).where(BankInfo.id == bank_info_id)
+=======
+        select(BankInfo).where(BankInfo.id == bank_info_id)
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     )
     bank_info = result.scalar_one_or_none()
     if not bank_info:

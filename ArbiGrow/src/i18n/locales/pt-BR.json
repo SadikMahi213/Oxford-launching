@@ -21,12 +21,16 @@
     "comingSoon": "Em Breve",
     "terms": "Termos de Serviço",
     "privacy": "Política de Privacidade",
+<<<<<<< HEAD
     "legal": "Informações Legais",
     "brandName": "Oxford Financial Ads",
     "copyright": "© {{year}} Oxford Financial Ads. Todos os Direitos Reservados. | Política de Privacidade | Termos e Condições | Política AML e KYC | Fale Conosco",
     "logoAlt": "Meu Logotipo",
     "logoAltMobile": "Logotipo Oxford Financial Ads",
     "tagline": "Serviços Digitais"
+=======
+    "legal": "Informações Legais"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "footer": {
     "description": "Eleve Sua Marca Globalmente. A Oxford Financial Ads é uma agência de publicidade internacional dedicada a ajudar empresas a estabelecerem suas marcas no mercado global.",
@@ -43,6 +47,7 @@
     "address1": "25 Praça de Negócios",
     "address2": "Distrito das Canárias",
     "address3": "Londres, EC2A 4AB",
+<<<<<<< HEAD
     "address4": "Reino Unido",
     "social": {
       "telegram": "Telegram",
@@ -55,10 +60,24 @@
     },
     "brandName": "Oxford Financial Ads",
     "supportEmail": "support.oxfordfinancialads@gmail.com"
+=======
+    "address4": "Reino Unido"
+  },
+  "hero": {
+    "title": "Plataforma de Publicidade Digital e Ganhos Online",
+    "subtitle": "Plataforma de Ganhos",
+    "description": "A Oxford Financial Ads é uma plataforma moderna de publicidade digital onde membros podem participar de várias atividades de ganho digital.",
+    "cta": "Cadastre-se Grátis Agora",
+    "whitepaper": "Leia o Whitepaper Técnico"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "faq": {
     "badge": "FAQ",
     "title": "Perguntas Frequentes",
+<<<<<<< HEAD
+=======
+    "questions": "Perguntas",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "q1": "O que é Oxford Financial Ads?",
     "a1": "Oxford Financial Ads é uma plataforma de arbitragem com IA que usa a rede Arbitrum para gerar lucros com diferenças de preços entre várias corretoras, com risco mínimo.",
     "q2": "O que é o token OFA e como consigo um?",
@@ -73,8 +92,12 @@
     "a6": "Oferecemos um sistema de indicação de 5 níveis. Quando alguém se cadastra pelo seu link, você ganha comissões diárias e tokens OFA de bônus.",
     "stillQuestions": "Ainda tem dúvidas?",
     "supportText": "Nosso suporte está disponível 24/7 para ajudar com qualquer coisa sobre a Oxford Financial Ads.",
+<<<<<<< HEAD
     "contactSupport": "Falar com Suporte",
     "titleHighlight": "Perguntas"
+=======
+    "contactSupport": "Falar com Suporte"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -89,9 +112,13 @@
       "success": "Login realizado com sucesso",
       "blocked": "Sua conta foi bloqueada temporariamente por muitas tentativas de login. Contate o suporte: support.oxfordfinancialads@gmail.com",
       "invalid": "Login inválido",
+<<<<<<< HEAD
       "failed": "Falha no login",
       "welcomeBack": "Bem-vindo de Volta",
       "welcomeSubtitle": "Entre para acessar seu painel e aumentar seu portfólio."
+=======
+      "failed": "Falha no login"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Crie Sua Conta",
@@ -190,11 +217,15 @@
       "err_agree": "Você deve aceitar os termos & condições",
       "success": "Cadastro realizado com sucesso!",
       "networkError": "Erro de rede ou servidor inacessível",
+<<<<<<< HEAD
       "error": "Algo deu errado",
       "joinTitle": "Junte-se Hoje",
       "joinSubtitle": "Crie uma conta para começar a ganhar com nossa plataforma moderna de publicidade digital.",
       "perDay": "/dia",
       "success_paid": "Registro enviado! Conclua o pagamento para ativar sua conta."
+=======
+      "error": "Algo deu errado"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "Redefinir Sua Senha",
@@ -252,8 +283,12 @@
   },
   "userDashboard": {
     "header": "Portal do Usuário",
+<<<<<<< HEAD
     "accountOnHold": "Sua conta está em espera. No momento, você só pode fazer depósitos.",
     "accountSuspended": "Sua conta foi temporariamente suspensa devido a erros nas tarefas. Aguarde até o fim da suspensão.",
+=======
+    "accountOnHold": "Sua conta está suspensa. No momento, você só pode fazer depósitos.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Em Breve",
     "inDevelopment": "Esta página está em desenvolvimento",
     "sidebar": {
@@ -279,7 +314,11 @@
       "referralBonuses": "Bônus de Indicação",
       "referralBonuses_desc": "10% de ganhos com indicação direta",
       "genBonuses": "Bônus Geracionais",
+<<<<<<< HEAD
       "genBonuses_desc": "Ganhos da equipe",
+=======
+      "genBonuses_desc": "8/7/6/5% de ganhos da equipe",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Bônus de Correspondência",
       "matchingBonus_desc": "Plano de bônus por ranking",
       "walletTransfer": "Transferência entre Carteiras",
@@ -302,6 +341,7 @@
       "privacy_desc": "Dados e privacidade",
       "whitepaper": "Whitepaper Técnico",
       "whitepaper_desc": "Documentação do projeto",
+<<<<<<< HEAD
       "soon": "Em Breve",
       "banking": "Configuração Bancária",
       "banking_desc": "Registrar dados bancários",
@@ -309,6 +349,9 @@
       "ledger_desc": "Your balances across every wallet",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards"
+=======
+      "soon": "Em Breve"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -326,9 +369,13 @@
       "sendFunds": "Enviar Fundos",
       "transfers": "Transferências",
       "mbTransfer": "Transf. MB",
+<<<<<<< HEAD
       "kyc": "KYC",
       "matchingBonusPlan": "Plano de Bônus de Correspondência",
       "walletTransfer": "Transferência de Carteira"
+=======
+      "kyc": "KYC"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "wallets": {
       "main": "Carteira Principal",
@@ -348,9 +395,13 @@
       "clickHistory": "Clique para ver histórico",
       "openTokenInfo": "Abrir informações do token",
       "viewHistory": "Ver Histórico",
+<<<<<<< HEAD
       "transfer": "Transferir",
       "usable": "Saldo Utilizável",
       "ofaToken": "Token OFA"
+=======
+      "transfer": "Transferir"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Informações do Token",
@@ -386,8 +437,12 @@
       "title": "Desempenho da Equipe",
       "level": "Nível {{level}}",
       "loading": "Carregando...",
+<<<<<<< HEAD
       "netEarnings": "Ganhos Líquidos (Todos os Níveis)",
       "growth": "15,7% vs últimos 30 dias"
+=======
+      "netEarnings": "Ganhos Líquidos (Todos os Níveis)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "Carteira de Mineração OFA",
@@ -399,6 +454,7 @@
       "claiming": "Resgatando...",
       "claim": "Resgatar Recompensa",
       "howTitle": "Como Funciona a Mineração",
+<<<<<<< HEAD
       "step1": "Inicie a sessão de mineração — tokens OFA começam a acumular a cada segundo durante um ciclo de 24 horas.",
       "step2": "A taxa de mineração é calculada com base no seu volume de rede atual e nível de staking.",
       "step3": "Os tokens acumulados são depositados diretamente na sua Carteira de Mineração em tempo real.",
@@ -410,6 +466,14 @@
       "dailyCap": "LIMITE DIÁRIO",
       "lastClaim": "ÚLTIMA RECLAMAÇÃO",
       "notClaimed": "Ainda não reivindicado"
+=======
+      "step1": "1. Clique em \"Iniciar Mineração\" para começar um ciclo de 24 horas.",
+      "step2": "2. Tokens OFA são minerados continuamente a uma taxa proporcional ao limite diário dividido por 86.400 segundos.",
+      "step3": "3. Após pelo menos 1 minuto, clique em \"Resgatar Recompensa\" para transferir tokens minerados para sua Carteira de Mineração.",
+      "step4": "4. Você pode resgatar várias vezes durante um ciclo — cada resgate gives os tokens minerados desde o último resgate.",
+      "step5": "5. Quando o ciclo de 24 horas termina, a mineração reinicia automaticamente. Inicie um novo ciclo para continuar ganhando.",
+      "step6": "6. Tokens OFA minerados podem ser convertidos em USDT na página de Conversão. Transferências externas em breve."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "Nenhum histórico de {{type}} encontrado.",
@@ -425,11 +489,15 @@
       "fromUser": "Do Usuário",
       "level": "Nível",
       "status": "Status",
+<<<<<<< HEAD
       "received": "recebido",
       "type": "Tipo",
       "details": "Detalhes",
       "typeDeposit": "Depósito",
       "typeKycRefund": "Reembolso KYC"
+=======
+      "received": "recebido"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Histórico de Depósitos",
@@ -437,6 +505,7 @@
       "referral": "Histórico de Ganhos com Indicações",
       "matching": "Histórico de Bônus de Correspondência",
       "generation": "Histórico de Ganhos Geracionais"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "Criptomoeda OFA",
@@ -451,6 +520,9 @@
     "pendingPayment": "Seu pagamento do pacote ainda não foi concluído. Por favor, conclua seu pagamento. Assim que seu pagamento for aprovado pelo Nossa Equipe de Conformidade, todos os recursos de ganhos serão ativados automaticamente.",
     "viewAll": "Ver Tudo",
     "allLevels": "Todos os Níveis"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Perfil",
@@ -479,8 +551,12 @@
     "photo_uploaded": "Imagem de perfil enviada",
     "photo_saved": "Foto salva",
     "photo_failed": "Falha no envio",
+<<<<<<< HEAD
     "photo_saveFailed": "Falha ao salvar foto",
     "rejectionReason": "Motivo da Rejeição:"
+=======
+    "photo_saveFailed": "Falha ao salvar foto"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Depositar USDT",
@@ -507,9 +583,13 @@
     "err_field": "Campo obrigatório",
     "err_amount": "Valor deve ser maior que 0.",
     "err_txid": "Deve ter pelo menos 5 caracteres.",
+<<<<<<< HEAD
     "err_noNetwork": "Nenhuma rede de depósito ativa. Contate o suporte.",
     "err_min_amount": "O valor mínimo de depósito é {{min}} USDT.",
     "min_amount_hint": "Mínimo: {{min}} USDT"
+=======
+    "err_noNetwork": "Nenhuma rede de depósito ativa. Contate o suporte."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Sacar Fundos",
@@ -552,13 +632,18 @@
     "loadingHistory": "Carregando histórico...",
     "noHistory": "Nenhum saque encontrado.",
     "err_general": "Algo deu errado",
+<<<<<<< HEAD
     "success": "Saque solicitado. Aguardando revisão do Nossa Equipe de Conformidade.",
+=======
+    "success": "Saque solicitado. Aguardando revisão do admin.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_field": "Campo obrigatório",
     "err_validAmount": "Insira um valor válido.",
     "err_min": "Saque mínimo é {{min}} USDT.",
     "err_max": "Saque máximo é {{max}} USDT.",
     "err_balance": "Saldo insuficiente em {{wallet}}. Disponível: {{balance}}.",
     "err_mainBalance": "Saldo insuficiente na Carteira Principal. Necessário: {{required}} USDT (Valor + 1%), Disponível: {{available}} USDT.",
+<<<<<<< HEAD
     "err_address": "Deve ter pelo menos 5 caracteres.",
     "err_mode_banking": "Apenas saques por transferência bancária são permitidos no momento.",
     "err_mode_network": "Saques de rede estão atualmente desabilitados.",
@@ -582,6 +667,9 @@
     "accountType": "Tipo de Conta",
     "accountPersonal": "Pessoal",
     "accountAgent": "Agente"
+=======
+    "err_address": "Deve ter pelo menos 5 caracteres."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Transferência entre Carteiras",
@@ -599,6 +687,7 @@
     "err_amount": "Insira um valor válido",
     "err_sameWallet": "Origem e destino devem ser diferentes",
     "err_balance": "Saldo insuficiente",
+<<<<<<< HEAD
     "err_failed": "Falha na transferência",
     "walletMain": "Carteira Principal",
     "walletReferral": "Carteira de Indicação",
@@ -608,6 +697,9 @@
     "walletCaptcha": "Carteira de Digitação de Captcha",
     "walletAdView": "Carteira de Visualização de Anúncios",
     "walletDeposit": "Carteira de Depósito"
+=======
+    "err_failed": "Falha na transferência"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Enviar Fundos",
@@ -629,10 +721,14 @@
     "err_noUser": "Nenhum usuário encontrado para '{{query}}'",
     "err_search": "Busca falhou: {{error}}",
     "success": "Enviado {{amount}} USDT para {{name}}",
+<<<<<<< HEAD
     "err_failed": "Falha na transferência",
     "err_kyc": "Verificação KYC necessária. Conclua a verificação KYC antes de enviar fundos.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Falha na transferência"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Transferência de Bônus de Correspondência",
@@ -714,6 +810,7 @@
   },
   "genBonus": {
     "title": "Bônus Geracionais",
+<<<<<<< HEAD
     "subtitle": "Bônus em cascata sobre depósitos da sua equipe",
     "ratesTitle": "Taxas de Bônus Atuais",
     "search_plh": "Buscar por nome ou usuário...",
@@ -722,6 +819,15 @@
     "gen3": "3ª Geração",
     "gen4": "4ª Geração",
     "gen5": "5ª Geração",
+=======
+    "subtitle": "Bônus em cascata de 8/7/6/5% sobre depósitos da sua equipe",
+    "search_plh": "Buscar por nome ou usuário...",
+    "all": "Todas as Gerações",
+    "gen2": "2ª Geração (8%)",
+    "gen3": "3ª Geração (7%)",
+    "gen4": "4ª Geração (6%)",
+    "gen5": "5ª Geração (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "user": "Usuário",
     "username": "Usuário",
     "generation": "Geração",
@@ -732,18 +838,25 @@
     "empty": "Nenhum bônus geracional ainda",
     "loading": "Carregando...",
     "error": "Algo deu errado",
+<<<<<<< HEAD
     "page": "Página {{page}} de {{totalPages}}",
     "genLevel2": "2ª Geração",
     "genLevel3": "3ª Geração",
     "genLevel4": "4ª Geração",
     "genLevel5": "5ª Geração",
     "genLevelN": "{{level}}ª Geração"
+=======
+    "page": "Página {{page}} de {{totalPages}}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "convertOFA": {
     "title": "Converter OFA para USDT",
     "subtitle": "Troque seus tokens OFA por USDT",
     "ofaBalance": "Seu Saldo OFA",
+<<<<<<< HEAD
     "convertedBalance": "Saldo Convertido",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Seu Saldo USDT",
     "rate": "Taxa de Conversão",
     "ofaAmount": "Quantidade de OFA",
@@ -753,8 +866,12 @@
     "convert": "Converter para USDT",
     "err_amount": "Insira uma quantidade válida de OFA",
     "err_balance": "Saldo OFA insuficiente",
+<<<<<<< HEAD
     "err_failed": "Falha na conversão",
     "err_kyc": "A verificação KYC é obrigatória antes de converter tokens OFA. Conclua sua verificação KYC para desbloquear a conversão de tokens."
+=======
+    "err_failed": "Falha na conversão"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -777,6 +894,7 @@
     "phone": "Telefone",
     "photo_uploaded": "Imagem de perfil enviada",
     "photo_saved": "Foto salva",
+<<<<<<< HEAD
     "photo_failed": "Falha ao salvar foto",
     "kycPackages": {
       "title": "Gestão de Pacotes KYC",
@@ -865,6 +983,9 @@
       "totalOfaDistribution": "Total OFA Distribution",
       "totalOfaDistributionSubtitle": "Signup Bonus + Daily Mining"
     }
+=======
+    "photo_failed": "Falha ao salvar foto"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "common": {
     "loading": "Carregando...",
@@ -894,6 +1015,7 @@
     "all": "Tudo",
     "none": "Nenhum",
     "required": "Obrigatório",
+<<<<<<< HEAD
     "optional": "Opcional",
     "scrollToTop": "Rolar para o topo",
     "announcement": "Anúncio",
@@ -918,6 +1040,27 @@
     }
   },
   "home": {
+=======
+    "optional": "Opcional"
+  },
+  "homePage": {
+    "imageAlt": "Serviços Financeiros",
+    "altOurCommitment": "Nosso Compromisso"
+  },
+  "home": {
+    "executiveSummary": {
+      "badge": "Sobre nós",
+      "paragraph": "Oxford Financial Ads é uma plataforma moderna de publicidade digital e engajamento online onde os membros podem participar de diversas atividades digitais. Isso inclui digitação de captcha, entrada de dados, edição de vídeo, design gráfico, marketing digital e outras tarefas online. Através destas atividades, os membros podem conectar-se a uma rede global e obter oportunidades de trabalhar a nível internacional, bem como experiência no mundo real. Nosso objetivo é criar um ambiente profissional, orientado para o desenvolvimento e focado no crescimento por meio do desenvolvimento de habilidades, conectividade global e colaboração baseada na comunidade. Ao participar aqui, os membros podem construir uma rede internacional e também obter acesso a diversas oportunidades baseadas em desempenho, como bônus de geração, bônus de grupo, participação nos lucros da empresa e diferentes conquistas de cargos. Esta plataforma oferece uma oportunidade estruturada para os membros obterem novas experiências no mundo digital, aprimorarem suas habilidades e progredirem financeiramente.",
+      "activities": "Atividades",
+      "network": "Rede",
+      "opportunities": "Oportunidades",
+      "goal": "Meta",
+      "activitiesVal": "Digitais e on-line",
+      "networkVal": "Comunidade Global",
+      "opportunitiesVal": "Baseado em desempenho",
+      "goalVal": "Habilidade e crescimento"
+    },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "whyChooseUs": {
       "title": "Nosso",
       "titleHighlight": "Serviço Financeiro",
@@ -937,9 +1080,13 @@
       "networkTitle": "Rede e comunidade",
       "networkDesc": "Uma comunidade global profissional foi construída para conectar indivíduos de diferentes países e culturas, permitindo o compartilhamento de conhecimento e a troca de experiências em nível internacional. Com base nas habilidades e no desempenho, os membros ganham oportunidades de trabalhar globalmente.",
       "benefitsTitle": "Benefícios para membros",
+<<<<<<< HEAD
       "benefitsDesc": "Ao ingressar na Oxford Financial Ads, os membros obtêm acesso a um ambiente estruturado projetado para excelência profissional e pessoal, com oportunidades para desenvolver habilidades digitais e profissionais avançadas.",
       "ecommerceTitle": "Conta Global Gratuita de Vendedor de E-Commerce",
       "ecommerceDesc": "Os membros recebem uma conta global gratuita de vendedor de e-commerce para começar a vender produtos online em marketplaces internacionais. Por meio dessa oportunidade, os membros podem construir seu próprio negócio online, alcançar clientes em todo o mundo e obter renda com a venda de produtos."
+=======
+      "benefitsDesc": "Ao ingressar na Oxford Financial Ads, os membros obtêm acesso a um ambiente estruturado projetado para excelência profissional e pessoal, com oportunidades para desenvolver habilidades digitais e profissionais avançadas."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "memberBenefits": {
       "badge": "Benefícios para membros",
@@ -1049,6 +1196,7 @@
       "totalActiveInvestors": "Total de investidores ativos",
       "totalInvestmentsMade": "Total de Investimentos Realizados",
       "totalProfitsGenerated": "Lucros totais gerados",
+<<<<<<< HEAD
       "successfulWithdrawals": "Retiradas bem-sucedidas",
       "title": "Oxford Financial Ads",
       "titleHighlight": "Estatísticas Ao Vivo",
@@ -1057,6 +1205,9 @@
       "verifiedFreelancers": "Freelancers Verificados",
       "packageInvestmentOverview": "Visão Geral do Investimento em Pacote",
       "countriesConnected": "Países Conectados"
+=======
+      "successfulWithdrawals": "Retiradas bem-sucedidas"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1070,6 +1221,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "about": {
       "badge": "Visão Geral da Empresa",
@@ -1206,6 +1358,8 @@
       "commitmentTitle": "Nosso Compromisso",
       "commitmentText": "A Oxford Financial Ads está comprometida em construir um ecossistema digital sustentável e focado nos membros. Apoiamos cada membro da nossa comunidade global — protegendo seus interesses, recompensando seu desempenho e ajudando-os a construir um futuro estável, próspero e bem-sucedido.",
       "tagline": "Capacitando o Trabalho Digital Global por meio de Tecnologia, Inovação e Confiança."
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "securityStandards": {
@@ -1254,10 +1408,17 @@
     "card4Title": "Desempenho e responsabilidade da campanha",
     "card4Sub": "Responsabilidade Descentralizada",
     "card4Desc": "Oxford Financial Ads: As campanhas publicitárias operam com base na dinâmica do mercado e algoritmos de plataforma. Os clientes mantêm total responsabilidade por suas decisões de marketing, alocações orçamentárias e resultados de negócios.",
+<<<<<<< HEAD
     "footer": "Comprometidos com a transparência, responsabilidade e liderança ética em todo o mundo",
     "card5Title": "Risco de serviço e isenção de responsabilidade de mercado",
     "card5Sub": "Reconhecimento de Risco",
     "card5Desc": "Oxford Financial Ads: A execução de campanhas publicitárias digitais envolve riscos de mercado e flutuações no envolvimento do público. O desempenho de campanhas anteriores não garante resultados futuros idênticos. Oxford Financial Ads usa modelos avançados de otimização, mas não pode garantir vendas específicas ou resultados de conversão de mercado com certeza absoluta. Os clientes devem alocar orçamentos de marketing com base em seus objetivos de negócios e realizar pesquisas de mercado independentes antes de lançar campanhas em grande escala."
+=======
+    "card5Title": "Risco de serviço e isenção de responsabilidade de mercado",
+    "card5Sub": "Reconhecimento de Risco",
+    "card5Desc": "Oxford Financial Ads: A execução de campanhas publicitárias digitais envolve riscos de mercado e flutuações no envolvimento do público. O desempenho de campanhas anteriores não garante resultados futuros idênticos. Oxford Financial Ads usa modelos avançados de otimização, mas não pode garantir vendas específicas ou resultados de conversão de mercado com certeza absoluta. Os clientes devem alocar orçamentos de marketing com base em seus objetivos de negócios e realizar pesquisas de mercado independentes antes de lançar campanhas em grande escala.",
+    "footer": "Comprometidos com a transparência, responsabilidade e liderança ética em todo o mundo"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "privacySecurity": {
     "badge": "Divulgação de riscos importantes",
@@ -1289,6 +1450,7 @@
   },
   "language": {
     "switch": "Mudar idioma"
+<<<<<<< HEAD
   },
   "hero": {
     "title": "Comece Sua",
@@ -2701,3 +2863,7 @@
     "totalUsdt": "Total USDT Balance"
   }
 }
+=======
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

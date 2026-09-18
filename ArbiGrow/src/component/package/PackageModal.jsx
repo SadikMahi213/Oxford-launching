@@ -1,10 +1,18 @@
+<<<<<<< HEAD
 import { AnimatePresence, motion } from "motion/react";
+=======
+import { AnimatePresence, motion } from "framer-motion";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Button from "../Button";
 import useUserStore from "../../store/userStore";
+<<<<<<< HEAD
+=======
+import KycWarningBanner from "../user/KycWarningBanner.jsx";
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 import {
   buyInvestment,
   refreshUserStore,
@@ -35,7 +43,11 @@ export default function PackageModal({
   const amt = selectedPackage.investment_amount ?? selectedPackage.amount ?? 0;
   const dailyPmt = selectedPackage.daily_payment ?? selectedPackage.dailyPayment ?? 0;
   const totalRet = selectedPackage.total_return ?? selectedPackage.totalReturn ?? 0;
+<<<<<<< HEAD
   const captchaReq = selectedPackage.daily_captcha_limit ?? selectedPackage.captcha_required_per_day ?? 0;
+=======
+  const captchaReq = selectedPackage.captcha_required_per_day ?? selectedPackage.captchaRequiredPerDay ?? 0;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const durDays = selectedPackage.duration_days ?? selectedPackage.durationDays ?? 0;
 
   const handleClose = () => {
@@ -189,6 +201,10 @@ export default function PackageModal({
 
               {isLoggedIn && (
                 <>
+<<<<<<< HEAD
+=======
+                  <KycWarningBanner />
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   <Button
                     variant="gradient"
                     onClick={handlePurchase}

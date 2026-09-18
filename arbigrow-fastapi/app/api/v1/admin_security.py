@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, HTTPException, Request
+<<<<<<< HEAD
 from pydantic import BaseModel
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import joinedload
@@ -9,7 +12,10 @@ from sqlalchemy.orm import joinedload
 from app.core.database import get_db
 from app.api.v1.deps import get_current_admin_user
 from app.models.user import User
+<<<<<<< HEAD
 from app.models.system_config import SystemConfig
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from app.models.security_log import SecurityLog
 from app.services.security_logger import SecurityLogger
 from app.utils.notifications import notify_admin
@@ -37,6 +43,7 @@ async def get_blocked_accounts(
     result = await db.execute(
         select(
             User.id,
+<<<<<<< HEAD
             User.username,
             User.full_name,
             User.email,
@@ -46,6 +53,15 @@ async def get_blocked_accounts(
             User.blocked_at,
             User.blocked_reason,
             User.blocked_by,
+=======
+            User.user_no,
+            User.full_name,
+            User.email,
+            User.username,
+            User.failed_attempts,
+            User.blocked_at,
+            User.blocked_reason,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             User.last_login_ip,
             User.last_login_device,
             User.last_login_at,
@@ -68,11 +84,17 @@ async def get_blocked_accounts(
                 "full_name": row.full_name,
                 "email": row.email,
                 "username": row.username,
+<<<<<<< HEAD
                 "account_status": row.account_status,
                 "failed_attempts": row.failed_attempts,
                 "blocked_at": row.blocked_at.isoformat() if row.blocked_at else None,
                 "blocked_reason": row.blocked_reason,
                 "blocked_by": row.blocked_by,
+=======
+                "failed_attempts": row.failed_attempts,
+                "blocked_at": row.blocked_at.isoformat() if row.blocked_at else None,
+                "blocked_reason": row.blocked_reason,
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 "last_login_ip": row.last_login_ip,
                 "last_login_device": row.last_login_device,
                 "last_login_at": row.last_login_at.isoformat() if row.last_login_at else None,
@@ -162,7 +184,11 @@ async def get_security_logs(
     result = await db.execute(stmt)
     logs = result.scalars().all()
 
+<<<<<<< HEAD
     # Map user_ids to usernames
+=======
+    # Map user_ids to user_nos
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     user_ids = {log.user_id for log in logs if log.user_id}
     user_no_map = {}
     if user_ids:
@@ -209,6 +235,7 @@ async def get_event_types(
             "password_change",
         ]
     }
+<<<<<<< HEAD
 
 
 # ── Security settings (SystemConfig-backed) ─────────────────────────────
@@ -285,3 +312,5 @@ async def update_security_settings(
         "login_max_attempts": body.login_max_attempts,
         "login_lockout_minutes": body.login_lockout_minutes,
     }
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

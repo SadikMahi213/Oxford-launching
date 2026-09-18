@@ -21,12 +21,16 @@
     "comingSoon": "Segera Hadir",
     "terms": "Ketentuan Layanan",
     "privacy": "Kebijakan Privasi",
+<<<<<<< HEAD
     "legal": "Informasi Hukum",
     "brandName": "Oxford Financial Ads",
     "copyright": "© {{year}} Oxford Financial Ads. Semua Hak Dilindungi. | Kebijakan Privasi | Syarat & Ketentuan | Kebijakan AML & KYC | Hubungi Kami",
     "logoAlt": "Logo Saya",
     "logoAltMobile": "Logo Oxford Financial Ads",
     "tagline": "Layanan Digital"
+=======
+    "legal": "Informasi Hukum"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "footer": {
     "description": "Tingkatkan Merek Anda Secara Global. Oxford Financial Ads adalah agensi periklanan internasional yang membantu bisnis membangun merek mereka di pasar global.",
@@ -43,6 +47,7 @@
     "address1": "25 Lapangan Bisnis",
     "address2": "Distrik Canary",
     "address3": "London, EC2A 4AB",
+<<<<<<< HEAD
     "address4": "Inggris Raya",
     "social": {
       "telegram": "Telegram",
@@ -55,10 +60,24 @@
     },
     "brandName": "Oxford Financial Ads",
     "supportEmail": "support.oxfordfinancialads@gmail.com"
+=======
+    "address4": "Inggris Raya"
+  },
+  "hero": {
+    "title": "Platform Periklanan Digital & Penghasilan Online",
+    "subtitle": "Platform Penghasilan",
+    "description": "Oxford Financial Ads adalah platform periklanan digital modern dan keterlibatan online di mana anggota dapat berpartisipasi dalam berbagai aktivitas penghasilan digital.",
+    "cta": "Daftar Gratis Sekarang",
+    "whitepaper": "Baca Whitepaper Teknis"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "faq": {
     "badge": "FAQ",
     "title": "Pertanyaan yang Sering Diajukan",
+<<<<<<< HEAD
+=======
+    "questions": "Pertanyaan",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "q1": "Apa itu Oxford Financial Ads?",
     "a1": "Oxford Financial Ads adalah platform trading arbitrase bertenaga AI yang menggunakan jaringan Arbitrum untuk menghasilkan keuntungan dengan memanfaatkan perbedaan harga di berbagai bursa dengan risiko minimal.",
     "q2": "Apa itu token OFA dan bagaimana cara mendapatkannya?",
@@ -73,8 +92,12 @@
     "a6": "Kami menawarkan sistem referal 5 tingkat yang kuat. Ketika seseorang bergabung melalui referal Anda, Anda akan mendapatkan komisi harian bersama dengan token OFA bonus.",
     "stillQuestions": "Masih ada pertanyaan?",
     "supportText": "Tim dukungan kami tersedia 24/7 untuk membantu Anda dengan hal apa pun yang terkait dengan Oxford Financial Ads.",
+<<<<<<< HEAD
     "contactSupport": "Hubungi Dukungan",
     "titleHighlight": "Pertanyaan"
+=======
+    "contactSupport": "Hubungi Dukungan"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "auth": {
     "login": {
@@ -89,9 +112,13 @@
       "success": "Berhasil masuk",
       "blocked": "Akun Anda diblokir sementara karena beberapa kali percobaan masuk yang gagal. Harap hubungi tim dukungan perusahaan: support.oxfordfinancialads@gmail.com",
       "invalid": "Masuk tidak valid",
+<<<<<<< HEAD
       "failed": "Masuk gagal",
       "welcomeBack": "Selamat Datang Kembali",
       "welcomeSubtitle": "Masuk untuk mengakses dasbor Anda dan kembangkan portofolio Anda."
+=======
+      "failed": "Masuk gagal"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "register": {
       "title": "Buat Akun Anda",
@@ -190,11 +217,15 @@
       "err_agree": "Anda harus menyetujui syarat & ketentuan",
       "success": "Pendaftaran berhasil!",
       "networkError": "Kesalahan jaringan atau server tidak dapat dijangkau",
+<<<<<<< HEAD
       "error": "Terjadi kesalahan",
       "joinTitle": "Bergabung Hari Ini",
       "joinSubtitle": "Buat akun untuk mulai menghasilkan dengan platform modern kami untuk iklan digital.",
       "perDay": "/hari",
       "success_paid": "Pendaftaran dikirim! Silakan selesaikan pembayaran untuk mengaktifkan akun Anda."
+=======
+      "error": "Terjadi kesalahan"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "forgotPassword": {
       "title": "Atur Ulang Kata Sandi Anda",
@@ -253,7 +284,10 @@
   "userDashboard": {
     "header": "Portal Pengguna",
     "accountOnHold": "Akun Anda saat ini ditahan. Anda hanya dapat menggunakan deposit sekarang.",
+<<<<<<< HEAD
     "accountSuspended": "Akun Anda telah ditangguhkan sementara karena kesalahan tugas. Harap tunggu hingga masa penangguhan berakhir.",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "comingSoon": "Segera Hadir",
     "inDevelopment": "Halaman ini sedang dalam pengembangan",
     "sidebar": {
@@ -279,7 +313,11 @@
       "referralBonuses": "Bonus Referal",
       "referralBonuses_desc": "10% penghasilan referal langsung",
       "genBonuses": "Bonus Generasi",
+<<<<<<< HEAD
       "genBonuses_desc": "Penghasilan tim",
+=======
+      "genBonuses_desc": "8/7/6/5% penghasilan tim",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
       "matchingBonus": "Bonus Pencocokan",
       "matchingBonus_desc": "Rencana bonus berbasis peringkat",
       "walletTransfer": "Transfer Dompet",
@@ -302,6 +340,7 @@
       "privacy_desc": "Data & privasi",
       "whitepaper": "Whitepaper Teknis",
       "whitepaper_desc": "Dokumentasi proyek",
+<<<<<<< HEAD
       "soon": "Segera",
       "banking": "Pengaturan Perbankan",
       "banking_desc": "Daftarkan detail bank",
@@ -309,6 +348,9 @@
       "ledger_desc": "Your balances across every wallet",
       "earningHistory": "Earning History",
       "earningHistory_desc": "Earnings, bonuses and rewards"
+=======
+      "soon": "Segera"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "overview": {
@@ -326,9 +368,13 @@
       "sendFunds": "Kirim Dana",
       "transfers": "Transfer",
       "mbTransfer": "Transfer MB",
+<<<<<<< HEAD
       "kyc": "Verifikasi KYC",
       "matchingBonusPlan": "Rencana Bonus Pencocokan",
       "walletTransfer": "Transfer Dompet"
+=======
+      "kyc": "Verifikasi KYC"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "wallets": {
       "main": "Dompet Utama",
@@ -348,9 +394,13 @@
       "clickHistory": "Klik untuk melihat riwayat",
       "openTokenInfo": "Buka informasi token",
       "viewHistory": "Lihat Riwayat",
+<<<<<<< HEAD
       "transfer": "Transfer",
       "usable": "Saldo yang Dapat Digunakan",
       "ofaToken": "Token OFA"
+=======
+      "transfer": "Transfer"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "tokenInfo": {
       "title": "Informasi Token",
@@ -386,8 +436,12 @@
       "title": "Kinerja Tim",
       "level": "Level {{level}}",
       "loading": "Memuat...",
+<<<<<<< HEAD
       "netEarnings": "Pendapatan Bersih (Semua Tingkat)",
       "growth": "15.7% vs 30 hari terakhir"
+=======
+      "netEarnings": "Pendapatan Bersih (Semua Tingkat)"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "mining": {
       "title": "Dompet Penambangan Token OFA",
@@ -399,6 +453,7 @@
       "claiming": "Mengklaim...",
       "claim": "Klaim Hadiah",
       "howTitle": "Cara Kerja Penambangan",
+<<<<<<< HEAD
       "step1": "Mulai sesi penambangan — token OFA mulai terakumulasi setiap detik selama siklus 24 jam.",
       "step2": "Tingkat penambangan dihitung berdasarkan volume jaringan dan tier staking Anda saat ini.",
       "step3": "Token yang terakumulasi disetorkan langsung ke Wallet Penambangan Anda secara real-time.",
@@ -410,6 +465,14 @@
       "dailyCap": "BATAS HARIAN",
       "lastClaim": "KLAIM TERAKHIR",
       "notClaimed": "Belum diklaim"
+=======
+      "step1": "1. Klik \"Mulai Menambang\" untuk memulai siklus penambangan 24 jam.",
+      "step2": "2. Token OFA ditambang terus menerus dengan tingkat yang sebanding dengan batas harian dibagi 86.400 detik.",
+      "step3": "3. Setelah minimal 1 menit, klik \"Klaim Hadiah\" untuk mentransfer token yang ditambang ke Dompet Penambangan Anda.",
+      "step4": "4. Anda dapat mengklaim beberapa kali selama siklus — setiap klaim memberikan token yang ditambang sejak klaim terakhir Anda.",
+      "step5": "5. Saat siklus 24 jam berakhir, penambangan diatur ulang secara otomatis. Mulai siklus baru untuk terus mendapatkan penghasilan.",
+      "step6": "6. Token OFA yang ditambang dapat dikonversi ke USDT melalui halaman Konversi. Transfer eksternal segera hadir."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "history": {
       "noHistory": "Tidak ada riwayat {{type}} ditemukan.",
@@ -425,11 +488,15 @@
       "fromUser": "Dari Pengguna",
       "level": "Level",
       "status": "Status",
+<<<<<<< HEAD
       "received": "diterima",
       "type": "Tipe",
       "details": "Detail",
       "typeDeposit": "Deposit",
       "typeKycRefund": "Pengembalian KYC"
+=======
+      "received": "diterima"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "historyTypes": {
       "deposit": "Riwayat Deposit",
@@ -437,6 +504,7 @@
       "referral": "Riwayat Penghasilan Referal",
       "matching": "Riwayat Bonus Pencocokan",
       "generation": "Riwayat Penghasilan Generasi"
+<<<<<<< HEAD
     },
     "ofaCoin": {
       "title": "Kripto OFA",
@@ -451,6 +519,9 @@
     "pendingPayment": "Pembayaran paket Anda belum selesai. Silakan selesaikan pembayaran Anda. Setelah pembayaran Anda disetujui oleh Tim Compliance Kami, semua fitur penghasilan akan diaktifkan secara otomatis.",
     "viewAll": "Lihat Semua",
     "allLevels": "Semua Level"
+=======
+    }
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "profile": {
     "title": "Profil",
@@ -479,8 +550,12 @@
     "photo_uploaded": "Gambar profil diunggah",
     "photo_saved": "Foto disimpan",
     "photo_failed": "Unggah gagal",
+<<<<<<< HEAD
     "photo_saveFailed": "Gagal menyimpan foto",
     "rejectionReason": "Alasan Penolakan:"
+=======
+    "photo_saveFailed": "Gagal menyimpan foto"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "deposit": {
     "title": "Deposit USDT",
@@ -507,9 +582,13 @@
     "err_field": "Bidang diperlukan",
     "err_amount": "Jumlah harus lebih dari 0.",
     "err_txid": "Minimal 5 karakter.",
+<<<<<<< HEAD
     "err_noNetwork": "Tidak ada jaringan deposit aktif. Silakan hubungi dukungan.",
     "err_min_amount": "Jumlah deposit minimum adalah {{min}} USDT.",
     "min_amount_hint": "Minimum: {{min}} USDT"
+=======
+    "err_noNetwork": "Tidak ada jaringan deposit aktif. Silakan hubungi dukungan."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "withdraw": {
     "title": "Tarik Dana",
@@ -552,13 +631,18 @@
     "loadingHistory": "Memuat riwayat penarikan...",
     "noHistory": "Tidak ada riwayat penarikan ditemukan.",
     "err_general": "Terjadi kesalahan",
+<<<<<<< HEAD
     "success": "Permintaan penarikan dikirim. Sekarang menunggu review Tim Compliance Kami.",
+=======
+    "success": "Permintaan penarikan dikirim. Sekarang menunggu review admin.",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "err_field": "Bidang diperlukan",
     "err_validAmount": "Silakan masukkan jumlah yang valid.",
     "err_min": "Jumlah penarikan minimum adalah {{min}} USDT.",
     "err_max": "Jumlah penarikan maksimum adalah {{max}} USDT.",
     "err_balance": "Saldo tidak mencukupi di {{wallet}}. Tersedia: {{balance}}.",
     "err_mainBalance": "Saldo Dompet Utama tidak mencukupi. Diperlukan: {{required}} USDT (Jumlah + 1%), Tersedia: {{available}} USDT.",
+<<<<<<< HEAD
     "err_address": "Minimal 5 karakter.",
     "err_mode_banking": "Hanya penarikan transfer bank yang diizinkan saat ini.",
     "err_mode_network": "Penarikan jaringan saat ini dinonaktifkan.",
@@ -582,6 +666,9 @@
     "accountType": "Jenis Akun",
     "accountPersonal": "Pribadi",
     "accountAgent": "Agen"
+=======
+    "err_address": "Minimal 5 karakter."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "walletTransfer": {
     "title": "Transfer Dompet",
@@ -599,6 +686,7 @@
     "err_amount": "Masukkan jumlah yang valid",
     "err_sameWallet": "Sumber dan tujuan harus berbeda",
     "err_balance": "Saldo tidak mencukupi",
+<<<<<<< HEAD
     "err_failed": "Transfer gagal",
     "walletMain": "Dompet Utama",
     "walletReferral": "Dompet Referral",
@@ -608,6 +696,9 @@
     "walletCaptcha": "Dompet Ketik Captcha",
     "walletAdView": "Dompet Lihat Iklan",
     "walletDeposit": "Dompet Deposit"
+=======
+    "err_failed": "Transfer gagal"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "sendFunds": {
     "title": "Kirim Dana",
@@ -629,10 +720,14 @@
     "err_noUser": "Tidak ada pengguna yang cocok dengan '{{query}}'",
     "err_search": "Pencarian gagal: {{error}}",
     "success": "Mengirim {{amount}} USDT ke {{name}}",
+<<<<<<< HEAD
     "err_failed": "Transfer gagal",
     "err_kyc": "Verifikasi KYC diperlukan. Harap selesaikan verifikasi KYC sebelum mengirim dana.",
     "minTransfer": "Minimum transfer: {{min}} {{currency}}",
     "err_min": "Minimum transfer amount is {{min}} {{currency}}"
+=======
+    "err_failed": "Transfer gagal"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "matchingBonusTransfer": {
     "title": "Transfer Bonus Pencocokan",
@@ -714,6 +809,7 @@
   },
   "genBonus": {
     "title": "Bonus Generasi",
+<<<<<<< HEAD
     "subtitle": "Bonus berjenjang dari deposit tim Anda",
     "ratesTitle": "Tarif Bonus Saat Ini",
     "search_plh": "Cari berdasarkan nama atau nama pengguna...",
@@ -722,6 +818,15 @@
     "gen3": "Generasi ke-3",
     "gen4": "Generasi ke-4",
     "gen5": "Generasi ke-5",
+=======
+    "subtitle": "Bonus berjenjang 8/7/6/5% dari deposit tim Anda",
+    "search_plh": "Cari berdasarkan nama atau nama pengguna...",
+    "all": "Semua Generasi",
+    "gen2": "Generasi ke-2 (8%)",
+    "gen3": "Generasi ke-3 (7%)",
+    "gen4": "Generasi ke-4 (6%)",
+    "gen5": "Generasi ke-5 (5%)",
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "user": "Pengguna",
     "username": "Nama Pengguna",
     "generation": "Generasi",
@@ -732,18 +837,25 @@
     "empty": "Belum ada bonus generasi",
     "loading": "Memuat...",
     "error": "Terjadi kesalahan",
+<<<<<<< HEAD
     "page": "Halaman {{page}} dari {{totalPages}}",
     "genLevel2": "Generasi ke-2",
     "genLevel3": "Generasi ke-3",
     "genLevel4": "Generasi ke-4",
     "genLevel5": "Generasi ke-5",
     "genLevelN": "Generasi ke-{{level}}"
+=======
+    "page": "Halaman {{page}} dari {{totalPages}}"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "convertOFA": {
     "title": "Konversi OFA ke USDT",
     "subtitle": "Tukar token OFA Anda dengan USDT",
     "ofaBalance": "Saldo OFA Anda",
+<<<<<<< HEAD
     "convertedBalance": "Saldo yang Dikonversi",
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "usdtBalance": "Saldo USDT Anda",
     "rate": "Nilai Tukar",
     "ofaAmount": "Jumlah OFA",
@@ -753,8 +865,12 @@
     "convert": "Konversi ke USDT",
     "err_amount": "Masukkan jumlah OFA yang valid",
     "err_balance": "Saldo OFA tidak mencukupi",
+<<<<<<< HEAD
     "err_failed": "Konversi gagal",
     "err_kyc": "Verifikasi KYC diperlukan sebelum mengonversi token OFA. Harap selesaikan verifikasi KYC untuk membuka konversi token."
+=======
+    "err_failed": "Konversi gagal"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "notFound": {
     "code": "404",
@@ -777,6 +893,7 @@
     "phone": "Telepon",
     "photo_uploaded": "Gambar profil diunggah",
     "photo_saved": "Foto disimpan",
+<<<<<<< HEAD
     "photo_failed": "Gagal menyimpan foto",
     "kycPackages": {
       "title": "Manajemen Paket KYC",
@@ -865,6 +982,9 @@
       "totalOfaDistribution": "Total OFA Distribution",
       "totalOfaDistributionSubtitle": "Signup Bonus + Daily Mining"
     }
+=======
+    "photo_failed": "Gagal menyimpan foto"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "common": {
     "loading": "Memuat...",
@@ -894,6 +1014,7 @@
     "all": "Semua",
     "none": "Tidak Ada",
     "required": "Wajib",
+<<<<<<< HEAD
     "optional": "Opsional",
     "scrollToTop": "Gulir ke atas",
     "announcement": "Pengumuman",
@@ -918,6 +1039,27 @@
     }
   },
   "home": {
+=======
+    "optional": "Opsional"
+  },
+  "homePage": {
+    "imageAlt": "Layanan Keuangan",
+    "altOurCommitment": "Komitmen kami"
+  },
+  "home": {
+    "executiveSummary": {
+      "badge": "Tentang Kami",
+      "paragraph": "Oxford Financial Ads adalah platform periklanan digital dan keterlibatan online modern di mana anggota dapat berpartisipasi dalam berbagai aktivitas digital. Ini termasuk pengetikan captcha, entri data, pengeditan video, desain grafis, pemasaran digital, dan tugas berbasis online lainnya. Melalui kegiatan ini, anggota dapat terhubung dengan jaringan global dan mendapatkan kesempatan bekerja di tingkat internasional serta pengalaman dunia nyata. Tujuan kami adalah menciptakan lingkungan yang profesional, berorientasi pada pembangunan, dan fokus pada pertumbuhan melalui pengembangan keterampilan, konektivitas global, dan kolaborasi berbasis komunitas. Dengan berpartisipasi di sini, anggota dapat membangun jaringan internasional dan juga mendapatkan akses ke berbagai peluang berbasis kinerja seperti bonus generasi, bonus grup, bagi hasil perusahaan, dan pencapaian berbagai posisi. Platform ini memberikan peluang terstruktur bagi anggota untuk mendapatkan pengalaman baru di dunia digital, meningkatkan keterampilan, dan maju secara finansial.",
+      "activities": "Kegiatan",
+      "network": "Jaringan",
+      "opportunities": "Peluang",
+      "goal": "Sasaran",
+      "activitiesVal": "Digital & Daring",
+      "networkVal": "Komunitas Global",
+      "opportunitiesVal": "Berbasis Kinerja",
+      "goalVal": "Keterampilan & Pertumbuhan"
+    },
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     "whyChooseUs": {
       "title": "Kita",
       "titleHighlight": "Layanan Keuangan",
@@ -937,9 +1079,13 @@
       "networkTitle": "Jaringan & Komunitas",
       "networkDesc": "Komunitas global profesional telah dibangun untuk menghubungkan individu-individu di berbagai negara dan budaya, memungkinkan pertukaran pengetahuan dan pertukaran pengalaman di tingkat internasional. Berdasarkan keterampilan dan kinerja, anggota mendapatkan kesempatan untuk bekerja secara global.",
       "benefitsTitle": "Keuntungan Anggota",
+<<<<<<< HEAD
       "benefitsDesc": "Dengan bergabung dengan Oxford Financial Ads, anggota mendapatkan akses ke lingkungan terstruktur yang dirancang untuk keunggulan profesional dan pribadi dengan peluang untuk mengembangkan keterampilan digital dan profesional tingkat lanjut.",
       "ecommerceTitle": "Akun Penjual E-Commerce Global Gratis",
       "ecommerceDesc": "Anggota menerima akun penjual e-commerce global gratis untuk mulai menjual produk secara online di pasar internasional. Melalui kesempatan ini, anggota dapat membangun bisnis online mereka sendiri, menjangkau pelanggan di seluruh dunia, dan memperoleh penghasilan dari penjualan produk."
+=======
+      "benefitsDesc": "Dengan bergabung dengan Oxford Financial Ads, anggota mendapatkan akses ke lingkungan terstruktur yang dirancang untuk keunggulan profesional dan pribadi dengan peluang untuk mengembangkan keterampilan digital dan profesional tingkat lanjut."
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "memberBenefits": {
       "badge": "Keuntungan Anggota",
@@ -1049,6 +1195,7 @@
       "totalActiveInvestors": "Jumlah Investor Aktif",
       "totalInvestmentsMade": "Total Investasi yang Dilakukan",
       "totalProfitsGenerated": "Total Keuntungan yang Dihasilkan",
+<<<<<<< HEAD
       "successfulWithdrawals": "Penarikan Berhasil",
       "title": "Oxford Financial Ads",
       "titleHighlight": "Statistik Langsung",
@@ -1057,6 +1204,9 @@
       "verifiedFreelancers": "Freelancer Terverifikasi",
       "packageInvestmentOverview": "Ringkasan Investasi Paket",
       "countriesConnected": "Negara yang Terhubung"
+=======
+      "successfulWithdrawals": "Penarikan Berhasil"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     },
     "ecommerce": {
       "badge": "E-Commerce",
@@ -1070,6 +1220,7 @@
       "securePlatform": "✅ Secure, Modern & User-Friendly Platform",
       "callToAction": "Turn your ideas into a real online business. Join today, create your own store, and start building your brand with confidence.",
       "ctaButton": "Create Your Free Store"
+<<<<<<< HEAD
     },
     "about": {
       "badge": "Ikhtisar Perusahaan",
@@ -1206,6 +1357,8 @@
       "commitmentTitle": "Komitmen Kami",
       "commitmentText": "Oxford Financial Ads berkomitmen untuk membangun ekosistem digital yang berkelanjutan dan berfokus pada anggota. Kami berdiri di samping setiap anggota komunitas global kami — melindungi kepentingan mereka, menghargai kinerja mereka, dan membantu mereka membangun masa depan yang stabil, sejahtera, dan sukses.",
       "tagline": "Memberdayakan Kerja Digital Global Melalui Teknologi, Inovasi, dan Kepercayaan."
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     }
   },
   "securityStandards": {
@@ -1254,10 +1407,17 @@
     "card4Title": "Kinerja & Tanggung Jawab Kampanye",
     "card4Sub": "Tanggung Jawab Terdesentralisasi",
     "card4Desc": "Iklan Keuangan Oxford: Kampanye periklanan beroperasi berdasarkan dinamika pasar dan algoritma platform. Klien mempunyai tanggung jawab penuh atas keputusan pemasaran, alokasi anggaran, dan hasil bisnis mereka.",
+<<<<<<< HEAD
     "footer": "Berkomitmen terhadap transparansi, akuntabilitas, dan kepemimpinan etis di seluruh dunia",
     "card5Title": "Risiko Layanan & Penafian Pasar",
     "card5Sub": "Pengakuan Risiko",
     "card5Desc": "Iklan Keuangan Oxford: Melaksanakan kampanye periklanan digital melibatkan risiko pasar dan fluktuasi dalam keterlibatan audiens. Performa kampanye sebelumnya tidak menjamin hasil yang sama di masa mendatang. Iklan Keuangan Oxford menggunakan model pengoptimalan tingkat lanjut, namun tidak dapat menjamin hasil penjualan atau konversi pasar tertentu dengan kepastian mutlak. Klien harus mengalokasikan anggaran pemasaran berdasarkan tujuan bisnis mereka dan melakukan riset pasar independen sebelum meluncurkan kampanye skala besar."
+=======
+    "card5Title": "Risiko Layanan & Penafian Pasar",
+    "card5Sub": "Pengakuan Risiko",
+    "card5Desc": "Iklan Keuangan Oxford: Melaksanakan kampanye periklanan digital melibatkan risiko pasar dan fluktuasi dalam keterlibatan audiens. Performa kampanye sebelumnya tidak menjamin hasil yang sama di masa mendatang. Iklan Keuangan Oxford menggunakan model pengoptimalan tingkat lanjut, namun tidak dapat menjamin hasil penjualan atau konversi pasar tertentu dengan kepastian mutlak. Klien harus mengalokasikan anggaran pemasaran berdasarkan tujuan bisnis mereka dan melakukan riset pasar independen sebelum meluncurkan kampanye skala besar.",
+    "footer": "Berkomitmen terhadap transparansi, akuntabilitas, dan kepemimpinan etis di seluruh dunia"
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   },
   "privacySecurity": {
     "badge": "Pengungkapan Risiko Penting",
@@ -1289,6 +1449,7 @@
   },
   "language": {
     "switch": "Ganti Bahasa"
+<<<<<<< HEAD
   },
   "hero": {
     "title": "Mulai",
@@ -2701,3 +2862,7 @@
     "totalUsdt": "Total USDT Balance"
   }
 }
+=======
+  }
+}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
+=======
+from fastapi import Depends, HTTPException, status
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -10,6 +14,7 @@ from app.core.security import get_current_user_id
 from app.models.user import User
 
 
+<<<<<<< HEAD
 # Heartbeat throttle: only persist last_active_at at most once per minute per
 # user to avoid a write on every authenticated request.
 _HEARTBEAT_INTERVAL = timedelta(minutes=1)
@@ -74,6 +79,8 @@ def check_no_suspension(user: User) -> None:
         )
 
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
 async def get_current_user(
     user_id: int = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
@@ -90,6 +97,7 @@ async def get_current_user(
             detail="User not found"
         )
 
+<<<<<<< HEAD
     # OFA User Approval gate (KYC-independent) - must be before any protected access
     if not getattr(user, "is_admin", False):
         approval = (getattr(user, "approval_status", None) or "pending").strip().lower()
@@ -128,6 +136,8 @@ async def get_current_user(
         except SQLAlchemyError:
             await db.rollback()
 
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     return user
 
 

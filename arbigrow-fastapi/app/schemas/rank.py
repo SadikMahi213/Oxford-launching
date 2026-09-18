@@ -56,9 +56,12 @@ class RankHistoryResponse(BaseModel):
     id: int
     user_id: int
     user_no: Optional[str] = None
+<<<<<<< HEAD
     user_full_name: Optional[str] = None
     user_username: Optional[str] = None
     user_email: Optional[str] = None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     rank_id: int
     previous_rank_id: Optional[int] = None
     team_volume: Decimal

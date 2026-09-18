@@ -57,6 +57,7 @@ class RankHistory(Base):
     @property
     def user_no(self) -> str | None:
         return self.user.user_no if self.user else None
+<<<<<<< HEAD
 
     @property
     def user_full_name(self) -> str | None:
@@ -69,3 +70,5 @@ class RankHistory(Base):
     @property
     def user_email(self) -> str | None:
         return self.user.email if self.user else None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

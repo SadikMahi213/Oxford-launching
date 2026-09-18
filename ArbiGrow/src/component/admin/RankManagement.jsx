@@ -207,7 +207,12 @@ export default function RankManagement() {
           <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-cyan-500" />
         </div>
       ) : (
+<<<<<<< HEAD
         <div className="responsive-table-wrapper">
+=======
+        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] overflow-hidden">
+          <div className="overflow-x-auto">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
@@ -222,6 +227,7 @@ export default function RankManagement() {
               <tbody className="divide-y divide-white/5">
                 {ranks.map((rank) => (
                   <tr key={rank.id} className="hover:bg-white/[0.02] transition-colors">
+<<<<<<< HEAD
                     <td data-label="#" className="px-4 py-3 text-gray-400">{rank.sort_order}</td>
                     <td data-label="Rank" className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -236,6 +242,22 @@ export default function RankManagement() {
                       {getMatchingPercent(rank)}%
                     </td>
                     <td data-label="Status" className="px-4 py-3">
+=======
+                    <td className="px-4 py-3 text-gray-400">{rank.sort_order}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Medal className="size-4 text-yellow-400" />
+                        <span className="font-medium text-white">{rank.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-gray-300">
+                      ${Number(rank.target_volume).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-cyan-400">
+                      {getMatchingPercent(rank)}%
+                    </td>
+                    <td className="px-4 py-3">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       <span
                         className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
                           rank.is_active
@@ -246,7 +268,11 @@ export default function RankManagement() {
                         {rank.is_active ? "Active" : "Disabled"}
                       </span>
                     </td>
+<<<<<<< HEAD
                     <td data-label="Actions" className="px-4 py-3">
+=======
+                    <td className="px-4 py-3">
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleToggle(rank)}
@@ -275,6 +301,10 @@ export default function RankManagement() {
                 ))}
               </tbody>
             </table>
+<<<<<<< HEAD
+=======
+          </div>
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
         </div>
       )}
 

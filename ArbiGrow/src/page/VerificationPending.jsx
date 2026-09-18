@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useTranslation } from "react-i18next";
+<<<<<<< HEAD
 import { Clock, XCircle, AlertCircle, ArrowLeft, ArrowRight, MessageSquare } from "lucide-react";
 import { getFeeInfo } from "../api/user.api.js";
 import useUserStore from "../store/userStore";
@@ -9,6 +10,13 @@ import KycSuccessCard from "../component/user/KycSuccessCard.jsx";
 export function VerificationPending({ embedded, onEdit }) {
   const { t } = useTranslation();
   const user = useUserStore((s) => s.user);
+=======
+import { Clock, CheckCircle2, XCircle, AlertCircle, ArrowLeft, MessageSquare } from "lucide-react";
+import { getFeeInfo } from "../api/user.api.js";
+
+export function VerificationPending({ embedded }) {
+  const { t } = useTranslation();
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   const [kycStatus, setKycStatus] = useState("pending");
   const [kycNote, setKycNote] = useState("");
 
@@ -25,6 +33,7 @@ export function VerificationPending({ embedded, onEdit }) {
   const isApproved = kycStatus === "approved";
   const isRejected = kycStatus === "rejected";
 
+<<<<<<< HEAD
   if (isApproved) {
     return (
       <div className={`${embedded ? "" : "min-h-screen "}bg-[#0a0e27] text-white overflow-hidden ${embedded ? "p-4 rounded-2xl" : "flex items-center justify-center px-4 py-12"}`}>
@@ -46,6 +55,8 @@ export function VerificationPending({ embedded, onEdit }) {
   }
 
   /* ---- Pending / Rejected states (unchanged) ---- */
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
   return (
     <div className={`${embedded ? "" : "min-h-screen "}bg-gradient-to-b from-[#0a0e27] via-[#0d1137] to-[#0a0e27] text-white overflow-hidden ${embedded ? "p-4 rounded-2xl" : "flex items-center justify-center px-4 py-12"}`}>
       {!embedded && (
@@ -88,12 +99,24 @@ export function VerificationPending({ embedded, onEdit }) {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.6, delay: 0.2, type: "spring" }}
                 className={`flex items-center justify-center w-24 h-24 rounded-full border-2 mb-6 ${
+<<<<<<< HEAD
                   isRejected
+=======
+                  isApproved
+                    ? "bg-emerald-500/10 border-emerald-500/50"
+                    : isRejected
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     ? "bg-red-500/10 border-red-500/50"
                     : "bg-yellow-500/10 border-yellow-500/50"
                 }`}
               >
+<<<<<<< HEAD
                 {isRejected ? (
+=======
+                {isApproved ? (
+                  <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+                ) : isRejected ? (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   <XCircle className="w-12 h-12 text-red-400" />
                 ) : (
                   <Clock className="w-12 h-12 text-yellow-400" />
@@ -105,11 +128,23 @@ export function VerificationPending({ embedded, onEdit }) {
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
                 <div className={`px-6 py-2 rounded-full border font-semibold text-sm ${
+<<<<<<< HEAD
                   isRejected
                     ? "bg-red-500/10 border-red-500/30 text-red-400"
                     : "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"
                 }`}>
                   {isRejected
+=======
+                  isApproved
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                    : isRejected
+                    ? "bg-red-500/10 border-red-500/30 text-red-400"
+                    : "bg-yellow-500/10 border-yellow-500/30 text-yellow-400"
+                }`}>
+                  {isApproved
+                    ? t("verificationPending.approvedBadge")
+                    : isRejected
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                     ? t("verificationPending.rejectedBadge")
                     : t("verificationPending.badge")}
                 </div>
@@ -121,6 +156,7 @@ export function VerificationPending({ embedded, onEdit }) {
               transition={{ duration: 0.6, delay: 0.5 }}
               className="text-3xl md:text-4xl font-bold mb-4"
             >
+<<<<<<< HEAD
               {isRejected
                 ? t("verificationPending.rejectedTitle")
                 : t("verificationPending.title")}{" "}
@@ -130,6 +166,23 @@ export function VerificationPending({ embedded, onEdit }) {
                   : "bg-gradient-to-r from-yellow-400 to-orange-400"
               }`}>
                 {isRejected
+=======
+              {isApproved
+                ? t("verificationPending.approvedTitle")
+                : isRejected
+                ? t("verificationPending.rejectedTitle")
+                : t("verificationPending.title")}{" "}
+              <span className={`bg-clip-text text-transparent ${
+                isApproved
+                  ? "bg-gradient-to-r from-emerald-400 to-green-400"
+                  : isRejected
+                  ? "bg-gradient-to-r from-red-400 to-orange-400"
+                  : "bg-gradient-to-r from-yellow-400 to-orange-400"
+              }`}>
+                {isApproved
+                  ? t("verificationPending.approvedHighlight")
+                  : isRejected
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                   ? t("verificationPending.rejectedHighlight")
                   : t("verificationPending.titleHighlight")}
               </span>
@@ -140,11 +193,21 @@ export function VerificationPending({ embedded, onEdit }) {
               transition={{ duration: 0.6, delay: 0.6 }}
               className="text-gray-400 text-lg mb-8 max-w-xl mx-auto leading-relaxed"
             >
+<<<<<<< HEAD
               {isRejected
+=======
+              {isApproved
+                ? t("verificationPending.approvedBody")
+                : isRejected
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
                 ? t("verificationPending.rejectedBody")
                 : t("verificationPending.body")}
             </motion.p>
 
+<<<<<<< HEAD
+=======
+            {/* Admin note for rejected KYC */}
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
             {isRejected && kycNote && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -160,7 +223,12 @@ export function VerificationPending({ embedded, onEdit }) {
               </motion.div>
             )}
 
+<<<<<<< HEAD
             {!isRejected && (
+=======
+            {/* Pending info card */}
+            {!isApproved && !isRejected && (
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -181,6 +249,7 @@ export function VerificationPending({ embedded, onEdit }) {
                 </p>
               </motion.div>
             )}
+<<<<<<< HEAD
 
             {!isApproved && onEdit && (
               <motion.div
@@ -197,6 +266,8 @@ export function VerificationPending({ embedded, onEdit }) {
                 </button>
               </motion.div>
             )}
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
           </div>
         </motion.div>
       </div>
@@ -204,4 +275,8 @@ export function VerificationPending({ embedded, onEdit }) {
   );
 }
 
+<<<<<<< HEAD
 export default VerificationPending;
+=======
+export default VerificationPending;
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0

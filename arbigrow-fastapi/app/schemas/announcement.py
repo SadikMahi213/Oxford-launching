@@ -11,7 +11,10 @@ class AnnouncementResponse(BaseModel):
     id: int
     title: str
     message: str | None = None
+<<<<<<< HEAD
     translations: dict | None = None
+=======
+>>>>>>> d04f360fd06044540c5688a5c1c27c786e7355f0
     image_url: str | None = None
     is_active: bool
     created_by: int | None = None
