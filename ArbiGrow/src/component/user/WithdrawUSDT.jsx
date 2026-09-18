@@ -1,0 +1,676 @@
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AlertTriangle, ArrowUpRight, Building2, ChevronDown, Copy, Send, CheckCircle, Smartphone } from "lucide-react";
+import useUserStore from "../../store/userStore.js";
+import KycWarningBanner from "./KycWarningBanner.jsx";
+import {
+  createWithdrawalRequest,
+  getActiveWithdrawalMethods,
+  getMyWithdrawals,
+  getMyBankInfo,
+  refreshUserStore,
+} from "../../api/user.api.js";
+import StatusFeedbackModal from "../StatusFeedbackModal.jsx";
+import TransactionDetailModal from "./TransactionDetailModal.jsx";
+
+const MAIN_WALLET_BUFFER_RATE = 0.01;
+
+const formatDate = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const formatAmount = (value) => {
+  const amount = Number(value);
+  if (Number.isNaN(amount)) return value;
+  return amount % 1 === 0 ? String(amount) : amount.toFixed(2);
+};
+
+const toNumber = (value) => Number(value ?? 0);
+
+const getStatusColor = (status) => {
+  switch ((status || "").toLowerCase()) {
+    case "approved":
+      return "text-green-400 bg-green-500/10 border-green-500/30";
+    case "pending":
+      return "text-yellow-400 bg-yellow-500/10 border-yellow-500/30";
+    case "rejected":
+      return "text-red-400 bg-red-500/10 border-red-500/30";
+    default:
+        return "text-gray-400 bg-gray-500/10 border-gray-500/30";
+  }
+};
+
+// Display-only status labels (database/API values unchanged).
+const getStatusLabel = (status, t) => {
+  switch ((status || "").toLowerCase()) {
+    case "pending":
+      return t('withdraw.status_pending');
+    case "approved":
+      return t('withdraw.status_approved');
+    default:
+      return status;
+  }
+};
+
+const getErrorMessage = (error) =>
+  error?.response?.data?.detail ||
+  error?.response?.data?.message ||
+  error?.message;
+
+const INITIAL_FIELD_ERRORS = {
+  amount: "",
+  method: "",
+  destination: "",
+};
+
+const getApiFieldErrors = (error) => {
+  const details = error?.response?.data?.detail;
+  if (!Array.isArray(details)) return null;
+  const mapped = {};
+  let hasMappedError = false;
+  details.forEach((item) => {
+    const field = item?.loc?.[item.loc.length - 1];
+    const message = typeof item?.msg === "string" ? item.msg : "Invalid value";
+    if (field === "amount") { mapped.amount = message; hasMappedError = true; }
+    if (field === "withdrawal_method_id") { mapped.method = message; hasMappedError = true; }
+    if (field === "destination_address") { mapped.destination = message; hasMappedError = true; }
+  });
+  return hasMappedError ? mapped : null;
+};
+
+export default function WithdrawPage() {
+  const { t } = useTranslation();
+  const user = useUserStore((state) => state.user);
+  const setUser = useUserStore((state) => state.setUser);
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState(INITIAL_FIELD_ERRORS);
+  const [feedback, setFeedback] = useState(null);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
+  const [bankInfo, setBankInfo] = useState(null);
+  const [methods, setMethods] = useState([]);
+  const [globalMinWithdrawal, setGlobalMinWithdrawal] = useState(10);
+  const [selectedMethodId, setSelectedMethodId] = useState("");
+  const [destinationAddress, setDestinationAddress] = useState("");
+  const [accountType, setAccountType] = useState("personal");
+
+  useEffect(() => {
+    if (!feedback) return undefined;
+    const timer = setTimeout(() => setFeedback(null), 4000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
+  const mainWalletBalance = toNumber(user?.main_wallet);
+
+  const selectedWallet = useMemo(
+    () => ({ key: "main_wallet", label: t('withdraw.mainWallet'), balance: mainWalletBalance }),
+    [mainWalletBalance, t],
+  );
+
+  const selectedWalletKey = "main_wallet";
+
+  const walletLabelMap = useMemo(
+    () => new Map([["main_wallet", t('withdraw.mainWallet')]]),
+    [t],
+  );
+
+  const selectedMethod = useMemo(
+    () => methods.find((m) => String(m.id) === selectedMethodId),
+    [methods, selectedMethodId],
+  );
+
+  const amountNumber = useMemo(() => {
+    const p = Number(amount.trim());
+    return Number.isNaN(p) || p <= 0 ? 0 : p;
+  }, [amount]);
+
+  const requiredMainWalletBalance = useMemo(
+    () => amountNumber * (1 + MAIN_WALLET_BUFFER_RATE),
+    [amountNumber],
+  );
+  const mainWalletShortfall = useMemo(
+    () => Math.max(requiredMainWalletBalance - mainWalletBalance, 0),
+    [requiredMainWalletBalance, mainWalletBalance],
+  );
+  const hasEnoughMainWalletBalance = amountNumber <= 0 || mainWalletShortfall === 0;
+
+  const hasApprovedBank = bankInfo?.status === "approved";
+
+  const minAmount = Math.max(
+    selectedMethod?.min_amount ? Number(selectedMethod.min_amount) : 10,
+    globalMinWithdrawal > 0 ? globalMinWithdrawal : 10,
+  );
+  const maxAmount = selectedMethod?.max_amount ? Number(selectedMethod.max_amount) : 700;
+  const fixedFee = selectedMethod?.fixed_fee ? Number(selectedMethod.fixed_fee) : 0;
+  const percentFee = selectedMethod?.percent_fee ? Number(selectedMethod.percent_fee) : 0;
+  const feeAmount = amountNumber > 0 ? fixedFee + (amountNumber * percentFee / 100) : 0;
+  const netReceivable = amountNumber > 0 ? amountNumber - feeAmount : 0;
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [userResponse, withdrawalsResponse, bankRes, methodRes] = await Promise.all([
+          refreshUserStore(),
+          getMyWithdrawals(),
+          getMyBankInfo(),
+          getActiveWithdrawalMethods().catch(() => ({ data: { data: [] } })),
+        ]);
+        if (userResponse?.data?.user) {
+          setUser({ ...userResponse.data.user, kyc_status: userResponse.data.kyc_status });
+        }
+        setWithdrawals(withdrawalsResponse?.data?.data || []);
+        setBankInfo(bankRes?.data?.data || null);
+        setMethods(methodRes?.data?.data || []);
+        const globalMin = Number(methodRes?.data?.global_min_withdrawal_amount);
+        if (globalMin > 0) setGlobalMinWithdrawal(globalMin);
+      } catch (error) {
+        setFeedback({ type: "error", message: getErrorMessage(error) || t('withdraw.err_general') });
+        setWithdrawals([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, [setUser]);
+
+  const handleSubmitWithdraw = async (event) => {
+    event.preventDefault();
+    setFeedback(null);
+    const kycStatus = user?.kyc_status;
+    if (!kycStatus || kycStatus !== "approved") {
+      setFeedback({ type: "error", message: t('withdraw.err_kyc') });
+      return;
+    }
+    const nextFieldErrors = {};
+    const normalizedAmount = amount.trim();
+    const parsedAmount = Number(normalizedAmount);
+
+    if (!normalizedAmount) {
+      nextFieldErrors.amount = t('withdraw.err_field');
+    } else if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      nextFieldErrors.amount = t('withdraw.err_validAmount');
+    } else if (parsedAmount < minAmount) {
+      nextFieldErrors.amount = t('withdraw.err_min', { min: minAmount });
+    } else if (parsedAmount > maxAmount) {
+      nextFieldErrors.amount = t('withdraw.err_max', { max: maxAmount });
+    } else if (selectedWallet && parsedAmount > selectedWallet.balance) {
+      nextFieldErrors.amount = t('withdraw.err_balance', { wallet: selectedWallet.label, balance: selectedWallet.balance.toFixed(7) });
+    } else if (!hasEnoughMainWalletBalance) {
+      nextFieldErrors.amount = t('withdraw.err_mainBalance', { required: requiredMainWalletBalance.toFixed(7), available: mainWalletBalance.toFixed(7) });
+    }
+
+    if (!selectedMethodId) nextFieldErrors.method = t('withdraw.err_field');
+
+    if (selectedMethod?.method_type === "network") {
+      const dest = destinationAddress.trim();
+      if (!dest || dest.length < 5) nextFieldErrors.destination = t('withdraw.err_field');
+    }
+    if (selectedMethod?.method_type === "mobile") {
+      const dest = destinationAddress.trim();
+      if (!dest || dest.length < 5) nextFieldErrors.destination = t('withdraw.err_mobile');
+    }
+
+    if (Object.values(nextFieldErrors).some(Boolean)) {
+      setFieldErrors(nextFieldErrors);
+      return;
+    }
+
+    setFieldErrors(INITIAL_FIELD_ERRORS);
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        source_wallet: selectedWallet.key,
+        withdrawal_method_id: selectedMethod.id,
+        amount: normalizedAmount,
+        note: note.trim(),
+      };
+
+      if (selectedMethod.method_type === "network" || selectedMethod.method_type === "mobile") {
+        payload.destination_address = destinationAddress.trim();
+      }
+      if (selectedMethod.method_type === "mobile") {
+        payload.account_type = accountType;
+      }
+      if (selectedMethod.method_type === "bank") {
+        payload.use_bank_info = true;
+      }
+
+      if (selectedMethod.method_type === "bank" && !hasApprovedBank) {
+        setFeedback({ type: "error", message: t('withdraw.err_banking') });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = await createWithdrawalRequest(payload);
+      const created = response?.data?.data;
+      if (created) {
+        setWithdrawals((prev) => [created, ...prev]);
+      } else {
+        const wRes = await getMyWithdrawals();
+        setWithdrawals(wRes?.data?.data || []);
+      }
+      setFeedback({ type: "success", title: t('withdraw.successTitle'), message: t('withdraw.successMessage') });
+      setFieldErrors(INITIAL_FIELD_ERRORS);
+      setAmount("");
+      setNote("");
+      setDestinationAddress("");
+      setAccountType("personal");
+    } catch (error) {
+      const apiFieldErrors = getApiFieldErrors(error);
+      if (apiFieldErrors) { setFieldErrors(apiFieldErrors); return; }
+      setFeedback({ type: "error", message: getErrorMessage(error) || t('withdraw.err_general') });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyAddress = (value) => navigator.clipboard.writeText(value);
+
+  const renderWithdrawalDetailModal = () => {
+    if (!selectedWithdrawal) return null;
+
+    const address = selectedWithdrawal.destination_address || "-";
+    const addressLabel = address.length > 20 ? `${address.slice(0, 10)}...${address.slice(-6)}` : address;
+    const reference = selectedWithdrawal.transaction_id || "";
+    const referenceLabel = reference
+      ? (reference.length > 16 ? `${reference.slice(0, 10)}...${reference.slice(-6)}` : reference)
+      : "-";
+
+    const grossVal = selectedWithdrawal.gross_amount ?? selectedWithdrawal.amount;
+    const chargeVal = selectedWithdrawal.charge ?? 0;
+    const netVal = selectedWithdrawal.net_amount ?? (Number(grossVal||0) - Number(chargeVal||0));
+    return (
+      <TransactionDetailModal
+        title={t('withdraw.detailsTitle')}
+        amountLabel={t('withdraw.amountLabel')}
+        amountValue={`${formatAmount(grossVal)} USDT`}
+        amountClassName="text-red-300"
+        rows={[
+          { label: t('withdraw.date'), value: formatDate(selectedWithdrawal.created_at) },
+          {
+            label: t('withdraw.wallet'),
+            value: walletLabelMap.get(selectedWithdrawal.source_wallet) || selectedWithdrawal.source_wallet,
+          },
+          { label: t('withdraw.network'), value: selectedWithdrawal.network_name || "-" },
+          { label: "Gross", value: `${formatAmount(grossVal)} USDT` },
+          { label: "Fee", value: `${formatAmount(chargeVal)} USDT` },
+          { label: "Net Payable", value: `${formatAmount(netVal)} USDT` },
+          {
+            label: t('withdraw.refId'),
+            value: referenceLabel,
+            copyValue: reference || undefined,
+            mono: true,
+          },
+          {
+            label: t('withdraw.address'),
+            value: addressLabel,
+            copyValue: selectedWithdrawal.destination_address || undefined,
+            mono: true,
+          },
+        ]}
+        statusLabel={t('withdraw.status')}
+        statusText={getStatusLabel(selectedWithdrawal.status, t)}
+        statusClassName={getStatusColor(selectedWithdrawal.status)}
+        copiedText={t('withdraw.copied')}
+        onClose={() => setSelectedWithdrawal(null)}
+      />
+    );
+  };
+
+  return (
+    <div className="space-y-6 p-6">
+      <KycWarningBanner />
+      <div>
+        <h1 className="text-3xl font-bold">
+          <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            {t('withdraw.title')}
+          </span>
+        </h1>
+        <p className="text-sm text-gray-400">{t('withdraw.subtitle')}</p>
+      </div>
+
+      {/* Main Wallet Display */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-6 backdrop-blur-xl">
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.withdrawFrom')}</h3>
+        <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3">
+          <p className="text-sm text-gray-400">{t('withdraw.sourceWallet')}</p>
+          <p className="text-lg font-semibold text-white">{t('withdraw.mainWallet')}</p>
+        </div>
+        <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-sm text-gray-400">{t('withdraw.availableBalance')}</p>
+          <p className="text-lg font-semibold text-cyan-400">{t('withdraw.balance', { balance: mainWalletBalance.toFixed(7) })}</p>
+        </div>
+      </div>
+
+      {/* Withdrawal Form */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 sm:p-6 backdrop-blur-xl">
+        <h3 className="mb-4 text-lg font-semibold">{t('withdraw.submit')}</h3>
+        <form className="space-y-4" onSubmit={handleSubmitWithdraw}>
+          {/* Method Selection */}
+          <div className="relative">
+            <select
+              value={selectedMethodId}
+              onChange={(e) => { setSelectedMethodId(e.target.value); setFieldErrors((p) => ({ ...p, method: "", destination: "" })); setDestinationAddress(""); }}
+              className={`w-full appearance-none rounded-xl border bg-[#0A122C] px-4 py-3 text-white ${fieldErrors.method ? "border-red-500/60" : "border-white/10"}`}
+            >
+              <option value="" style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>{t('withdraw.selectMethod_plh')}</option>
+              {methods.map((m) => (
+                <option key={m.id} value={m.id} style={{ color: "#0f172a", backgroundColor: "#ffffff" }}>
+                  {m.display_name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          </div>
+          {fieldErrors.method && <p className="mt-1 text-xs text-red-300">{fieldErrors.method}</p>}
+
+          {/* Method-specific info */}
+          {selectedMethod && selectedMethod.instructions && (
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-sm text-blue-200">
+              {selectedMethod.instructions}
+            </div>
+          )}
+
+          {/* Bank info */}
+          {selectedMethod?.method_type === "bank" && hasApprovedBank && (
+            <div className="rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 p-4">
+              <div className="flex items-center gap-2 text-sm text-gray-300 font-semibold mb-2">
+                <Building2 className="w-4 h-4 text-cyan-400" /> {t('withdraw.destinationBankAccount')}
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <span className="text-gray-500">{t('withdraw.bankLabel')}</span><span className="text-white">{bankInfo.bank_name}</span>
+                <span className="text-gray-500">{t('withdraw.accountLabel')}</span><span className="text-white">{bankInfo.account_number}</span>
+                <span className="text-gray-500">{t('withdraw.holderLabel')}</span><span className="text-white">{bankInfo.account_holder_name}</span>
+                <span className="text-gray-500">{t('withdraw.swiftLabel')}</span><span className="text-white">{bankInfo.swift_code}</span>
+              </div>
+            </div>
+          )}
+
+          {selectedMethod?.method_type === "bank" && !hasApprovedBank && (
+            <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+              <p className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> <span dangerouslySetInnerHTML={{ __html: t('withdraw.bankingWarning') }} /></p>
+            </div>
+          )}
+
+          {/* Network address input */}
+          {selectedMethod?.method_type === "network" && (
+            <div>
+              <label className="mb-1 block text-sm text-gray-400">{t('withdraw.destinationAddress')}</label>
+              <input
+                value={destinationAddress}
+                onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
+                className={`w-full rounded-xl border bg-white/5 px-4 py-3 font-mono text-sm ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
+                placeholder={t('withdraw.networkAddress_plh')}
+              />
+              {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
+            </div>
+          )}
+
+          {/* Mobile money input */}
+          {selectedMethod?.method_type === "mobile" && (
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-sm text-gray-400">{t('withdraw.mobileNumber')}</label>
+                <input
+                  value={destinationAddress}
+                  onChange={(e) => { setDestinationAddress(e.target.value); setFieldErrors((p) => ({ ...p, destination: "" })); }}
+                  className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${fieldErrors.destination ? "border-red-500/60" : "border-white/10"}`}
+                  placeholder={t('withdraw.mobile_plh')}
+                />
+                {fieldErrors.destination && <p className="mt-1 text-xs text-red-300">{fieldErrors.destination}</p>}
+              </div>
+              <div>
+                <label className="mb-1 block text-sm text-gray-400">{t('withdraw.accountType')}</label>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("personal")}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "personal" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
+                  >
+                    <Smartphone className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountPersonal')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("agent")}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${accountType === "agent" ? "border-cyan-500/60 bg-cyan-500/20 text-cyan-300" : "border-white/10 bg-white/5 text-gray-400"}`}
+                  >
+                    <Building2 className="inline-block w-4 h-4 mr-1" /> {t('withdraw.accountAgent')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Amount */}
+          <input
+            type="number"
+            step="any"
+            min={minAmount}
+            max={maxAmount}
+            value={amount}
+            onChange={(e) => { setAmount(e.target.value); setFieldErrors((p) => ({ ...p, amount: "" })); }}
+            className={`w-full rounded-xl border bg-white/5 px-4 py-3 ${fieldErrors.amount ? "border-red-500/60" : "border-white/10"}`}
+            placeholder={t('withdraw.amount_plh', { min: minAmount, max: maxAmount })}
+          />
+          {fieldErrors.amount && <p className="-mt-2 text-xs text-red-300">{fieldErrors.amount}</p>}
+
+          {amountNumber > 0 && selectedMethod && (
+            <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex justify-between text-sm text-gray-400">
+                <span>{t('withdraw.requestedAmount')}</span>
+                <span className="text-white">${Number(amount).toFixed(2)}</span>
+              </div>
+              {feeAmount > 0 && (
+                <div className="flex justify-between text-sm text-gray-400 mt-1">
+                  <span>{t('withdraw.charge')}</span>
+                  <span className="text-amber-400">-${feeAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="border-t border-white/10 mt-2 pt-2 flex justify-between text-sm">
+                <span className="text-gray-300 font-semibold">{t('withdraw.netReceivable')}</span>
+                <span className="text-green-400 font-bold">${netReceivable.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          {amountNumber > 0 && (
+            <div className={`rounded-xl border px-4 py-3 text-sm ${hasEnoughMainWalletBalance ? "border-green-500/30 bg-green-500/10 text-green-200" : "border-red-500/30 bg-red-500/10 text-red-200"}`}>
+              <p>{t('withdraw.mainRequired', { amount: requiredMainWalletBalance.toFixed(7) })}</p>
+              <p>{t('withdraw.mainAvailable', { balance: mainWalletBalance.toFixed(7) })}</p>
+              {!hasEnoughMainWalletBalance && <p>{t('withdraw.needExtra', { shortfall: mainWalletShortfall.toFixed(7) })}</p>}
+            </div>
+          )}
+
+          {/* Note */}
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3"
+            placeholder={t('withdraw.note_plh')}
+          />
+
+          <button
+            type="submit"
+            disabled={isSubmitting || isLoading || !hasEnoughMainWalletBalance || !selectedMethodId}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 py-3 text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Send size={18} />
+            {isSubmitting ? t('withdraw.submitting') : t('withdraw.submitRequest')}
+          </button>
+        </form>
+      </div>
+
+      {/* History */}
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl">
+        <div className="border-b border-white/10 p-3 sm:p-6">
+          <h3 className="text-lg font-semibold">{t('withdraw.history')}</h3>
+        </div>
+        <div className="responsive-table-wrapper hidden md:block">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.date')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">Gross / Fee / Net</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.wallet')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.network')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.refId')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.address')}</th>
+                <th className="p-4 text-left text-sm text-gray-400">{t('withdraw.status')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.loadingHistory')}</td></tr>}
+              {!isLoading && withdrawals.length === 0 && <tr><td colSpan="7" className="p-6 text-center text-gray-400">{t('withdraw.noHistory')}</td></tr>}
+              {withdrawals.map((w) => {
+                const address = w.destination_address || "-";
+                const isLong = address.length > 20;
+                const label = isLong ? `${address.slice(0, 10)}...${address.slice(-6)}` : address;
+                return (
+                  <tr key={w.id} className="border-b border-white/5 hover:bg-white/5">
+                    <td className="p-4 text-gray-400">{formatDate(w.created_at)}</td>
+                    <td className="p-4 text-xs leading-tight">
+                      <div className="font-semibold text-white">Gross: {formatAmount(w.gross_amount ?? w.amount)} USDT</div>
+                      <div className="text-amber-300">Fee: {formatAmount(w.charge ?? 0)} USDT</div>
+                      <div className="font-semibold text-emerald-300">Net: {formatAmount(w.net_amount ?? (Number(w.amount||0)-Number(w.charge||0)))} USDT</div>
+                    </td>
+                    <td className="p-4 text-gray-400">{walletLabelMap.get(w.source_wallet) || w.source_wallet}</td>
+                    <td className="p-4 text-gray-400">{w.network_name || "-"}</td>
+                    <td className="p-4">
+                      {w.transaction_id ? (
+                        <button onClick={() => copyAddress(w.transaction_id)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
+                          {w.transaction_id.length > 16 ? `${w.transaction_id.slice(0, 10)}...${w.transaction_id.slice(-6)}` : w.transaction_id} <Copy size={14} />
+                        </button>
+                      ) : "-"}
+                    </td>
+                    <td className="p-4">
+                      <button onClick={() => copyAddress(address)} className="flex items-center gap-2 font-mono text-blue-400" type="button">
+                        {label} <Copy size={14} />
+                      </button>
+                    </td>
+                    <td className="p-4"><span className={`rounded-full border px-2 py-1 text-xs ${getStatusColor(w.status)}`}>{getStatusLabel(w.status, t)}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile: compact history cards */}
+        <div className="md:hidden px-3 pb-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-sm text-gray-400">
+              {t('withdraw.loadingHistory')}
+            </div>
+          ) : withdrawals.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400">
+              {t('withdraw.noHistory')}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {withdrawals.map((w) => {
+                const address = w.destination_address || "-";
+                const isLong = address.length > 20;
+                const label = isLong ? `${address.slice(0, 10)}...${address.slice(-6)}` : address;
+
+                return (
+                  <div
+                    key={w.id}
+                    onClick={() => setSelectedWithdrawal(w)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedWithdrawal(w);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer rounded-xl border border-white/10 bg-[#0B132B] p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                          <ArrowUpRight size={15} className="text-red-300" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13px] font-semibold leading-tight text-white">
+                            {w.network_name || "-"}
+                          </div>
+                          <div className="mt-0.5 truncate text-[11px] text-gray-400">
+                            {formatDate(w.created_at)} · {walletLabelMap.get(w.source_wallet) || w.source_wallet}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end text-right">
+                        <span className="whitespace-nowrap text-xs font-semibold text-white">Gross: {formatAmount(w.gross_amount ?? w.amount)} USDT</span>
+                        <span className="whitespace-nowrap text-[11px] text-amber-300">Fee: {formatAmount(w.charge ?? 0)} USDT</span>
+                        <span className="whitespace-nowrap text-sm font-bold text-emerald-300">Net: {formatAmount(w.net_amount ?? (Number(w.amount||0)-Number(w.charge||0)))} USDT</span>
+                        <span className={`mt-0.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold ${getStatusColor(w.status)}`}>
+                          {getStatusLabel(w.status, t)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 space-y-1.5 border-t border-white/5 pt-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                          {t('withdraw.refId')}
+                        </span>
+                        {w.transaction_id ? (
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              copyAddress(w.transaction_id);
+                            }}
+                            className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
+                            type="button"
+                          >
+                            <span className="truncate">
+                              {w.transaction_id.length > 16 ? `${w.transaction_id.slice(0, 10)}...${w.transaction_id.slice(-6)}` : w.transaction_id}
+                            </span>
+                            <Copy size={13} className="shrink-0" />
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-gray-500">-</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                          {t('withdraw.address')}
+                        </span>
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            copyAddress(address);
+                          }}
+                          className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-blue-400"
+                          type="button"
+                        >
+                          <span className="truncate">{label}</span>
+                          <Copy size={13} className="shrink-0" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {renderWithdrawalDetailModal()}
+
+      <StatusFeedbackModal feedback={feedback} onClose={() => setFeedback(null)} />
+    </div>
+  );
+}
